@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Production Command Centre — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="production.css" />
+  <script src="../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+</head>
+
+<body data-module="production-room">
+
+  <!-- Background Atmospheric Image Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- =====================================================
+         HAULO BOUTIQUE ERP — Sidebar Fragment
+         (Inlined for instant render & file:/// offline support)
+         ===================================================== -->
+    <div id="sidebarSlot"></div><!-- /sidebarSlot -->
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- =====================================================
+           TOP NAVIGATION HEADER (MATCHING REFERENCE EXACTLY)
+           ===================================================== -->
+      <div id="navbarSlot"></div><!-- /navbarSlot -->
+
+      <!-- =====================================================
+           COMMAND CENTRE SCROLLABLE WORKSPACE
+           ===================================================== -->
+      <div class="production-workspace" id="productionWorkspace">
+
+        <!-- Page Header Row -->
+        <div class="page-title-row">
+          <div class="title-left">
+            <h1 class="page-title">Production Command Centre</h1>
+            <p class="page-subtitle">Track, manage and streamline your production in real time.</p>
+          </div>
+          <div class="title-right" style="display:flex;align-items:center;gap:12px;">
+            <a href="stages/stages.html" class="btn-manage-stages" id="btnManageStages"
+              title="Manage production workflow stages">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+              Manage Stages
+            </a>
+            <div class="live-date" id="liveDateDisplay">—</div>
+            <div class="live-time" id="liveTimeDisplay">—</div>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             1. TOP KPI SUMMARY ROW (6 CARDS)
+             ===================================================== -->
+        <section class="kpi-grid">
+
+          <!-- KPI 1: Total Orders -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Orders</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiTotalOrders">0</span>
+              </div>
+              <span class="kpi-subtext positive" id="kpiTotalOrdersSub">Active in boutique</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: In Production -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">In Production</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiInProduction">0</span>
+              </div>
+              <span class="kpi-subtext muted" id="kpiInProductionSub">In workflow</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: On Track -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">On Track</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiOnTrack">0</span>
+              </div>
+              <span class="kpi-subtext positive" id="kpiOnTrackSub">On schedule</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Delayed -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Delayed</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value alert" id="kpiDelayed">0</span>
+              </div>
+              <span class="kpi-subtext alert" id="kpiDelayedSub">Attention needed</span>
+            </div>
+          </div>
+
+          <!-- KPI 5: Due This Week -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box sky">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Due This Week</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiDueThisWeek">0</span>
+              </div>
+              <span class="kpi-subtext positive" id="kpiDueThisWeekSub">Due in 7 days</span>
+            </div>
+          </div>
+
+          <!-- KPI 6: Production Completion Donut Card -->
+          <div class="kpi-card completion-card">
+            <div class="completion-donut-wrapper">
+              <svg viewBox="0 0 100 100" class="donut-svg">
+                <!-- Background Ring -->
+                <circle cx="50" cy="50" r="38" class="donut-bg" />
+                <!-- Completed segment (green) -->
+                <circle id="donutSegCompleted" cx="50" cy="50" r="38" class="donut-segment seg-completed"
+                  stroke-dasharray="0 239" stroke-dashoffset="0" />
+                <!-- In Progress segment (purple) -->
+                <circle id="donutSegProgress" cx="50" cy="50" r="38" class="donut-segment seg-progress"
+                  stroke-dasharray="0 239" stroke-dashoffset="0" />
+                <!-- Delayed segment (coral) -->
+                <circle id="donutSegDelayed" cx="50" cy="50" r="38" class="donut-segment seg-delayed"
+                  stroke-dasharray="0 239" stroke-dashoffset="0" />
+              </svg>
+              <div class="donut-center-text" id="kpiDonutPct">0%</div>
+            </div>
+            <div class="completion-legend">
+              <div class="completion-title">Production Completion</div>
+              <div class="leg-item">
+                <span class="leg-dot green"></span>
+                <span class="leg-name">Completed</span>
+                <span class="leg-val" id="kpiLegendCompleted">0</span>
+              </div>
+              <div class="leg-item">
+                <span class="leg-dot purple"></span>
+                <span class="leg-name">In Progress</span>
+                <span class="leg-val" id="kpiLegendProgress">0</span>
+              </div>
+              <div class="leg-item">
+                <span class="leg-dot red"></span>
+                <span class="leg-name">Delayed</span>
+                <span class="leg-val" id="kpiLegendDelayed">0</span>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- =====================================================
+             2. ANALYTICAL CHARTS ROW (3 CARDS)
+             ===================================================== -->
+        <section class="analytics-row">
+
+          <!-- Chart 1: Production Load (8 Stages) -->
+          <div class="glass-card load-card">
+            <div class="card-header-bar">
+              <div class="ch-left">
+                <h3 class="card-title">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#a3e635" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                  Production Load
+                </h3>
+                <span class="card-subtitle">Garments across all stages</span>
+              </div>
+              <button class="card-action-link" onclick="viewAllStages()">View Details →</button>
+            </div>
+
+            <!-- Custom Pastel Bar Chart (Dynamically populated by JS for 8 Kanban stages) -->
+            <div class="stage-bar-chart" id="stageBarChart">
+              <!-- Populated dynamically by updateBarChart() -->
+            </div>
+          </div>
+
+          <!-- Chart 2: On-Time vs Delayed -->
+          <div class="glass-card ontime-card">
+            <div class="card-header-bar">
+              <div class="ch-left">
+                <h3 class="card-title">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fde047" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 14 14" />
+                  </svg>
+                  On-Time vs Delayed
+                </h3>
+                <span class="card-subtitle">Active Orders</span>
+              </div>
+            </div>
+
+            <div class="ontime-body">
+              <div class="ontime-chart-wrapper">
+                <svg viewBox="0 0 120 120" class="ontime-svg">
+                  <!-- Grey track -->
+                  <circle cx="60" cy="60" r="44" class="ontime-bg" />
+                  <!-- Green arc -->
+                  <circle id="otSegOntime" cx="60" cy="60" r="44" class="ontime-segment seg-ontime"
+                    stroke-dasharray="0 276" stroke-dashoffset="69" />
+                  <!-- Coral arc -->
+                  <circle id="otSegDelayed" cx="60" cy="60" r="44" class="ontime-segment seg-delayed"
+                    stroke-dasharray="0 276" stroke-dashoffset="0" />
+                </svg>
+                <div class="ontime-center">
+                  <span class="ot-pct" id="otPctDisplay">0%</span>
+                  <span class="ot-sub">On Time</span>
+                </div>
+              </div>
+
+              <div class="ontime-legend">
+                <div class="ot-leg-item">
+                  <span class="leg-dot green"></span>
+                  <span class="ot-leg-text">On Time</span>
+                  <span class="ot-leg-val" id="otValOntime">0</span>
+                </div>
+                <div class="ot-leg-item">
+                  <span class="leg-dot coral"></span>
+                  <span class="ot-leg-text">Delayed</span>
+                  <span class="ot-leg-val" id="otValDelayed">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart 3: Average Production Time -->
+          <div class="glass-card avgtime-card">
+            <div class="card-header-bar">
+              <div class="ch-left">
+                <h3 class="card-title">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#38bdf8" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                  </svg>
+                  Average Production Time
+                </h3>
+                <span class="card-subtitle">(Days)</span>
+              </div>
+            </div>
+
+            <!-- Vertical Bars (Dynamically populated by JS) -->
+            <div class="avg-time-chart" id="avgTimeChart">
+              <!-- Populated dynamically by updateAvgTimeChart() -->
+            </div>
+          </div>
+
+        </section>
+
+        <!-- =====================================================
+             3. PRODUCTION WORKFLOW BOARD (KANBAN)
+             ===================================================== -->
+        <section class="workflow-section">
+
+          <!-- Workflow Toolbar Header -->
+          <div class="workflow-header-row">
+            <div class="wf-title-area">
+              <h2 class="wf-title">Production Workflow</h2>
+              <p class="wf-subtitle">Drag and drop cards to update status</p>
+            </div>
+
+            <div class="wf-controls-area">
+              <!-- Search within Workflow -->
+              <div class="wf-search-box">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input type="text" id="workflowSearchInput" placeholder="Search orders, customers..."
+                  oninput="handleWorkflowSearch()" />
+              </div>
+
+              <!-- Garment Filter -->
+              <div class="custom-select-wrap">
+                <select id="filterGarment" onchange="applyWorkflowFilters()">
+                  <option value="all">All Garments</option>
+                  <option value="Blouse">Blouse</option>
+                  <option value="Saree">Saree</option>
+                  <option value="Lehenga">Lehenga</option>
+                  <option value="Chudi">Chudi / Salwar</option>
+                  <option value="Gown">Gown</option>
+                  <option value="Kurti">Kurti</option>
+                </select>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" class="select-chevron">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+
+              <!-- Team / Specialist Filter -->
+              <div class="custom-select-wrap">
+                <select id="filterTeam" onchange="applyWorkflowFilters()">
+                  <option value="all">All Specialists</option>
+                </select>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" class="select-chevron">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+
+              <!-- Due Date Filter -->
+              <div class="custom-select-wrap">
+                <select id="filterDueDate" onchange="applyWorkflowFilters()">
+                  <option value="all">Due Date</option>
+                  <option value="today">Due Today</option>
+                  <option value="tomorrow">Due Tomorrow</option>
+                  <option value="week">Due This Week</option>
+                  <option value="overdue">Overdue</option>
+                </select>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" class="select-chevron">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+
+              <!-- + New Order Button -->
+              <button class="btn-primary btn-new-order" onclick="openNewOrderModal()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>New Order</span>
+              </button>
+            </div>
+                  <!-- KANBAN BOARD COLUMNS CONTAINER -->
+          <div class="kanban-board" id="kanbanBoard">
+
+            <!-- 1. Order Taken Column -->
+            <div class="kanban-col col-ordertaken" data-stage-id="ordertaken" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'ordertaken')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-emerald"></span>
+                  <img src="/front end/assets/stages/Order_Taken_1010.jpg" class="stage-col-thumb" alt="Order Taken" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Order Taken</span>
+                </div>
+                <span class="k-col-count" id="count-ordertaken">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-ordertaken">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('ordertaken')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 2. Designing Column -->
+            <div class="kanban-col col-designing" data-stage-id="designing" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'designing')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-purple"></span>
+                  <img src="/front end/assets/stages/Designing_1058.jpg" class="stage-col-thumb" alt="Designing" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Designing</span>
+                </div>
+                <span class="k-col-count" id="count-designing">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-designing">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('designing')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 3. Lining Column -->
+            <div class="kanban-col col-lining" data-stage-id="lining" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'lining')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-blue"></span>
+                  <img src="/front end/assets/stages/Lining_2047.jpg" class="stage-col-thumb" alt="Lining" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Lining</span>
+                </div>
+                <span class="k-col-count" id="count-lining">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-lining">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('lining')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 4. Cutting Column -->
+            <div class="kanban-col col-cutting" data-stage-id="cutting" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'cutting')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-yellow"></span>
+                  <img src="/front end/assets/stages/Cutting_4091.jpg" class="stage-col-thumb" alt="Cutting" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Cutting</span>
+                </div>
+                <span class="k-col-count" id="count-cutting">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-cutting">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('cutting')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 5. Hand Work Column -->
+            <div class="kanban-col col-handwork" data-stage-id="handwork" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'handwork')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-pink"></span>
+                  <img src="/front end/assets/stages/Hand_Work_3082.jpg" class="stage-col-thumb" alt="Hand Work" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Hand Work</span>
+                </div>
+                <span class="k-col-count" id="count-handwork">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-handwork">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('handwork')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 6. Stitching Column -->
+            <div class="kanban-col col-stitching" data-stage-id="stitching" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'stitching')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-green"></span>
+                  <img src="/front end/assets/stages/Stitching_5076.jpg" class="stage-col-thumb" alt="Stitching" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Stitching</span>
+                </div>
+                <span class="k-col-count" id="count-stitching">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-stitching">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('stitching')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 7. Trial Column -->
+            <div class="kanban-col col-trial" data-stage-id="trial" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'trial')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-cyan"></span>
+                  <img src="/front end/assets/stages/Trial_6034.jpg" class="stage-col-thumb" alt="Trial" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Trial</span>
+                </div>
+                <span class="k-col-count" id="count-trial">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-trial">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('trial')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 8. QC Column (Penultimate Stage) -->
+            <div class="kanban-col col-qc" data-stage-id="qc" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'qc')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-coral"></span>
+                  <img src="/front end/assets/stages/QC_7019.jpg" class="stage-col-thumb" alt="QC" onerror="this.style.display='none'" />
+                  <span class="k-col-name">QC</span>
+                </div>
+                <span class="k-col-count" id="count-qc">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-qc">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('qc')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+            <!-- 9. Ready to Deliver Column (Final Stage) -->
+            <div class="kanban-col col-readytodeliver" data-stage-id="readytodeliver" ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'readytodeliver')">
+              <div class="k-col-header">
+                <div class="k-title-group">
+                  <span class="stage-dot dot-silver"></span>
+                  <img src="/front end/assets/stages/Ready_8043.jpg" class="stage-col-thumb" alt="Ready to Deliver" onerror="this.style.display='none'" />
+                  <span class="k-col-name">Ready to Deliver</span>
+                </div>
+                <span class="k-col-count" id="count-readytodeliver">0</span>
+              </div>
+              <div class="k-cards-zone" id="zone-readytodeliver">
+                <!-- Injected via JS -->
+              </div>
+              <button class="btn-add-order-col" onclick="openNewOrderModal('readytodeliver')">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Order</span>
+              </button>
+            </div>
+
+          </div>    </div>
+        </section>
+
+        <!-- =====================================================
+             4. BOTTOM SUMMARY PANELS (4 CARDS)
+             ===================================================== -->
+        <section class="bottom-panels-row">
+
+          <!-- 1. Team Performance -->
+          <div class="glass-card panel-team">
+            <div class="card-header-bar">
+              <div class="ch-left">
+                <h3 class="card-title">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#a78bfa" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  Team Performance
+                </h3>
+                <span class="card-subtitle">Active workforce leaders</span>
+              </div>
+            </div>
+
+            <div class="team-perf-list" id="teamPerfList">
+              <div class="empty-state-notice"
+                style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">Loading team
+                assignments...</div>
+            </div>
+          </div>
+
+          <!-- 2. Bottlenecks -->
+          <div class="glass-card panel-bottlenecks">
+            <div class="card-header-bar">
+              <div class="ch-left">
+                <h3 class="card-title">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fb7185" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  Bottlenecks
+                </h3>
+                <span class="card-subtitle">Stages with highest load or delay</span>
+              </div>
+              <button class="card-action-link" onclick="focusBottlenecks()">→</button>
+            </div>
+
+            <div class="bottleneck-list" id="bottlenecksList">
+              <!-- Dynamically populated by JS -->
+            </div>
+          </div>
+
+          <!-- 3. Upcoming Deadlines -->
+          <div class="glass-card panel-deadlines">
+            <div class="card-header-bar">
+              <div class="ch-left">
+                <h3 class="card-title">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#a3e635" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  Upcoming Deadlines
+                </h3>
+                <span class="card-subtitle">Next target deliveries</span>
+              </div>
+              <button class="card-action-link" onclick="viewAllDeadlines()">View All →</button>
+            </div>
+
+            <div class="deadlines-list" id="deadlinesList">
+              <!-- Dynamically populated by JS -->
+            </div>
+          </div>
+
+          <!-- 4. Quick Actions -->
+          <div class="glass-card panel-actions">
+            <div class="card-header-bar">
+              <div class="ch-left">
+                <h3 class="card-title">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#a3e635" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                  Quick Actions
+                </h3>
+              </div>
+            </div>
+
+            <div class="quick-actions-grid">
+              <button class="btn-glass-action" onclick="openNewOrderModal()">
+                <div class="qa-icon-wrap lime">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="12" y1="18" x2="12" y2="12" />
+                    <line x1="9" y1="15" x2="15" y2="15" />
+                  </svg>
+                </div>
+                <span>Create New Order</span>
+              </button>
+
+              <button class="btn-glass-action" onclick="openAssignTeamModal()">
+                <div class="qa-icon-wrap blue">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <span>Assign Team</span>
+              </button>
+
+              <button class="btn-glass-action" onclick="openUpdateProductionModal()">
+                <div class="qa-icon-wrap green">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                </div>
+                <span>Update Production</span>
+              </button>
+
+              <button class="btn-glass-action" onclick="printJobCard()">
+                <div class="qa-icon-wrap purple">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                </div>
+                <span>Print Job Card</span>
+              </button>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+      <!-- Footer slot - injected by fragments.js -->
+      <div id="footerSlot"></div><!-- /footerSlot -->
+
+    </main>
+  </div>
+
+  <!-- =====================================================
+       MODALS
+       ===================================================== -->
+
+  <!-- Modal 1: + New Production Order -->
+  <div class="modal-overlay" id="newOrderModal">
+    <div class="modal-glass-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Production Order</h3>
+        <button class="modal-close-btn" onclick="closeModal('newOrderModal')">✕</button>
+      </div>
+      <form id="newOrderForm" onsubmit="handleCreateOrderSubmit(event)">
+        <div class="modal-form-grid">
+          <div class="form-group">
+            <label>Customer Name *</label>
+            <input type="text" id="moCustomer" required placeholder="e.g. Customer Name" />
+          </div>
+          <div class="form-group">
+            <label>Garment Type *</label>
+            <select id="moGarment" required>
+              <option value="Bridal Blouse">Bridal Blouse</option>
+              <option value="Chudi Set">Chudi Set</option>
+              <option value="Designer Lehenga">Designer Lehenga</option>
+              <option value="Silk Saree Work">Silk Saree Work</option>
+              <option value="Reception Gown">Reception Gown</option>
+              <option value="Anarkali Kurti">Anarkali Kurti</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Initial Stage *</label>
+            <select id="moStage" required>
+              <option value="ordertaken" selected>Order Taken</option>
+              <option value="designing">Designing</option>
+              <option value="lining">Lining</option>
+              <option value="cutting">Cutting</option>
+              <option value="handwork">Hand Work</option>
+              <option value="stitching">Stitching</option>
+              <option value="trial">Trial</option>
+              <option value="qc">QC</option>
+              <option value="readytodeliver">Ready to Deliver</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Target Due Date *</label>
+            <input type="date" id="moDueDate" required />
+          </div>
+          <div class="form-group">
+            <label>Assigned Specialist</label>
+            <select id="moTeam">
+              <option value="">Auto-assign Lead Specialist</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="moPriority">
+              <option value="High">High (Bridal)</option>
+              <option value="Normal" selected>Normal</option>
+              <option value="Rush">Rush Order</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label>Special Tailoring Instructions</label>
+          <textarea id="moNotes" rows="2"
+            placeholder="e.g. Deep neckline, gold zardozi piping, extra 2-inch seam margin."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal('newOrderModal')">Cancel</button>
+          <button type="submit" class="btn-primary">Create Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Order Details & Job Card Preview -->
+  <div class="modal-overlay" id="orderDetailsModal">
+    <div class="modal-glass-card order-details-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="odModalTitle">Order Details</h3>
+        <button class="modal-close-btn" onclick="closeModal('orderDetailsModal')">✕</button>
+      </div>
+      <div class="order-details-body" id="orderDetailsContent">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('orderDetailsModal')">Close</button>
+        <button type="button" class="btn-primary" onclick="printJobCard()">Print Job Card</button>
+        <button type="button" class="btn-primary" id="btnAdvanceFromDetails" onclick="advanceOrderFromModal()"
+          style="background: rgba(163, 230, 53, 0.2); border: 1px solid rgba(163, 230, 53, 0.5); color: #a3e635;">Move
+          Stage & Assign Specialist ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Assign Team Modal -->
+  <div class="modal-overlay" id="assignTeamModal">
+    <div class="modal-glass-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Assign Production Team</h3>
+        <button class="modal-close-btn" onclick="closeModal('assignTeamModal')">✕</button>
+      </div>
+      <div class="modal-form-grid" style="grid-template-columns: 1fr;">
+        <div class="form-group">
+          <label>Select Production Stage</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img id="assignStageThumb" src="" style="width:34px;height:34px;border-radius:8px;object-fit:cover;display:none;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;" />
+            <select id="assignStageSelect" onchange="handleAssignStageChange()" style="flex:1;">
+              <option value="ordertaken">Order Taken</option>
+              <option value="designing">Designing</option>
+              <option value="lining">Lining</option>
+              <option value="cutting">Cutting</option>
+              <option value="handwork">Hand Work</option>
+              <option value="stitching">Stitching</option>
+              <option value="trial">Trial</option>
+              <option value="qc">Quality Control</option>
+              <option value="readytodeliver">Ready to Deliver</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Assign Lead Specialist</label>
+          <select id="assignSpecialistSelect">
+            <option value="">Select Specialist...</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('assignTeamModal')">Cancel</button>
+        <button type="button" class="btn-primary" onclick="submitTeamAssignment()">Assign Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Stage Transition & Specialist Assignment Modal -->
+  <div class="modal-overlay" id="stageTransitionModal">
+    <div class="modal-glass-card" style="max-width: 520px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div
+            style="width: 32px; height: 32px; border-radius: 8px; background: rgba(163, 230, 53, 0.15); display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#a3e635" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title" style="font-size: 15px; margin: 0;">Stage Transition & Assignment</h3>
+            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">User must assign an employee to advance the
+              garment</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="cancelStageTransition()">✕</button>
+      </div>
+
+      <div style="padding: 16px 20px 20px;">
+        <!-- Transition Pathway Banner -->
+        <div
+          style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div
+              style="font-size: 10px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
+              Order to Advance</div>
+            <div id="transOrderLabel" style="font-size: 13.5px; font-weight: 700; color: #ffffff; margin-top: 2px;">—
+            </div>
+            <div id="transClientGarment" style="font-size: 11px; color: rgba(255, 255, 255, 0.75);">—</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700;">
+            <span id="transCurrentBadge" class="kc-status-pill ontrack" style="font-size: 11px;">Current Stage</span>
+            <span style="color: #a3e635;">➔</span>
+            <span id="transTargetBadge" class="kc-status-pill ontrack"
+              style="font-size: 11px; background: rgba(163, 230, 53, 0.18); border-color: rgba(163, 230, 53, 0.4); color: #a3e635;">Target
+              Stage</span>
+          </div>
+        </div>
+
+        <form id="stageTransitionForm" onsubmit="confirmStageTransition(event)">
+          <!-- Employee Assignment Field (MANDATORY) -->
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label
+              style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; margin-bottom: 6px;">
+              <span>Assign Specialist on this Stage <strong style="color: #f87171;">*</strong></span>
+              <span id="transDeptHint" style="font-size: 10.5px; color: #a3e635; font-weight: 500;"></span>
+            </label>
+            <select id="transEmployeeSelect" required
+              style="width: 100%; padding: 10px 12px; border-radius: 8px; font-size: 12.5px; background: rgba(28, 24, 22, 0.95); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff; outline: none;">
+              <option value="">-- Select Specialist to Assign (Required) * --</option>
+              <!-- Populated dynamically with active employees -->
+            </select>
+            <span id="transErrorMsg" style="display:none; color:#f87171; font-size:11px; margin-top:4px;">Please select
+              an employee before proceeding.</span>
+          </div>
+
+          <!-- Handover / Tailoring Instructions -->
+          <div class="form-group" style="margin-bottom: 18px;">
+            <label style="font-size: 11.5px; margin-bottom: 6px; display: block;">Stage Instructions & Handover Notes
+              (Optional)</label>
+            <textarea id="transNotesInput" rows="2" placeholder="e.g. Ready for fitting, verify seam margins..."
+              style="width: 100%; padding: 10px 12px; border-radius: 8px; font-size: 12px; background: rgba(28, 24, 22, 0.95); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff; resize: none;"></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+            <button type="button" class="btn-cancel" onclick="cancelStageTransition()">Cancel</button>
+            <button type="submit" class="btn-primary" id="transConfirmBtn"
+              style="display: flex; align-items: center; gap: 6px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Assign & Transition Stage</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+
+  <!-- Scripts -->
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+  <script src="production.js"></script>
+
+</body>
+
+</html>

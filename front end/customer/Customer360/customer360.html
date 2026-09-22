@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer 360° Profile — Haulo Boutique ERP</title>
+  <meta name="description" content="Haulo Boutique ERP — Complete Customer 360° Profile & Relationship Management." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400;1,600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="customer360.css?v=2.7" />
+  <script src="../../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+
+<body data-module="customers">
+
+  <!-- Full-screen Blurred Fashion Boutique Background -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-gradient-overlay"></div>
+  </div>
+
+  <!-- Main Floating Glass Application Shell -->
+  <main class="app-shell" id="appShell">
+
+    <!-- Sidebar slot — injected by fragments.js -->
+    <div id="sidebarSlot"></div><!-- /sidebarSlot -->
+
+    <!-- Main content area -->
+    <div class="main-area">
+
+      <!-- Navbar slot — injected by fragments.js -->
+      <div id="navbarSlot"></div><!-- /navbarSlot -->
+
+      <!-- ======= CUSTOMER 360 WORKSPACE ======= -->
+      <div class="customer360-workspace">
+
+        <!-- Top Breadcrumb & Actions Bar -->
+        <div class="c360-top-bar">
+          <div class="breadcrumb-nav">
+            <a href="../customer-overview/customer-overview.html" class="bc-link">Customers</a>
+            <span class="bc-sep">&rsaquo;</span>
+            <span class="bc-current" id="bcCustomerName">Loading Customer...</span>
+          </div>
+
+          <div class="c360-top-actions">
+            <button type="button" class="btn-new-order" id="topNewOrderBtn">
+              <i data-lucide="plus"></i>
+              <span>New Order</span>
+            </button>
+            <button type="button" class="btn-top-glass" id="topBookApptBtn">
+              <i data-lucide="calendar"></i>
+              <span>Book Appointment</span>
+            </button>
+            <button type="button" class="btn-top-glass" id="topSendWhatsAppBtn">
+              <i data-lucide="message-circle"></i>
+              <span>Send WhatsApp</span>
+            </button>
+            <button type="button" class="btn-top-glass icon-only" id="topMoreBtn" title="More Options">
+              <i data-lucide="more-horizontal"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Full-Width Luxury Customer Profile Card -->
+        <div class="c360-profile-banner">
+          <div class="profile-banner-left">
+            <div class="profile-avatar-wrap">
+              <img src="../../assets/user_avatar.jpg" alt="Customer Avatar" class="profile-avatar-img"
+                id="customerAvatarImg" onerror="this.src='../../assets/user_avatar.jpg'" />
+            </div>
+            <div class="profile-info-block">
+              <div class="profile-name-badges">
+                <h1 class="profile-name" id="profileName">Loading Profile...</h1>
+                <span class="badge-vip" id="profileBadge">
+                  <i data-lucide="crown"></i>
+                  <span>Patron</span>
+                </span>
+                <span class="badge-active">
+                  <i data-lucide="check"></i>
+                  <span>Active</span>
+                </span>
+              </div>
+              <div class="profile-contacts">
+                <span class="p-contact"><i data-lucide="phone"></i><span id="profilePhone">—</span></span>
+                <span class="p-contact"><i data-lucide="mail"></i><span id="profileEmail">—</span></span>
+                <span class="p-contact"><i data-lucide="map-pin"></i><span id="profileLocation">—</span></span>
+              </div>
+              <div class="profile-quote-line">
+                <span class="quote-text" id="profileQuote">&ldquo;Bespoke patron profile&rdquo;</span>
+                <span class="quote-author" id="profileQuoteAuthor"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-banner-metrics">
+            <!-- 1. Customer Since -->
+            <div class="stat-card">
+              <div class="stat-icon-box calendar-box">
+                <i data-lucide="calendar"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Customer Since</span>
+                <span class="stat-value" id="statCustomerSince">—</span>
+                <span class="stat-sub" id="statCustomerYears">—</span>
+              </div>
+            </div>
+
+            <!-- 2. Total Spent -->
+            <div class="stat-card">
+              <div class="stat-icon-box rupee-box">
+                <i data-lucide="indian-rupee"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Total Spent</span>
+                <span class="stat-value" id="statTotalSpent">₹0</span>
+                <span class="stat-sub positive"><span id="statOrderCountText">0 orders</span></span>
+              </div>
+            </div>
+
+            <!-- 3. Active Orders -->
+            <div class="stat-card">
+              <div class="stat-icon-box bag-box">
+                <i data-lucide="shopping-bag"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Active Orders</span>
+                <span class="stat-value" id="statActiveOrders">0</span>
+                <span class="stat-sub">In progress</span>
+              </div>
+            </div>
+
+            <!-- 4. Pending Payments -->
+            <div class="stat-card">
+              <div class="stat-icon-box card-box">
+                <i data-lucide="credit-card"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Pending Payments</span>
+                <span class="stat-value" id="statPendingPayments">₹0</span>
+                <span class="stat-sub red-sub" id="statPendingOrdersCount"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horizontal Navigation Tabs Bar -->
+        <nav class="c360-nav-tabs">
+          <button type="button" class="tab-pill active" data-tab="overview" onclick="switchC360Tab('overview', this)">Overview</button>
+          <button type="button" class="tab-pill" data-tab="orders" onclick="switchC360Tab('orders', this)">Orders</button>
+          <button type="button" class="tab-pill" data-tab="designs" onclick="switchC360Tab('designs', this)">Designs</button>
+          <button type="button" class="tab-pill" data-tab="measurements" onclick="switchC360Tab('measurements', this)">Measurements</button>
+          <button type="button" class="tab-pill" data-tab="appointments" onclick="switchC360Tab('appointments', this)">Appointments</button>
+          <button type="button" class="tab-pill" data-tab="payments" onclick="switchC360Tab('payments', this)">Payments</button>
+          <button type="button" class="tab-pill" data-tab="alterations" onclick="switchC360Tab('alterations', this)">Alterations</button>
+          <button type="button" class="tab-pill" data-tab="communication" onclick="switchC360Tab('communication', this)">Communication</button>
+          <button type="button" class="tab-pill" data-tab="notes" onclick="switchC360Tab('notes', this)">Notes</button>
+        </nav>
+
+        <!-- =========================================================
+             1. TAB VIEW: OVERVIEW (3-Column Luxury Dashboard)
+             ========================================================= -->
+        <div class="c360-tab-view active" id="tabView-overview">
+          <div class="c360-dashboard-grid">
+
+          <!-- =========================================================
+               COLUMN 1 (Left)
+               ========================================================= -->
+          <div class="c360-grid-col col-left">
+
+            <!-- Card 1: Customer Value (Donut Breakdown) -->
+            <div class="dash-card card-customer-value">
+              <div class="dash-card-header">
+                <h3 class="dash-card-title">Customer Value</h3>
+                <button type="button" class="header-arrow-circle" aria-label="Customer Value Details" onclick="openPaymentBreakdownModal()">
+                  <i data-lucide="arrow-right"></i>
+                </button>
+              </div>
+
+              <div class="cust-val-body">
+                <div class="donut-wrap">
+                  <svg class="donut-svg" id="customerValueDonutSvg" viewBox="0 0 160 160">
+                    <circle class="donut-bg" cx="80" cy="80" r="62" />
+                    <!-- Dynamic segments injected from database orders -->
+                  </svg>
+                  <div class="donut-inner-label">
+                    <span class="donut-main-val" id="donutTotalSpent">₹0</span>
+                    <span class="donut-sub-text">Total Spent</span>
+                  </div>
+                </div>
+
+                <div class="donut-legend-list" id="customerValueLegend">
+                  <div style="padding:16px 0;color:rgba(255,255,255,0.4);font-size:11px;">Loading spend breakdown...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4: Active Orders (3) -->
+            <div class="dash-card card-active-orders">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="user" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Active Orders (<span id="activeOrdersCount">0</span>)</h3>
+                </div>
+                <a href="#orders" class="header-text-link" onclick="switchC360Tab('orders')">View All &rarr;</a>
+              </div>
+
+              <div class="active-orders-stack" id="activeOrdersList">
+                <div style="padding:28px;text-align:center;color:rgba(255,255,255,0.4);font-size:12.5px;">Loading active
+                  orders...</div>
+              </div>
+            </div>
+
+            <!-- Card 7: Measurements -->
+            <div class="dash-card card-measurements">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="ruler" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Measurements</h3>
+                </div>
+                <button type="button" class="header-arrow-circle"
+                  onclick="window.location.href='../../Measurements/measurement360/measurement360.html'"
+                  aria-label="Measurements">
+                  <i data-lucide="arrow-right"></i>
+                </button>
+              </div>
+
+              <!-- Measurement Garment Pills Bar -->
+              <div class="measurement-pills-bar">
+                <button type="button" class="m-pill active" data-garment="blouse"
+                  onclick="selectMeasurementPill(this, 'blouse')">Blouse</button>
+                <button type="button" class="m-pill" data-garment="chudi"
+                  onclick="selectMeasurementPill(this, 'chudi')">Chudi</button>
+                <button type="button" class="m-pill" data-garment="lehenga"
+                  onclick="selectMeasurementPill(this, 'lehenga')">Lehenga</button>
+                <button type="button" class="m-pill" data-garment="saree"
+                  onclick="selectMeasurementPill(this, 'saree')">Saree</button>
+                <button type="button" class="m-pill" data-garment="gown"
+                  onclick="selectMeasurementPill(this, 'gown')">Gown</button>
+              </div>
+
+              <div class="measurements-display-wrap">
+                <!-- Left: Silhouette Line Art -->
+                <div class="silhouette-box">
+                  <svg class="silhouette-svg" viewBox="0 0 100 190" fill="none" stroke="currentColor">
+                    <!-- Elegant Couture Silhouette Outline -->
+                    <path d="M50 12 C56 12 60 17 60 24 C60 31 56 36 50 36 C44 36 40 31 40 24 C40 17 44 12 50 12 Z"
+                      stroke="rgba(255,255,255,0.7)" stroke-width="1.6" />
+                    <path
+                      d="M47 36 L45 44 L32 49 C28 51 25 55 24 61 L20 95 C19 101 22 104 25 104 C28 104 30 101 31 96 L34 76 L36 94 C37 108 42 118 43 135 L41 180 M53 36 L55 44 L68 49 C72 51 75 55 76 61 L80 95 C81 101 78 104 75 104 C72 104 70 101 69 96 L66 76 L64 94 C63 108 58 118 57 135 L59 180"
+                      stroke="rgba(255,255,255,0.55)" stroke-width="1.5" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                    <!-- Subtle guide lines -->
+                    <line x1="33" y1="62" x2="67" y2="62" stroke="rgba(184,255,61,0.6)" stroke-dasharray="2 2"
+                      stroke-width="1" />
+                    <line x1="37" y1="78" x2="63" y2="78" stroke="rgba(184,255,61,0.6)" stroke-dasharray="2 2"
+                      stroke-width="1" />
+                    <line x1="34" y1="102" x2="66" y2="102" stroke="rgba(184,255,61,0.6)" stroke-dasharray="2 2"
+                      stroke-width="1" />
+                  </svg>
+                </div>
+
+                <!-- Right: Measurements Key-Value Table -->
+                <div class="measurements-table-box" id="measurementsTableBox">
+                  <div style="padding:24px 8px;text-align:center;color:rgba(255,255,255,0.45);font-size:12px;">Loading
+                    measurements from database...</div>
+                </div>
+              </div>
+
+              <!-- View Full Measurements Link Button -->
+              <a href="../../Measurements/measurement360/measurement360.html" class="btn-full-measurements">
+                <i data-lucide="pencil"></i>
+                <span>View Full Measurements</span>
+              </a>
+            </div>
+
+          </div>
+          <!-- /col-left -->
+
+          <!-- =========================================================
+               COLUMN 2 (Middle)
+               ========================================================= -->
+          <div class="c360-grid-col col-middle">
+
+            <!-- Card 2: Order History (Dual Bar Chart) -->
+            <div class="dash-card card-order-history">
+              <div class="dash-card-header">
+                <h3 class="dash-card-title">Order History</h3>
+                <div class="order-chart-legend">
+                  <span class="leg-badge"><span class="c-dot dot-lime"></span> Orders</span>
+                  <span class="leg-badge"><span class="c-dot dot-purple"></span> Order Value (₹)</span>
+                </div>
+                <button type="button" class="header-arrow-circle" aria-label="Order History Analytics" onclick="switchC360Tab('orders')">
+                  <i data-lucide="arrow-right"></i>
+                </button>
+              </div>
+
+              <!-- High-Fidelity Dual Bar Chart -->
+              <div class="order-history-chart-wrap">
+                <div class="chart-bars-container" id="orderHistoryBars">
+                  <div style="padding:32px 0;width:100%;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;">
+                    Loading order history...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 5: Recent Orders -->
+            <div class="dash-card card-recent-orders">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="user" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Recent Orders</h3>
+                </div>
+                <a href="#orders" class="header-text-link" onclick="switchC360Tab('orders')">View All &rarr;</a>
+              </div>
+
+              <div class="recent-orders-table-wrap">
+                <table class="recent-orders-table">
+                  <thead>
+                    <tr>
+                      <th>DATE</th>
+                      <th>ORDER #</th>
+                      <th>GARMENT</th>
+                      <th>AMOUNT</th>
+                      <th>STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentOrdersTbody">
+                    <tr>
+                      <td colspan="5"
+                        style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:12.5px;">Loading
+                        recent orders...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Card 8: Design References -->
+            <div class="dash-card card-design-refs">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="pen-tool" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Design References</h3>
+                </div>
+                <a href="#designs" class="header-text-link" onclick="switchC360Tab('designs')">View All &rarr;</a>
+              </div>
+
+              <!-- 4-Image Mosaic Gallery -->
+              <div class="designs-mosaic-4col" id="designMosaicWrap">
+                <div style="padding:24px 0;width:100%;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;">
+                  Loading design references...</div>
+              </div>
+            </div>
+
+            <!-- Card 9: Customer Preferences -->
+            <div class="dash-card card-preferences">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="tag" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Customer Preferences</h3>
+                </div>
+                <button type="button" class="btn-card-edit" id="prefEditBtn" title="Edit Preferences"
+                  onclick="openEditPreferencesModal()">
+                  <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                  <span>Edit</span>
+                </button>
+              </div>
+
+              <div class="pref-2col-grid">
+                <div class="pref-item">
+                  <span class="pref-k">Preferred Styles</span>
+                  <span class="pref-v" id="prefStyles">—</span>
+                </div>
+                <div class="pref-item">
+                  <span class="pref-k">Occasions</span>
+                  <span class="pref-v" id="prefOccasions">—</span>
+                </div>
+                <div class="pref-item">
+                  <span class="pref-k">Preferred Neck</span>
+                  <span class="pref-v" id="prefNeck">—</span>
+                </div>
+                <div class="pref-item">
+                  <span class="pref-k">Preferred Delivery</span>
+                  <span class="pref-v" id="prefDelivery">—</span>
+                </div>
+                <div class="pref-item">
+                  <span class="pref-k">Preferred Sleeve</span>
+                  <span class="pref-v" id="prefSleeve">—</span>
+                </div>
+                <div class="pref-item">
+                  <span class="pref-k">Notes</span>
+                  <span class="pref-v" id="prefNotes">—</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <!-- /col-middle -->
+
+          <!-- =========================================================
+               COLUMN 3 (Right)
+               ========================================================= -->
+          <div class="c360-grid-col col-right">
+
+            <!-- Card 3: Quick Insights -->
+            <div class="dash-card card-quick-insights">
+              <div class="dash-card-header">
+                <h3 class="dash-card-title">Quick Insights</h3>
+              </div>
+
+              <div class="insights-list" id="quickInsightsList">
+                <div style="padding:24px 0;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;">Analyzing
+                  customer profile...</div>
+              </div>
+            </div>
+
+            <!-- Card 6: Upcoming Appointments -->
+            <div class="dash-card card-appointments">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="calendar" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Upcoming Appointments</h3>
+                </div>
+                <a href="../../appointments/appointments.html" class="header-text-link">View Calendar &rarr;</a>
+              </div>
+
+              <!-- Vertical Timeline of Appointments -->
+              <div class="appt-timeline-list" id="upcomingApptsList">
+                <div style="padding:24px 0;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;">Loading
+                  upcoming appointments...</div>
+              </div>
+            </div>
+
+            <!-- Card 10: Communication -->
+            <div class="dash-card card-communication">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="message-square" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Communication</h3>
+                </div>
+                <a href="#communication" class="header-text-link" onclick="switchC360Tab('communication')">View All
+                  &rarr;</a>
+              </div>
+
+              <div class="comms-timeline-stack" id="commsTimelineList">
+                <div style="padding:24px 0;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;">Loading
+                  communication history...</div>
+              </div>
+            </div>
+
+            <!-- Card 11: Notes -->
+            <div class="dash-card card-notes">
+              <div class="dash-card-header">
+                <div class="dash-header-left">
+                  <i data-lucide="file-text" class="header-icon-bullet"></i>
+                  <h3 class="dash-card-title">Notes</h3>
+                </div>
+                <button type="button" class="btn-card-add-note" onclick="openAddNoteModal()">
+                  <i data-lucide="plus"></i>
+                  <span>Add Note</span>
+                </button>
+              </div>
+
+              <div class="notes-stack" id="notesStackList">
+                <div style="padding:24px 0;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;">Loading
+                  notes...</div>
+              </div>
+            </div>
+
+          </div>
+          <!-- /col-right -->
+
+        </div>
+        <!-- /c360-dashboard-grid -->
+      </div>
+      <!-- /tabView-overview -->
+
+      <!-- =========================================================
+           2. TAB VIEW: ORDERS (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-orders">
+        <div class="sub-page-container">
+          <!-- Header Bar -->
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="shopping-bag" class="sub-title-icon"></i>
+                <span>Customer Orders</span>
+                <span class="sub-title-pill" id="subOrdersCountBadge">0 Orders</span>
+              </h2>
+              <p class="sub-page-desc">Complete bespoke order portfolio, production stage timelines, tailoring status, and balance dues.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-primary" onclick="window.location.href='../../order-entry/order-entry.html'">
+                <i data-lucide="plus"></i>
+                <span>Create New Order</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Metric Tiles Row -->
+          <div class="sub-kpi-grid">
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-purple"><i data-lucide="layers"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">Total Orders</span>
+                <span class="sub-kpi-value" id="subKpiTotalOrders">0</span>
+                <span class="sub-kpi-sub">Lifetime Bookings</span>
+              </div>
+            </div>
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-green"><i data-lucide="scissors"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">In Production</span>
+                <span class="sub-kpi-value lime-text" id="subKpiActiveOrders">0</span>
+                <span class="sub-kpi-sub">Atelier Active</span>
+              </div>
+            </div>
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-blue"><i data-lucide="check-circle-2"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">Delivered & Closed</span>
+                <span class="sub-kpi-value" id="subKpiCompletedOrders">0</span>
+                <span class="sub-kpi-sub">Successfully Delivered</span>
+              </div>
+            </div>
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-gold"><i data-lucide="banknote"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">Total Value</span>
+                <span class="sub-kpi-value gold-text" id="subKpiTotalValue">₹0</span>
+                <span class="sub-kpi-sub" id="subKpiPendingDue">Pending: ₹0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter & Search Controls Bar -->
+          <div class="sub-controls-bar">
+            <div class="sub-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="subOrdersSearchInput" class="sub-search-input" placeholder="Search order #, garment type, status..." oninput="filterOrdersSubPage(this.value)">
+            </div>
+            <div class="sub-filter-pills" id="subOrdersFilterPills">
+              <button type="button" class="sub-pill-btn active" data-filter="all" onclick="filterOrdersSubPageByStatus('all', this)">All</button>
+              <button type="button" class="sub-pill-btn" data-filter="active" onclick="filterOrdersSubPageByStatus('active', this)">In Production</button>
+              <button type="button" class="sub-pill-btn" data-filter="delivered" onclick="filterOrdersSubPageByStatus('delivered', this)">Delivered</button>
+              <button type="button" class="sub-pill-btn" data-filter="pending-payment" onclick="filterOrdersSubPageByStatus('pending-payment', this)">Pending Balance</button>
+            </div>
+          </div>
+
+          <!-- Full Orders Data Table -->
+          <div class="sub-table-card">
+            <div class="sub-table-wrap">
+              <table class="sub-data-table">
+                <thead>
+                  <tr>
+                    <th>ORDER # & DATE</th>
+                    <th>GARMENT</th>
+                    <th>PRODUCTION STAGE</th>
+                    <th>DELIVERY DUE</th>
+                    <th>MASTER TAILOR</th>
+                    <th>TOTAL AMOUNT</th>
+                    <th>PAID / BALANCE</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody id="subOrdersTableBody">
+                  <tr>
+                    <td colspan="9" class="table-empty-cell">Loading orders from database...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           3. TAB VIEW: DESIGNS (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-designs">
+        <div class="sub-page-container">
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="pen-tool" class="sub-title-icon"></i>
+                <span>Design References & Moodboard</span>
+              </h2>
+              <p class="sub-page-desc">High-resolution couture sketches, necklines, sleeves, embroidery swatches, and tailoring preferences.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-glass" onclick="openEditPreferencesModal()">
+                <i data-lucide="settings"></i>
+                <span>Edit Preferences</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Customer Style Preferences Card -->
+          <div class="dash-card sub-pref-card">
+            <div class="dash-card-header">
+              <h3 class="dash-card-title"><i data-lucide="sparkles" class="header-icon-bullet"></i> Customer Tailoring Preferences</h3>
+              <button type="button" class="btn-card-edit" onclick="openEditPreferencesModal()">
+                <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                <span>Edit</span>
+              </button>
+            </div>
+            <div class="pref-2col-grid sub-pref-grid">
+              <div class="pref-item"><span class="pref-k">Preferred Necklines</span><span class="pref-v" id="subPrefNeck">—</span></div>
+              <div class="pref-item"><span class="pref-k">Preferred Sleeves</span><span class="pref-v" id="subPrefSleeve">—</span></div>
+              <div class="pref-item"><span class="pref-k">Occasions</span><span class="pref-v" id="subPrefOccasions">—</span></div>
+              <div class="pref-item"><span class="pref-k">Delivery Preference</span><span class="pref-v" id="subPrefDelivery">—</span></div>
+              <div class="pref-item"><span class="pref-k">Fit Feel</span><span class="pref-v" id="subPrefFit">Atelier Tailored Comfort</span></div>
+              <div class="pref-item"><span class="pref-k">Styling Notes</span><span class="pref-v" id="subPrefNotes">—</span></div>
+            </div>
+          </div>
+
+          <!-- Full Mosaic Gallery Grid -->
+          <div class="sub-section-title-wrap">
+            <h3 class="sub-section-title">Design References & Sketches</h3>
+            <span class="sub-section-count" id="subDesignsCount">0 References</span>
+          </div>
+
+          <div class="sub-designs-mosaic-grid" id="subDesignsMosaicGrid">
+            <div class="table-empty-cell">Loading design references from catalog...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           4. TAB VIEW: MEASUREMENTS (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-measurements">
+        <div class="sub-page-container">
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="ruler" class="sub-title-icon"></i>
+                <span>Garment Measurements & Fittings</span>
+              </h2>
+              <p class="sub-page-desc">Complete bespoke dimension charts, posture silhouette analysis, version variance, and fitting logs.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-glass" onclick="window.location.href='../../Measurements/measurement360/measurement360.html'">
+                <i data-lucide="external-link"></i>
+                <span>Measurement 360</span>
+              </button>
+              <button type="button" class="btn-sub-primary" onclick="openNewFittingModal()">
+                <i data-lucide="plus"></i>
+                <span>+ Record New Fitting</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Garment Selector Pills -->
+          <div class="sub-garment-pills-bar" id="subGarmentPillsBar">
+            <button type="button" class="sub-m-tab-pill active" data-garment="blouse" onclick="switchSubMeasurementGarment('blouse', this)">Blouse (19 pts)</button>
+            <button type="button" class="sub-m-tab-pill" data-garment="chudi" onclick="switchSubMeasurementGarment('chudi', this)">Chudi (25 pts)</button>
+            <button type="button" class="sub-m-tab-pill" data-garment="lehenga" onclick="switchSubMeasurementGarment('lehenga', this)">Lehenga (22 pts)</button>
+            <button type="button" class="sub-m-tab-pill" data-garment="saree" onclick="switchSubMeasurementGarment('saree', this)">Saree (19 pts)</button>
+            <button type="button" class="sub-m-tab-pill" data-garment="gown" onclick="switchSubMeasurementGarment('gown', this)">Gown (21 pts)</button>
+          </div>
+
+          <!-- Dual Pane Layout: Silhouette + Full Spec Sheet -->
+          <div class="sub-measurements-layout">
+            <!-- Left: Silhouette & Meta -->
+            <div class="dash-card sub-meas-silhouette-card">
+              <div class="dash-card-header">
+                <h3 class="dash-card-title" id="subMeasCardTitle">Blouse Silhouette</h3>
+                <span class="badge-active" id="subMeasVersionBadge">v1.0 (Current)</span>
+              </div>
+              <div class="sub-silhouette-center">
+                <svg class="silhouette-svg sub-silhouette-svg" viewBox="0 0 100 190" fill="none" stroke="currentColor">
+                  <path d="M50 12 C56 12 60 17 60 24 C60 31 56 36 50 36 C44 36 40 31 40 24 C40 17 44 12 50 12 Z" stroke="rgba(255,255,255,0.7)" stroke-width="1.6" />
+                  <path d="M47 36 L45 44 L32 49 C28 51 25 55 24 61 L20 95 C19 101 22 104 25 104 C28 104 30 101 31 96 L34 76 L36 94 C37 108 42 118 43 135 L41 180 M53 36 L55 44 L68 49 C72 51 75 55 76 61 L80 95 C81 101 78 104 75 104 C72 104 70 101 69 96 L66 76 L64 94 C63 108 58 118 57 135 L59 180" stroke="rgba(255,255,255,0.55)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <line x1="33" y1="62" x2="67" y2="62" stroke="rgba(184,255,61,0.6)" stroke-dasharray="2 2" stroke-width="1" />
+                  <line x1="37" y1="78" x2="63" y2="78" stroke="rgba(184,255,61,0.6)" stroke-dasharray="2 2" stroke-width="1" />
+                  <line x1="34" y1="102" x2="66" y2="102" stroke="rgba(184,255,61,0.6)" stroke-dasharray="2 2" stroke-width="1" />
+                </svg>
+              </div>
+              <div class="sub-meas-meta-info" id="subMeasMetaInfo">
+                <div class="sub-meas-meta-row"><span class="k">Recorded By:</span> <span class="v">Master Tailor</span></div>
+                <div class="sub-meas-meta-row"><span class="k">Last Updated:</span> <span class="v" id="subMeasUpdatedDate">—</span></div>
+                <div class="sub-meas-meta-row"><span class="k">Unit:</span> <span class="v">Inches (″)</span></div>
+              </div>
+            </div>
+
+            <!-- Right: Full Measurement Grid Table -->
+            <div class="dash-card sub-meas-specs-card">
+              <div class="dash-card-header">
+                <h3 class="dash-card-title">Precision Tailoring Dimension Specifications</h3>
+                <button type="button" class="btn-card-edit" onclick="openMeasurementComparisonModal()">
+                  <i data-lucide="git-compare" style="width:13px;height:13px;"></i>
+                  <span>Version Compare</span>
+                </button>
+              </div>
+              <div class="sub-meas-specs-grid" id="subMeasSpecsGrid">
+                <div class="table-empty-cell">Loading measurement points...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           5. TAB VIEW: APPOINTMENTS (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-appointments">
+        <div class="sub-page-container">
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="calendar" class="sub-title-icon"></i>
+                <span>Appointments & Fitting Sessions</span>
+                <span class="sub-title-pill" id="subApptsCountBadge">0 Sessions</span>
+              </h2>
+              <p class="sub-page-desc">Trial bookings, styling consultations, bespoke fittings, and boutique deliveries.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-glass" onclick="window.location.href='../../appointments/appointments.html'">
+                <i data-lucide="calendar-days"></i>
+                <span>Open Atelier Calendar</span>
+              </button>
+              <button type="button" class="btn-sub-primary" onclick="openAppointmentModal('new')">
+                <i data-lucide="plus"></i>
+                <span>+ Book New Appointment</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sub-appts-feed" id="subApptsFeed">
+            <div class="table-empty-cell">Loading appointment sessions from database...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           6. TAB VIEW: PAYMENTS (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-payments">
+        <div class="sub-page-container">
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="credit-card" class="sub-title-icon"></i>
+                <span>Financial Ledger & Payments</span>
+              </h2>
+              <p class="sub-page-desc">Client spend breakdown, advance receipts, outstanding balances, and transaction audit history.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-primary" onclick="openPaymentBreakdownModal()">
+                <i data-lucide="plus"></i>
+                <span>+ Record Payment</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Stats Banner -->
+          <div class="sub-kpi-grid">
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-purple"><i data-lucide="receipt"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">Total Billed</span>
+                <span class="sub-kpi-value" id="subPayBilled">₹0</span>
+                <span class="sub-kpi-sub">Total Invoice Value</span>
+              </div>
+            </div>
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-green"><i data-lucide="check"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">Total Received</span>
+                <span class="sub-kpi-value lime-text" id="subPayReceived">₹0</span>
+                <span class="sub-kpi-sub">Cleared Revenue</span>
+              </div>
+            </div>
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-gold"><i data-lucide="clock"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">Balance Pending</span>
+                <span class="sub-kpi-value gold-text" id="subPayPending">₹0</span>
+                <span class="sub-kpi-sub">Outstanding Dues</span>
+              </div>
+            </div>
+            <div class="sub-kpi-tile">
+              <div class="sub-kpi-icon-box bg-blue"><i data-lucide="wallet"></i></div>
+              <div class="sub-kpi-content">
+                <span class="sub-kpi-label">Avg Order Value</span>
+                <span class="sub-kpi-value" id="subPayAvgOrder">₹0</span>
+                <span class="sub-kpi-sub">Per Bespoke Garment</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transactions Ledger Table -->
+          <div class="sub-table-card">
+            <div class="sub-table-wrap">
+              <table class="sub-data-table">
+                <thead>
+                  <tr>
+                    <th>DATE & TIME</th>
+                    <th>RECEIPT / REF #</th>
+                    <th>ORDER / ITEM</th>
+                    <th>AMOUNT</th>
+                    <th>MODE</th>
+                    <th>RECORDED BY</th>
+                    <th>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody id="subPaymentsTableBody">
+                  <tr>
+                    <td colspan="7" class="table-empty-cell">Loading payment transactions...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           7. TAB VIEW: ALTERATIONS (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-alterations">
+        <div class="sub-page-container">
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="scissors" class="sub-title-icon"></i>
+                <span>Alterations & Garment Adjustments</span>
+                <span class="sub-title-pill" id="subAlterationsCountBadge">0 Adjustments</span>
+              </h2>
+              <p class="sub-page-desc">Trial fitting modifications, posture tweaks, resizing, and alteration turnaround tracking.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-primary" onclick="openNewFittingModal()">
+                <i data-lucide="plus"></i>
+                <span>+ Log Alteration Fitting</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sub-alterations-feed" id="subAlterationsFeed">
+            <div class="table-empty-cell">Loading alteration records...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           8. TAB VIEW: COMMUNICATION (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-communication">
+        <div class="sub-page-container">
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="message-square" class="sub-title-icon"></i>
+                <span>Omnichannel Communication Timeline</span>
+              </h2>
+              <p class="sub-page-desc">WhatsApp messages, phone discussions, client consultations, and enquiry logs.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-primary" id="subSendWhatsAppBtn" onclick="document.getElementById('topSendWhatsAppBtn')?.click()">
+                <i data-lucide="message-circle"></i>
+                <span>Send WhatsApp Message</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sub-comms-feed" id="subCommsFullFeed">
+            <div class="table-empty-cell">Loading communication timeline...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           9. TAB VIEW: NOTES (Full Detail Sub-Page)
+           ========================================================= -->
+      <div class="c360-tab-view" id="tabView-notes">
+        <div class="sub-page-container">
+          <div class="sub-page-header">
+            <div class="sub-header-info">
+              <h2 class="sub-page-title">
+                <i data-lucide="file-text" class="sub-title-icon"></i>
+                <span>Customer Relationship & Fit Notes</span>
+                <span class="sub-title-pill" id="subNotesCountBadge">0 Notes</span>
+              </h2>
+              <p class="sub-page-desc">Styling quirks, fabric preferences, festival reminders, trial feedback, and master tailor notes.</p>
+            </div>
+            <div class="sub-header-actions">
+              <button type="button" class="btn-sub-primary" onclick="openAddNoteModal()">
+                <i data-lucide="plus"></i>
+                <span>+ Add New Note</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Inline Note Box -->
+          <div class="dash-card sub-inline-note-card">
+            <div class="dash-card-header">
+              <h3 class="dash-card-title"><i data-lucide="edit-3" class="header-icon-bullet"></i> Quick Note Composer</h3>
+            </div>
+            <form id="subInlineNoteForm" onsubmit="handleSubInlineNoteSubmit(event)" class="sub-inline-note-form">
+              <textarea id="subInlineNoteText" class="sub-note-textarea" placeholder="Add a client fit preference, styling requirement, or boutique remark..." rows="3" required></textarea>
+              <div class="sub-note-form-footer">
+                <div class="sub-note-meta-row">
+                  <select id="subInlineNoteCategory" class="sub-note-select">
+                    <option value="STYLING">Styling &amp; Design</option>
+                    <option value="FIT">Fit &amp; Measurements</option>
+                    <option value="ALTERATION">Alteration</option>
+                    <option value="GENERAL">General Relationship</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn-sub-primary">
+                  <i data-lucide="save"></i>
+                  <span>Save Note</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Full Notes List -->
+          <div class="sub-notes-grid" id="subNotesFullGrid">
+            <div class="table-empty-cell">Loading notes...</div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <!-- /customer360-workspace -->
+
+      <!-- Footer slot — injected by fragments.js -->
+      <div id="footerSlot"></div><!-- /footerSlot -->
+
+    </div>
+    <!-- /main-area -->
+
+  </main>
+  <!-- /app-shell -->
+
+  <!-- =========================================================================
+       REUSABLE INTERACTIVE MODALS
+       ========================================================================= -->
+
+  <!-- 1. EDIT CUSTOMER MODAL -->
+  <div class="modal-backdrop" id="editCustomerModal">
+    <div class="glass-modal-panel">
+      <div class="modal-header">
+        <h4 class="modal-title">Edit Customer Profile</h4>
+        <button class="modal-close-btn" data-close-modal="editCustomerModal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="editCustomerForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="editCustName" class="form-label">Full Name</label>
+            <input type="text" id="editCustName" class="form-input" required />
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="editCustPhone" class="form-label">Phone Number</label>
+              <input type="text" id="editCustPhone" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label for="editCustEmail" class="form-label">Email Address</label>
+              <input type="email" id="editCustEmail" class="form-input" required />
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="editCustLocation" class="form-label">City & State</label>
+              <input type="text" id="editCustLocation" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label for="editCustBadge" class="form-label">Customer Tier / Badge</label>
+              <select id="editCustBadge" class="form-select">
+                <option value="VIP Customer">VIP Customer</option>
+                <option value="Premium Patron">Premium Patron</option>
+                <option value="Regular Customer">Regular Customer</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editCustQuote" class="form-label">Customer Quote / Feedback</label>
+            <input type="text" id="editCustQuote" class="form-input" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close-modal="editCustomerModal">Cancel</button>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. ORDER PREVIEW MODAL -->
+  <div class="modal-backdrop" id="orderPreviewModal">
+    <div class="glass-modal-panel modal-md">
+      <div class="modal-header">
+        <div class="modal-header-meta">
+          <h4 class="modal-title" id="orderModalTitle">—</h4>
+          <span class="status-badge" id="orderModalStatus">—</span>
+        </div>
+        <button class="modal-close-btn" data-close-modal="orderPreviewModal" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="orderModalBody">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close-modal="orderPreviewModal">Close</button>
+        <button type="button" class="btn-primary" id="viewFullOrderDetailsBtn">Open Job Card</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. DESIGN LIGHTBOX MODAL -->
+  <div class="modal-backdrop" id="designPreviewModal">
+    <div class="glass-modal-panel modal-lg">
+      <div class="modal-header">
+        <h4 class="modal-title" id="designModalTitle">Blouse Back Cutwork</h4>
+        <button class="modal-close-btn" data-close-modal="designPreviewModal" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body design-lightbox-body">
+        <div class="design-img-wrap">
+          <img id="designModalImg" src="../assets/designs/zari-bloom-front.jpg" alt="Design Reference"
+            style="object-fit:cover;" />
+        </div>
+        <div class="design-modal-meta" id="designModalMeta">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close-modal="designPreviewModal">Close</button>
+        <button type="button" class="btn-primary" id="useDesignActionBtn">Use For New Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. APPOINTMENT DETAILS MODAL -->
+  <div class="modal-backdrop" id="appointmentModal">
+    <div class="glass-modal-panel">
+      <div class="modal-header">
+        <h4 class="modal-title" id="apptModalTitle">Appointment Details</h4>
+        <button class="modal-close-btn" data-close-modal="appointmentModal" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="apptModalBody">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="cancelApptBtn">Cancel Booking</button>
+        <button type="button" class="btn-primary" id="rescheduleApptBtn">Reschedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. PAYMENT BREAKDOWN MODAL -->
+  <div class="modal-backdrop" id="paymentBreakdownModal">
+    <div class="glass-modal-panel modal-md">
+      <div class="modal-header">
+        <h4 class="modal-title">Customer Financial Breakdown</h4>
+        <button class="modal-close-btn" data-close-modal="paymentBreakdownModal"
+          aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="paymentModalBody">
+        <div class="payment-stats-banner">
+          <div class="ps-tile">
+            <span class="ps-label">Total Billed</span>
+            <span class="ps-val" id="psTotalBilled">₹0</span>
+          </div>
+          <div class="ps-tile">
+            <span class="ps-label">Total Received</span>
+            <span class="ps-val lime-text" id="psTotalReceived">₹0</span>
+          </div>
+          <div class="ps-tile">
+            <span class="ps-label">Balance Pending</span>
+            <span class="ps-val yellow-text" id="psBalancePending">₹0</span>
+          </div>
+        </div>
+
+        <h5 class="section-subheading">Recent Transactions</h5>
+        <div class="tx-history-list" id="txHistoryList">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close-modal="paymentBreakdownModal">Close</button>
+        <button type="button" class="btn-primary" id="recordNewPaymentBtn">Record Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ADD NOTE MODAL -->
+  <div class="modal-backdrop" id="addNoteModal">
+    <div class="glass-modal-panel">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Customer Relationship Note</h4>
+        <button class="modal-close-btn" data-close-modal="addNoteModal" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="newCustomerNoteText" class="form-label">Note Details</label>
+        <textarea id="newCustomerNoteText" class="form-textarea" rows="4"
+          placeholder="e.g. Client prefers muted tones for next wedding lehenga; follow up on 12 Sep..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close-modal="addNoteModal">Cancel</button>
+        <button class="btn-primary" id="submitCustomerNoteBtn">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. TAILORED MEASUREMENTS SIDE-BY-SIDE COMPARISON MODAL -->
+  <div class="modal-backdrop" id="measurementComparisonModal">
+    <div class="glass-modal-panel modal-lg"
+      style="max-width: 850px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header"
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px;">
+        <div>
+          <h4 class="modal-title" id="measCompModalTitle"
+            style="font-size: 18px; font-weight: 700; margin: 0; color: #fff;">Garment Measurements (Current vs Old)
+          </h4>
+          <p id="measCompModalSub" style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted, #94a3b8);">Compare
+            current fitting specifications with previous records.</p>
+        </div>
+        <button class="modal-close-btn" data-close-modal="measurementComparisonModal"
+          aria-label="Close modal">&times;</button>
+      </div>
+
+      <!-- Garment Type Filter Tabs -->
+      <div
+        style="padding: 12px 0; display: flex; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); overflow-x: auto;">
+        <button type="button" class="btn-c360-garment active" data-garment="BLOUSE"
+          onclick="loadC360Comparison('BLOUSE', this)"
+          style="padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: var(--accent, #ec4899); color: #fff;">Blouse
+          (19 pts)</button>
+        <button type="button" class="btn-c360-garment" data-garment="CHUDI" onclick="loadC360Comparison('CHUDI', this)"
+          style="padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #94a3b8;">Chudi
+          (25 pts)</button>
+        <button type="button" class="btn-c360-garment" data-garment="LEHENGA"
+          onclick="loadC360Comparison('LEHENGA', this)"
+          style="padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #94a3b8;">Lehenga
+          (22 pts)</button>
+        <button type="button" class="btn-c360-garment" data-garment="SAREE" onclick="loadC360Comparison('SAREE', this)"
+          style="padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #94a3b8;">Saree
+          (19 pts)</button>
+        <button type="button" class="btn-c360-garment" data-garment="GOWN" onclick="loadC360Comparison('GOWN', this)"
+          style="padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #94a3b8;">Gown
+          (21 pts)</button>
+      </div>
+
+      <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 16px 0;">
+        <!-- Status summary banner -->
+        <div id="measCompBanner"
+          style="display: flex; gap: 16px; margin-bottom: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 16px;">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Comparison Table -->
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: #94a3b8;">
+              <th style="padding: 10px 12px; font-weight: 600;">Tailoring Dimension</th>
+              <th style="padding: 10px 12px; font-weight: 600; color: #fff;">Current Measurement</th>
+              <th style="padding: 10px 12px; font-weight: 600; color: #94a3b8;">Old Measurement</th>
+              <th style="padding: 10px 12px; font-weight: 600; text-align: right;">Variance / Delta</th>
+            </tr>
+          </thead>
+          <tbody id="measCompTableBody">
+            <!-- Dynamic rows injected -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-footer"
+        style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <span id="measLastUpdatedText" style="font-size: 12px; color: #94a3b8;"></span>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-secondary" data-close-modal="measurementComparisonModal">Close</button>
+          <button type="button" class="btn-primary" id="btnOpenNewFittingModal" onclick="openNewFittingModal()"
+            style="background: var(--accent, #ec4899); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">+
+            Record New Fitting</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. RECORD NEW FITTING MODAL -->
+  <div class="modal-backdrop" id="recordNewFittingModal">
+    <div class="glass-modal-panel modal-lg"
+      style="max-width: 750px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+        <h4 class="modal-title" id="newFittingTitle" style="font-size: 18px; font-weight: 700; color: #fff;">Record New
+          Fitting</h4>
+        <p style="font-size: 12.5px; color: #94a3b8; margin-top: 4px;">Submitting updates will archive current
+          measurements to "Old" and establish this as the new "Current" version.</p>
+      </div>
+      <form id="recordNewFittingForm" onsubmit="handleNewFittingSubmit(event)"
+        style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+        <div class="modal-body" id="newFittingInputsContainer"
+          style="overflow-y: auto; flex: 1; padding: 16px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          <!-- Dynamically populated according to active garment -->
+        </div>
+        <div class="modal-footer"
+          style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; display: flex; justify-content: flex-end; gap: 8px;">
+          <button type="button" class="btn-secondary" onclick="closeNewFittingModal()">Cancel</button>
+          <button type="submit" class="btn-primary"
+            style="background: var(--lime, #84cc16); color: #000; font-weight: 700; padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer;">Save
+            &amp; Update Version</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 9. EDIT PREFERENCES MODAL -->
+  <div class="modal-backdrop" id="editPreferencesModal">
+    <div class="glass-modal-panel modal-md">
+      <div class="modal-header">
+        <div class="modal-header-meta">
+          <h4 class="modal-title">Edit Tailoring Preferences</h4>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--text-muted,#94a3b8);">Changes are saved directly to the
+            customer profile</p>
+        </div>
+        <button class="modal-close-btn" data-close-modal="editPreferencesModal" aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:16px;padding:20px 0;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:12px;font-weight:600;color:var(--text-2,#cbd5e1);">Preferred Neck Style</label>
+            <select id="editPrefNeck"
+              style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:var(--text-1,#f1f5f9);font-size:13px;">
+              <option value="">Not specified</option>
+              <option value="Round Neck">Round Neck</option>
+              <option value="V-Neck">V-Neck</option>
+              <option value="Boat Neck">Boat Neck</option>
+              <option value="Sweetheart">Sweetheart</option>
+              <option value="Square Neck">Square Neck</option>
+              <option value="Halter Neck">Halter Neck</option>
+              <option value="Deep U-Back">Deep U-Back</option>
+              <option value="Illusion Sheer Yoke">Illusion Sheer Yoke</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:12px;font-weight:600;color:var(--text-2,#cbd5e1);">Preferred Sleeve Style</label>
+            <select id="editPrefSleeve"
+              style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:var(--text-1,#f1f5f9);font-size:13px;">
+              <option value="">Not specified</option>
+              <option value="Sleeveless">Sleeveless</option>
+              <option value="Cap Sleeve">Cap Sleeve</option>
+              <option value="Elbow Length">Elbow Length</option>
+              <option value="3/4 Sleeve">3/4 Sleeve</option>
+              <option value="Full Sleeve">Full Sleeve</option>
+              <option value="Cape Drape">Cape Drape</option>
+              <option value="Bell Sleeve">Bell Sleeve</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:12px;font-weight:600;color:var(--text-2,#cbd5e1);">Preferred Occasions</label>
+          <input type="text" id="editPrefOccasions" placeholder="e.g. Weddings, Festivals, Cocktail Parties"
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:var(--text-1,#f1f5f9);font-size:13px;" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:12px;font-weight:600;color:var(--text-2,#cbd5e1);">Delivery Preference</label>
+          <select id="editPrefDelivery"
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:var(--text-1,#f1f5f9);font-size:13px;">
+            <option value="Standard Boutique Pickup">Standard Boutique Pickup</option>
+            <option value="Home Delivery">Home Delivery</option>
+            <option value="Evening Atelier Delivery">Evening Atelier Delivery</option>
+            <option value="Express Atelier Delivery">Express Atelier Delivery</option>
+            <option value="Weekday Afternoon Fitting">Weekday Afternoon Fitting</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close-modal="editPreferencesModal">Cancel</button>
+        <button type="button" class="btn-primary" id="btnSavePreferences" onclick="handleSavePreferences()">
+          <i data-lucide="save" style="width:13px;height:13px;"></i>
+          Save Preferences
+        </button>
+      </div>
+    </div>
+  <!-- 10. ADD NOTE MODAL -->
+  <div class="modal-backdrop" id="addNoteModal">
+    <div class="glass-modal-panel">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Customer Note</h4>
+        <button class="modal-close-btn" data-close-modal="addNoteModal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="addNoteForm" onsubmit="handleSaveNote(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="newNoteText" class="form-label">Note / Feedback</label>
+            <textarea id="newNoteText" class="form-textarea" rows="4" placeholder="Enter customer styling notes, fit preferences, or feedback..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="newNoteCategory" class="form-label">Category</label>
+            <select id="newNoteCategory" class="form-select">
+              <option value="STYLING">Styling &amp; Design</option>
+              <option value="FIT">Fit &amp; Measurements</option>
+              <option value="ALTERATION">Alterations</option>
+              <option value="GENERAL">General</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newNoteAuthor" class="form-label">Author Name</label>
+            <input type="text" id="newNoteAuthor" class="form-input" value="Pranesh B" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" data-close-modal="addNoteModal">Cancel</button>
+          <button type="submit" class="btn-modal-save" id="btnSubmitNote">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="customer360.js?v=2.7"></script>
+</body>
+
+</html>

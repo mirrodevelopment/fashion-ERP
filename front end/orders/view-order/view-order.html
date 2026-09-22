@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Order — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="view-order.css?v=2.5" />
+
+  <!-- Navigation & Fragment Base Configuration (2 levels deep) -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="orders">
+  <!-- Background Atmospheric Image Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <!-- Sidebar Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+      <!-- Global Topbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- View Order Scrollable Workspace -->
+      <div class="view-order-scroll" id="viewOrderScroll">
+        <!-- ─── Top Utility Bar (Breadcrumbs on Left, Action Buttons on Right) ─── -->
+        <div class="view-top-bar">
+          <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+            <a href="../order-overview/order-over.html" class="bc-item">Orders</a>
+            <span class="bc-sep">&gt;</span>
+            <span class="bc-item current" id="bcOrderNumber">—</span>
+          </nav>
+
+          <!-- Top-Right Action Buttons -->
+          <div class="header-action-buttons">
+            <button type="button" class="btn-glass-action" onclick="openPrintJobCardModal()">
+              <i data-lucide="printer" style="width:14px;height:14px;"></i>
+              <span>Print Job Card</span>
+            </button>
+            <button type="button" class="btn-glass-action" onclick="openShareModal()">
+              <i data-lucide="share-2" style="width:14px;height:14px;"></i>
+              <span>Share</span>
+            </button>
+            <div class="more-menu-wrapper" id="moreMenuWrapper">
+              <button type="button" class="btn-glass-action" onclick="toggleMoreMenu(event)">
+                <span>... More</span>
+                <i data-lucide="chevron-down" style="width:12px;height:12px;"></i>
+              </button>
+              <div class="more-dropdown-menu dd-panel" id="moreDropdownMenu">
+                <div class="dd-item" onclick="handleEditOrder()"><i data-lucide="edit-3" style="width:13px;height:13px;margin-right:8px;"></i>Edit Order</div>
+                <div class="dd-item" onclick="handleDuplicateOrder()"><i data-lucide="copy" style="width:13px;height:13px;margin-right:8px;"></i>Duplicate Order</div>
+                <div class="dd-item" onclick="window.print()"><i data-lucide="download" style="width:13px;height:13px;margin-right:8px;"></i>Download PDF</div>
+                <div class="dd-item" onclick="openPrintJobCardModal()"><i data-lucide="printer" style="width:13px;height:13px;margin-right:8px;"></i>Print Order</div>
+                <div class="dd-divider"></div>
+                <div class="dd-item" style="color:#ef4444;" onclick="handleCancelOrder()"><i data-lucide="x-circle" style="width:13px;height:13px;margin-right:8px;"></i>Cancel Order</div>
+                <div class="dd-item" style="color:var(--text-muted);" onclick="handleArchiveOrder()"><i data-lucide="archive" style="width:13px;height:13px;margin-right:8px;"></i>Archive Order</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Main Header Row (Title & Subtitle + Customer Compact Card) ─── -->
+        <div class="view-header-row">
+          <div class="header-left-col">
+            <div class="order-title-wrap">
+              <h1 class="order-title" id="orderTitleDisplay">—</h1>
+              <span class="status-pill status-in-prod" id="orderStatusDisplay">
+                <span class="status-dot"></span>
+                —
+              </span>
+            </div>
+            <div class="order-collection-sub" id="orderCollectionDisplay">—</div>
+          </div>
+
+          <!-- Customer Compact Information Card -->
+          <div class="customer-compact-card" id="customerCompactCard">
+            <div class="cc-avatar-box">
+              <img src="../../assets/user_avatar.jpg" alt="Customer Avatar" class="cc-avatar-img" id="ccAvatarImg" onerror="this.src='../../assets/user_avatar.jpg';" />
+            </div>
+            <div class="cc-meta-box">
+              <div class="cc-name-row">
+                <span class="cc-name" id="ccName">—</span>
+                <span class="badge-vip" id="ccBadge" style="display:none;">👑 VIP Customer</span>
+              </div>
+              <div class="cc-detail"><i data-lucide="phone" style="width:11px;height:11px;"></i> <span id="ccPhone">—</span></div>
+              <div class="cc-detail"><i data-lucide="map-pin" style="width:11px;height:11px;"></i> <span id="ccLocation">—</span></div>
+              <div class="cc-detail" id="ccPrefRow" style="display:none;color:var(--lime,#a3e635);"><i data-lucide="sparkles" style="width:11px;height:11px;"></i> <span id="ccPreferences">—</span></div>
+            </div>
+            <div class="cc-divider"></div>
+            <div class="cc-stats-grid">
+              <div class="cc-stat">
+                <span class="cc-stat-lbl">Order Date</span>
+                <span class="cc-stat-val" id="ccOrderDate">—</span>
+              </div>
+              <div class="cc-stat">
+                <span class="cc-stat-lbl">Expected Delivery</span>
+                <span class="cc-stat-val" id="ccDeliveryDate">—</span>
+                <span class="cc-stat-sub green" id="ccDaysLeft">—</span>
+              </div>
+              <div class="cc-stat">
+                <span class="cc-stat-lbl">Priority</span>
+                <span class="priority-pill red" id="ccPriority">Normal</span>
+              </div>
+              <div class="cc-stat">
+                <span class="cc-stat-lbl">Order Value</span>
+                <span class="cc-stat-val" id="ccOrderValue">₹0</span>
+                <span class="cc-stat-sub green" id="ccPaymentBadge">Advance Paid</span>
+              </div>
+            </div>
+            <button type="button" class="btn-icon-dot" id="btnCustomerQuickOptions" title="Customer options">⋮</button>
+          </div>
+        </div>
+
+        <!-- ─── 10-Stage Horizontal Production Progress Tracker ─── -->
+        <div class="production-progress-tracker-wrap">
+          <div class="production-stepper-row" id="productionStepper">
+            <!-- Rendered dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- ─── Main Content Workspace (3 Rows) ─── -->
+        <div class="view-order-workspace">
+          <!-- ─── ROW 1: 4 Cards Side-by-Side ─── -->
+          <div class="view-order-row-1">
+            <!-- Card 1: Design Reference -->
+            <section class="glass-card card-design-ref" id="cardDesignRef">
+              <div class="card-title-row">
+                <div class="title-left">
+                  <div class="icon-sq pink"><i data-lucide="image" style="width:13px;height:13px;"></i></div>
+                  <h2 class="section-heading">Design Reference</h2>
+                </div>
+                <button type="button" class="btn-card-link" onclick="openAllDesignReferences()" title="View all">→</button>
+              </div>
+              <div class="design-photos-grid">
+                <div class="dp-large" onclick="openLightbox(0)">
+                  <img id="drLargeImg" src="../../assets/designs/zari-bloom-back.jpg" alt="Design Reference" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                </div>
+                <!-- Thumbnails: JS rewrites drThumbsContainer on load -->
+                <div id="drThumbsContainer" style="display:contents;">
+                  <div class="dp-middle-col">
+                    <div class="dp-thumb" onclick="openLightbox(1)">
+                      <img id="drThumb1Img" src="../../assets/designs/zari-bloom-front.jpg" alt="Front Neck" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                    </div>
+                    <div class="dp-thumb" onclick="openLightbox(2)">
+                      <img id="drThumb2Img" src="../../assets/designs/zari-bloom-detail.jpg" alt="Embroidery Detail" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                    </div>
+                  </div>
+                  <div class="dp-right-col">
+                    <div class="dp-thumb" onclick="openLightbox(3)">
+                      <img id="drThumb3Img" src="../../assets/pink_silk.jpg" alt="Fabric Swatch" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                    </div>
+                    <div class="dp-more-tile" id="drMoreTile" onclick="triggerRefUpload(5)">
+                      <span class="more-num" id="drMoreCount">+</span>
+                      <span class="more-lbl">Upload</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Card 2: Order Details -->
+            <section class="glass-card card-order-details" id="cardOrderDetails">
+              <div class="card-title-row">
+                <div class="title-left">
+                  <div class="icon-sq blue"><i data-lucide="file-text" style="width:13px;height:13px;"></i></div>
+                  <h2 class="section-heading">Order Details</h2>
+                </div>
+                <button type="button" class="btn-card-link" onclick="handleEditOrder()" title="Edit details">→</button>
+              </div>
+              <div class="order-specs-list">
+                <div class="spec-row"><span class="spec-k">Garment Type</span><span class="spec-v bold" id="odGarmentType">—</span></div>
+                <div class="spec-row"><span class="spec-k">Collection</span><span class="spec-v" id="odCollection">—</span></div>
+                <div class="spec-row"><span class="spec-k">Design Category</span><span class="spec-v" id="odCategory">—</span></div>
+                <div class="spec-row"><span class="spec-k">Neck Style</span><span class="spec-v" id="odNeckStyle">—</span></div>
+                <div class="spec-row"><span class="spec-k">Sleeve Style</span><span class="spec-v" id="odSleeveStyle">—</span></div>
+                <div class="spec-row"><span class="spec-k">Lining</span><span class="spec-v" id="odLining">—</span></div>
+                <div class="spec-row"><span class="spec-k">Embroidery</span><span class="spec-v" id="odEmbroidery">—</span></div>
+                <div class="spec-row"><span class="spec-k">Fabric</span><span class="spec-v" id="odFabric">—</span></div>
+                <div class="spec-row align-start"><span class="spec-k">Special Notes</span><span class="spec-v muted-v" id="odSpecialNotes">—</span></div>
+              </div>
+            </section>
+
+            <!-- Card 3: Fabric & Materials -->
+            <section class="glass-card card-fabric-mat" id="cardFabricMat">
+              <div class="card-title-row">
+                <div class="title-left">
+                  <div class="icon-sq purple"><i data-lucide="shirt" style="width:13px;height:13px;"></i></div>
+                  <h2 class="section-heading">Fabric &amp; Materials</h2>
+                </div>
+                <button type="button" class="btn-card-link" onclick="openFabricDetailsModal()" title="View fabric info">→</button>
+              </div>
+              <div class="fabric-summary-box">
+                <div class="fab-thumb">
+                  <img id="fabThumbImg" src="../../assets/pink_silk.jpg" alt="Fabric" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                </div>
+                <div class="fab-info">
+                  <div class="fab-badge" id="fabBadge">Customer Supplied</div>
+                  <div class="fab-name" id="fabName">Silk</div>
+                  <div class="fab-color" id="fabColor">Dusty Pink</div>
+                  <div class="fab-qty" id="fabQty">2.5 m</div>
+                </div>
+              </div>
+              <div class="additional-mats-wrap">
+                <span class="add-mats-title">Additional Materials</span>
+                <div class="add-mats-list" id="fabAdditionalList">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </section>
+
+            <!-- Card 4: Production Team -->
+            <section class="glass-card card-team" id="cardTeam">
+              <div class="card-title-row">
+                <div class="title-left">
+                  <div class="icon-sq purple"><i data-lucide="users" style="width:13px;height:13px;"></i></div>
+                  <h2 class="section-heading">Production Team</h2>
+                </div>
+                <button type="button" class="btn-card-link" onclick="openTeamModal()" title="View team">→</button>
+              </div>
+              <div class="team-members-list" id="teamMembersList">
+                <div class="empty-state-notice" style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">Loading assigned artisans...</div>
+              </div>
+            </section>
+          </div>
+
+          <!-- ─── ROW 2: Measurements, Notes + Photos Stack, Timeline ─── -->
+          <div class="view-order-row-2">
+            <!-- Card 1 (Left Wide): Measurements -->
+            <section class="glass-card card-measurements" id="cardMeasurements">
+              <div class="card-title-row">
+                <div class="title-left">
+                  <div class="icon-sq green"><i data-lucide="ruler" style="width:13px;height:13px;"></i></div>
+                  <h2 class="section-heading" id="measHeading">Measurements</h2>
+                </div>
+                <div class="meas-views-tabs" id="measViewsTabs">
+                  <button type="button" class="meas-tab active" data-view="front" onclick="switchMeasurementView('front')">Front View</button>
+                  <button type="button" class="meas-tab" data-view="back" onclick="switchMeasurementView('back')">Back View</button>
+                  <button type="button" class="meas-tab" data-view="side" onclick="switchMeasurementView('side')">Side View</button>
+                </div>
+                <button type="button" class="btn-card-link-text" onclick="openFullMeasurementsModal()">View Details →</button>
+              </div>
+              <!-- Mannequin / Measurement Diagram Display -->
+              <div class="meas-diagram-layout">
+                <div class="mannequin-visual-container" id="mannequinVisualContainer">
+                  <img id="measMannequinImg" src="../../assets/mannequin-duo.jpg" alt="Dressform Mannequin" class="mannequin-render-bg" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                  
+                  <!-- SVG Indicator Overlay -->
+                  <svg class="meas-svg-overlay" id="measSvgOverlay" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet">
+                    <!-- 1: Shoulder -->
+                    <line x1="45" y1="75" x2="155" y2="75" stroke="#d4ff32" stroke-width="1.6" stroke-dasharray="3 3"/>
+                    <circle cx="100" cy="75" r="8" fill="#d4ff32"/>
+                    <text x="100" y="79" font-size="9" font-weight="bold" fill="#0f1406" text-anchor="middle">1</text>
+                    <!-- 2: Bust -->
+                    <line x1="38" y1="125" x2="162" y2="125" stroke="#d4ff32" stroke-width="1.6" stroke-dasharray="3 3"/>
+                    <circle cx="100" cy="125" r="8" fill="#d4ff32"/>
+                    <text x="100" y="129" font-size="9" font-weight="bold" fill="#0f1406" text-anchor="middle">2</text>
+                    <!-- 3: Waist -->
+                    <line x1="55" y1="182" x2="145" y2="182" stroke="#d4ff32" stroke-width="1.6" stroke-dasharray="3 3"/>
+                    <circle cx="100" cy="182" r="8" fill="#d4ff32"/>
+                    <text x="100" y="186" font-size="9" font-weight="bold" fill="#0f1406" text-anchor="middle">3</text>
+                    <!-- 4: Length -->
+                    <line x1="58" y1="218" x2="142" y2="218" stroke="#d4ff32" stroke-width="1.6" stroke-dasharray="3 3"/>
+                    <circle cx="100" cy="218" r="8" fill="#d4ff32"/>
+                    <text x="100" y="222" font-size="9" font-weight="bold" fill="#0f1406" text-anchor="middle">4</text>
+                    <!-- 5: Back Depth -->
+                    <line x1="300" y1="58" x2="300" y2="140" stroke="#d4ff32" stroke-width="1.6" stroke-dasharray="3 3"/>
+                    <circle cx="300" cy="140" r="8" fill="#d4ff32"/>
+                    <text x="300" y="144" font-size="9" font-weight="bold" fill="#0f1406" text-anchor="middle">5</text>
+                    <!-- 6: Armhole -->
+                    <path d="M236 100 Q252 135 244 158" stroke="#d4ff32" stroke-width="1.6" stroke-dasharray="3 3" fill="none"/>
+                    <circle cx="245" cy="132" r="8" fill="#d4ff32"/>
+                    <text x="245" y="136" font-size="9" font-weight="bold" fill="#0f1406" text-anchor="middle">6</text>
+                    <!-- 7: Sleeve -->
+                    <path d="M364 100 Q348 135 356 158" stroke="#d4ff32" stroke-width="1.6" stroke-dasharray="3 3" fill="none"/>
+                    <circle cx="355" cy="132" r="8" fill="#d4ff32"/>
+                    <text x="355" y="136" font-size="9" font-weight="bold" fill="#0f1406" text-anchor="middle">7</text>
+                  </svg>
+                </div>
+                <!-- Measurements List (1 to 8) -->
+                <div class="measurements-num-list" id="measValuesList">
+                  <!-- Rendered dynamically by JS -->
+                </div>
+              </div>
+              <button type="button" class="btn-bottom-full-meas" onclick="openFullMeasurementsModal()">
+                <i data-lucide="eye" style="width:13px;height:13px;"></i>
+                <span>View Full Measurements</span>
+                <span style="opacity:0.6;">→</span>
+              </button>
+            </section>
+
+            <!-- Card 2 Stack (Center): Production Notes + Photos & Updates -->
+            <div class="card-stack-middle">
+              <!-- Production Notes -->
+              <section class="glass-card card-prod-notes" id="cardProdNotes">
+                <div class="card-title-row">
+                  <div class="title-left">
+                    <div class="icon-sq purple"><i data-lucide="check-square" style="width:13px;height:13px;"></i></div>
+                    <h2 class="section-heading">Production Notes</h2>
+                  </div>
+                  <button type="button" class="btn-card-edit" onclick="openEditNotesModal()">
+                    <i data-lucide="edit-2" style="width:11px;height:11px;"></i>
+                    <span>Edit</span>
+                  </button>
+                </div>
+                <div class="notes-checklist" id="notesChecklist">
+                  <!-- Rendered dynamically by JS -->
+                </div>
+              </section>
+
+              <!-- Photos & Updates -->
+              <section class="glass-card card-photos" id="cardPhotos">
+                <div class="card-title-row">
+                  <div class="title-left">
+                    <div class="icon-sq purple"><i data-lucide="camera" style="width:13px;height:13px;"></i></div>
+                    <h2 class="section-heading">Photos &amp; Updates</h2>
+                  </div>
+                  <button type="button" class="btn-card-edit" onclick="document.getElementById('photoUploadInput').click()">
+                    <i data-lucide="plus" style="width:11px;height:11px;"></i>
+                    <span>Add Photo</span>
+                  </button>
+                  <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="handleProductionPhotoUpload(event)" />
+                </div>
+                <div class="photos-strip" id="productionPhotosStrip">
+                  <!-- Rendered dynamically by JS -->
+                </div>
+              </section>
+            </div>
+
+            <!-- Card 3 (Right): Timeline & Activity -->
+            <section class="glass-card card-timeline" id="cardTimeline">
+              <div class="card-title-row">
+                <div class="title-left">
+                  <div class="icon-sq purple"><i data-lucide="clock" style="width:13px;height:13px;"></i></div>
+                  <h2 class="section-heading">Timeline &amp; Activity</h2>
+                </div>
+                <button type="button" class="btn-card-link-text" onclick="openActivityHistoryModal()">View All →</button>
+              </div>
+              <div class="activity-timeline-list" id="activityTimelineList">
+                <!-- Rendered dynamically by JS -->
+              </div>
+            </section>
+          </div>
+
+          <!-- ─── ROW 3: 3 Metric Gauges & Next Action Card ─── -->
+          <div class="view-order-row-3">
+            <!-- Gauge 1: Time in Production -->
+            <div class="metric-gauge-card" id="cardGaugeTime">
+              <div class="gauge-header">
+                <div class="icon-sq purple-subtle"><i data-lucide="clock" style="width:13px;height:13px;"></i></div>
+                <span class="gauge-title">Time in Production</span>
+              </div>
+              <div class="gauge-main-stat">
+                <span class="gm-num" id="prodDaysCount">—</span>
+                <span class="gm-sub" id="prodDaysSub">of — days</span>
+              </div>
+              <div class="gauge-progress-bar">
+                <div class="gpb-fill lime" id="prodProgressFill" style="width:0%;"></div>
+              </div>
+              <div class="gauge-pct-right" id="prodProgressPct">0%</div>
+            </div>
+
+            <!-- Gauge 2: Estimated vs Actual Cost -->
+            <div class="metric-gauge-card" id="cardGaugeCost">
+              <div class="gauge-header">
+                <div class="icon-sq green-subtle"><i data-lucide="file-text" style="width:13px;height:13px;"></i></div>
+                <span class="gauge-title">Estimated vs Actual Cost</span>
+              </div>
+              <div class="gauge-split-stat">
+                <div>
+                  <span class="gm-val" id="costEstimatedVal">₹0</span>
+                  <span class="gm-lbl">Order Value</span>
+                </div>
+                <div class="text-right">
+                  <span class="gm-val" id="costActualVal">₹0</span>
+                  <span class="gm-lbl">Advance (so far)</span>
+                </div>
+              </div>
+              <div class="gauge-progress-bar">
+                <div class="gpb-fill lime" id="costProgressFill" style="width:0%;"></div>
+              </div>
+              <div class="gauge-pct-right" id="costProgressPct">0%</div>
+            </div>
+
+            <!-- Gauge 3: Payment Status -->
+            <div class="metric-gauge-card" id="cardGaugePayment">
+              <div class="gauge-header">
+                <div class="icon-sq purple-subtle"><i data-lucide="wallet" style="width:13px;height:13px;"></i></div>
+                <span class="gauge-title">Payment Status</span>
+              </div>
+              <div class="gauge-split-stat">
+                <div>
+                  <span class="gm-val" id="paymentPaidVal">₹0</span>
+                  <span class="gm-lbl" id="paymentPaidPctLbl">Paid (0%)</span>
+                </div>
+                <div class="text-right">
+                  <span class="gm-val" id="paymentBalVal">₹0</span>
+                  <span class="gm-lbl">Balance</span>
+                </div>
+              </div>
+              <div class="gauge-progress-bar">
+                <div class="gpb-fill purple" id="paymentProgressFill" style="width:0%;"></div>
+              </div>
+            </div>
+
+            <!-- Card 10: Next Action Area -->
+            <div class="next-action-card" id="cardNextAction">
+              <div class="na-left">
+                <div class="icon-sq lime"><i data-lucide="check-circle" style="width:14px;height:14px;"></i></div>
+                <div class="na-meta">
+                  <span class="na-label">Next Action</span>
+                  <span class="na-action-title" id="nextActionTitle">Production Planning</span>
+                  <span class="na-assignee" id="nextActionAssignee">—</span>
+                </div>
+              </div>
+              <button type="button" class="btn-mark-started" id="btnMarkStarted" onclick="advanceNextActionStage()">
+                <span>Mark as Started</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /view-order-scroll -->
+
+      <!-- Footer slot -->
+      <div id="footerSlot"></div>
+    </main>
+  </div><!-- /appShell -->
+
+  <!-- =====================================================
+       MODAL: PRINT JOB CARD
+       ===================================================== -->
+  <div class="modal-backdrop" id="printJobCardModal" style="display:none;">
+    <div class="modal-card modal-card-lg printable-job-card-modal">
+      <div class="modal-header no-print">
+        <div class="modal-title-wrap">
+          <i data-lucide="printer" style="width:18px;height:18px;color:var(--lime);"></i>
+          <h3 class="modal-title">Production Job Card</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closePrintJobCardModal()">&times;</button>
+      </div>
+      <div class="modal-body printable-body">
+        <div class="job-card-print-layout">
+          <div class="jc-header">
+            <div>
+              <div class="jc-brand">HAULO BOUTIQUE ERP</div>
+              <div class="jc-sub">Haulo Designs — Main Atelier Branch</div>
+            </div>
+            <div class="jc-barcode-box">
+              <div class="jc-order-num" id="jcOrderNum">—</div>
+              <div class="jc-barcode">||| | |||| ||| ||||| || |||</div>
+            </div>
+          </div>
+          <div class="jc-grid-2">
+            <div class="jc-box">
+              <strong>Customer Information:</strong>
+              <div id="jcCustName">—</div>
+              <div id="jcCustPhone">—</div>
+              <div id="jcCustLocation">—</div>
+            </div>
+            <div class="jc-box">
+              <strong>Production Schedule:</strong>
+              <div id="jcOrderDate">Order Date: —</div>
+              <div id="jcDueDate">Due Date: —</div>
+              <div id="jcStatus">Status: —</div>
+            </div>
+          </div>
+          <div class="jc-section-title">Garment &amp; Design Specifications</div>
+          <table class="jc-table">
+            <tr><th>Garment</th><td id="jcGarment">—</td></tr>
+            <tr><th>Design Category</th><td id="jcCategory">—</td></tr>
+            <tr><th>Sleeves &amp; Lining</th><td id="jcSleeves">—</td></tr>
+            <tr><th>Embroidery</th><td id="jcEmbroidery">—</td></tr>
+            <tr><th>Fabric</th><td id="jcFabric">—</td></tr>
+          </table>
+          <div class="jc-section-title">Measurements (Inches)</div>
+          <div class="jc-meas-grid" id="jcMeasGrid">
+            <div>Shoulder: <strong>—</strong></div>
+            <div>Bust: <strong>—</strong></div>
+            <div>Waist: <strong>—</strong></div>
+            <div>Length: <strong>—</strong></div>
+          </div>
+          <div class="jc-section-title">Special Instructions</div>
+          <div class="jc-notes-box" id="jcSpecialNotes">
+            No special instructions.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer no-print">
+        <button type="button" class="btn-ghost" onclick="closePrintJobCardModal()">Close</button>
+        <button type="button" class="btn-primary-action" onclick="window.print()">
+          <i data-lucide="printer" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+          Print Document
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL: SHARE ORDER
+       ===================================================== -->
+  <div class="modal-backdrop" id="shareModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="share-2" style="width:18px;height:18px;color:var(--lime);"></i>
+          <h3 class="modal-title">Share Order Details</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeShareModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="share-order-preview">
+          <div class="sop-id" id="sopId">—</div>
+          <div class="sop-cust" id="sopCust">—</div>
+          <div class="sop-stat" id="sopStat">—</div>
+        </div>
+        <div class="form-group" style="margin-top:14px;">
+          <label class="form-label">Order Share Link</label>
+          <div class="share-link-input-wrap">
+            <input type="text" id="shareLinkInput" class="form-input" readonly value="" />
+            <button type="button" class="btn-copy-link" onclick="copyShareLink()">Copy</button>
+          </div>
+        </div>
+        <div class="share-actions-row">
+          <button type="button" class="btn-share-channel whatsapp" onclick="simulateShare('whatsapp')">
+            <span>WhatsApp</span>
+          </button>
+          <button type="button" class="btn-share-channel email" onclick="simulateShare('email')">
+            <span>Email</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeShareModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL: FULL MEASUREMENTS SPECIFICATION
+       ===================================================== -->
+  <div class="modal-backdrop" id="fullMeasurementsModal" style="display:none;">
+    <div class="modal-card modal-card-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="ruler" style="width:18px;height:18px;color:var(--lime);"></i>
+          <h3 class="modal-title" id="measModalTitle">Full Measurements Profile</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeFullMeasurementsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="meas-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Marker #</th>
+                <th>Measurement Name</th>
+                <th>Value (Inches)</th>
+                <th>Standard Range</th>
+                <th>Recorded By</th>
+              </tr>
+            </thead>
+            <tbody id="modalMeasurementsBody">
+              <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Loading measurement records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeFullMeasurementsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL: FULLSCREEN LIGHTBOX / IMAGE VIEWER
+       ===================================================== -->
+  <div class="lightbox-backdrop" id="lightboxModal" style="display:none;">
+    <div class="lightbox-header">
+      <span class="lightbox-counter" id="lightboxCounter">1 / 4</span>
+      <button type="button" class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    </div>
+    <div class="lightbox-body">
+      <button type="button" class="lb-nav-btn prev" onclick="navigateLightbox(-1)">&#10094;</button>
+      <div class="lightbox-img-wrap">
+        <img src="" alt="Enlarged Reference" id="lightboxActiveImg" />
+      </div>
+      <button type="button" class="lb-nav-btn next" onclick="navigateLightbox(1)">&#10095;</button>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL: EDIT PRODUCTION NOTES
+       ===================================================== -->
+  <div class="modal-backdrop" id="editNotesModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="edit-3" style="width:18px;height:18px;color:var(--lime);"></i>
+          <h3 class="modal-title">Edit Production Notes</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeEditNotesModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Checklist Items (one per line)</label>
+          <textarea id="editNotesTextarea" class="form-textarea" rows="6"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeEditNotesModal()">Cancel</button>
+        <button type="button" class="btn-primary-action" onclick="saveEditedNotes()">Save Notes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL: ACTIVITY HISTORY
+       ===================================================== -->
+  <div class="modal-backdrop" id="activityHistoryModal" style="display:none;">
+    <div class="modal-card modal-card-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="history" style="width:18px;height:18px;color:var(--lime);"></i>
+          <h3 class="modal-title">Order Audit History &amp; Activity Log</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeActivityHistoryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="activity-history-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date &amp; Time</th>
+                <th>Activity</th>
+                <th>Actor</th>
+                <th>Stage</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="activityHistoryTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeActivityHistoryModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Shared API Client -->
+  <script type="module" src="../../api.js"></script>
+
+  <!-- Page Logic Script -->
+  <script src="view-order.js?v=2.5"></script>
+
+  <!-- Fragments Initialization -->
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+</body>
+</html>

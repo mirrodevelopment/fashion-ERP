@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appointments &amp; Calendar — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="appointments.css" />
+  <script src="../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+</head>
+<body data-module="appointments">
+
+  <!-- Background Atmospheric Image Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- =====================================================
+         HAULO BOUTIQUE ERP — Shared Sidebar Fragment
+         (Inlined for instant render & file:/// offline support)
+         ===================================================== -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+
+      <!-- =====================================================
+           TOP NAVIGATION BAR (Inlined for standalone rendering)
+           ===================================================== -->
+      <div id="navbarSlot"></div><!-- /navbarSlot -->
+
+      <!-- =====================================================
+           MAIN CONTENT AREA
+           ===================================================== -->
+      <main class="main-content" id="mainContent">
+
+        <!-- Page Operations Header -->
+        <div class="page-header-row">
+          <div class="header-titles">
+            <span class="schedule-label">Schedule</span>
+            <h1 class="page-title">Appointments &amp; Calendar</h1>
+            <p class="page-subtitle">Manage consultations, measurements, trials, deliveries and follow-ups. Keep your boutique running smoothly.</p>
+          </div>
+
+          <div class="header-right-actions">
+            <button type="button" class="btn-new-appointment" onclick="openNewAppointmentModal()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              <span>+ New Appointment</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             2-COLUMN MAIN PAGE LAYOUT (Exact Visual Reference Split)
+             Left: 5 KPI Cards + Main Calendar (White Grid Surface)
+             Right: Mini Calendar + Today's Schedule + Quick Actions + Upcoming
+             ===================================================== -->
+        <div class="page-layout-split">
+
+          <!-- ===================================================
+               LEFT COLUMN (~74% width)
+               =================================================== -->
+          <div class="layout-left-col">
+
+            <!-- 1. Row of 5 KPI Cards -->
+            <div class="kpi-cards-grid">
+              <!-- KPI 1: Today's Appointments -->
+              <div class="kpi-card" data-kpi="today-appointments">
+                <div class="kpi-content-wrap">
+                  <div class="kpi-icon-box icon-purple">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <div class="kpi-details">
+                    <div class="kpi-label">Today's Appointments</div>
+                    <div class="kpi-value" id="kpiTodayCount">—</div>
+                    <div class="kpi-trend positive" id="kpiTodayTrend">
+                      <span>—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- KPI 2: New Enquiries -->
+              <div class="kpi-card" data-kpi="new-enquiries">
+                <div class="kpi-content-wrap">
+                  <div class="kpi-icon-box icon-green">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <div class="kpi-details">
+                    <div class="kpi-label">New Enquiries</div>
+                    <div class="kpi-value" id="kpiEnquiryCount">—</div>
+                    <div class="kpi-trend info" id="kpiEnquiryTrend">
+                      <span>—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- KPI 3: Measurements -->
+              <div class="kpi-card" data-kpi="measurements">
+                <div class="kpi-content-wrap">
+                  <div class="kpi-icon-box icon-pink">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="6" cy="6" r="3"/>
+                      <circle cx="6" cy="18" r="3"/>
+                      <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+                      <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+                      <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+                    </svg>
+                  </div>
+                  <div class="kpi-details">
+                    <div class="kpi-label">Measurements</div>
+                    <div class="kpi-value" id="kpiMeasurementCount">—</div>
+                    <div class="kpi-trend info" id="kpiMeasurementTrend">
+                      <span>—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- KPI 4: Trials -->
+              <div class="kpi-card" data-kpi="trials">
+                <div class="kpi-content-wrap">
+                  <div class="kpi-icon-box icon-amber">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  </div>
+                  <div class="kpi-details">
+                    <div class="kpi-label">Trials</div>
+                    <div class="kpi-value" id="kpiTrialCount">—</div>
+                    <div class="kpi-trend info" id="kpiTrialTrend">
+                      <span>—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- KPI 5: Deliveries -->
+              <div class="kpi-card" data-kpi="deliveries">
+                <div class="kpi-content-wrap">
+                  <div class="kpi-icon-box icon-lavender">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                      <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                  </div>
+                  <div class="kpi-details">
+                    <div class="kpi-label">Deliveries</div>
+                    <div class="kpi-value" id="kpiDeliveryCount">—</div>
+                    <div class="kpi-trend info" id="kpiDeliveryTrend">
+                      <span>—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Main Calendar Card (Toolbar + Crisp White Grid Surface + Legend) -->
+            <div class="calendar-main-card">
+
+              <!-- Calendar Toolbar -->
+              <div class="cal-toolbar">
+                <!-- Left Toolbar Navigation & Date Selection -->
+                <div class="cal-toolbar-left">
+                  <div class="cal-arrows-group">
+                    <button type="button" class="cal-arrow-btn" onclick="navigateDate(-1)" title="Previous Day">‹</button>
+                    <button type="button" class="cal-arrow-btn" onclick="navigateDate(1)" title="Next Day">›</button>
+                  </div>
+                  <button type="button" class="cal-today-pill" onclick="goToToday()">Today</button>
+
+                  <div class="cal-date-dropdown-btn" id="calDateDropdownTrigger" onclick="toggleDateDropdown(event)">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span id="calCurrentDateText">Tue, 08 Sep 2026</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Right Toolbar View Switches & Filters -->
+                <div class="cal-toolbar-right">
+                  <!-- View Switch Tabs (Day / Week / Month / Table) -->
+                  <div class="view-switch-tabs" id="viewSwitchTabs">
+                    <button type="button" class="view-tab active" data-view="day" onclick="switchView('day', this)">Day</button>
+                    <button type="button" class="view-tab" data-view="week" onclick="switchView('week', this)">Week</button>
+                    <button type="button" class="view-tab" data-view="month" onclick="switchView('month', this)">Month</button>
+                    <button type="button" class="view-tab" data-view="table" onclick="switchView('table', this)">Table</button>
+                  </div>
+
+                  <!-- Filter Dropdown -->
+                  <div class="cal-filter-wrap">
+                    <button type="button" class="btn-cal-filter" id="calFilterBtn" onclick="toggleCalFilterMenu(event)">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                      </svg>
+                      <span id="currentFilterLabel">All Types</span>
+                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                    <div class="filter-dropdown-menu dd-panel" id="calFilterMenu">
+                      <div class="dd-item active" onclick="selectTypeFilter('all', 'All Types')">All Types</div>
+                      <div class="dd-item" onclick="selectTypeFilter('Design Consultation', 'Design Consultation')">Design Consultation</div>
+                      <div class="dd-item" onclick="selectTypeFilter('Measurement', 'Measurement')">Measurement</div>
+                      <div class="dd-item" onclick="selectTypeFilter('Trial', 'Trial')">Trial</div>
+                      <div class="dd-item" onclick="selectTypeFilter('Delivery', 'Delivery / Pickup')">Delivery / Pickup</div>
+                      <div class="dd-item" onclick="selectTypeFilter('Follow-up', 'Follow-up / Others')">Follow-up / Others</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Crisp White Calendar Surface Container -->
+              <div class="calendar-surface-container" id="calendarSurfaceContainer">
+
+                <!-- ==============================================
+                     DAY VIEW (Default: 5 Category Columns + Time Rows)
+                     ============================================== -->
+                <div class="cal-day-view" id="calDayView">
+                  <!-- Columns Header -->
+                  <div class="cal-day-header-row">
+                    <div class="cal-time-header-blank"></div>
+                    <div class="cal-cat-header-col">Design Consultation</div>
+                    <div class="cal-cat-header-col">Measurement</div>
+                    <div class="cal-cat-header-col">Trial</div>
+                    <div class="cal-cat-header-col">Delivery / Pickup</div>
+                    <div class="cal-cat-header-col">Follow-up / Others</div>
+                  </div>
+
+                  <!-- Interactive Time Grid Surface -->
+                  <div class="cal-time-grid" id="calTimeGrid">
+                    <!-- Time labels & 5 category lanes generated dynamically -->
+                  </div>
+                </div>
+
+                <!-- ==============================================
+                     WEEK VIEW (7 Days Mon-Sun)
+                     ============================================== -->
+                <div class="cal-week-view" id="calWeekView" style="display: none;">
+                  <div class="cal-week-header-row" id="calWeekHeaderRow">
+                    <!-- Injected via JS -->
+                  </div>
+                  <div class="cal-week-grid" id="calWeekGrid">
+                    <!-- Injected via JS -->
+                  </div>
+                </div>
+
+                <!-- ==============================================
+                     MONTH VIEW
+                     ============================================== -->
+                <div class="cal-month-view" id="calMonthView" style="display: none;">
+                  <div class="cal-month-weekdays">
+                    <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                  </div>
+                  <div class="cal-month-grid" id="calMonthGrid">
+                    <!-- Injected via JS -->
+                  </div>
+                </div>
+
+                <!-- ==============================================
+                     TABLE VIEW (Full ERP Appointments Data Grid)
+                     ============================================== -->
+                <div class="cal-table-view" id="calTableView" style="display: none;">
+                  <!-- Table Toolbar: Search, Status Filter Pills, Type Select -->
+                  <div class="appt-table-toolbar">
+                    <div class="appt-table-search-box">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      </svg>
+                      <input type="text" id="apptTableSearchInput" class="appt-search-input" placeholder="Search customer, phone, order, staff..." oninput="handleTableSearch(this.value)">
+                      <button type="button" class="appt-search-clear" id="apptSearchClearBtn" onclick="clearTableSearch()" style="display:none;" title="Clear search">✕</button>
+                    </div>
+
+                    <div class="appt-table-filters">
+                      <!-- Status Filter Pills -->
+                      <div class="appt-status-pills" id="apptStatusFilterPills">
+                        <button type="button" class="status-pill active" data-status="ALL" onclick="filterTableByStatus('ALL', this)">
+                          All <span class="pill-badge" id="pillCountAll">0</span>
+                        </button>
+                        <button type="button" class="status-pill" data-status="CONFIRMED" onclick="filterTableByStatus('CONFIRMED', this)">
+                          Confirmed <span class="pill-badge" id="pillCountConfirmed">0</span>
+                        </button>
+                        <button type="button" class="status-pill" data-status="SCHEDULED" onclick="filterTableByStatus('SCHEDULED', this)">
+                          Scheduled <span class="pill-badge" id="pillCountScheduled">0</span>
+                        </button>
+                        <button type="button" class="status-pill" data-status="COMPLETED" onclick="filterTableByStatus('COMPLETED', this)">
+                          Completed <span class="pill-badge" id="pillCountCompleted">0</span>
+                        </button>
+                        <button type="button" class="status-pill" data-status="CANCELLED" onclick="filterTableByStatus('CANCELLED', this)">
+                          Cancelled <span class="pill-badge" id="pillCountCancelled">0</span>
+                        </button>
+                      </div>
+
+                      <!-- Type Select Filter -->
+                      <select id="apptTableTypeSelect" class="appt-type-select" onchange="filterTableByType(this.value)">
+                        <option value="ALL">All Types</option>
+                        <option value="Design Consultation">Design Consultation</option>
+                        <option value="Measurement">Measurement</option>
+                        <option value="Trial">Trial &amp; Fitting</option>
+                        <option value="Delivery">Delivery / Pickup</option>
+                        <option value="Follow-up">Follow-up / Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Responsive Table Container -->
+                  <div class="appt-table-container">
+                    <table class="appt-data-table" id="appointmentsDataTable">
+                      <thead>
+                        <tr>
+                          <th class="th-appt-num">APPT #</th>
+                          <th class="th-customer">CUSTOMER</th>
+                          <th class="th-type">TYPE</th>
+                          <th class="th-datetime">DATE &amp; TIME</th>
+                          <th class="th-order">ORDER #</th>
+                          <th class="th-staff">STAFF</th>
+                          <th class="th-status">STATUS</th>
+                          <th class="th-notes">NOTES</th>
+                          <th class="th-actions" style="text-align: center;">ACTIONS</th>
+                        </tr>
+                      </thead>
+                      <tbody id="apptTableBody">
+                        <!-- Populated via renderTableView() -->
+                      </tbody>
+                    </table>
+
+                    <!-- Empty State View -->
+                    <div class="appt-table-empty-state" id="apptTableEmptyState" style="display: none;">
+                      <div class="empty-icon-wrap">
+                        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                      </div>
+                      <div class="empty-state-title">No Appointments Found</div>
+                      <div class="empty-state-desc">No appointment records match your current search and filter criteria.</div>
+                      <button type="button" class="btn-empty-reset" onclick="resetTableFilters()">Clear All Filters</button>
+                    </div>
+                  </div>
+
+                  <!-- Table Summary Bar -->
+                  <div class="appt-table-footer">
+                    <div class="table-counts-text" id="apptTableCountText">Showing 0 of 0 appointments</div>
+                    <div class="table-footer-actions">
+                      <button type="button" class="btn-table-new-appt" onclick="openNewAppointmentModal()">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <line x1="12" y1="5" x2="12" y2="19"/>
+                          <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>Book Appointment</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Bottom Category Color Legend -->
+              <div class="cal-bottom-legend">
+                <div class="leg-item"><span class="leg-dot dot-purple"></span><span>Design Consultation</span></div>
+                <div class="leg-item"><span class="leg-dot dot-green"></span><span>Measurement</span></div>
+                <div class="leg-item"><span class="leg-dot dot-pink"></span><span>Trial</span></div>
+                <div class="leg-item"><span class="leg-dot dot-lavender"></span><span>Delivery / Pickup</span></div>
+                <div class="leg-item"><span class="leg-dot dot-blue"></span><span>Follow-up</span></div>
+                <div class="leg-item"><span class="leg-dot dot-gray"></span><span>Other</span></div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ===================================================
+               RIGHT COLUMN (~26% width)
+               4 Stacked Panels: Mini Calendar, Today's Schedule,
+               Quick Actions (4 in 1 row), Upcoming 7 Days (4 in 1 row)
+               =================================================== -->
+          <aside class="layout-right-col">
+
+            <!-- Panel 1: Mini Calendar Card (September 2026) -->
+            <div class="side-panel mini-calendar-card" id="miniCalendarCard">
+              <div class="mc-header">
+                <span class="mc-month-title" id="miniCalMonthYear">September 2026</span>
+                <div class="mc-nav-btns">
+                  <button type="button" class="mc-btn" onclick="changeMiniCalMonth(-1)" title="Previous month">‹</button>
+                  <button type="button" class="mc-btn" onclick="changeMiniCalMonth(1)" title="Next month">›</button>
+                </div>
+              </div>
+
+              <div class="mc-weekdays">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+              </div>
+
+              <div class="mc-days-grid" id="miniCalDaysGrid">
+                <!-- Rendered via JavaScript with appointment indicator dots -->
+              </div>
+            </div>
+
+            <!-- Panel 2: Today's Schedule (12) -->
+            <div class="side-panel today-schedule-card">
+              <div class="panel-header-line">
+                <div class="panel-header-left">
+                  <div class="panel-icon-bullet green-bullet">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <h3 class="panel-heading" id="todayScheduleHeading">Today's Schedule (<span id="todayScheduleCount">0</span>)</h3>
+                </div>
+                <button type="button" class="btn-panel-link" onclick="openAllTodayScheduleModal()">View All →</button>
+              </div>
+
+              <div class="today-schedule-list" id="todayScheduleList">
+                <!-- Populated via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Panel 3: Quick Actions (4 Horizontal Tiles in 1 Row) -->
+            <div class="side-panel quick-actions-panel">
+              <div class="panel-header-line">
+                <div class="panel-header-left">
+                  <div class="panel-icon-bullet green-bullet">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                  </div>
+                  <h3 class="panel-heading">Quick Actions</h3>
+                </div>
+              </div>
+
+              <div class="qa-grid-4col">
+                <button type="button" class="qa-tile qa-tile-lime" onclick="openNewAppointmentModal()">
+                  <div class="qa-icon-wrap">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </div>
+                  <span class="qa-label">New Appt</span>
+                </button>
+
+                <button type="button" class="qa-tile qa-tile-teal" onclick="openWalkInModal()">
+                  <div class="qa-icon-wrap">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="8.5" cy="7" r="4"/>
+                      <line x1="20" y1="8" x2="20" y2="14"/>
+                      <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                  </div>
+                  <span class="qa-label">Quick Walk-in</span>
+                </button>
+
+                <button type="button" class="qa-tile qa-tile-purple" onclick="openSendReminderModal()">
+                  <div class="qa-icon-wrap">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  </div>
+                  <span class="qa-label">Send Reminder</span>
+                </button>
+
+                <button type="button" class="qa-tile qa-tile-yellow" onclick="switchView('table')">
+                  <div class="qa-icon-wrap">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
+                      <line x1="8" y1="6" x2="21" y2="6"/>
+                      <line x1="8" y1="12" x2="21" y2="12"/>
+                      <line x1="8" y1="18" x2="21" y2="18"/>
+                      <line x1="3" y1="6" x2="3.01" y2="6"/>
+                      <line x1="3" y1="12" x2="3.01" y2="12"/>
+                      <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                  </div>
+                  <span class="qa-label">Table View</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Panel 4: Upcoming (Next 7 Days) (4 Horizontal Mini Cards) -->
+            <div class="side-panel upcoming-panel">
+              <div class="panel-header-line">
+                <div class="panel-header-left">
+                  <div class="panel-icon-bullet green-bullet">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <h3 class="panel-heading">Upcoming (Next 7 Days)</h3>
+                </div>
+                <button type="button" class="btn-panel-link" onclick="openUpcomingSummaryModal()">View All →</button>
+              </div>
+
+              <div class="upcoming-row-grid">
+                <!-- Card 1: Measurements -->
+                <div class="upcoming-mini-card" onclick="filterTableByType('Measurement'); switchView('table');" style="cursor:pointer;" title="Filter Measurements in Table View">
+                  <div class="up-icon-wrap icon-green">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+                      <line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/>
+                    </svg>
+                  </div>
+                  <div class="up-num" id="upMeasurementCount">0</div>
+                  <div class="up-label">Measurements</div>
+                </div>
+
+                <!-- Card 2: Trials -->
+                <div class="upcoming-mini-card" onclick="filterTableByType('Trial'); switchView('table');" style="cursor:pointer;" title="Filter Trials & Fittings in Table View">
+                  <div class="up-icon-wrap icon-pink">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  </div>
+                  <div class="up-num" id="upTrialCount">0</div>
+                  <div class="up-label">Trials</div>
+                </div>
+
+                <!-- Card 3: Deliveries -->
+                <div class="upcoming-mini-card" onclick="filterTableByType('Delivery'); switchView('table');" style="cursor:pointer;" title="Filter Deliveries in Table View">
+                  <div class="up-icon-wrap icon-purple">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                  </div>
+                  <div class="up-num" id="upDeliveryCount">0</div>
+                  <div class="up-label">Deliveries</div>
+                </div>
+
+                <!-- Card 4: Follow-ups -->
+                <div class="upcoming-mini-card" onclick="filterTableByType('Follow-up'); switchView('table');" style="cursor:pointer;" title="Filter Follow-ups in Table View">
+                  <div class="up-icon-wrap icon-blue">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </div>
+                  <div class="up-num" id="upFollowupCount">0</div>
+                  <div class="up-label">Follow-ups</div>
+                </div>
+              </div>
+            </div>
+
+          </aside>
+
+        </div>
+
+      <!-- Footer slot - injected by fragments.js -->
+      <div id="footerSlot"></div><!-- /footerSlot -->
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- =====================================================
+       MODALS & DRAWERS
+       ===================================================== -->
+
+  <!-- Modal 1: + New Appointment Modal -->
+  <div class="modal-backdrop" id="newAppointmentModal" style="display: none;">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge icon-purple">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Schedule New Appointment</h3>
+            <p class="modal-subtitle">Book a customer consultation, trial, measurement, or delivery session.</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('newAppointmentModal')">✕</button>
+      </div>
+
+      <form id="newAppointmentForm" onsubmit="handleSaveAppointment(event)">
+        <div class="modal-body-scroll">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Customer Name <span class="required">*</span></label>
+              <input type="text" class="form-input" id="aptCustomerName" placeholder="e.g. Ananya Iyer" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number <span class="required">*</span></label>
+              <input type="tel" class="form-input" id="aptPhone" placeholder="+91 98765 43210" required />
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Appointment Type <span class="required">*</span></label>
+              <select class="form-select" id="aptTypeSelect" required>
+                <option value="Design Consultation">Design Consultation</option>
+                <option value="Measurement">Measurement</option>
+                <option value="Trial">Trial</option>
+                <option value="Delivery">Delivery / Pickup</option>
+                <option value="Follow-up">Follow-up</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date <span class="required">*</span></label>
+              <input type="date" class="form-input" id="aptDate" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="aptStatus">
+                <option value="Confirmed">Confirmed</option>
+                <option value="Pending">Pending</option>
+                <option value="Rescheduled">Rescheduled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Start Time <span class="required">*</span></label>
+              <input type="time" class="form-input" id="aptStartTime" value="09:00" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Time <span class="required">*</span></label>
+              <input type="time" class="form-input" id="aptEndTime" value="10:00" required />
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Garment / Item</label>
+              <input type="text" class="form-input" id="aptGarment" placeholder="e.g. Bridal Lehenga, Saree Blouse" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Order Number</label>
+              <input type="text" class="form-input" id="aptOrderNumber" placeholder="e.g. ORD-1001" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Assigned Staff</label>
+              <select class="form-select" id="aptStaff">
+                <option value="Pranesh B">Pranesh B (Admin / Designer)</option>
+                <option value="Meena Kumari">Meena Kumari (Master Tailor)</option>
+                <option value="Anbarasu K">Anbarasu K (Pattern Maker)</option>
+                <option value="Preeti Roy">Preeti Roy (Consultant)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes &amp; Consultation Requirements</label>
+            <textarea class="form-textarea" id="aptNotes" rows="2" placeholder="e.g. Client requested pastel moodboard references and silk sample swatches."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="custom-cb">
+              <input type="checkbox" id="aptReminderCheck" checked />
+              <span>Send automated WhatsApp / SMS reminder 2 hours prior to appointment</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-secondary" onclick="closeModal('newAppointmentModal')">Cancel</button>
+          <button type="submit" class="btn-modal-primary">Save Appointment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Appointment Detail Modal -->
+  <div class="modal-backdrop" id="appointmentDetailModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge icon-purple" id="detailModalBadge">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title" id="detailCustomerName">Appointment Details</h3>
+            <p class="modal-subtitle" id="detailDateTime">Tue, 08 Sep 2026 • 9:00 AM - 10:00 AM</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('appointmentDetailModal')">✕</button>
+      </div>
+
+      <div class="modal-body-scroll" id="appointmentDetailContent">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-secondary" style="color:var(--danger, #f87171);" onclick="handleCancelAppointment()">Cancel Appointment</button>
+        <button type="button" class="btn-modal-secondary" onclick="openRescheduleModal()">Reschedule</button>
+        <button type="button" class="btn-modal-primary" onclick="handleEditAppointment()">Edit Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Reschedule Appointment Modal -->
+  <div class="modal-backdrop" id="rescheduleModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge icon-amber">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Reschedule Appointment</h3>
+            <p class="modal-subtitle" id="rescheduleSubtitle">Select a new date and time slot for the customer.</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('rescheduleModal')">✕</button>
+      </div>
+
+      <form id="rescheduleForm" onsubmit="handleSaveReschedule(event)">
+        <div class="modal-body-scroll">
+          <div class="form-group">
+            <label class="form-label">New Appointment Date <span class="required">*</span></label>
+            <input type="date" class="form-input" id="rescheduleDate" required />
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">New Start Time <span class="required">*</span></label>
+              <input type="time" class="form-input" id="rescheduleStartTime" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">New End Time <span class="required">*</span></label>
+              <input type="time" class="form-input" id="rescheduleEndTime" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Reason for Rescheduling</label>
+            <select class="form-select" id="rescheduleReason">
+              <option value="Customer Requested">Customer Requested (Schedule Conflict)</option>
+              <option value="Tailor Preparation Delay">Tailor Preparation / Alteration Pending</option>
+              <option value="Designer Travel">Designer Travel / Consultation Availability</option>
+              <option value="Inclement Weather">Inclement Weather / Monsoon Delay</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-secondary" onclick="closeModal('rescheduleModal')">Cancel</button>
+          <button type="submit" class="btn-modal-primary">Confirm Reschedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Walk-in Customer Modal -->
+  <div class="modal-backdrop" id="walkInModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge icon-purple">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Walk-in Customer Intake</h3>
+            <p class="modal-subtitle">Quickly register an instant boutique visitor into today's calendar.</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('walkInModal')">✕</button>
+      </div>
+
+      <form id="walkInForm" onsubmit="handleSaveWalkIn(event)">
+        <div class="modal-body-scroll">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Customer Name <span class="required">*</span></label>
+              <input type="text" class="form-input" id="walkInName" placeholder="e.g. Shalini Roy" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number <span class="required">*</span></label>
+              <input type="tel" class="form-input" id="walkInPhone" placeholder="+91 98450 11223" required />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Service Requirement <span class="required">*</span></label>
+              <select class="form-select" id="walkInType" required>
+                <option value="Design Consultation">Design Consultation</option>
+                <option value="Measurement">Immediate Measurement</option>
+                <option value="Trial">Walk-in Fitting Trial</option>
+                <option value="Delivery">Order Pickup</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Assign To</label>
+              <select class="form-select" id="walkInStaff">
+                <option value="Pranesh B">Pranesh B (Floor Manager)</option>
+                <option value="Preeti Roy">Preeti Roy (Sr. Stylist)</option>
+                <option value="Meena Kumari">Meena Kumari (Master Tailor)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Client Requirement Note</label>
+            <textarea class="form-textarea" id="walkInNotes" rows="2" placeholder="e.g. Inquiring for reception saree drape and embroidery embellishments."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-secondary" onclick="closeModal('walkInModal')">Cancel</button>
+          <button type="submit" class="btn-modal-primary">Create Walk-in Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Send Reminder Modal -->
+  <div class="modal-backdrop" id="reminderModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge icon-pink">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Send Appointment Reminders</h3>
+            <p class="modal-subtitle">Broadcast reminders to customers with upcoming appointments today.</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('reminderModal')">✕</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <div class="form-group">
+          <label class="form-label">Select Channels</label>
+          <div style="display:flex;gap:16px;margin-top:4px;">
+            <label class="custom-cb"><input type="checkbox" id="remWhatsApp" checked /> <span>WhatsApp</span></label>
+            <label class="custom-cb"><input type="checkbox" id="remSms" checked /> <span>SMS</span></label>
+            <label class="custom-cb"><input type="checkbox" id="remEmail" /> <span>Email</span></label>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:10px;">
+          <label class="form-label">Message Preview Template</label>
+          <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px;font-size:11.5px;color:rgba(255,255,255,0.8);line-height:1.5;">
+            "Dear <strong>{Customer}</strong>, this is a gentle reminder from Haulo Boutique ERP for your <strong>{Service}</strong> appointment today at <strong>{Time}</strong>. Please contact us if you need to adjust your visit. See you soon!"
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Target Recipients (Today: 12 Confirmed)</label>
+          <div id="reminderRecipientsList" style="max-height:150px;overflow-y:auto;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-secondary" onclick="closeModal('reminderModal')">Cancel</button>
+        <button type="button" class="btn-modal-primary" onclick="handleBroadcastReminders()">Send Reminders Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Main JavaScript File -->
+  <script src="appointments.js"></script>  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+
+</body>
+</html>

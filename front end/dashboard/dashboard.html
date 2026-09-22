@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Haulo Boutique ERP</title>
+  <meta name="description" content="Haulo Boutique ERP — Luxury Executive Operating System for Fashion Houses"/>
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display for quotes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Shared fragments styles (sidebar + footer) -->
+  <link rel="stylesheet" href="../fragments/fragments.css"/>
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <!-- Dashboard-specific styles -->
+  <link rel="stylesheet" href="dashboard.css"/>
+</head>
+<body data-module="dashboard">
+
+<!-- ── Background with Boutique Shop Image ── -->
+<div class="app-bg"></div>
+
+<!-- ── App Shell ── -->
+<div class="app-shell">
+
+  <!-- =====================================================
+       SIDEBAR — Inlined for standalone file:// preview & fast paint
+       Source of truth: front end/fragments/sidebar.html
+       ===================================================== -->
+  <div id="sidebarSlot"></div><!-- /sidebarSlot -->
+
+  <!-- =====================================================
+       MAIN CONTENT
+       ===================================================== -->
+  <main class="main-content">
+
+    <!-- ── TOP HEADER ── -->
+    <div id="navbarSlot"></div><!-- /navbarSlot -->
+
+    <!-- ── DASHBOARD SCROLL AREA ── -->
+    <div class="dashboard-scroll" id="dashboardScroll">
+
+      <!-- ── Welcome Row ── -->
+      <section class="welcome-section">
+        <div class="welcome-left">
+          <h1 class="welcome-greeting">Good <span id="timeOfDay">evening</span>, <span id="greetName">Pranesh</span> 👋</h1>
+          <p class="welcome-sub" id="welcomeSub">Your boutique is on track. 6 orders need your attention today.</p>
+        </div>
+        <div class="welcome-right">
+          <p class="welcome-quote">“ Designs today,<br/>a more beautiful tomorrow. ”</p>
+          <div class="datetime-display">
+            <div class="datetime-date" id="liveDate">—</div>
+            <div class="datetime-time" id="liveTime">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 6 KPI Cards Row ── -->
+      <section class="kpi-row" id="kpiRow"></section>
+
+      <!-- ── Analytics Row (3 Cards: Business Health, Revenue Trend, Order Completion) ── -->
+      <section class="analytics-row">
+
+        <!-- Card 1: Business Health -->
+        <div class="card health-card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 12h3l2-4 3 8 2-4h2"/></svg>
+              Business Health
+            </span>
+            <button class="icon-btn" title="Expand">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </button>
+          </div>
+          <div class="health-body">
+            <div class="health-donut-container">
+              <canvas id="healthChart"></canvas>
+              <div class="health-donut-center">
+                <div class="health-pct" id="healthOverallPct">82%</div>
+                <div class="health-lbl">Overall<br/>Business Health</div>
+              </div>
+            </div>
+            <div class="health-metrics-grid" id="healthMetrics"></div>
+          </div>
+        </div>
+
+        <!-- Card 2: Revenue Trend -->
+        <div class="card revenue-card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              Revenue Trend
+            </span>
+            <button class="filter-btn" id="revFilterBtn">Monthly <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          </div>
+          <div class="revenue-val-row">
+            <div class="revenue-big" id="revenueBig">₹48,75,000</div>
+            <div class="revenue-legend">
+              <div class="revenue-legend-item"><div class="legend-dot" style="background:#a3e635;"></div>Revenue</div>
+              <div class="revenue-legend-item"><div class="legend-dot" style="background:#c084fc;"></div>Cost</div>
+            </div>
+          </div>
+          <div class="revenue-growth-line">
+            <span class="revenue-growth" id="revenueGrowth">↑ 18%</span>
+            <span class="revenue-vs">vs last month</span>
+          </div>
+          <div class="revenue-chart-wrap">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Card 3: Order Completion -->
+        <div class="card orders-card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Order Completion
+            </span>
+            <button class="filter-btn" id="ordFilterBtn">This Month <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut-container">
+              <canvas id="donutChart"></canvas>
+              <div class="donut-center">
+                <div class="donut-total" id="donutTotal">528</div>
+                <div class="donut-label">Total Orders</div>
+              </div>
+            </div>
+            <div class="orders-legend-list" id="ordersLegend"></div>
+          </div>
+        </div>
+
+      </section><!-- /analytics-row -->
+
+      <!-- ── Bottom Grid (2 Columns: Left = Pulse + Orders; Right = Schedule + Quick Actions + Collection) ── -->
+      <section class="dashboard-bottom-grid">
+
+        <!-- Left Column -->
+        <div class="dash-col-left">
+
+          <!-- Production Pulse -->
+          <div class="card prod-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Production Pulse
+                </div>
+                <div class="card-subtitle" id="prodSubtitle">524 active garments across all stages</div>
+              </div>
+              <div class="prod-header-actions">
+                <div class="pipeline-nav-arrows">
+                  <button class="pipe-arrow-btn" id="pipePrevBtn" aria-label="Previous stages" title="Previous stages" disabled>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <button class="pipe-arrow-btn" id="pipeNextBtn" aria-label="Next stages" title="Next stages">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+                <a href="#" class="view-link" onclick="navigate('production-floor')">
+                  View Production
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+              </div>
+            </div>
+            <div class="pipeline-scroll-viewport" id="productionScrollViewport">
+              <div class="pipeline-wrap" id="productionPipeline"></div>
+            </div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="card orders-table-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Recent Orders
+                </div>
+                <div class="card-subtitle">Showing latest 5 orders</div>
+              </div>
+              <a href="#" class="view-link" onclick="navigate('orders')">
+                View All
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+            </div>
+            <div class="orders-table-wrap">
+              <table class="orders-table" id="ordersTable">
+                <thead>
+                  <tr>
+                    <th>ORDER #</th>
+                    <th>DATE</th>
+                    <th>CUSTOMER</th>
+                    <th>GARMENTS</th>
+                    <th>AMOUNT</th>
+                    <th>STATUS</th>
+                    <th>PAYMENT</th>
+                    <th>DUE DATE</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div><!-- /dash-col-left -->
+
+        <!-- Right Column -->
+        <div class="dash-col-right">
+
+          <!-- Today's Schedule -->
+          <div class="card schedule-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Today's Schedule
+                </div>
+                <div class="card-subtitle" id="scheduleSubtitle">8 appointments</div>
+              </div>
+              <a href="#" class="view-link" onclick="navigate('appointments')">
+                View Prodendar
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+            </div>
+            <div class="schedule-list" id="scheduleList"></div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="card quick-card">
+            <div class="card-header" style="padding-bottom:6px;">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Quick Actions
+              </span>
+            </div>
+            <div class="quick-actions-grid" id="quickGrid"></div>
+          </div>
+
+          <!-- New Collection Banner -->
+          <div class="card collection-card" onclick="navigate('collections')">
+            <div class="collection-thumb-wrap">
+              <img src="../assets/pink_silk.jpg" alt="New Collection" class="collection-thumb-img"/>
+            </div>
+            <div class="collection-info">
+              <div class="collection-title">New Collection</div>
+              <div class="collection-sub">Tradition in every thread.</div>
+            </div>
+            <button class="collection-circle-btn" aria-label="Explore Collection">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+        </div><!-- /dash-col-right -->
+
+      </section><!-- /dashboard-bottom-grid -->
+
+    </div><!-- /dashboard-scroll -->
+
+    <!-- ── FOOTER / STATUS BAR ── -->
+    <div id="footerSlot">
+    
+    </div><!-- /footerSlot -->
+
+  </main><!-- /main-content -->
+
+</div><!-- /app-shell -->
+
+<!-- Tooltip -->
+<div class="chart-tooltip" id="chartTooltip"></div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<!-- Fragments JS (wires up toggleSidebar(), navNavigate(), active item) -->
+<script>
+  window.FRAGMENT_BASE = '../fragments/';
+</script>  <script src="../fragments/fragments-inline.js"></script>
+<script src="../fragments/fragments.js"></script>
+<!-- Dashboard Controller JS (ES module for api.js import) -->
+<script type="module" src="dashboard.js?v=8"></script>
+
+</body>
+</html>

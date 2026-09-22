@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Command Centre — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="inventory.css" />
+  <script src="../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+</head>
+<body data-module="stock">
+
+  <!-- Background Atmospheric Image Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- =====================================================
+         HAULO BOUTIQUE ERP — Shared Sidebar Fragment
+         (Inlined for instant render & file:/// offline support)
+         ===================================================== -->
+    <div id="sidebarSlot"></div><!-- /sidebarSlot -->
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- =====================================================
+           TOP NAVIGATION HEADER
+           ===================================================== -->
+      <div id="navbarSlot"></div><!-- /navbarSlot -->
+
+      <!-- =====================================================
+           INVENTORY WORKSPACE
+           ===================================================== -->
+      <div class="inventory-workspace" id="inventoryWorkspace">
+
+        <!-- Page Header Row -->
+        <div class="page-title-row">
+          <div class="title-left">
+            <span class="section-tag-label">Inventory</span>
+            <h1 class="page-title">Inventory Command Centre</h1>
+            <p class="page-subtitle">Track stock levels, manage materials and ensure you never run out.</p>
+          </div>
+          <div class="title-right">
+            <div class="header-datetime-box">
+              <span class="date-text" id="headerDateText">Tue, 08 Sep 2026</span>
+              <span class="time-text" id="headerTimeText">01:36 PM</span>
+            </div>
+            <button class="btn-dark-pill" onclick="openAddItemModal()">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add New Item</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             1. TOP KPI SUMMARY ROW (6 CARDS IN 1 ROW)
+             ===================================================== -->
+        <section class="kpi-grid">
+
+          <!-- KPI 1: Total Items -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box green">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Items</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiTotalItems">482</span>
+              </div>
+              <span class="kpi-subtext positive">↑ 12% from last month</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Total Stock Value -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Stock Value</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiTotalStockValue">₹18,42,500</span>
+              </div>
+              <span class="kpi-subtext positive">↑ 8% from last month</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Low Stock Items -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box yellow">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Low Stock Items</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value alert" id="kpiLowStockItems">24</span>
+              </div>
+              <span class="kpi-subtext alert">↓ 6 from last week</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Out of Stock -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box red">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Out of Stock</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value alert" id="kpiOutOfStock">6</span>
+              </div>
+              <span class="kpi-subtext alert">Needs attention</span>
+            </div>
+          </div>
+
+          <!-- KPI 5: On Order -->
+          <div class="kpi-card">
+            <div class="kpi-icon-box blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">On Order</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiOnOrder">12</span>
+              </div>
+              <span class="kpi-subtext muted">Expected this week</span>
+            </div>
+          </div>
+
+          <!-- KPI 6: Items by Category (Donut Chart) -->
+          <div class="kpi-card kpi-donut-card">
+            <div class="donut-wrapper">
+              <svg viewBox="0 0 100 100" class="donut-svg">
+                <!-- Background track -->
+                <circle cx="50" cy="50" r="38" class="donut-bg" />
+                <!-- Fabrics (Lime Green 38%) -->
+                <circle cx="50" cy="50" r="38" class="donut-seg seg-fabrics" stroke-dasharray="91 239" stroke-dashoffset="0" />
+                <!-- Trims & Accessories (Purple 26%) -->
+                <circle cx="50" cy="50" r="38" class="donut-seg seg-trims" stroke-dasharray="62 239" stroke-dashoffset="-91" />
+                <!-- Consumables (Yellow 18%) -->
+                <circle cx="50" cy="50" r="38" class="donut-seg seg-consumables" stroke-dasharray="43 239" stroke-dashoffset="-153" />
+                <!-- Packaging (Coral Pink 10%) -->
+                <circle cx="50" cy="50" r="38" class="donut-seg seg-packaging" stroke-dasharray="24 239" stroke-dashoffset="-196" />
+                <!-- Others (Blue 8%) -->
+                <circle cx="50" cy="50" r="38" class="donut-seg seg-others" stroke-dasharray="19 239" stroke-dashoffset="-220" />
+              </svg>
+              <div class="donut-center" id="donutCategoryTotal">482</div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-title">Items by Category</div>
+              <div class="leg-row">
+                <span class="leg-dot lime"></span>
+                <span class="leg-text">Fabrics</span>
+                <span class="leg-val">38%</span>
+              </div>
+              <div class="leg-row">
+                <span class="leg-dot purple"></span>
+                <span class="leg-text">Trims &amp; Accessories</span>
+                <span class="leg-val">26%</span>
+              </div>
+              <div class="leg-row">
+                <span class="leg-dot yellow"></span>
+                <span class="leg-text">Consumables</span>
+                <span class="leg-val">18%</span>
+              </div>
+              <div class="leg-row">
+                <span class="leg-dot pink"></span>
+                <span class="leg-text">Packaging</span>
+                <span class="leg-val">10%</span>
+              </div>
+              <div class="leg-row">
+                <span class="leg-dot blue"></span>
+                <span class="leg-text">Others</span>
+                <span class="leg-val">8%</span>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- =====================================================
+             2. CATEGORY STOCK CARDS ROW (8 CARDS IN 1 ROW)
+             ===================================================== -->
+        <section class="category-summary-row" id="categorySummaryRow">
+          <!-- Card 1: Fabrics -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Fabrics')">
+            <div class="cat-top">
+              <div class="cat-icon-box green">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M7 12a5 5 0 0 1 5-5 5 5 0 0 1 5 5M7 12a5 5 0 0 0 5 5 5 5 0 0 0 5-5"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Fabrics</span>
+                <span class="cat-count">184 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar green" style="width: 68%;"></div>
+            </div>
+            <span class="cat-status-pct">68% in stock</span>
+          </div>
+
+          <!-- Card 2: Linings -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Linings')">
+            <div class="cat-top">
+              <div class="cat-icon-box purple">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Linings</span>
+                <span class="cat-count">42 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar purple" style="width: 76%;"></div>
+            </div>
+            <span class="cat-status-pct">76% in stock</span>
+          </div>
+
+          <!-- Card 3: Threads -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Threads')">
+            <div class="cat-top">
+              <div class="cat-icon-box yellow">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="5" y1="7" x2="19" y2="7"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="17" x2="19" y2="17"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Threads</span>
+                <span class="cat-count">36 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar yellow" style="width: 58%;"></div>
+            </div>
+            <span class="cat-status-pct">58% in stock</span>
+          </div>
+
+          <!-- Card 4: Buttons & Hooks -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Buttons & Hooks')">
+            <div class="cat-top">
+              <div class="cat-icon-box pink">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1.5"/><circle cx="15" cy="9" r="1.5"/><circle cx="9" cy="15" r="1.5"/><circle cx="15" cy="15" r="1.5"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Buttons &amp; Hooks</span>
+                <span class="cat-count">28 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar pink" style="width: 71%;"></div>
+            </div>
+            <span class="cat-status-pct">71% in stock</span>
+          </div>
+
+          <!-- Card 5: Zips & Fasteners -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Zips & Fasteners')">
+            <div class="cat-top">
+              <div class="cat-icon-box blue">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M9 6h6M9 10h6M9 14h6M9 18h6"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Zips &amp; Fasteners</span>
+                <span class="cat-count">24 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar blue" style="width: 63%;"></div>
+            </div>
+            <span class="cat-status-pct">63% in stock</span>
+          </div>
+
+          <!-- Card 6: Embellishments -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Embellishments')">
+            <div class="cat-top">
+              <div class="cat-icon-box amber">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Embellishments</span>
+                <span class="cat-count">56 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar amber" style="width: 54%;"></div>
+            </div>
+            <span class="cat-status-pct">54% in stock</span>
+          </div>
+
+          <!-- Card 7: Packaging -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Packaging')">
+            <div class="cat-top">
+              <div class="cat-icon-box emerald">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Packaging</span>
+                <span class="cat-count">18 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar emerald" style="width: 89%;"></div>
+            </div>
+            <span class="cat-status-pct">89% in stock</span>
+          </div>
+
+          <!-- Card 8: Others -->
+          <div class="cat-summary-card" onclick="selectCategoryFilter('Others')">
+            <div class="cat-top">
+              <div class="cat-icon-box slate">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </div>
+              <div class="cat-meta">
+                <span class="cat-name">Others</span>
+                <span class="cat-count">94 items</span>
+              </div>
+            </div>
+            <div class="cat-progress-track">
+              <div class="cat-progress-bar slate" style="width: 67%;"></div>
+            </div>
+            <span class="cat-status-pct">67% in stock</span>
+          </div>
+        </section>
+
+        <!-- =====================================================
+             3. MAIN OPERATIONS SECTION (TWO-COLUMN SPLIT)
+             ===================================================== -->
+        <div class="inventory-main-split">
+
+          <!-- ── LEFT COLUMN (68% Width): Inventory Table & Bottom Analytics ── -->
+          <div class="inventory-left-col">
+
+            <!-- Category Toolbar & Search Filter -->
+            <div class="inventory-toolbar-card">
+              <div class="cat-tabs-group" id="inventoryTabsGroup">
+                <button class="cat-tab-btn active" data-cat="all" onclick="setInventoryTab('all', this)">All Items (482)</button>
+                <button class="cat-tab-btn" data-cat="Fabrics" onclick="setInventoryTab('Fabrics', this)">Fabrics (184)</button>
+                <button class="cat-tab-btn" data-cat="Trims" onclick="setInventoryTab('Trims', this)">Trims (108)</button>
+                <button class="cat-tab-btn" data-cat="Consumables" onclick="setInventoryTab('Consumables', this)">Consumables (86)</button>
+                <button class="cat-tab-btn" data-cat="Packaging" onclick="setInventoryTab('Packaging', this)">Packaging (48)</button>
+                <button class="cat-tab-btn" data-cat="Others" onclick="setInventoryTab('Others', this)">Others (56)</button>
+              </div>
+
+              <div class="toolbar-right-tools">
+                <div class="inventory-search-box">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="inventorySearchInput" placeholder="Search by item name, code or supplier..." oninput="handleInventorySearch()" />
+                </div>
+                <button class="btn-filter-glass" onclick="openFilterModal()">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                  <span>Filter</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inventory Table Glass Card -->
+            <div class="glass-card inventory-table-card">
+              <div class="table-responsive-wrap">
+                <table class="inventory-table" id="inventoryTable">
+                  <thead>
+                    <tr>
+                      <th style="width: 28px;">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" />
+                      </th>
+                      <th>Item Code</th>
+                      <th>Item Name</th>
+                      <th>Category</th>
+                      <th>Colour / Variant</th>
+                      <th>Unit</th>
+                      <th>Stock Qty</th>
+                      <th>Reserved</th>
+                      <th>Available</th>
+                      <th>Reorder Level</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                      <th style="text-align: right;">
+                        <button class="btn-table-export" onclick="exportInventoryCSV()" title="Export Inventory to CSV">
+                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          <span>Export</span>
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventoryTableBody">
+                    <!-- Dynamic Rows Injected by JavaScript -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Table Pagination Footer -->
+              <div class="table-pagination-footer">
+                <span class="pagination-info" id="paginationInfo">Showing 1–8 of 482 items</span>
+                <div class="pagination-controls" id="paginationControls">
+                  <button class="page-nav-btn prev" onclick="changePage(-1)">‹</button>
+                  <button class="page-num-btn active" onclick="goToPage(1)">1</button>
+                  <button class="page-num-btn" onclick="goToPage(2)">2</button>
+                  <button class="page-num-btn" onclick="goToPage(3)">3</button>
+                  <button class="page-num-btn" onclick="goToPage(4)">4</button>
+                  <button class="page-num-btn" onclick="goToPage(5)">5</button>
+                  <span class="page-dots">…</span>
+                  <button class="page-nav-btn next" onclick="changePage(1)">›</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Row: Top Consumed Items & Stock Value by Category -->
+            <div class="bottom-analytics-split">
+
+              <!-- Card A: Top Consumed Items (This Month) -->
+              <div class="glass-card consumed-items-card">
+                <div class="card-header-simple">
+                  <div class="chs-left">
+                    <div class="chs-icon green">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#a3e635" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                    <h3 class="card-title">Top Consumed Items (This Month)</h3>
+                  </div>
+                </div>
+
+                <div class="consumed-bars-list" id="consumedBarsList">
+                  <!-- Item 1 -->
+                  <div class="consumed-bar-row">
+                    <span class="cb-name">Banarasi Silk</span>
+                    <div class="cb-track">
+                      <div class="cb-fill green" style="width: 82%;"></div>
+                    </div>
+                    <span class="cb-val">120 m</span>
+                  </div>
+
+                  <!-- Item 2 -->
+                  <div class="consumed-bar-row">
+                    <span class="cb-name">Georgette</span>
+                    <div class="cb-track">
+                      <div class="cb-fill yellow" style="width: 58%;"></div>
+                    </div>
+                    <span class="cb-val">85 m</span>
+                  </div>
+
+                  <!-- Item 3 -->
+                  <div class="consumed-bar-row">
+                    <span class="cb-name">Embroidery Thread</span>
+                    <div class="cb-track">
+                      <div class="cb-fill pink" style="width: 44%;"></div>
+                    </div>
+                    <span class="cb-val">60 rolls</span>
+                  </div>
+
+                  <!-- Item 4 -->
+                  <div class="consumed-bar-row">
+                    <span class="cb-name">Satoon Lining</span>
+                    <div class="cb-track">
+                      <div class="cb-fill purple" style="width: 38%;"></div>
+                    </div>
+                    <span class="cb-val">52 m</span>
+                  </div>
+
+                  <!-- Item 5 -->
+                  <div class="consumed-bar-row">
+                    <span class="cb-name">Designer Buttons</span>
+                    <div class="cb-track">
+                      <div class="cb-fill blue" style="width: 26%;"></div>
+                    </div>
+                    <span class="cb-val">480 pcs</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card B: Stock Value by Category -->
+              <div class="glass-card stock-value-card">
+                <div class="card-header-simple">
+                  <div class="chs-left">
+                    <div class="chs-icon green">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#a3e635" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <h3 class="card-title">Stock Value by Category</h3>
+                  </div>
+                </div>
+
+                <div class="stock-val-body">
+                  <div class="donut-large-wrap">
+                    <svg viewBox="0 0 100 100" class="donut-svg">
+                      <circle cx="50" cy="50" r="38" class="donut-bg" />
+                      <!-- Fabrics 45% (Green) -->
+                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-fabrics" stroke-dasharray="108 239" stroke-dashoffset="0" />
+                      <!-- Trims & Accessories 25% (Purple) -->
+                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-trims" stroke-dasharray="60 239" stroke-dashoffset="-108" />
+                      <!-- Consumables 15% (Yellow) -->
+                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-consumables" stroke-dasharray="36 239" stroke-dashoffset="-168" />
+                      <!-- Packaging 8% (Pink) -->
+                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-packaging" stroke-dasharray="19 239" stroke-dashoffset="-204" />
+                      <!-- Others 7% (Blue) -->
+                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-others" stroke-dasharray="16 239" stroke-dashoffset="-223" />
+                    </svg>
+                    <div class="donut-val-center">
+                      <span class="dvc-big">₹18.42L</span>
+                      <span class="dvc-sub">Total Value</span>
+                    </div>
+                  </div>
+
+                  <div class="stock-val-legend">
+                    <div class="val-leg-row">
+                      <span class="val-dot green"></span>
+                      <span class="val-name">Fabrics</span>
+                      <span class="val-pct">45%</span>
+                      <span class="val-num">₹8.26L</span>
+                    </div>
+                    <div class="val-leg-row">
+                      <span class="val-dot purple"></span>
+                      <span class="val-name">Trims &amp; Accessories</span>
+                      <span class="val-pct">25%</span>
+                      <span class="val-num">₹4.61L</span>
+                    </div>
+                    <div class="val-leg-row">
+                      <span class="val-dot yellow"></span>
+                      <span class="val-name">Consumables</span>
+                      <span class="val-pct">15%</span>
+                      <span class="val-num">₹2.76L</span>
+                    </div>
+                    <div class="val-leg-row">
+                      <span class="val-dot pink"></span>
+                      <span class="val-name">Packaging</span>
+                      <span class="val-pct">8%</span>
+                      <span class="val-num">₹1.47L</span>
+                    </div>
+                    <div class="val-leg-row">
+                      <span class="val-dot blue"></span>
+                      <span class="val-name">Others</span>
+                      <span class="val-pct">7%</span>
+                      <span class="val-num">₹1.32L</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ── RIGHT COLUMN (32% Width): Stock Alerts, Recent Movements, Quick Actions ── -->
+          <div class="inventory-right-col">
+
+            <!-- Card 1: Stock Alerts -->
+            <div class="glass-card stock-alerts-card">
+              <div class="panel-header-row">
+                <div class="ph-left">
+                  <div class="ph-icon-box yellow">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fde047" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  </div>
+                  <h3 class="panel-title">Stock Alerts</h3>
+                </div>
+                <button class="panel-header-link" onclick="openAllAlertsModal()">View All →</button>
+              </div>
+
+              <!-- Alerts Subtabs -->
+              <div class="alerts-subtabs-group">
+                <button class="alerts-subtab active" onclick="setAlertsTab('low', this)">Low Stock (24)</button>
+                <button class="alerts-subtab" onclick="setAlertsTab('out', this)">Out of Stock (6)</button>
+                <button class="alerts-subtab" onclick="setAlertsTab('order', this)">On Order (12)</button>
+              </div>
+
+              <!-- Alerts List Container -->
+              <div class="alerts-items-list" id="alertsItemsList">
+                <!-- Row 1 -->
+                <div class="alert-item-row" onclick="inspectAlertItem('THR-0021')">
+                  <div class="air-thumb-wrap">
+                    <img src="../assets/fabrics/thread-gold.jpg" alt="Thread" onerror="handleImgError(this)" />
+                  </div>
+                  <div class="air-meta">
+                    <span class="air-name">Embroidery Thread (Gold)</span>
+                    <span class="air-code">THR-0021</span>
+                  </div>
+                  <div class="air-quantities">
+                    <span class="air-left alert">10 left</span>
+                    <span class="air-reorder">Reorder at 10</span>
+                  </div>
+                  <button class="air-action-btn" title="View Item">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </button>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="alert-item-row" onclick="inspectAlertItem('EMB-0033')">
+                  <div class="air-thumb-wrap">
+                    <img src="../assets/fabrics/zari-motif.jpg" alt="Zardosi Motif" onerror="handleImgError(this)" />
+                  </div>
+                  <div class="air-meta">
+                    <span class="air-name">Zardosi Motif</span>
+                    <span class="air-code">EMB-0033</span>
+                  </div>
+                  <div class="air-quantities">
+                    <span class="air-left alert">5 left</span>
+                    <span class="air-reorder">Reorder at 20</span>
+                  </div>
+                  <button class="air-action-btn" title="View Item">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </button>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="alert-item-row" onclick="inspectAlertItem('EMB-0041')">
+                  <div class="air-thumb-wrap">
+                    <img src="../assets/fabrics/button-gold.jpg" alt="Pearl Beads" onerror="handleImgError(this)" />
+                  </div>
+                  <div class="air-meta">
+                    <span class="air-name">Pearl Beads 4mm</span>
+                    <span class="air-code">EMB-0041</span>
+                  </div>
+                  <div class="air-quantities">
+                    <span class="air-left alert">8 left</span>
+                    <span class="air-reorder">Reorder at 20</span>
+                  </div>
+                  <button class="air-action-btn" title="View Item">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </button>
+                </div>
+
+                <!-- Row 4 -->
+                <div class="alert-item-row" onclick="inspectAlertItem('BTN-0028')">
+                  <div class="air-thumb-wrap">
+                    <img src="../assets/fabrics/zipper.jpg" alt="Hook Set" onerror="handleImgError(this)" />
+                  </div>
+                  <div class="air-meta">
+                    <span class="air-name">Hook Set</span>
+                    <span class="air-code">BTN-0028</span>
+                  </div>
+                  <div class="air-quantities">
+                    <span class="air-left alert">12 left</span>
+                    <span class="air-reorder">Reorder at 25</span>
+                  </div>
+                  <button class="air-action-btn" title="View Item">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </button>
+                </div>
+
+                <!-- Row 5 -->
+                <div class="alert-item-row" onclick="inspectAlertItem('LIN-0012')">
+                  <div class="air-thumb-wrap">
+                    <img src="../assets/fabrics/lining.jpg" alt="Satoon Lining Black" onerror="handleImgError(this)" />
+                  </div>
+                  <div class="air-meta">
+                    <span class="air-name">Satoon Lining (Black)</span>
+                    <span class="air-code">LIN-0012</span>
+                  </div>
+                  <div class="air-quantities">
+                    <span class="air-left alert">6 left</span>
+                    <span class="air-reorder">Reorder at 20</span>
+                  </div>
+                  <button class="air-action-btn" title="View Item">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Recent Stock Movements -->
+            <div class="glass-card recent-movements-card">
+              <div class="panel-header-row">
+                <div class="ph-left">
+                  <div class="ph-icon-box green">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#a3e635" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                  </div>
+                  <h3 class="panel-title">Recent Stock Movements</h3>
+                </div>
+                <button class="panel-header-link" onclick="openAllMovementsModal()">View All →</button>
+              </div>
+
+              <div class="movements-table-wrap">
+                <table class="movements-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Item</th>
+                      <th>Type</th>
+                      <th>Qty</th>
+                      <th>Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody id="movementsTableBody">
+                    <!-- Dynamic Rows populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Card 3: Quick Actions -->
+            <div class="glass-card quick-actions-card">
+              <div class="panel-header-row">
+                <div class="ph-left">
+                  <div class="ph-icon-box green">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#a3e635" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                  </div>
+                  <h3 class="panel-title">Quick Actions</h3>
+                </div>
+              </div>
+
+              <div class="quick-actions-grid">
+                <button class="quick-action-btn purple" onclick="openPurchaseRequestModal()">
+                  <div class="qa-icon-box purple">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  </div>
+                  <span class="qa-text">Create Purchase Request</span>
+                </button>
+
+                <button class="quick-action-btn blue" onclick="openPurchaseOrderModal()">
+                  <div class="qa-icon-box blue">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  </div>
+                  <span class="qa-text">Create Purchase Order</span>
+                </button>
+
+                <button class="quick-action-btn green" onclick="openStockAdjustmentModal()">
+                  <div class="qa-icon-box green">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                  </div>
+                  <span class="qa-text">Stock Adjustment</span>
+                </button>
+
+                <button class="quick-action-btn amber" onclick="openStockValuationModal()">
+                  <div class="qa-icon-box amber">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  </div>
+                  <span class="qa-text">View Stock Valuation</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+      <!-- Footer slot - injected by fragments.js -->
+      <div id="footerSlot"></div><!-- /footerSlot -->
+
+    </main>
+  </div>
+
+  <!-- =====================================================
+       MODALS
+       ===================================================== -->
+
+  <!-- Modal 1: + Add New Item Modal -->
+  <div class="modal-overlay" id="addItemModal">
+    <div class="modal-glass-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Inventory Item</h3>
+        <button class="modal-close-btn" onclick="closeModal('addItemModal')">✕</button>
+      </div>
+      <form id="addItemForm" onsubmit="handleSaveNewItem(event)">
+        <div class="modal-form-grid">
+          <div class="form-group">
+            <label>Item Name *</label>
+            <input type="text" id="newItemName" required placeholder="e.g., Banarasi Brocade" />
+          </div>
+          <div class="form-group">
+            <label>Item Code *</label>
+            <input type="text" id="newItemCode" required placeholder="e.g., FAB-0049" />
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="newItemCategory" required>
+              <option value="Fabrics">Fabrics</option>
+              <option value="Linings">Linings</option>
+              <option value="Threads">Threads</option>
+              <option value="Buttons & Hooks">Buttons & Hooks</option>
+              <option value="Zips & Fasteners">Zips & Fasteners</option>
+              <option value="Embellishments">Embellishments</option>
+              <option value="Packaging">Packaging</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Colour / Variant</label>
+            <input type="text" id="newItemVariant" placeholder="e.g., Royal Blue" />
+          </div>
+          <div class="form-group">
+            <label>Supplier</label>
+            <input type="text" id="newItemSupplier" placeholder="e.g., Varanasi Silks" />
+          </div>
+          <div class="form-group">
+            <label>Unit of Measurement *</label>
+            <select id="newItemUnit" required>
+              <option value="Meter">Meter</option>
+              <option value="Piece">Piece</option>
+              <option value="Roll">Roll</option>
+              <option value="Kg">Kg</option>
+              <option value="Box">Box</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Opening Stock Qty *</label>
+            <input type="number" id="newItemStockQty" min="0" required placeholder="100" />
+          </div>
+          <div class="form-group">
+            <label>Reorder Level *</label>
+            <input type="number" id="newItemReorderLevel" min="0" required placeholder="25" />
+          </div>
+          <div class="form-group">
+            <label>Purchase Price (₹)</label>
+            <input type="number" id="newItemPurchasePrice" min="0" step="0.5" placeholder="850" />
+          </div>
+          <div class="form-group">
+            <label>Image URL (Optional)</label>
+                    <input type="url" id="newItemImage" placeholder="/front end/assets/fabrics/silk.jpg" />
+          </div>
+        </div>
+        <div class="form-group full-width" style="margin-top: 6px;">
+          <label>Description / Material Notes</label>
+          <textarea id="newItemNotes" rows="2" placeholder="Fabric composition, weave type, special storage instructions..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal('addItemModal')">Cancel</button>
+          <button type="submit" class="btn-primary">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Stock Adjustment Modal -->
+  <div class="modal-overlay" id="stockAdjustmentModal">
+    <div class="modal-glass-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Inventory Stock Adjustment</h3>
+        <button class="modal-close-btn" onclick="closeModal('stockAdjustmentModal')">✕</button>
+      </div>
+      <form id="stockAdjustmentForm" onsubmit="handleSaveAdjustment(event)">
+        <div class="modal-form-grid">
+          <div class="form-group full-width">
+            <label>Select Inventory Item *</label>
+            <select id="adjItemSelect" required onchange="handleAdjItemChange(this)">
+              <option value="">-- Choose Item to Adjust --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Adjustment Type *</label>
+            <select id="adjType" required>
+              <option value="Add Stock">Add Stock (Receive / Restock)</option>
+              <option value="Remove Stock">Remove Stock (Issue)</option>
+              <option value="Damage">Damaged / Defective Stock</option>
+              <option value="Correction">Physical Audit Correction</option>
+              <option value="Return">Customer / Supplier Return</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Adjustment Quantity *</label>
+            <input type="number" id="adjQuantity" min="1" required placeholder="Quantity" />
+          </div>
+          <div class="form-group">
+            <label>Reference Document</label>
+            <input type="text" id="adjReference" placeholder="e.g., ADJ-2026-0041 or PO-0089" />
+          </div>
+          <div class="form-group">
+            <label>Reason / Department</label>
+            <input type="text" id="adjReason" placeholder="e.g., Dyeing test issue" />
+          </div>
+        </div>
+        <div class="form-group full-width" style="margin-top: 6px;">
+          <label>Adjustment Notes</label>
+          <textarea id="adjNotes" rows="2" placeholder="Detailed notes for audit trail..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal('stockAdjustmentModal')">Cancel</button>
+          <button type="submit" class="btn-primary">Apply Adjustment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Advanced Filter Modal -->
+  <div class="modal-overlay" id="filterModal">
+    <div class="modal-glass-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Filter Inventory Items</h3>
+        <button class="modal-close-btn" onclick="closeModal('filterModal')">✕</button>
+      </div>
+      <form id="filterForm" onsubmit="handleApplyFilters(event)">
+        <div class="modal-form-grid">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="filterCategory">
+              <option value="">All Categories</option>
+              <option value="Fabrics">Fabrics</option>
+              <option value="Linings">Linings</option>
+              <option value="Threads">Threads</option>
+              <option value="Buttons & Hooks">Buttons & Hooks</option>
+              <option value="Zips & Fasteners">Zips & Fasteners</option>
+              <option value="Embellishments">Embellishments</option>
+              <option value="Packaging">Packaging</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stock Status</label>
+            <select id="filterStatus">
+              <option value="">All Statuses</option>
+              <option value="In Stock">In Stock</option>
+              <option value="Low Stock">Low Stock</option>
+              <option value="Out of Stock">Out of Stock</option>
+              <option value="On Order">On Order</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Minimum Available</label>
+            <input type="number" id="filterMinStock" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Maximum Available</label>
+            <input type="number" id="filterMaxStock" placeholder="1000" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="handleResetFilters()">Reset</button>
+          <button type="submit" class="btn-primary">Apply Filters</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Item Details & Movement History Modal -->
+  <div class="modal-overlay" id="itemDetailsModal">
+    <div class="modal-glass-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="idmItemTitle">Item Details &amp; History</h3>
+        <button class="modal-close-btn" onclick="closeModal('itemDetailsModal')">✕</button>
+      </div>
+      <div class="idm-content" id="idmContent">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('itemDetailsModal')">Close</button>
+        <button type="button" class="btn-primary" onclick="openAdjForItem()">Adjust Stock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row Actions Context Dropdown Menu -->
+  <div class="context-menu" id="rowContextMenu" style="display: none;">
+    <div class="context-item" onclick="handleMenuAction('view')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>View Item</span>
+    </div>
+    <div class="context-item" onclick="handleMenuAction('adjust')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+      <span>Adjust Stock</span>
+    </div>
+    <div class="context-item" onclick="handleMenuAction('history')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>View Stock History</span>
+    </div>
+    <div class="context-item" onclick="handleMenuAction('request')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>Create Purchase Request</span>
+    </div>
+    <div class="context-item" onclick="handleMenuAction('supplier')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      <span>View Supplier</span>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="inventory.js"></script>  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+
+</body>
+</html>

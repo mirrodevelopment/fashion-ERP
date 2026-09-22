@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customers Directory — Haulo Boutique ERP</title>
+  <meta name="description" content="Haulo Boutique ERP — Complete client directory, bespoke order volume, active jobs, lifetime spend, and account balances." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="customer-overview.css" />
+
+  <!-- Global Navigation & Sidebar Controller -->
+  <script src="../../fragments/nav.js"></script>
+</head>
+<body data-module="customers">
+
+  <!-- Atmospheric Luxury Background -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar Slot -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+
+      <!-- Navbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- Main Page Content -->
+      <main class="main-content" id="mainContent">
+
+        <!-- Page Header -->
+        <div class="page-header-row">
+          <div class="header-left">
+            <div class="breadcrumb-nav">
+              <a href="../../dashboard/dashboard.html" class="bc-item bc-link">Dashboard</a>
+              <span class="bc-sep">&#8250;</span>
+              <span class="bc-item current">Customers</span>
+            </div>
+            <div class="title-group">
+              <h1 class="page-title">
+                <i data-lucide="users" class="title-icon"></i>
+                Client Directory
+              </h1>
+              <p class="page-subtitle">Track clientele relationships, lifetime expenditure, in-process atelier orders, and outstanding balances.</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="btn-export" id="btnExport" title="Export Client Directory">
+              <i data-lucide="download" style="width:15px;height:15px;"></i>
+              <span>Export CSV</span>
+            </button>
+            <button class="btn-new-customer" id="btnNewCustomer" title="Register New Client">
+              <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+              <span>New Customer</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <section class="kpi-row" aria-label="Customer KPIs">
+          <article class="kpi-card" id="kpiTotal">
+            <div class="kpi-icon-wrap kpi-lime">
+              <i data-lucide="users" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiTotalVal">—</span>
+              <span class="kpi-label">Total Clients</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiActive">
+            <div class="kpi-icon-wrap kpi-blue">
+              <i data-lucide="scissors" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiActiveVal">—</span>
+              <span class="kpi-label">Orders In Process</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiRevenue">
+            <div class="kpi-icon-wrap kpi-gold">
+              <i data-lucide="trending-up" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiRevenueVal">—</span>
+              <span class="kpi-label">Total Client Spend</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiBalance">
+            <div class="kpi-icon-wrap kpi-orange">
+              <i data-lucide="wallet" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiBalanceVal">—</span>
+              <span class="kpi-label">Outstanding Balance</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiVip">
+            <div class="kpi-icon-wrap kpi-purple">
+              <i data-lucide="crown" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiVipVal">—</span>
+              <span class="kpi-label">VIP Clients</span>
+            </div>
+          </article>
+        </section>
+
+        <!-- Filters & Search Bar -->
+        <div class="filters-bar" role="search">
+          <div class="search-wrap">
+            <i data-lucide="search" class="search-icon" style="width:15px;height:15px;"></i>
+            <input
+              type="text"
+              id="searchInput"
+              class="search-input"
+              placeholder="Search client name, phone number, email, favorite style…"
+              autocomplete="off"
+              aria-label="Search customers"
+            />
+          </div>
+
+          <div class="filter-chip-group" role="group" aria-label="Filter customers">
+            <button class="filter-chip active" data-filter="all" id="filterAll">All</button>
+            <button class="filter-chip" data-filter="vip" id="filterVip">VIP Only</button>
+            <button class="filter-chip" data-filter="active" id="filterActive">Active Orders</button>
+            <button class="filter-chip" data-filter="balance" id="filterBalance">Has Balance Due</button>
+            <button class="filter-chip" data-filter="measurements" id="filterMeasurements">Measurements On File</button>
+          </div>
+
+          <div class="sort-wrap">
+            <div class="select-wrap">
+              <i data-lucide="arrow-up-down" style="width:13px;height:13px;opacity:0.55;"></i>
+              <select id="sortSelect" class="sort-select" aria-label="Sort customers">
+                <option value="spend-desc">Highest Spend</option>
+                <option value="orders-desc">Most Orders</option>
+                <option value="balance-desc">Highest Balance Due</option>
+                <option value="name-asc">Name A–Z</option>
+                <option value="recent">Recently Active</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Cards Panel -->
+        <section class="customers-panel" aria-label="Customers directory">
+          <div class="panel-header">
+            <span class="panel-count" id="panelCount">Loading clients…</span>
+          </div>
+
+          <!-- Skeleton Loading Grid -->
+          <div class="customer-card-grid" id="skeletonGrid">
+            <div class="customer-card-skeleton" aria-hidden="true"></div>
+            <div class="customer-card-skeleton" aria-hidden="true"></div>
+            <div class="customer-card-skeleton" aria-hidden="true"></div>
+            <div class="customer-card-skeleton" aria-hidden="true"></div>
+            <div class="customer-card-skeleton" aria-hidden="true"></div>
+            <div class="customer-card-skeleton" aria-hidden="true"></div>
+          </div>
+
+          <!-- Real Customer Cards Grid -->
+          <div class="customer-card-grid" id="customerCardGrid" hidden></div>
+
+          <!-- Empty State -->
+          <div class="empty-state" id="emptyState" hidden>
+            <div class="empty-icon">
+              <i data-lucide="user-x" style="width:48px;height:48px;"></i>
+            </div>
+            <h3 class="empty-title">No clients found</h3>
+            <p class="empty-desc">Try clearing your search query or filters, or register a new customer profile.</p>
+          </div>
+
+          <!-- Pagination Row -->
+          <div class="pagination-row" id="paginationRow">
+            <span class="page-info" id="pageInfo">Page 1 of 1</span>
+            <div class="page-btns">
+              <button class="page-btn" id="btnPrevPage" disabled aria-label="Previous page">
+                <i data-lucide="chevron-left" style="width:15px;height:15px;"></i>
+              </button>
+              <div class="page-numbers" id="pageNumbers"></div>
+              <button class="page-btn" id="btnNextPage" aria-label="Next page">
+                <i data-lucide="chevron-right" style="width:15px;height:15px;"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Customer Quick-View Side Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden aria-hidden="true"></div>
+  <aside class="customer-drawer" id="customerDrawer" role="complementary" aria-label="Customer quick preview" hidden>
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <div class="drawer-avatar" id="drawerAvatarWrap"></div>
+        <div class="drawer-header-info">
+          <span class="drawer-client-name" id="drawerClientName">—</span>
+          <span class="drawer-client-id" id="drawerClientId">—</span>
+        </div>
+      </div>
+      <div class="drawer-header-actions">
+        <a href="#" class="drawer-view-full" id="drawerViewFull" title="Open Full 360° Profile">
+          <i data-lucide="external-link" style="width:15px;height:15px;"></i>
+          <span>360° Profile</span>
+        </a>
+        <button class="drawer-close" id="drawerClose" aria-label="Close preview">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-footer">
+      <a href="#" class="btn-drawer-full" id="btnDrawerFull">
+        <i data-lucide="user-check" style="width:15px;height:15px;"></i>
+        <span>Open 360° Profile</span>
+      </a>
+      <a href="../../orders/new-order/new-order.html" class="btn-drawer-new-order" id="btnDrawerNewOrder">
+        <i data-lucide="plus" style="width:15px;height:15px;"></i>
+        <span>New Order</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Quick Add Customer Modal -->
+  <div class="modal-backdrop" id="newCustomerModal" hidden aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i data-lucide="user-plus" style="color:var(--lime);"></i>
+          <h2 class="modal-title">Register New Customer</h2>
+        </div>
+        <button class="modal-close" id="modalCloseBtn" aria-label="Close modal">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+      <form id="newCustomerForm" class="modal-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="newCustName" class="form-label">Full Name *</label>
+            <input type="text" id="newCustName" class="form-input" required placeholder="e.g. Customer Name" />
+          </div>
+          <div class="form-group">
+            <label for="newCustPhone" class="form-label">Phone / WhatsApp *</label>
+            <input type="tel" id="newCustPhone" class="form-input" required placeholder="e.g. +91 98401 23456" />
+          </div>
+          <div class="form-group">
+            <label for="newCustEmail" class="form-label">Email Address</label>
+            <input type="email" id="newCustEmail" class="form-input" placeholder="e.g. client@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="newCustTier" class="form-label">Client Tier</label>
+            <select id="newCustTier" class="form-select">
+              <option value="Regular">Regular</option>
+              <option value="VIP Gold">VIP Gold</option>
+              <option value="VIP Platinum">VIP Platinum</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="newCustStyle" class="form-label">Preferred Garment / Style</label>
+            <input type="text" id="newCustStyle" class="form-input" placeholder="e.g. Kaba & Slit, Evening Wear" />
+          </div>
+          <div class="form-group full-width">
+            <label for="newCustLocation" class="form-label">City / Location</label>
+            <input type="text" id="newCustLocation" class="form-input" placeholder="e.g. Chennai, Tamil Nadu" />
+          </div>
+          <div class="form-group">
+            <label for="newCustNeck" class="form-label">Preferred Neck Style</label>
+            <select id="newCustNeck" class="form-select">
+              <option value="">Not specified</option>
+              <option value="Round Neck">Round Neck</option>
+              <option value="V-Neck">V-Neck</option>
+              <option value="Boat Neck">Boat Neck</option>
+              <option value="Sweetheart">Sweetheart</option>
+              <option value="Square Neck">Square Neck</option>
+              <option value="Halter Neck">Halter Neck</option>
+              <option value="Deep U-Back">Deep U-Back</option>
+              <option value="Illusion Sheer Yoke">Illusion Sheer Yoke</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newCustSleeve" class="form-label">Preferred Sleeve Style</label>
+            <select id="newCustSleeve" class="form-select">
+              <option value="">Not specified</option>
+              <option value="Sleeveless">Sleeveless</option>
+              <option value="Cap Sleeve">Cap Sleeve</option>
+              <option value="Elbow Length">Elbow Length</option>
+              <option value="3/4 Sleeve">3/4 Sleeve</option>
+              <option value="Full Sleeve">Full Sleeve</option>
+              <option value="Cape Drape">Cape Drape</option>
+              <option value="Bell Sleeve">Bell Sleeve</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newCustOccasions" class="form-label">Preferred Occasions</label>
+            <input type="text" id="newCustOccasions" class="form-input" placeholder="e.g. Weddings, Festivals" />
+          </div>
+          <div class="form-group">
+            <label for="newCustDelivery" class="form-label">Delivery Preference</label>
+            <select id="newCustDelivery" class="form-select">
+              <option value="Standard Boutique Pickup">Standard Boutique Pickup</option>
+              <option value="Home Delivery">Home Delivery</option>
+              <option value="Evening Atelier Delivery">Evening Atelier Delivery</option>
+              <option value="Express Atelier Delivery">Express Atelier Delivery</option>
+              <option value="Weekday Afternoon Fitting">Weekday Afternoon Fitting</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="modalCancelBtn">Cancel</button>
+          <button type="submit" class="btn-submit">
+            <i data-lucide="check" style="width:15px;height:15px;"></i>
+            Save Client
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Fragments: wires sidebar, navbar, toggleSidebar(), navNavigate() -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script type="module" src="customer-overview.js"></script>
+</body>
+</html>

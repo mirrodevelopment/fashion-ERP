@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Production Stages — Haulo Boutique ERP</title>
+  <meta name="description" content="Manage the production workflow stages for Haulo Boutique. Add, edit, reorder, and assign employees to production stages." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400;1,600&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared ERP Styles -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="stages.css" />
+
+  <!-- Navigation -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+  <script src="../../fragments/nav.js"></script>
+</head>
+<body data-module="production">
+
+  <!-- Ambient Background -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar injected by nav.js -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+      <div id="navbarSlot"></div>
+
+      <!-- Stage Definitions Content -->
+      <div class="stages-content" id="stagesContent">
+
+        <!-- ─── Page Header ─────────────────────────────────────── -->
+        <header class="page-header-row">
+          <div class="header-left">
+            <span class="page-breadcrumb">
+              <a href="../production.html">Production</a> › Stage Definitions
+            </span>
+            <h1 class="page-title">Production Stages</h1>
+            <p class="page-subtitle">Define, order, and manage the boutique's production workflow stages.</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn-glass" id="btnBackToProduction" type="button">
+              <i data-lucide="arrow-left" style="width:15px;height:15px;"></i>
+              Production Board
+            </button>
+            <button class="btn-primary" id="btnNewStage" type="button">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i>
+              New Stage
+            </button>
+          </div>
+        </header>
+
+        <!-- ─── Info Banner ─────────────────────────────────────── -->
+        <div class="info-banner">
+          <i data-lucide="info" style="width:17px;height:17px;"></i>
+          <div>
+            <strong>How it works:</strong> These stage definitions act as the blueprint for every new order's production journey.
+            Drag cards to reorder, toggle to hide stages without losing history, and assign employees as stage specialists.
+            Changes are immediately reflected in the Production Kanban board.
+          </div>
+        </div>
+
+        <!-- ─── Stage List Header ───────────────────────────────── -->
+        <div class="stages-list-header">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <h2>Workflow Stages</h2>
+            <span class="stages-count-badge" id="stagesCountBadge">—</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="filter-toggle">
+              <button id="filterAll" class="active" type="button">All</button>
+              <button id="filterActive" type="button">Active</button>
+              <button id="filterInactive" type="button">Inactive</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Stage Cards Grid ────────────────────────────────── -->
+        <div id="stagesGrid">
+          <!-- Skeleton loaders -->
+          <div class="stage-card-skeleton"></div>
+          <div class="stage-card-skeleton"></div>
+          <div class="stage-card-skeleton"></div>
+          <div class="stage-card-skeleton"></div>
+          <div class="stage-card-skeleton"></div>
+          <div class="stage-card-skeleton"></div>
+          <div class="stage-card-skeleton"></div>
+          <div class="stage-card-skeleton"></div>
+        </div>
+
+      </div><!-- /stagesContent -->
+    </div><!-- /mainContent -->
+  </div><!-- /appShell -->
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       ADD / EDIT STAGE MODAL
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="stageModal" role="dialog" aria-modal="true" aria-labelledby="stageModalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 id="stageModalTitle">Add Stage</h3>
+          <p id="stageModalSubtitle">Define a new step in your production workflow.</p>
+        </div>
+        <button class="btn-close-modal" id="btnCloseStageModal" type="button" aria-label="Close">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+
+      <form id="stageForm" class="form-grid" novalidate>
+        <input type="hidden" id="editingStageId" value="" />
+
+        <!-- Display Name -->
+        <div class="form-group">
+          <label for="fDisplayName">Stage Name *</label>
+          <input type="text" id="fDisplayName" placeholder="e.g. Hand Embroidery" required maxlength="100" />
+          <span class="form-hint">The machine key (e.g. HAND_EMBROIDERY) is auto-generated and shown in brackets.</span>
+          <span class="form-hint" id="stageKeyPreview" style="color:#a78bfa;font-weight:600;"></span>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="fDescription">Description</label>
+          <textarea id="fDescription" placeholder="What happens during this stage?" rows="2"></textarea>
+        </div>
+
+        <div class="form-row">
+          <!-- Required Role -->
+          <div class="form-group">
+            <label for="fRequiredRole">Required Role</label>
+            <select id="fRequiredRole">
+              <option value="">— Any —</option>
+              <option value="DESIGNER">Designer</option>
+              <option value="CUTTER">Cutter</option>
+              <option value="TAILOR">Tailor</option>
+              <option value="EMBROIDERER">Embroiderer</option>
+              <option value="FINISHER">Finisher</option>
+              <option value="SUPERVISOR">Supervisor</option>
+              <option value="MANAGER">Manager</option>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="form-group">
+            <label for="fSortOrder">Sort Order</label>
+            <input type="number" id="fSortOrder" placeholder="Auto" min="1" max="99" />
+          </div>
+        </div>
+
+        <!-- Department Label -->
+        <div class="form-group">
+          <label for="fDeptLabel">Department Label</label>
+          <input type="text" id="fDeptLabel" placeholder="e.g. Embroidery Studio" maxlength="100" />
+          <span class="form-hint">Shown in the stage transition modal.</span>
+        </div>
+
+        <!-- Color Class -->
+        <div class="form-group">
+          <label>Color</label>
+          <div class="color-picker-row" id="colorPickerRow">
+            <div class="color-swatch dot-emerald" data-color="dot-emerald" title="Emerald" style="background:var(--dot-emerald)"></div>
+            <div class="color-swatch dot-purple" data-color="dot-purple" title="Purple" style="background:var(--dot-purple)"></div>
+            <div class="color-swatch dot-blue"   data-color="dot-blue"   title="Blue"   style="background:var(--dot-blue)"></div>
+            <div class="color-swatch dot-pink"   data-color="dot-pink"   title="Pink"   style="background:var(--dot-pink)"></div>
+            <div class="color-swatch dot-yellow" data-color="dot-yellow" title="Yellow" style="background:var(--dot-yellow)"></div>
+            <div class="color-swatch dot-green"  data-color="dot-green"  title="Green"  style="background:var(--dot-green)"></div>
+            <div class="color-swatch dot-cyan"   data-color="dot-cyan"   title="Cyan"   style="background:var(--dot-cyan)"></div>
+            <div class="color-swatch dot-coral"  data-color="dot-coral"  title="Coral"  style="background:var(--dot-coral)"></div>
+            <div class="color-swatch dot-silver" data-color="dot-silver" title="Silver" style="background:var(--dot-silver)"></div>
+          </div>
+          <input type="hidden" id="fColorClass" value="dot-purple" />
+        </div>
+
+        <!-- Stage Artwork / Photo (Presets & Custom Upload) -->
+        <div class="form-group">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label style="margin-bottom:0;">Stage Visual Artwork / Badge</label>
+            <div class="image-tab-group">
+              <button type="button" class="img-tab-btn active" id="tabBtnPresets" onclick="switchImageTab('presets')">
+                <i data-lucide="sparkles" style="width:12px;height:12px;"></i> Preset Gallery
+              </button>
+              <button type="button" class="img-tab-btn" id="tabBtnUpload" onclick="switchImageTab('upload')">
+                <i data-lucide="upload" style="width:12px;height:12px;"></i> Upload Custom
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Selected Preview Bar -->
+          <div class="stage-active-badge-preview" id="stageActiveBadgePreview">
+            <div class="preview-circle-wrap">
+              <img id="stageImgPreview" src="" alt="Selected Stage Badge" style="display:none;" />
+              <div id="stageImgPreviewPlaceholder" class="preview-circle-ph">
+                <i data-lucide="camera" style="width:20px;height:20px;color:var(--clr-muted);"></i>
+              </div>
+            </div>
+            <div class="preview-info">
+              <span class="preview-title" id="previewBadgeName">No image selected</span>
+              <span class="preview-sub" id="previewBadgeSub">Select a circular framed preset below or upload custom photo</span>
+            </div>
+            <button type="button" class="btn-clear-badge" id="btnRemoveStageImg" title="Clear image" style="display:none;">
+              <i data-lucide="x" style="width:14px;height:14px;"></i> Clear
+            </button>
+          </div>
+
+          <!-- Tab Pane 1: Preset Gallery -->
+          <div id="panePresets" class="img-tab-pane">
+            <div class="preset-gallery-grid" id="presetGalleryGrid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Tab Pane 2: Custom Upload -->
+          <div id="paneUpload" class="img-tab-pane" style="display:none;">
+            <div class="stage-upload-dropzone" id="stageUploadDropzone">
+              <i data-lucide="image-plus" style="width:26px;height:26px;color:#a855f7;flex-shrink:0;"></i>
+              <div class="dropzone-text">
+                <span class="dropzone-title">Click to browse or drop an image file</span>
+                <span class="dropzone-sub">PNG, JPG, WEBP — Stored as StageName_Random.ext</span>
+              </div>
+            </div>
+          </div>
+
+          <input type="file" id="fStageImageFile" accept="image/*" style="display:none;" />
+          <input type="hidden" id="fImageUrl" value="" />
+        </div>
+
+        <!-- Active toggle -->
+        <div style="display:flex;align-items:center;gap:12px;">
+          <label class="toggle" for="fActive">
+            <input type="checkbox" id="fActive" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:13px;color:var(--clr-muted);">Stage is <strong style="color:var(--clr-text);">active</strong> in the production workflow</span>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-glass" id="btnCancelStageModal">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSaveStage">
+            <i data-lucide="check" style="width:15px;height:15px;"></i>
+            <span id="btnSaveStageLabel">Save Stage</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       DELETE CONFIRM MODAL
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true">
+    <div class="modal-box confirm-box">
+      <div class="modal-header">
+        <div>
+          <h3 style="color:var(--clr-danger);">Delete Stage?</h3>
+          <p>This action cannot be undone.</p>
+        </div>
+        <button class="btn-close-modal" id="btnCloseDeleteModal" type="button">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+      <div class="confirm-body" id="deleteConfirmBody">
+        You are about to permanently delete stage <strong id="deleteTargetName">—</strong>.
+      </div>
+      <div class="confirm-stat" id="deleteLinkedStat" style="display:none;">
+        <i data-lucide="alert-triangle" style="width:16px;height:16px;"></i>
+        <span id="deleteLinkedMsg"></span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-glass" id="btnCancelDeleteModal">Cancel</button>
+        <button type="button" class="btn-primary" id="btnConfirmDelete"
+          style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
+          <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
+          Hard Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       EMPLOYEE PANEL MODAL
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay emp-panel-modal" id="empModal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 id="empModalTitle">Assign Employees</h3>
+          <p id="empModalSubtitle">Pin specialists to this stage.</p>
+        </div>
+        <button class="btn-close-modal" id="btnCloseEmpModal" type="button">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+      <input class="emp-search-input" type="text" id="empSearchInput" placeholder="Search by name or role…" />
+      <div class="emp-list" id="empListContainer"></div>
+    </div>
+  </div>
+
+  <!-- API + JS -->
+  <script type="module" src="../../api.js"></script>
+  <script type="module" src="stages.js"></script>
+</body>
+</html>

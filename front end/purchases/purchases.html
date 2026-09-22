@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Purchase &amp; Supplier Management — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets & Shared Navigation -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="purchases.css" />
+
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+  <script src="../fragments/nav.js"></script>
+</head>
+<body data-module="purchases">
+
+  <!-- Atmospheric Full-Screen Boutique Background -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-gradient-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Shared Sidebar Slot — injected by fragments.js -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content" id="mainContent">
+
+      <!-- Global Topbar Header Slot — injected by fragments.js -->
+      <div id="navbarSlot"></div>
+
+      <!-- ============================================================
+           PURCHASE & SUPPLIER MANAGEMENT WORKSPACE
+           ============================================================ -->
+      <div class="page-container">
+
+        <!-- 1. Page Header -->
+        <div class="page-header">
+          <div class="header-left">
+            <span class="header-overline">Procurement</span>
+            <h1 class="page-title">Purchase &amp; Supplier Management</h1>
+            <p class="page-subtitle">Manage purchase requeets, orders, suppliers and incoming stock.</p>
+          </div>
+          <div class="header-right">
+            <button type="button" class="btn-primary-create" id="openCreatePoModalBtn">
+              <span class="plus-icon">+</span>
+              <span>Create Purchase Order</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Top 5 KPI Cards Row -->
+        <div class="kpi-grid">
+          <!-- KPI 1: Total POs -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap mint">
+              <i data-lucide="file-text"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Purchase Orders</span>
+              <div class="kpi-val" id="kpiTotalPos">24</div>
+              <span class="kpi-trend mint">&uarr; 26% from last month</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Total Purchase Value -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap green">
+              <span class="kpi-currency-symbol">₹</span>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Purchase Value</span>
+              <div class="kpi-val" id="kpiTotalValue">₹0</div>
+              <span class="kpi-trend green">&uarr; Real-time</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Pending Deliveries -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap coral">
+              <i data-lucide="truck"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Pending Deliveries</span>
+              <div class="kpi-val" id="kpiPendingDeliveries">8</div>
+              <span class="kpi-trend coral">&darr; 2 from last week</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Goods Received -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap emerald">
+              <i data-lucide="package"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Goods Received (This Month)</span>
+              <div class="kpi-val" id="kpiGoodsReceived">16</div>
+              <span class="kpi-trend emerald">&uarr; 33% from last month</span>
+            </div>
+          </div>
+
+          <!-- KPI 5: Active Suppliers -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap purple">
+              <i data-lucide="users"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Active Suppliers</span>
+              <div class="kpi-val" id="kpiActiveSuppliers">28</div>
+              <span class="kpi-trend purple">3 new this month</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Main Analytics Row (3 Columns) -->
+        <div class="analytics-row">
+
+          <!-- Analytics 1: Purchase Order Status Donut -->
+          <div class="glass-card panel-po-status">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <span class="panel-icon-badge green"><i data-lucide="file-spreadsheet"></i></span>
+                <h3 class="panel-title">Purchase Order Status</h3>
+              </div>
+            </div>
+            <div class="po-status-body">
+              <div class="donut-chart-wrap">
+                <svg viewBox="0 0 36 36" class="donut-svg" id="poStatusDonut">
+                  <!-- Generated dynamically by purchases.js -->
+                </svg>
+                <div class="donut-center-text">
+                  <span class="donut-big-num" id="donutTotalCount">24</span>
+                  <span class="donut-sub-text">Total POs</span>
+                </div>
+              </div>
+
+              <div class="status-legend-list" id="poStatusLegend">
+                <!-- Generated dynamically by purchases.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Analytics 2: Monthly Purchase Value Stacked Bar Chart -->
+          <div class="glass-card panel-monthly-val">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <span class="panel-icon-badge green"><i data-lucide="bar-chart-3"></i></span>
+                <h3 class="panel-title">Monthly Purchase Value</h3>
+              </div>
+              <div class="panel-header-controls">
+                <div class="chart-legend-row">
+                  <span class="legend-item"><span class="legend-dot purple"></span>Materials</span>
+                  <span class="legend-item"><span class="legend-dot lime"></span>Trims &amp; Accessories</span>
+                </div>
+                <div class="select-wrapper">
+                  <select class="chart-time-select" id="monthlyTimeframeSelect" aria-label="Select Timeframe">
+                    <option value="this-year">This Year</option>
+                    <option value="last-year">Last Year</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="select-arrow"></i>
+                </div>
+              </div>
+            </div>
+            <div class="monthly-chart-body" id="monthlyBarChartContainer">
+              <!-- SVG Stacked Chart rendered dynamically by purchases.js -->
+            </div>
+          </div>
+
+          <!-- Analytics 3: Top Suppliers by Purchase Value -->
+          <div class="glass-card panel-top-suppliers">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <span class="panel-icon-badge green"><i data-lucide="store"></i></span>
+                <h3 class="panel-title">Top Suppliers by Purchase Value</h3>
+              </div>
+              <a href="#all-suppliers" class="panel-link" id="viewAllTopSuppliersBtn">View All &rarr;</a>
+            </div>
+            <div class="top-suppliers-list" id="topSuppliersList">
+              <!-- Rendered dynamically by purchases.js -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4. Mid-Section Grid: Purchase Orders Table + Right Stack -->
+        <div class="mid-split-grid">
+
+          <!-- Left Area: Purchase Orders Table with Tabs & Search -->
+          <div class="po-table-section">
+
+            <!-- Filter Tabs & Search Controls Bar -->
+            <div class="table-filter-bar">
+              <div class="po-tabs" id="poFilterTabs">
+                <button type="button" class="tab-pill active" data-filter="all">All POs (24)</button>
+                <button type="button" class="tab-pill" data-filter="Draft">Draft (2)</button>
+                <button type="button" class="tab-pill" data-filter="Sent">Sent (6)</button>
+                <button type="button" class="tab-pill" data-filter="Partially Received">Partially Received (8)</button>
+                <button type="button" class="tab-pill" data-filter="Received">Received (6)</button>
+                <button type="button" class="tab-pill" data-filter="Cancelled">Cancelled (2)</button>
+              </div>
+
+              <div class="table-controls-right">
+                <div class="search-box">
+                  <i data-lucide="search" class="search-icon"></i>
+                  <input type="text" id="poSearchInput" class="search-input" placeholder="Search by PO number, supplier or material..." autocomplete="off" />
+                </div>
+                <button type="button" class="btn-filter" id="openFilterModalBtn">
+                  <i data-lucide="sliders-horizontal"></i>
+                  <span>Filter</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Table Glass Container -->
+            <div class="glass-card table-card">
+              <div class="table-responsive">
+                <table class="purchases-table" id="purchaseOrdersTable">
+                  <colgroup>
+                    <col style="width: 17%;" />
+                    <col style="width: 12%;" />
+                    <col style="width: 22%;" />
+                    <col style="width: 7%;" />
+                    <col style="width: 13%;" />
+                    <col style="width: 14%;" />
+                    <col style="width: 10%;" />
+                    <col style="width: 5%;" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>PO Number</th>
+                      <th>Date</th>
+                      <th>Supplier</th>
+                      <th style="text-align:center;">Items</th>
+                      <th>Total Value</th>
+                      <th>Status</th>
+                      <th>Expected Delivery</th>
+                      <th style="text-align:center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poTableBody">
+                    <!-- Rendered dynamically by purchases.js -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Table Pagination -->
+              <div class="table-pagination">
+                <span class="pagination-summary" id="paginationSummary">Showing 1–8 of 24 purchase orders</span>
+                <div class="pagination-pages" id="paginationControls">
+                  <button type="button" class="page-nav-btn prev" id="prevPageBtn" title="Previous Page">&lsaquo;</button>
+                  <button type="button" class="page-num-btn active" data-page="1">1</button>
+                  <button type="button" class="page-num-btn" data-page="2">2</button>
+                  <button type="button" class="page-num-btn" data-page="3">3</button>
+                  <span class="page-ellipsis">...</span>
+                  <button type="button" class="page-nav-btn next" id="nextPageBtn" title="Next Page">&rsaquo;</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Area: Supplier 360° + Recent Goods Receipts -->
+          <div class="right-stack-section">
+
+            <!-- Supplier 360° Card -->
+            <div class="glass-card panel-supplier-360">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <span class="panel-icon-badge green"><i data-lucide="user-check"></i></span>
+                  <h3 class="panel-title">Supplier 360°</h3>
+                </div>
+                <a href="#all-suppliers" class="panel-link" id="viewAllSuppliers360Btn">View All &rarr;</a>
+              </div>
+              <div class="supplier-360-body">
+                <div class="supplier-hero-row">
+                  <div class="supplier-avatar-large st" id="s360Avatar">ST</div>
+                  <div class="supplier-hero-info">
+                    <div class="supplier-title-row">
+                      <span class="supplier-name" id="s360Name">Shree Textiles</span>
+                      <span class="badge-preferred" id="s360Badge">
+                        <span class="badge-dot"></span> Preferred Supplier
+                      </span>
+                    </div>
+                    <div class="supplier-meta-item">
+                      <i data-lucide="map-pin"></i>
+                      <span id="s360Location">Surat, Gujarat</span>
+                    </div>
+                    <div class="supplier-meta-item">
+                      <i data-lucide="phone"></i>
+                      <span id="s360Phone">+91 98765 43210</span>
+                    </div>
+                    <div class="supplier-meta-item">
+                      <i data-lucide="mail"></i>
+                      <span id="s360Email">sales@shreetextiles.in</span>
+                    </div>
+                  </div>
+                  <div class="supplier-action-col">
+                    <button type="button" class="btn-view-profile" id="s360ViewProfileBtn">
+                      <span>View Profile</span>
+                      <span class="arrow">&rarr;</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 4 Statistics Tiles -->
+                <div class="supplier-stats-grid">
+                  <div class="stat-tile">
+                    <span class="stat-k">Total Orders</span>
+                    <span class="stat-v" id="s360TotalOrders">—</span>
+                  </div>
+                  <div class="stat-tile">
+                    <span class="stat-k">Total Value</span>
+                    <span class="stat-v" id="s360TotalValue">—</span>
+                  </div>
+                  <div class="stat-tile">
+                    <span class="stat-k">Avg. Lead Time</span>
+                    <span class="stat-v" id="s360LeadTime">—</span>
+                  </div>
+                  <div class="stat-tile">
+                    <span class="stat-k">On-Time Delivery</span>
+                    <span class="stat-v highlight" id="s360OnTime">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Goods Receipts Card -->
+            <div class="glass-card panel-recent-grn">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <span class="panel-icon-badge green"><i data-lucide="file-check-2"></i></span>
+                  <h3 class="panel-title">Recent Goods Receipts</h3>
+                </div>
+                <a href="#all-grn" class="panel-link" id="viewAllGrnBtn">View All &rarr;</a>
+              </div>
+              <div class="recent-grn-body">
+                <table class="grn-table">
+                  <thead>
+                    <tr>
+                      <th>GRN No.</th>
+                      <th>PO Number</th>
+                      <th>Date</th>
+                      <th style="text-align:center;">Items</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="grnTableBody">
+                    <!-- Rendered dynamically by purchases.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 5. Bottom Summary Cards Row (4 Cards Across) -->
+        <div class="bottom-summary-grid">
+
+          <!-- Card 1: Pending Approvals -->
+          <div class="glass-card summary-card approvals-card">
+            <div class="summary-header">
+              <span class="panel-icon-badge green"><i data-lucide="check-square"></i></span>
+              <span class="summary-card-title">Pending Approvals</span>
+            </div>
+            <div class="summary-body">
+              <div class="summary-icon-box red">
+                <i data-lucide="file-clock"></i>
+              </div>
+              <div class="summary-info">
+                <div class="summary-val-row">
+                  <span class="summary-big-val">3</span>
+                  <span class="summary-sub-label">Purchase requests</span>
+                </div>
+                <a href="#approvals" class="summary-action-link red" id="pendingApprovalsAction">Requires approval</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Price Variance Alerts -->
+          <div class="glass-card summary-card alerts-card">
+            <div class="summary-header">
+              <span class="panel-icon-badge green"><i data-lucide="alert-triangle"></i></span>
+              <span class="summary-card-title">Price Variance Alerts</span>
+            </div>
+            <div class="summary-body">
+              <div class="summary-icon-box yellow">
+                <i data-lucide="bell"></i>
+              </div>
+              <div class="summary-info">
+                <div class="summary-val-row">
+                  <span class="summary-big-val">2</span>
+                  <span class="summary-sub-label">Items with higher price</span>
+                </div>
+                <a href="#alerts" class="summary-action-link yellow" id="priceVarianceAction">Check and review</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Low Stock Purchase Suggestions -->
+          <div class="glass-card summary-card lowstock-card">
+            <div class="summary-header">
+              <span class="panel-icon-badge green"><i data-lucide="shopping-cart"></i></span>
+              <span class="summary-card-title">Low Stock Purchase Suggestions</span>
+            </div>
+            <div class="summary-body">
+              <div class="summary-icon-box emerald">
+                <i data-lucide="package-search"></i>
+              </div>
+              <div class="summary-info">
+                <div class="summary-val-row">
+                  <span class="summary-big-val">12</span>
+                  <span class="summary-sub-label">Items to reorder</span>
+                </div>
+                <a href="#reorder" class="summary-action-link emerald" id="lowStockAction">View suggestions</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Quick Actions -->
+          <div class="glass-card summary-card quick-actions-card">
+            <div class="summary-header">
+              <span class="panel-icon-badge green"><i data-lucide="zap"></i></span>
+              <span class="summary-card-title">Quick Actions</span>
+            </div>
+            <div class="quick-actions-body">
+              <button type="button" class="quick-action-pill" id="quickPurchaseRequestBtn">
+                <span class="qa-icon-wrap purple"><i data-lucide="file-plus"></i></span>
+                <span class="qa-label">Create Purchase Request</span>
+              </button>
+              <button type="button" class="quick-action-pill" id="quickPurchaseOrderBtn">
+                <span class="qa-icon-wrap lime"><i data-lucide="shopping-bag"></i></span>
+                <span class="qa-label">Create Purchase Order</span>
+              </button>
+              <button type="button" class="quick-action-pill" id="quickRecordGrnBtn">
+                <span class="qa-icon-wrap red"><i data-lucide="clipboard-check"></i></span>
+                <span class="qa-label">Record Goods Receipt</span>
+              </button>
+              <button type="button" class="quick-action-pill" id="quickManageSuppliersBtn">
+                <span class="qa-icon-wrap yellow"><i data-lucide="contact"></i></span>
+                <span class="qa-label">Manage Suppliers</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div><!-- /page-container -->
+
+      <!-- Shared Global Footer Slot — injected by fragments.js -->
+      <div id="footerSlot"></div>
+
+    </div><!-- /main-content -->
+  </div><!-- /app-shell -->
+
+  <!-- ============================================================
+       MODALS & OVERLAYS
+       ============================================================ -->
+
+  <!-- Modal 1: Create Purchase Order Modal -->
+  <div class="modal-overlay" id="createPoModal" aria-hidden="true">
+    <div class="modal-box modal-lg" role="dialog" aria-modal="true" aria-labelledby="createPoModalTitle">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="panel-icon-badge green"><i data-lucide="file-plus"></i></span>
+          <h3 class="modal-title" id="createPoModalTitle">Create Purchase Order</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeCreatePoModal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="createPoForm" class="modal-form">
+        <div class="modal-body">
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="poNumberInput" class="form-label">PO Number</label>
+              <input type="text" id="poNumberInput" class="form-input" value="PO-2026-0025" readonly />
+            </div>
+            <div class="form-group">
+              <label for="poSupplierSelect" class="form-label">Supplier *</label>
+              <select id="poSupplierSelect" class="form-select" required>
+                <option value="Shree Textiles">Shree Textiles (Surat)</option>
+                <option value="Kumar Buttons">Kumar Buttons (Chennai)</option>
+                <option value="Sri Balaji Fashions">Sri Balaji Fashions (Bangalore)</option>
+                <option value="Zari World">Zari World (Varanasi)</option>
+                <option value="Apex Trims">Apex Trims (Mumbai)</option>
+                <option value="R.K. Linings">R.K. Linings (Surat)</option>
+                <option value="Metro Labels">Metro Labels (Tirupur)</option>
+                <option value="Chennai Zippers">Chennai Zippers (Chennai)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="poDateInput" class="form-label">Order Date *</label>
+              <input type="date" id="poDateInput" class="form-input" required />
+            </div>
+          </div>
+
+          <div class="form-grid-2" style="margin-top:10px;">
+            <div class="form-group">
+              <label for="poExpectedDeliveryInput" class="form-label">Expected Delivery *</label>
+              <input type="date" id="poExpectedDeliveryInput" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label for="poPaymentTerms" class="form-label">Payment Terms</label>
+              <select id="poPaymentTerms" class="form-select">
+                <option value="Net 30">Net 30 Days</option>
+                <option value="Immediate">Immediate / Advance</option>
+                <option value="50-50">50% Advance, 50% on Delivery</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Items Row Table in Modal -->
+          <div class="modal-items-section">
+            <div class="modal-items-header">
+              <span class="modal-sub-heading">Order Line Items</span>
+              <button type="button" class="btn-add-item" id="addPoLineItemBtn">+ Add Item</button>
+            </div>
+            <table class="modal-items-table">
+              <thead>
+                <tr>
+                  <th>Item / Material</th>
+                  <th style="width:100px;">Qty (Mtrs/Pcs)</th>
+                  <th style="width:120px;">Unit Price (₹)</th>
+                  <th style="width:120px;">Total (₹)</th>
+                  <th style="width:40px;"></th>
+                </tr>
+              </thead>
+              <tbody id="poLineItemsBody">
+                <tr>
+                  <td><input type="text" class="form-input-sm" value="" placeholder="Material name" required /></td>
+                  <td><input type="number" class="form-input-sm qty-input" value="1" min="1" required /></td>
+                  <td><input type="number" class="form-input-sm price-input" value="0" min="0" required /></td>
+                  <td class="line-total-td">₹0</td>
+                  <td style="text-align:center;"><button type="button" class="btn-del-line" title="Remove line">&times;</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="modal-totals-bar">
+            <div class="notes-wrap">
+              <label for="poNotesInput" class="form-label">Delivery &amp; Packaging Notes</label>
+              <textarea id="poNotesInput" class="form-textarea" rows="2" placeholder="e.g. Pack tightly in waterproof plastic sheeting..."></textarea>
+            </div>
+            <div class="grand-total-wrap">
+              <div class="total-row"><span>Subtotal:</span><span id="modalSubtotal">₹0</span></div>
+              <div class="total-row"><span>GST (5%):</span><span id="modalTax">₹0</span></div>
+              <div class="total-row grand"><span>Total Value:</span><strong id="modalGrandTotal">₹0</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelCreatePoModal">Cancel</button>
+          <button type="submit" class="btn-primary-save" id="submitCreatePoBtn">Save &amp; Send to Supplier</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Advanced Filter Modal -->
+  <div class="modal-overlay" id="filterModal" aria-hidden="true">
+    <div class="modal-box modal-md" role="dialog" aria-modal="true" aria-labelledby="filterModalTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="filterModalTitle">Filter Purchase Orders</h3>
+        <button type="button" class="modal-close-btn" id="closeFilterModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="filterStatusSelect" class="form-label">Status</label>
+          <select id="filterStatusSelect" class="form-select">
+            <option value="all">All Statuses</option>
+            <option value="Draft">Draft</option>
+            <option value="Sent">Sent</option>
+            <option value="Partially Received">Partially Received</option>
+            <option value="Received">Received</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top:8px;">
+          <label for="filterSupplierSelect" class="form-label">Supplier</label>
+          <select id="filterSupplierSelect" class="form-select">
+            <option value="all">All Suppliers</option>
+            <option value="Shree Textiles">Shree Textiles</option>
+            <option value="Kumar Buttons">Kumar Buttons</option>
+            <option value="Sri Balaji Fashions">Sri Balaji Fashions</option>
+            <option value="Zari World">Zari World</option>
+            <option value="Apex Trims">Apex Trims</option>
+            <option value="R.K. Linings">R.K. Linings</option>
+            <option value="Metro Labels">Metro Labels</option>
+            <option value="Chennai Zippers">Chennai Zippers</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="resetFilterModal">Reset</button>
+        <button type="button" class="btn-primary-save" id="applyFilterModal">Apply Filters</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row Context Action Menu (Dropdown) -->
+  <div class="row-actions-dropdown" id="rowActionsDropdown" style="display:none;">
+    <button type="button" class="dropdown-item" data-action="view"><i data-lucide="eye"></i><span>View Purchase Order</span></button>
+    <button type="button" class="dropdown-item" data-action="edit"><i data-lucide="edit-2"></i><span>Edit</span></button>
+    <button type="button" class="dropdown-item" data-action="receive"><i data-lucide="package-check"></i><span>Receive Goods</span></button>
+    <button type="button" class="dropdown-item" data-action="duplicate"><i data-lucide="copy"></i><span>Duplicate</span></button>
+    <button type="button" class="dropdown-item" data-action="download"><i data-lucide="download"></i><span>Download PDF</span></button>
+    <div class="dropdown-divider"></div>
+    <button type="button" class="dropdown-item danger" data-action="delete"><i data-lucide="trash-2"></i><span>Delete</span></button>
+  </div>
+
+  <!-- Global Toast Notifications Stack -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic & Shared Fragment Scripts -->
+  <script src="purchases.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+package com.fashionerp.auth;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.stereotype.Component;
+import javax.crypto.SecretKey;
+import java.util.Date;
+import java.util.UUID;
+
+@Component
+public class JwtUtil {
+
+    // 256-bit secret — in production use environment variable
+    private static final String SECRET = "HauloB0ut1queERPSecretKey2026XYZ!@#";
+    private static final long EXPIRY_MS = 24 * 60 * 60 * 1000L; // 24 hours
+
+    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
+
+    public String generateToken(UUID userId, String username, String role) {
+        return Jwts.builder()
+                .subject(username)
+                .claim("userId", userId.toString())
+                .claim("role", role)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRY_MS))
+                .signWith(key)
+                .compact();
+    }
+
+    public Claims parseToken(String token) {
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload();
+    }
+
+    public boolean isValid(String token) {
+        try {
+            parseToken(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public String getUsername(String token) {
+        return parseToken(token).getSubject();
+    }
+
+    public String getRole(String token) {
+        return parseToken(token).get("role", String.class);
+    }
+}

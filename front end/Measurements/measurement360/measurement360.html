@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Measurement 360 — Haulo Boutique ERP</title>
+  <meta name="description" content="Haulo Boutique ERP — Luxury boutique precision measurement profile management." />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400;1,600&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons & Chart.js -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Shared Fragment Styles & Page Stylesheet -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="measurement360.css" />
+  <script src="../../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="measurements">
+
+  <!-- Full-Screen Blurred Fashion Boutique Background -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-gradient-overlay"></div>
+  </div>
+
+  <!-- Main Application Shell -->
+  <main class="app-shell" id="appShell">
+
+    <!-- Shared Sidebar Slot — injected by fragments.js -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Viewport -->
+    <div class="main-area">
+
+      <!-- Shared Global Header / Navbar Slot — injected by fragments.js -->
+      <div id="navbarSlot"></div>
+
+      <!-- ============================================================
+           MEASUREMENTS WORKSPACE CONTAINER
+           ============================================================ -->
+      <div class="measurements-workspace">
+
+        <!-- Top Navigation Row: Breadcrumb & Page Filter Tabs -->
+        <div class="workspace-top-bar">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="../../dashboard/dashboard.html" class="bc-link">Dashboard</a>
+            <span class="bc-sep">&gt;</span>
+            <a href="../measurement-overview/measurement-overview.html" class="bc-link">Measurements</a>
+            <span class="bc-sep">&gt;</span>
+            <span class="bc-current" aria-current="page">Measurement 360</span>
+          </nav>
+
+          <!-- Top-Right Pill Tabs -->
+          <nav class="top-nav-tabs" aria-label="Profile Tabs">
+            <button type="button" class="tab-pill" data-tab="overview">Overview</button>
+            <button type="button" class="tab-pill active" data-tab="measurements">Measurements</button>
+            <button type="button" class="tab-pill" data-tab="fit">Fit Analysis</button>
+            <button type="button" class="tab-pill" data-tab="size">Size Recommendations</button>
+            <button type="button" class="tab-pill" data-tab="history">History</button>
+          </nav>
+        </div>
+
+        <!-- Hero Section: Title & Customer Profile Card -->
+        <div class="hero-section">
+          <!-- Two-line Page Heading -->
+          <div class="page-heading">
+            <h1 class="page-title">Measurement<br />360° Profile</h1>
+            <p class="page-subtitle">Manage all measurements for a perfect fit.</p>
+          </div>
+
+          <!-- Wide Horizontal Customer Profile Glass Card -->
+          <div class="customer-card">
+            <!-- Left Portrait -->
+            <div class="customer-avatar-wrapper">
+              <img 
+                src="../../assets/user_avatar.jpg" 
+                alt="Customer Profile Portrait" 
+                class="customer-avatar-img"
+                id="customerAvatar"
+                onerror="this.onerror=null; this.src='../../assets/user_avatar.jpg';"
+              />
+            </div>
+
+            <!-- Center Info -->
+            <div class="customer-info-col">
+              <div class="customer-title-row">
+                <h2 class="customer-name" id="customerName">Loading Customer...</h2>
+                <span class="vip-badge" id="customerTierBadge" style="display: none;">
+                  <i data-lucide="sparkles" class="vip-icon"></i>
+                  <span id="customerTierText">VIP Customer</span>
+                </span>
+              </div>
+
+              <!-- Contact Info -->
+              <div class="customer-contact-row">
+                <div class="contact-item">
+                  <i data-lucide="phone" class="contact-icon"></i>
+                  <span id="customerPhone">—</span>
+                </div>
+                <div class="contact-item">
+                  <i data-lucide="mail" class="contact-icon"></i>
+                  <span id="customerEmail">—</span>
+                </div>
+                <div class="contact-item">
+                  <i data-lucide="map-pin" class="contact-icon"></i>
+                  <span id="customerLocation">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right 3 Stat Tiles -->
+            <div class="customer-stats-col">
+              <div class="stat-tile">
+                <span class="stat-number" id="statTotalOrders">0</span>
+                <span class="stat-label">Total Orders</span>
+              </div>
+              <div class="stat-tile">
+                <span class="stat-number" id="statActiveOrders">0</span>
+                <span class="stat-label">Active Orders</span>
+              </div>
+              <div class="stat-tile">
+                <span class="stat-number" id="statCustomerSince">—</span>
+                <span class="stat-label">Customer Since<br /><small id="statCustomerSinceSub">—</small></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             MAIN 3-COLUMN MEASUREMENTS DASHBOARD GRID
+             ============================================================ -->
+        <div class="measurements-grid">
+
+          <!-- ==========================================================
+               COLUMN 1 (LEFT, ~36%): GARMENT SELECTOR + MANNEQUIN
+               ========================================================== -->
+          <div class="grid-column col-left">
+
+            <!-- Card 1.1: Select Garment Type -->
+            <div class="glass-card garment-selector-card">
+              <div class="card-header-clean">
+                <i data-lucide="shirt" class="header-icon"></i>
+                <h3 class="card-title">Select Garment Type</h3>
+              </div>
+
+              <div class="garment-grid" id="garmentGrid" role="radiogroup" aria-label="Select Garment Type">
+                <!-- 1. Blouse (Default active) -->
+                <button type="button" class="garment-btn active" data-garment="Blouse" role="radio" aria-checked="true">
+                  <div class="garment-icon-box">
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" class="garment-svg">
+                      <path d="M4 6.5C4 6.5 6.5 7.5 9 6.5C9.8 8 11 8.8 12 8.8C13 8.8 14.2 8 15 6.5C17.5 7.5 20 6.5 20 6.5L21.5 11L18 12.5V20H6V12.5L2.5 11L4 6.5Z"/>
+                    </svg>
+                  </div>
+                  <span class="garment-label">Blouse</span>
+                </button>
+
+                <!-- 2. Chudi -->
+                <button type="button" class="garment-btn" data-garment="Chudi" role="radio" aria-checked="false">
+                  <div class="garment-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="garment-svg">
+                      <path d="M8 3H16L19 9L17 10L17 21H7L7 10L5 9L8 3Z" />
+                      <path d="M10 3V8C10 9 11 10 12 10C13 10 14 9 14 8V3" />
+                    </svg>
+                  </div>
+                  <span class="garment-label">Chudi</span>
+                </button>
+
+                <!-- 3. Lehenga -->
+                <button type="button" class="garment-btn" data-garment="Lehenga" role="radio" aria-checked="false">
+                  <div class="garment-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="garment-svg">
+                      <path d="M8 4H16L21 20H3L8 4Z" />
+                      <path d="M6 16C9 17 15 17 18 16" />
+                      <path d="M7.5 12C10 13 14 13 16.5 12" />
+                    </svg>
+                  </div>
+                  <span class="garment-label">Lehenga</span>
+                </button>
+
+                <!-- 4. Saree -->
+                <button type="button" class="garment-btn" data-garment="Saree" role="radio" aria-checked="false">
+                  <div class="garment-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="garment-svg">
+                      <path d="M5 4C5 4 8 2 12 4C16 6 19 4 19 4L19 19C19 19 16 17 12 19C8 21 5 19 5 19L5 4Z" />
+                      <path d="M5 9C8 8 16 12 19 11" />
+                    </svg>
+                  </div>
+                  <span class="garment-label">Saree</span>
+                </button>
+
+                <!-- 5. Gown -->
+                <button type="button" class="garment-btn" data-garment="Gown" role="radio" aria-checked="false">
+                  <div class="garment-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="garment-svg">
+                      <path d="M9 3H15L17 7L20 21H4L7 7L9 3Z" />
+                      <path d="M12 3V9" />
+                      <circle cx="12" cy="11" r="1.5" />
+                    </svg>
+                  </div>
+                  <span class="garment-label">Gown</span>
+                </button>
+
+                <!-- 6. Custom -->
+                <button type="button" class="garment-btn" data-garment="Custom" role="radio" aria-checked="false">
+                  <div class="garment-icon-box">
+                    <i data-lucide="layout-grid" class="lucide-custom"></i>
+                  </div>
+                  <span class="garment-label">Custom</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 1.2: Measurement Visualization (Dual Mannequin with Overlay) -->
+            <div class="glass-card visualization-card">
+              <!-- Visualization Header -->
+              <div class="vis-header-row">
+                <div class="vis-heading">
+                  <h3 class="card-title">Measurement Visualization</h3>
+                  <p class="card-subtitle" id="visSubtitle">Blouse Measurements</p>
+                </div>
+
+                <!-- Angle View Segmented Switch -->
+                <div class="view-switch-pills" role="tablist">
+                  <button type="button" class="view-btn active" data-view="front" role="tab" aria-selected="true">Front View</button>
+                  <button type="button" class="view-btn" data-view="back" role="tab" aria-selected="false">Back View</button>
+                  <button type="button" class="view-btn" data-view="side" role="tab" aria-selected="false">Side View</button>
+                </div>
+              </div>
+
+              <!-- Mannequin Dual Stage Container -->
+              <div class="mannequin-stage" id="mannequinStage">
+                <!-- Background Image of Dual Mannequin -->
+                <img 
+                  src="../../assets/mannequin-duo.jpg" 
+                  alt="Front and back view mannequins for measurement tracking" 
+                  class="mannequin-img"
+                  id="mannequinImage"
+                />
+
+                <!-- Interactive SVG Measurement Lines Overlay -->
+                <svg class="mannequin-overlay-svg" viewBox="0 0 540 440" preserveAspectRatio="xMidYMid meet">
+                  <defs>
+                    <filter id="glowLime" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                  </defs>
+
+                  <!-- ================= FRONT MANNEQUIN LINES ================= -->
+                  <!-- 1. Shoulder line -->
+                  <line x1="68" y1="110" x2="200" y2="110" class="meas-line" data-marker="1" />
+                  
+                  <!-- 8. Front Neck Depth line -->
+                  <path d="M 105 76 Q 134 116 163 76" class="meas-line" data-marker="8" />
+
+                  <!-- 2. Bust line -->
+                  <path d="M 72 166 Q 134 182 196 166" class="meas-line" data-marker="2" />
+
+                  <!-- 3. Under Bust line -->
+                  <path d="M 80 206 Q 134 218 188 206" class="meas-line" data-marker="3" />
+
+                  <!-- 4. Waist line -->
+                  <path d="M 88 250 Q 134 258 180 250" class="meas-line" data-marker="4" />
+
+                  <!-- 5. Blouse Length (Hem) line -->
+                  <path d="M 82 290 Q 134 300 186 290" class="meas-line" data-marker="5" />
+
+                  <!-- 6. Sleeve Length left & right guidelines -->
+                  <path d="M 68 110 L 52 178" class="meas-line" data-marker="6" />
+                  <path d="M 200 110 L 216 178" class="meas-line" data-marker="6" />
+
+                  <!-- ================= BACK MANNEQUIN LINES ================= -->
+                  <!-- 7. Back Neck line -->
+                  <path d="M 374 76 Q 404 100 434 76" class="meas-line" data-marker="7" />
+
+                  <!-- 9. Armhole / Back Blade line -->
+                  <path d="M 342 160 Q 404 172 466 160" class="meas-line" data-marker="9" />
+
+                  <!-- 4. Back Waist line -->
+                  <path d="M 358 250 Q 404 258 450 250" class="meas-line" data-marker="4" />
+                </svg>
+
+                <!-- Positioned Interactive Marker Badges (HTML) -->
+                <div class="markers-layer" id="markersLayer">
+                  <!-- Front View Markers -->
+                  <button type="button" class="marker-badge" style="left: 17%; top: 24%;" data-idx="1" title="1. Shoulder">1</button>
+                  <button type="button" class="marker-badge" style="left: 25.5%; top: 18.5%;" data-idx="8" title="8. Front Neck Depth">8</button>
+                  <button type="button" class="marker-badge" style="left: 25.5%; top: 38%;" data-idx="2" title="2. Bust">2</button>
+                  <button type="button" class="marker-badge" style="left: 25.5%; top: 47%;" data-idx="3" title="3. Under Bust">3</button>
+                  <button type="button" class="marker-badge" style="left: 11%; top: 41%;" data-idx="9" title="9. Armhole">9</button>
+                  <button type="button" class="marker-badge" style="left: 14%; top: 66%;" data-idx="6" title="6. Sleeve Length">6</button>
+                  <button type="button" class="marker-badge" style="left: 25.5%; top: 64%;" data-idx="4" title="4. Waist">4</button>
+                  <button type="button" class="marker-badge" style="left: 15%; top: 82%;" data-idx="5" title="5. Length / Hem">5</button>
+
+                  <!-- Back View Markers -->
+                  <button type="button" class="marker-badge" style="left: 74.5%; top: 19%;" data-idx="7" title="7. Back Neck Depth">7</button>
+                  <button type="button" class="marker-badge" style="left: 74.5%; top: 30%;" data-idx="1" title="1. Shoulder Width">1</button>
+                  <button type="button" class="marker-badge" style="left: 68.5%; top: 41%;" data-idx="9" title="9. Armhole">9</button>
+                  <button type="button" class="marker-badge" style="left: 74.5%; top: 64%;" data-idx="4" title="4. Back Waist">4</button>
+                </div>
+
+                <!-- Footer Hint Callout -->
+                <div class="vis-footer-caption">
+                  <i data-lucide="mouse-pointer-click" class="caption-icon"></i>
+                  <span>Click on a measurement to see details</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ==========================================================
+               COLUMN 2 (MIDDLE, ~23%): MEASUREMENT DETAILS LIST
+               ========================================================== -->
+          <div class="grid-column col-center">
+
+            <!-- Card 2.1: Measurement Details -->
+            <div class="glass-card details-card">
+              <!-- Card Header -->
+              <div class="details-header-row">
+                <div class="details-heading">
+                  <h3 class="card-title">Measurement Details</h3>
+                  <p class="card-subtitle" id="detailsSubtitle">
+                    Blouse
+                    <span id="measVersionBadge" style="margin-left: 8px; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(180, 240, 57, 0.12); color: #b4f039; font-weight: 700; display: inline-block;">Current Active</span>
+                  </p>
+                </div>
+                <button type="button" class="edit-pill-btn" id="toggleEditBtn" aria-label="Edit measurements">
+                  <i data-lucide="pencil" class="edit-icon"></i>
+                  <span id="editBtnText">Edit</span>
+                </button>
+              </div>
+
+              <!-- 12 Compact Measurement Rows -->
+              <div class="measurement-items-list" id="measurementItemsList">
+                <!-- Dynamically Populated by measurements.js -->
+              </div>
+
+              <!-- Full-Width Primary Update Measurements Button -->
+              <div class="details-card-bottom">
+                <button type="button" class="btn-update-lime" id="updateMeasurementsBtn">
+                  Update Measurements
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ==========================================================
+               COLUMN 3 (RIGHT, ~41%): HISTORY, LATEST, FIT & NOTES
+               ========================================================== -->
+          <div class="grid-column col-right">
+
+            <!-- Card 3.1: Measurement History Chart -->
+            <div class="glass-card history-card">
+              <div class="history-header-row">
+                <div class="history-title-group">
+                  <div class="history-icon-box">
+                    <i data-lucide="bar-chart-2" class="header-icon"></i>
+                  </div>
+                  <div>
+                    <h3 class="card-title">Measurement History</h3>
+                    <p class="card-subtitle">Track changes over time</p>
+                  </div>
+                </div>
+
+                <!-- Garment Filter Select -->
+                <div class="select-pill-wrapper">
+                  <select class="glass-select" id="historyGarmentSelect" aria-label="Filter history by garment">
+                    <option value="Blouse" selected>Blouse</option>
+                    <option value="Chudi">Chudi</option>
+                    <option value="Lehenga">Lehenga</option>
+                    <option value="Saree">Saree</option>
+                    <option value="Gown">Gown</option>
+                    <option value="Custom">Custom</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Custom Legend Row Matching Reference Colors -->
+              <div class="chart-legend-bar" id="chartLegendBar">
+                <!-- Dynamically populated by measurement360.js -->
+              </div>
+
+              <!-- Grouped Bar Chart Canvas Container -->
+              <div class="chart-box">
+                <canvas id="measurementHistoryChart" height="150"></canvas>
+              </div>
+            </div>
+
+            <!-- Two-Column Subgrid: Latest Measurements & Fit Insights -->
+            <div class="split-subgrid">
+
+              <!-- Subcard 3.2: Latest Measurements -->
+              <div class="glass-card latest-card">
+                <div class="card-header-clean">
+                  <i data-lucide="calendar" class="header-icon"></i>
+                  <h3 class="card-title">Latest Measurements</h3>
+                </div>
+
+                <div class="latest-records-list" id="latestRecordsList">
+                  <!-- Dynamically populated from database by measurement360.js -->
+                </div>
+              </div>
+
+              <!-- Subcard 3.3: Fit Insights -->
+              <div class="glass-card fit-insights-card">
+                <div class="card-header-clean">
+                  <i data-lucide="shield-check" class="header-icon"></i>
+                  <h3 class="card-title">Fit Insights</h3>
+                </div>
+
+                <div class="fit-gauge-and-list">
+                  <!-- SVG Circular Donut Ring -->
+                  <div class="donut-wrapper">
+                    <svg class="donut-svg" viewBox="0 0 100 100">
+                      <circle class="donut-bg-track" cx="50" cy="50" r="38" />
+                      <circle class="donut-fill-ring" id="fitDonutFill" cx="50" cy="50" r="38" />
+                    </svg>
+                    <div class="donut-center-info">
+                      <span class="donut-percent" id="fitDonutPercent">0%</span>
+                      <span class="donut-label">Fit Accuracy</span>
+                    </div>
+                  </div>
+
+                  <!-- Checklist -->
+                  <div class="fit-checklist" id="fitChecklist">
+                    <!-- Dynamically populated from database by measurement360.js -->
+                  </div>
+                </div>
+
+                <!-- Callout Banner -->
+                <div class="fit-callout-box">
+                  <div class="callout-icon-circle">
+                    <i data-lucide="sparkles" class="callout-icon"></i>
+                  </div>
+                  <span class="callout-text" id="fitCalloutText">Checking garment specifications...</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Card 3.4: Notes Card -->
+            <div class="glass-card notes-card">
+              <div class="notes-header-row">
+                <div class="notes-title-group">
+                  <i data-lucide="file-text" class="header-icon"></i>
+                  <h3 class="card-title">Notes</h3>
+                </div>
+                <button type="button" class="add-note-btn" id="openAddNoteModalBtn">
+                  <span>Add Note</span>
+                </button>
+              </div>
+
+              <!-- Notes Bullet List -->
+              <ul class="notes-list" id="notesList">
+                <!-- Dynamically Populated from database by measurement360.js -->
+              </ul>
+            </div>
+
+          </div>
+
+        </div> <!-- /measurements-grid -->
+
+      </div> <!-- /measurements-workspace -->
+
+      <!-- Shared Global Footer Slot — injected by fragments.js -->
+      <div id="footerSlot"></div>
+
+    </div> <!-- /main-area -->
+
+  </main> <!-- /app-shell -->
+
+  <!-- ============================================================
+       MODALS: ADD NOTE MODAL
+       ============================================================ -->
+  <div class="modal-backdrop" id="addNoteModal" aria-hidden="true">
+    <div class="glass-modal-panel" role="dialog" aria-modal="true" aria-labelledby="addNoteTitle">
+      <div class="modal-header">
+        <h4 class="modal-title" id="addNoteTitle">Add Customer Fit Note</h4>
+        <button type="button" class="modal-close-btn" id="closeAddNoteBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="newNoteInput" class="form-label" id="addNoteLabel">Customer Fit Note</label>
+        <textarea 
+          id="newNoteInput" 
+          class="form-textarea" 
+          rows="4" 
+          placeholder="e.g. Needs 0.25 inch extra ease under armhole; stitch with soft gold piping..."
+        ></textarea>
+        <p class="form-hint">Notes are visible across master tailors and alteration desks.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" id="cancelAddNoteBtn">Cancel</button>
+        <button type="button" class="btn-save-lime" id="confirmAddNoteBtn">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <!-- Fragment Includer Scripts & Measurements Controller -->
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="measurement360.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders — Haulo Boutique ERP</title>
+  <meta name="description" content="Haulo Boutique ERP — Manage all customer orders, track status, and create new bespoke fashion orders." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="order-over.css?v=2.5" />
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="orders">
+
+  <!-- Background Atmospheric Image Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Navbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- Scrollable Content Area -->
+      <div class="order-over-scroll" id="orderOverScroll">
+
+        <!-- Page Header -->
+        <div class="page-header-row">
+          <div class="header-left">
+            <div class="breadcrumb-nav">
+              <a href="../../dashboard/dashboard.html" class="bc-item bc-link">Dashboard</a>
+              <span class="bc-sep">&#8250;</span>
+              <span class="bc-item current">Orders</span>
+            </div>
+            <div class="title-group">
+              <h1 class="page-title">
+                <i data-lucide="shopping-bag" class="title-icon"></i>
+                Orders
+              </h1>
+              <p class="page-subtitle">Track, manage and fulfil all customer orders.</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="btn-export" id="btnExport" title="Export Orders">
+              <i data-lucide="download" style="width:15px;height:15px;"></i>
+              <span>Export</span>
+            </button>
+            <a href="../new-order/new-order.html" class="btn-new-order" id="btnNewOrder">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i>
+              <span>New Order</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <section class="kpi-row" aria-label="Order KPIs">
+          <article class="kpi-card" id="kpiTotal">
+            <div class="kpi-icon-wrap kpi-lime">
+              <i data-lucide="layers" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiTotalVal">—</span>
+              <span class="kpi-label">Total Orders</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiPending">
+            <div class="kpi-icon-wrap kpi-orange">
+              <i data-lucide="clock" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiPendingVal">—</span>
+              <span class="kpi-label">Pending</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiProduction">
+            <div class="kpi-icon-wrap kpi-blue">
+              <i data-lucide="scissors" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiProdVal">—</span>
+              <span class="kpi-label">In Production</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiReady">
+            <div class="kpi-icon-wrap kpi-green">
+              <i data-lucide="check-circle-2" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiReadyVal">—</span>
+              <span class="kpi-label">Ready / Delivered</span>
+            </div>
+          </article>
+          <article class="kpi-card" id="kpiRevenue">
+            <div class="kpi-icon-wrap kpi-gold">
+              <i data-lucide="trending-up" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-value" id="kpiRevenueVal">—</span>
+              <span class="kpi-label">Total Revenue</span>
+            </div>
+          </article>
+        </section>
+
+        <!-- Filters & Search Bar -->
+        <div class="filters-bar" role="search">
+          <div class="search-wrap">
+            <i data-lucide="search" class="search-icon" style="width:15px;height:15px;"></i>
+            <input
+              type="text"
+              id="searchInput"
+              class="search-input"
+              placeholder="Search order ID, customer, garment…"
+              autocomplete="off"
+              aria-label="Search orders"
+            />
+          </div>
+
+          <div class="filter-chip-group" role="group" aria-label="Filter by status">
+            <button class="filter-chip active" data-filter="all" id="filterAll">All</button>
+            <button class="filter-chip" data-filter="pending" id="filterPending">Pending</button>
+            <button class="filter-chip" data-filter="in-progress" id="filterInProgress">In Progress</button>
+            <button class="filter-chip" data-filter="ready" id="filterReady">Ready</button>
+            <button class="filter-chip" data-filter="delivered" id="filterDelivered">Delivered</button>
+            <button class="filter-chip" data-filter="cancelled" id="filterCancelled">Cancelled</button>
+          </div>
+
+          <div class="sort-wrap">
+            <div class="select-wrap">
+              <i data-lucide="arrow-up-down" style="width:13px;height:13px;opacity:0.55;"></i>
+              <select id="sortSelect" class="sort-select" aria-label="Sort orders">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="amount-desc">Amount &#8595;</option>
+                <option value="amount-asc">Amount &#8593;</option>
+                <option value="customer">Customer A–Z</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orders Card Panel -->
+        <section class="orders-panel" aria-label="Orders list">
+          <div class="panel-header">
+            <span class="panel-count" id="panelCount">Loading…</span>
+          </div>
+
+          <!-- Skeleton loading cards -->
+          <div class="orders-card-grid" id="skeletonGrid">
+            <div class="order-card-skeleton" aria-hidden="true"></div>
+            <div class="order-card-skeleton" aria-hidden="true"></div>
+            <div class="order-card-skeleton" aria-hidden="true"></div>
+            <div class="order-card-skeleton" aria-hidden="true"></div>
+            <div class="order-card-skeleton" aria-hidden="true"></div>
+            <div class="order-card-skeleton" aria-hidden="true"></div>
+          </div>
+
+          <!-- Card Grid (populated by JS) -->
+          <div class="orders-card-grid" id="ordersCardGrid" hidden></div>
+
+          <!-- Empty State -->
+          <div class="empty-state" id="emptyState" hidden>
+            <div class="empty-icon">
+              <i data-lucide="inbox" style="width:48px;height:48px;"></i>
+            </div>
+            <h3 class="empty-title">No orders found</h3>
+            <p class="empty-desc">Try adjusting your filters or <a href="../new-order/new-order.html" class="empty-link">create a new order</a>.</p>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination-row" id="paginationRow">
+            <span class="page-info" id="pageInfo">Page 1 of 1</span>
+            <div class="page-btns">
+              <button class="page-btn" id="btnPrevPage" disabled aria-label="Previous page">
+                <i data-lucide="chevron-left" style="width:15px;height:15px;"></i>
+              </button>
+              <div class="page-numbers" id="pageNumbers"></div>
+              <button class="page-btn" id="btnNextPage" aria-label="Next page">
+                <i data-lucide="chevron-right" style="width:15px;height:15px;"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div><!-- /order-over-scroll -->
+
+      <!-- Footer slot -->
+      <div id="footerSlot"></div>
+    </main>
+  </div><!-- /appShell -->
+
+  <!-- Order Quick-View Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden aria-hidden="true"></div>
+  <aside class="order-drawer" id="orderDrawer" role="complementary" aria-label="Order quick view" hidden>
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <span class="drawer-order-id" id="drawerOrderId">—</span>
+        <span class="drawer-status-badge" id="drawerStatusBadge"></span>
+      </div>
+      <div class="drawer-header-actions">
+        <a href="#" class="drawer-view-full" id="drawerViewFull" title="Open full view">
+          <i data-lucide="external-link" style="width:15px;height:15px;"></i>
+          <span>Full View</span>
+        </a>
+        <button class="drawer-close" id="drawerClose" aria-label="Close drawer">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-footer">
+      <a href="#" class="btn-drawer-view" id="btnDrawerView">
+        <i data-lucide="eye" style="width:14px;height:14px;"></i>
+        View Full Order
+      </a>
+      <a href="../new-order/new-order.html" class="btn-drawer-new">
+        <i data-lucide="plus" style="width:14px;height:14px;"></i>
+        New Order
+      </a>
+    </div>
+  </aside>
+
+  <!-- Fragments: wires sidebar, navbar, toggleSidebar(), navNavigate() -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script type="module" src="order-over.js?v=2.5"></script>
+</body>
+</html>

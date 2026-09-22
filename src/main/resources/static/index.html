@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haulo Boutique ERP — System Launch &amp; Initialization</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Page Styles -->
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+
+  <!-- Full-Screen Atmospheric Backdrop -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="launch-wrapper">
+
+    <!-- Top Status Bar -->
+    <header class="top-nav-bar">
+      <div class="brand-block">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+            <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+            <circle cx="6" cy="18.5" r="2.5" fill="#a3e635"/>
+            <circle cx="18" cy="5.5" r="2.5" fill="#a3e635"/>
+            <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">HAULO</span>
+          <span class="brand-sub">BOUTIQUE ERP</span>
+        </div>
+      </div>
+
+      <div class="top-meta-group">
+        <div class="meta-pill system-status-pill">
+          <span class="pulse-dot-green"></span>
+          <span class="meta-label">System Operational • v1.0.0</span>
+        </div>
+        <div class="meta-pill branch-pill">
+          <i data-lucide="building-2" class="pill-icon"></i>
+          <span>Haulo Designs — Main Branch</span>
+        </div>
+        <div class="meta-pill user-pill">
+          <i data-lucide="shield-check" class="pill-icon"></i>
+          <span>Pranesh B (Administrator)</span>
+        </div>
+        <div class="meta-pill time-pill">
+          <i data-lucide="clock" class="pill-icon"></i>
+          <span id="liveDateTime">Loading time...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Launch & Initialization Center -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i data-lucide="sparkles" style="width:14px;height:14px;color:#a3e635;"></i>
+          <span>Enterprise Management Portal &amp; Core Launchpad</span>
+        </div>
+        <h1 class="hero-title">Haulo Boutique ERP</h1>
+        <p class="hero-subtitle">
+          Next-generation management system for bespoke couture, bespoke alterations, custom atelier operations, client styling, and financial operations.
+        </p>
+
+        <!-- System Initialization & Readiness Control Box -->
+        <div class="init-control-box">
+          <div class="init-header-row">
+            <div class="init-title-group">
+              <i data-lucide="cpu" class="init-icon"></i>
+              <div>
+                <h3 class="init-heading">System Initialization &amp; Engine Status</h3>
+                <p class="init-desc">Spring Boot 4.1 backend services, database migrations, and static resources ready.</p>
+              </div>
+            </div>
+            <button class="btn-run-diagnostics" id="btnRunDiagnostics" title="Re-run diagnostic checks">
+              <i data-lucide="refresh-cw" id="diagSpinIcon"></i>
+              <span>Verify Engine</span>
+            </button>
+          </div>
+
+          <!-- Diagnostic Indicators Grid -->
+          <div class="diag-grid">
+            <div class="diag-card" id="diagDb">
+              <div class="diag-top">
+                <i data-lucide="database"></i>
+                <span class="diag-badge ok">CONNECTED</span>
+              </div>
+              <div class="diag-name">PostgreSQL Data Layer</div>
+              <div class="diag-val">jpa:default • pool active</div>
+            </div>
+
+            <div class="diag-card" id="diagSecurity">
+              <div class="diag-top">
+                <i data-lucide="shield"></i>
+                <span class="diag-badge ok">ARMED</span>
+              </div>
+              <div class="diag-name">Spring Security Gateway</div>
+              <div class="diag-val">CSRF, CORS, Role Auth</div>
+            </div>
+
+            <div class="diag-card" id="diagModules">
+              <div class="diag-top">
+                <i data-lucide="layout-grid"></i>
+                <span class="diag-badge info">14 ACTIVE / 11 WIP</span>
+              </div>
+              <div class="diag-name">Boutique UI Modules</div>
+              <div class="diag-val">Glassmorphism Shell</div>
+            </div>
+
+            <div class="diag-card" id="diagServer">
+              <div class="diag-top">
+                <i data-lucide="server"></i>
+                <span class="diag-badge ok">RUNNING</span>
+              </div>
+              <div class="diag-name">Environment Runtime</div>
+              <div class="diag-val">Java 21 • Port 8080</div>
+            </div>
+          </div>
+
+          <!-- Master Launch Bar -->
+          <div class="master-launch-bar">
+            <button class="btn-master-launch" id="btnMasterLaunch" onclick="launchModule('dashboard/dashboard.html')">
+              <i data-lucide="play" class="btn-play-icon"></i>
+              <div class="btn-launch-text">
+                <span class="btn-title">INITIALIZE &amp; LAUNCH ERP</span>
+                <span class="btn-sub">Open Master Executive Dashboard</span>
+              </div>
+              <i data-lucide="arrow-right" class="btn-arrow-icon"></i>
+            </button>
+            <div class="launch-actions">
+              <button class="btn-secondary-action" onclick="launchModule('WorkforceManagement/workforce.html')">
+                <i data-lucide="users"></i>
+                <span>Workforce Management</span>
+              </button>
+              <button class="btn-secondary-action" onclick="launchModule('orders/new-order/new-order.html')">
+                <i data-lucide="shopping-bag"></i>
+                <span>New Order</span>
+              </button>
+              <button class="btn-secondary-action" onclick="launchModule('payments/payments.html')">
+                <i data-lucide="credit-card"></i>
+                <span>Payments</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categorized Module Hub -->
+    <section class="modules-hub-section">
+      <div class="section-header-row">
+        <div>
+          <h2 class="section-title">Operational Modules &amp; Applications</h2>
+          <p class="section-subtitle">Select any operational suite below to initialize and start working.</p>
+        </div>
+        <div class="legend-group">
+          <span class="legend-item"><span class="legend-dot green"></span> Completed &amp; Active</span>
+          <span class="legend-item"><span class="legend-dot red-glow"></span> In Progress (Ambient Glow)</span>
+        </div>
+      </div>
+
+      <!-- Module Categories -->
+      <div class="categories-container">
+
+        <!-- 1. Front Office & Client Relations -->
+        <div class="category-block">
+          <div class="category-header">
+            <i data-lucide="briefcase"></i>
+            <h3>Front Office &amp; Client Relations</h3>
+          </div>
+          <div class="module-cards-grid">
+            <!-- Dashboard -->
+            <div class="module-card active-card" onclick="launchModule('dashboard/dashboard.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="layout-dashboard"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Executive Dashboard</h4>
+              <p class="card-desc">Boutique KPIs, revenue pulse, daily schedules, order progression, and atelier workload.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Enquiries -->
+            <div class="module-card active-card" onclick="launchModule('enquiries/enquiries.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="message-square"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Customer Enquiries</h4>
+              <p class="card-desc">Walk-ins, consultation intake, design queries, and bridal bespoke booking triage.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Appointments -->
+            <div class="module-card active-card" onclick="launchModule('appointments/appointments.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="calendar"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Styling Appointments</h4>
+              <p class="card-desc">Fitting dates, master trial slots, designer calendar, and VIP suite reservations.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Customer 360 -->
+            <div class="module-card active-card" onclick="launchModule('Customer360/customer360.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="contact"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Customer 360 Profile</h4>
+              <p class="card-desc">Complete client dossiers, purchase history, lifestyle preferences, and measurement cards.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Orders -->
+            <div class="module-card active-card" onclick="launchModule('orders/new-order/new-order.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="shopping-bag"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Custom Order Creation</h4>
+              <p class="card-desc">Bespoke order builder, style selection, garment items, fabric links, and billing.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Payments -->
+            <div class="module-card active-card" onclick="launchModule('payments/payments.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="credit-card"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Payments &amp; Receivables</h4>
+              <p class="card-desc">Advance deposits, milestone fittings billing, balances, receipts, and ledger audit.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Haute Couture & Atelier Floor -->
+        <div class="category-block">
+          <div class="category-header">
+            <i data-lucide="scissors"></i>
+            <h3>Haute Couture &amp; Atelier Floor</h3>
+          </div>
+          <div class="module-cards-grid">
+            <!-- Design Studio -->
+            <div class="module-card active-card" onclick="launchModule('DesignStudio/design-studio.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="palette"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Design Studio &amp; Collections</h4>
+              <p class="card-desc">Curated silhouette sketchboard, seasonal collections, custom motif lookbooks, and moodboards.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Measurements -->
+            <div class="module-card active-card" onclick="launchModule('Measurements/measurements.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="ruler"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Bespoke Measurements</h4>
+              <p class="card-desc">Standard and bespoke anatomy measurement cards, posture notes, and tailoring parameters.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Fabrics & Materials -->
+            <div class="module-card active-card" onclick="launchModule('fabrics-materials/fabrics-materials.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="layers"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Fabrics &amp; Materials</h4>
+              <p class="card-desc">Silks, velvets, handloom swatches, embellishments, yardage allocation, and supplier specs.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Production Room -->
+            <div class="module-card active-card" onclick="launchModule('production/production.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="factory"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Production Floor</h4>
+              <p class="card-desc">Cutting table, embroidery stations, stitching lines, artisan assignments, and stage tracking.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Trials & Alterations -->
+            <div class="module-card active-card" onclick="launchModule('trials-alterations/trials-alterations.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="user-check"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Trials &amp; Alterations</h4>
+              <p class="card-desc">First fitting trial notes, pinning modifications, master tailor alterations queue, and re-trial.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Quality Control -->
+            <div class="module-card active-card" onclick="launchModule('quality-control/quality-control.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="clipboard-check"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Quality Control (QC)</h4>
+              <p class="card-desc">Final seam inspection, embroidery scrutiny, measurement conformity check, and packaging sign-off.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Operations, Inventory & Workforce -->
+        <div class="category-block">
+          <div class="category-header">
+            <i data-lucide="boxes"></i>
+            <h3>Inventory, Logistics &amp; Human Resources</h3>
+          </div>
+          <div class="module-cards-grid">
+            <!-- Inventory -->
+            <div class="module-card active-card" onclick="launchModule('inventory/inventory.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="box"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Stock &amp; Inventory</h4>
+              <p class="card-desc">Fabric roll tracking, lace trims, ready garments, raw accessories, and low stock warnings.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Purchases -->
+            <div class="module-card active-card" onclick="launchModule('purchases/purchases.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="shopping-cart"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Procurement &amp; Purchases</h4>
+              <p class="card-desc">Purchase orders, fabric batch inwards, vendor invoices, delivery dates, and payment schedules.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Delivery -->
+            <div class="module-card active-card" onclick="launchModule('delivery/delivery.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="truck"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Dispatch &amp; Delivery</h4>
+              <p class="card-desc">Boutique pickup schedules, garment bag handover, courier tracking, and customer handoff.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Workforce Management -->
+            <div class="module-card active-card" onclick="launchModule('WorkforceManagement/workforce.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="users"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Workforce Management</h4>
+              <p class="card-desc">Artisans, master cutters, tailors roster, attendance ledger, productivity analytics, and payroll.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. In-Progress Modules (Ambient Red Glow) -->
+        <div class="category-block">
+          <div class="category-header">
+            <i data-lucide="hammer" style="color:#ef4444;"></i>
+            <h3>Planned Modules &amp; In-Progress Features</h3>
+            <span class="wip-count-badge">11 Modules In Development</span>
+          </div>
+          <div class="module-cards-grid">
+            <!-- Garments -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Garments')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="shirt"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Garments Catalog</h4>
+              <p class="card-desc">Finished dress lifecycle, SKU barcoding, sample showroom racks, and ready-to-wear tags.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Job Cards -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Job Cards')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="clipboard-list"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Artisan Job Cards</h4>
+              <p class="card-desc">Floor job ticket generation, piece-rate tracking, step-by-step garment construction logs.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Suppliers -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Suppliers')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="store"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Supplier Directory</h4>
+              <p class="card-desc">Textile mill vendor contacts, fabric reliability ratings, credit terms, and pricing matrices.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Reports & Analytics -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Reports & Analytics')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="bar-chart-3"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Reports &amp; Analytics</h4>
+              <p class="card-desc">Comprehensive monthly business summaries, order lead time statistics, and sales forecasting.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Expenses -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Expenses')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="receipt"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Atelier Expenses</h4>
+              <p class="card-desc">Overhead costs, thread/accessory consumables, maintenance bills, and boutique rent register.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Profitability -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Profitability')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="trending-up"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Per-Garment Profitability</h4>
+              <p class="card-desc">Material yield cost vs. artisan labor vs. client sale price margin optimization.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('WhatsApp')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="message-circle"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">WhatsApp Communications</h4>
+              <p class="card-desc">Automated fitting alerts, payment receipts, order ready pings, and delivery tracking dispatch.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Campaigns -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Campaigns')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="megaphone"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Bridal &amp; Festive Campaigns</h4>
+              <p class="card-desc">Seasonal trunk shows, VIP customer previews, festival discount broadcasting, and lookbook launches.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Branches -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Branches')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="git-branch"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Multi-Branch Operations</h4>
+              <p class="card-desc">Inter-branch inventory transfers, regional showroom quotas, and unified boutique rollups.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Users & Roles -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Users & Roles')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="user-cog"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">Users &amp; Permissions</h4>
+              <p class="card-desc">Role-based security for Master Tailors, Sales Stylists, Accountants, and General Managers.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="module-card uncompleted-card" onclick="showWipToast('Settings')">
+              <div class="card-top">
+                <div class="icon-wrap red"><i data-lucide="settings"></i></div>
+                <span class="status-pill red-glow">In Progress</span>
+              </div>
+              <h4 class="card-name">System Settings &amp; Setup</h4>
+              <p class="card-desc">Tax rates, currency formats, invoice prefixes, measurements units, and cloud backup cadence.</p>
+              <div class="card-footer">
+                <span class="wip-tag">In Development</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer Meta -->
+    <footer class="launch-footer">
+      <div class="footer-left">
+        <span class="footer-brand">HAULO BOUTIQUE ERP</span>
+        <span class="footer-copy">© 2026 Haulo Designs. All rights reserved. High Fashion Atelier Suite.</span>
+      </div>
+      <div class="footer-right">
+        <span class="footer-tech">Powered by Spring Boot 4.1.1 • Java 21 • PostgreSQL</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Page Controller Script -->
+  <script src="index.js"></script>
+</body>
+</html>

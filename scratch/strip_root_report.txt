@@ -1,0 +1,17 @@
+﻿  [OK] Stripped 25 vars from :root | customer\Customer360\customer360.css
+  [OK] Stripped 20 vars from :root | customer\customer-overview\customer-overview.css
+  [OK] Stripped 28 vars from :root | customer\new-customer\new-customer.css
+  [OK] Stripped 19 vars from :root | orders\order-overview\order-over.css
+  [OK] Stripped 34 vars from :root | orders\view-order\view-order.css
+  [OK] Stripped 23 vars from :root | orders\new-order\new-order.css
+  [OK] Stripped 22 vars from :root | production\stages\stages.css
+  [--] No pure-var :root block found | WorkforceManagement\workforce.css
+  [OK] Stripped 33 vars from :root | Measurements\measurement360\measurement360.css
+  [OK] Stripped 43 vars from :root | Measurements\measurement-overview\measurement-overview.css
+  [--] No pure-var :root block found | delivery\delivery.css
+  [OK] Stripped 48 vars from :root | purchases\purchases.css
+  [OK] Stripped 41 vars from :root | trials-alterations\trials-alterations.css
+  [OK] Stripped 27 vars from :root | payments\payments.css
+  [OK] Stripped 17 vars from :root | fragments\nav.css
+  [--] No pure-var :root block found | login\login.css
+  [--] No pure-var :root block found | DesignStudio\design-studio.css

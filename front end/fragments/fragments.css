@@ -1,0 +1,370 @@
+﻿/* ============================================================
+   HAULO BOUTIQUE ERP — Fragments Shared Styles (Dark Warm Glass)
+   Path: front end/fragments/fragments.css
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('theme/theme.css');
+
+/* :root tokens are now fully defined in theme/theme.css — imported above. */
+
+/* ── Sidebar Slot Container ── */
+.sidebar-slot,
+#sidebarSlot {
+  display: flex;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-sizing: border-box;
+}
+body:not([data-module="dashboard"]) #sidebarSlot {
+  padding: 8px 0 8px 8px;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  height: 100%;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  border: 1px solid var(--border-sidebar);
+  border-radius: var(--radius-sidebar);
+  box-shadow: var(--shadow-sidebar);
+  display: flex; flex-direction: column;
+  overflow: hidden; flex-shrink: 0;
+  transition: width 0.26s cubic-bezier(0.4,0,0.2,1),
+              min-width 0.26s cubic-bezier(0.4,0,0.2,1);
+}
+.sidebar.collapsed { width: var(--sidebar-collapsed-w); min-width: var(--sidebar-collapsed-w); }
+
+/* Text hide/show */
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-item span {
+  opacity: 0; width: 0; overflow: hidden; white-space: nowrap;
+  transition: opacity 0.15s, width 0.26s; pointer-events: none;
+}
+.sidebar:not(.collapsed) .logo-text,
+.sidebar:not(.collapsed) .nav-item span {
+  opacity: 1; transition: opacity 0.20s ease 0.05s;
+}
+
+/* Logo */
+.sidebar-logo {
+  padding: 14px 12px 12px; display: flex; align-items: center; gap: 9px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07); position: relative;
+}
+.sidebar.collapsed .sidebar-logo { justify-content: center; padding: 14px 0 12px; }
+.logo-icon {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: transform 0.18s;
+}
+.logo-icon:hover { transform: scale(1.06); }
+.logo-text { line-height: 1.15; overflow: hidden; flex-shrink: 0; }
+.logo-text .brand-name { font-size: 13px; font-weight: 800; color: #ffffff; letter-spacing: 0.06em; display: block; }
+.logo-text .brand-sub  { font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.45); letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* Toggle */
+.sidebar-toggle {
+  position: absolute; right: -11px; top: 50%; transform: translateY(-50%);
+  width: 22px; height: 22px;
+  background: var(--bg-card-strong); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: background 0.18s;
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.15); }
+.sidebar-toggle svg { width: 11px; height: 11px; color: rgba(255,255,255,0.7); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+/* Nav */
+.sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px; scrollbar-width: none; }
+.sidebar-nav::-webkit-scrollbar { display: none; }
+.sidebar.collapsed .sidebar-nav { padding: 8px 5px; }
+
+.nav-section { margin-bottom: 3px; }
+.nav-section-label {
+  font-size: 8.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted);
+  padding: 8px 8px 3px; display: block; white-space: nowrap; overflow: hidden;
+  transition: opacity 0.18s, height 0.26s, padding 0.26s;
+}
+.sidebar.collapsed .nav-section-label { height: 0; padding: 0; opacity: 0; pointer-events: none; }
+.sidebar.collapsed .nav-section:not(:first-child)::before {
+  content: ''; display: block; height: 1px;
+  background: rgba(255,255,255,0.08); margin: 4px 6px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 9px; border-radius: 10px; cursor: pointer;
+  transition: background 0.18s, color 0.18s, padding 0.26s;
+  color: #D0CCC5;
+  font-family: var(--font-main);
+  font-size: 11.5px; font-weight: 500;
+  text-decoration: none; margin-bottom: 1px;
+  position: relative; white-space: nowrap; overflow: hidden;
+}
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.65; transition: opacity 0.18s; color: #D8D5CF; }
+.nav-item:hover { background: rgba(255,255,255,0.08); color: #F7F7F5; }
+.nav-item:hover svg { opacity: 1; color: #F7F7F5; }
+
+.sidebar.collapsed .nav-item { justify-content: center; padding: 7px 0; gap: 0; }
+.sidebar.collapsed .nav-item svg { opacity: 0.7; width: 17px; height: 17px; }
+
+.nav-item.active {
+  background: var(--lime);
+  color: var(--lime-dark);
+  font-weight: 700;
+  box-shadow: 0 2px 12px var(--lime-glow);
+}
+.nav-item.active svg { opacity: 1; color: var(--lime-dark); }
+.nav-item.active:hover { background: var(--lime-hover); color: var(--lime-dark); }
+
+/* ============================================================
+   UNCOMPLETED / IN-PROGRESS NAVIGATION ITEMS — AMBIENT RED GLOW
+   ============================================================ */
+.nav-item.uncompleted,
+.nav-item[href="#"] {
+  position: relative;
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  color: rgba(255, 225, 225, 0.85);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.16), inset 0 0 8px rgba(239, 68, 68, 0.08);
+  transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+.nav-item.uncompleted svg,
+.nav-item[href="#"] svg {
+  color: var(--red);
+  opacity: 0.85;
+  transition: opacity 0.18s, color 0.18s;
+}
+
+/* Pulsing Red Status Indicator Dot */
+.nav-item.uncompleted::before,
+.nav-item[href="#"]::before {
+  content: '';
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 6px var(--danger), 0 0 12px rgba(239, 68, 68, 0.75);
+  animation: uncompleted-pulse 2.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Hover State */
+.nav-item.uncompleted:hover,
+.nav-item[href="#"]:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.65);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.38), inset 0 0 12px rgba(239, 68, 68, 0.15);
+}
+
+.nav-item.uncompleted:hover svg,
+.nav-item[href="#"]:hover svg {
+  color: #ffffff;
+  opacity: 1;
+}
+
+/* Collapsed Sidebar Mode */
+.sidebar.collapsed .nav-item.uncompleted,
+.sidebar.collapsed .nav-item[href="#"] {
+  border-color: rgba(239, 68, 68, 0.32);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.22), inset 0 0 6px rgba(239, 68, 68, 0.08);
+}
+
+.sidebar.collapsed .nav-item.uncompleted::before,
+.sidebar.collapsed .nav-item[href="#"]::before {
+  right: 12px;
+  top: 6px;
+  transform: none;
+  width: 5px;
+  height: 5px;
+  animation: uncompleted-pulse-collapsed 2.2s ease-in-out infinite;
+}
+
+/* Collapsed Tooltip Styling for Uncompleted Items */
+.sidebar.collapsed .nav-item.uncompleted[data-tooltip]::after,
+.sidebar.collapsed .nav-item[href="#"][data-tooltip]::after {
+  border-color: rgba(239, 68, 68, 0.40);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+/* Active State Safety Override (Lime Active Always Wins) */
+.nav-item.active.uncompleted,
+.nav-item.active[href="#"] {
+  background: var(--lime) !important;
+  color: var(--lime-dark) !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 12px var(--lime-glow) !important;
+}
+
+.nav-item.active.uncompleted::before,
+.nav-item.active[href="#"]::before {
+  display: none !important;
+}
+
+.nav-item.active.uncompleted svg,
+.nav-item.active[href="#"] svg {
+  color: var(--lime-dark) !important;
+  opacity: 1 !important;
+}
+
+@keyframes uncompleted-pulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: translateY(-50%) scale(1);
+    box-shadow: 0 0 6px var(--danger), 0 0 10px rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+    box-shadow: 0 0 9px var(--red), 0 0 16px rgba(239, 68, 68, 0.95);
+  }
+}
+
+@keyframes uncompleted-pulse-collapsed {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+    box-shadow: 0 0 5px var(--danger), 0 0 8px rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 8px var(--red), 0 0 14px rgba(239, 68, 68, 0.95);
+  }
+}
+
+/* Tooltip */
+.nav-item[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+  background: var(--bg-card-strong); color: #ffffff;
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12); white-space: nowrap; pointer-events: none; opacity: 0;
+  transition: opacity 0.15s; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+.sidebar.collapsed .nav-item:hover::after { opacity: 1; }
+
+/* ── Status Bar / Footer ── */
+.status-bar {
+  background: rgba(25, 25, 23, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 16px; flex-shrink: 0;
+}
+.status-bar-left { font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 500; }
+.status-bar-left strong { color: #ffffff; font-weight: 800; letter-spacing: 0.05em; }
+.status-bar-right { display: flex; align-items: center; gap: 8px; font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 500; }
+.status-bar-sep { color: rgba(255,255,255,0.25); }
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--lime); box-shadow: 0 0 6px var(--lime);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { box-shadow: 0 0 4px var(--lime); }
+  50%      { box-shadow: 0 0 10px var(--lime); }
+}
+
+/* ============================================================
+   UNIVERSAL APP-SHELL LAYOUT
+   Works across all page wrapper class variants
+   ============================================================ */
+
+/* ── Body reset ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: var(--font-main);
+  overflow-x: hidden;
+}
+
+/* ── Main layout shell: sidebar + main content side by side ──
+   Handles all wrapper naming variants used across pages */
+.app-shell,
+.app-container,
+.app-layout,
+.app-wrapper,
+#appShell {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+/* ── Sidebar slot — sticky left column ── */
+#sidebarSlot,
+.sidebar-slot {
+  display: flex;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-sizing: border-box;
+}
+
+body:not([data-module="dashboard"]) #sidebarSlot,
+body:not([data-module="dashboard"]) .sidebar-slot {
+  padding: 8px 0 8px 8px;
+}
+
+/* ── Main content area — fills remaining width ── */
+.main-content,
+.main-viewport,
+.main-area,
+.page-content,
+.content-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 8px 8px 0 8px;
+}
+
+/* ── Navbar slot — sits at top of main area ── */
+#navbarSlot {
+  flex-shrink: 0;
+}
+
+/* ── Footer slot — sits at bottom ── */
+#footerSlot {
+  flex-shrink: 0;
+  padding: 0 0 8px 0;
+  margin-top: auto;
+}
+
+/* ── Sidebar sizing — ensure always correct ── */
+.sidebar {
+  width: var(--sidebar-w, 175px);
+  min-width: var(--sidebar-w, 175px);
+  height: 100%;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-w, 58px) !important;
+  min-width: var(--sidebar-collapsed-w, 58px) !important;
+}
+

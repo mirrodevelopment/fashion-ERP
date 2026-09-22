@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enquiries — Haulo Boutique ERP</title>
+  <meta name="description"
+    content="Capture, manage and convert bridal, custom fashion, and boutique enquiries into loyal customers." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- Shared & Module Stylesheets -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="enquiries.css" />
+  <script src="../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+</head>
+
+<body data-module="enquiries">
+
+  <!-- Background Atmospheric Image Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- =====================================================
+         HAULO BOUTIQUE ERP — Sidebar Fragment
+         (Inlined for instant render & file:/// offline support)
+         ===================================================== -->
+    <div id="sidebarSlot"></div><!-- /sidebarSlot --><!-- /sidebarSlot -->
+
+    <!-- =====================================================
+         MAIN CONTENT AREA
+         ===================================================== -->
+    <main class="main-content">
+
+      <!-- ── TOP HEADER (Exact match with reference) ── -->
+      <div id="navbarSlot"></div><!-- /navbarSlot -->
+
+      <!-- ── PAGE HEADING ROW (Title + Quote + Live Date/Time) ── -->
+      <section class="page-heading-row">
+        <div class="heading-left">
+          <h1 class="page-title">Enquiries</h1>
+          <p class="page-subtitle">Capture, manage and convert enquiries into loyal customers.</p>
+        </div>
+
+        <div class="heading-center">
+          <span class="decorative-quote">“Every beautiful creation starts with a conversation.”</span>
+        </div>
+
+        <div class="heading-right">
+          <div class="live-datetime">
+            <span class="live-date" id="liveDateText">Mon, 8 Sep 2026</span>
+            <span class="live-time" id="liveTimeText">06:24 PM</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 5 KPI CARDS ROW (Exact match with reference) ── -->
+      <section class="kpi-grid">
+        <!-- KPI 1: Total Enquiries -->
+        <div class="kpi-card" onclick="filterByStatus('all')">
+        <div class="kpi-icon-box kpi-icon-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Total Enquiries</div>
+          <div class="kpi-value" id="kpiTotal">—</div>
+          <div class="kpi-trend trend-up">
+            <span class="trend-arrow">↑ 18%</span>
+            <span class="trend-sub">vs last month</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI 2: New This Week -->
+      <div class="kpi-card" onclick="filterByStatus('new')">
+        <div class="kpi-icon-box kpi-icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">New This Week</div>
+          <div class="kpi-value" id="kpiNew">—</div>
+          <div class="kpi-trend trend-up">
+            <span class="trend-arrow">↑ 25%</span>
+            <span class="trend-sub">vs last week</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI 3: Converted to Orders -->
+      <div class="kpi-card" onclick="filterByStatus('converted')">
+        <div class="kpi-icon-box kpi-icon-teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Converted to Orders</div>
+          <div class="kpi-value" id="kpiConverted">—</div>
+          <div class="kpi-trend trend-up">
+            <span class="trend-arrow">↑ 28%</span>
+            <span class="trend-sub">41.1% conversion rate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI 4: Appointments -->
+      <div class="kpi-card" onclick="filterByStatus('in-discussion')">
+        <div class="kpi-icon-box kpi-icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Appointments</div>
+          <div class="kpi-value" id="kpiAppointments">—</div>
+          <div class="kpi-trend trend-up">
+            <span class="trend-arrow">↑ 12%</span>
+            <span class="trend-sub">this week</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI 5: Pending Follow-up -->
+      <div class="kpi-card" onclick="filterByStatus('follow-up')">
+        <div class="kpi-icon-box kpi-icon-amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Pending Follow-up</div>
+          <div class="kpi-value" id="kpiPending">—</div>
+          <div class="kpi-trend trend-down">
+            <span class="trend-arrow">↓ 10%</span>
+            <span class="trend-sub">need attention</span>
+          </div>
+        </div>
+      </div>
+
+      </section>
+
+      <!-- ── MAIN TWO-COLUMN WORKSPACE ── -->
+      <section class="enquiries-workspace">
+
+        <!-- ── LEFT COLUMN: ENQUIRIES TABLE CARD (~71% width) ── -->
+        <div class="enquiries-table-panel glass-card">
+
+          <!-- Table Filter & Search Toolbar -->
+          <div class="table-toolbar">
+
+            <!-- Filter Tabs (Pills) -->
+            <div class="filter-tabs" id="filterTabs">
+              <button class="tab-pill active" data-status="all">
+                All Enquiries (<span class="tab-num">—</span>)
+              </button>
+              <button class="tab-pill" data-status="new">
+                New (<span class="tab-num">—</span>)
+              </button>
+              <button class="tab-pill" data-status="in-discussion">
+                In Discussion (<span class="tab-num">—</span>)
+              </button>
+              <button class="tab-pill" data-status="quotation-sent">
+                Quotation Sent (<span class="tab-num">—</span>)
+              </button>
+              <button class="tab-pill" data-status="converted">
+                Converted (<span class="tab-num">—</span>)
+              </button>
+              <button class="tab-pill" data-status="closed">
+                Closed (<span class="tab-num">—</span>)
+              </button>
+            </div>
+
+            <!-- Action Tools (Search, Filter, Overflow) -->
+            <div class="toolbar-tools">
+              <!-- Search inside enquiries -->
+              <div class="table-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input type="text" id="tableSearchInput" placeholder="Search enquiries..." />
+              </div>
+
+              <!-- Filter Button -->
+              <button class="btn-filter" id="tableFilterBtn" title="Advanced Filter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                <span>Filter</span>
+              </button>
+
+              <!-- Overflow Menu Button -->
+              <button class="btn-icon-more" id="tableMoreBtn" title="More options">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="19" cy="12" r="2" />
+                  <circle cx="5" cy="12" r="2" />
+                </svg>
+              </button>
+            </div>
+
+          </div><!-- /table-toolbar -->
+
+          <!-- Table Wrapper with Smooth Scroll -->
+          <div class="table-container">
+            <table class="enquiry-table" id="enquiryTable">
+              <thead>
+                <tr>
+                  <th class="col-id sortable" data-sort="id"># <span class="sort-indicator">▾</span></th>
+                  <th class="col-date sortable" data-sort="date">Date</th>
+                  <th class="col-customer sortable" data-sort="customer">Customer</th>
+                  <th class="col-contact">Contact</th>
+                  <th class="col-garment">Garment / Occasion</th>
+                  <th class="col-source sortable" data-sort="source">Source <span class="sort-indicator">▾</span></th>
+                  <th class="col-status sortable" data-sort="status">Status <span class="sort-indicator">▾</span></th>
+                  <th class="col-action">Next Action</th>
+                  <th class="col-more"></th>
+                </tr>
+              </thead>
+              <tbody id="enquiryTableBody">
+                <!-- Dynamically populated by enquiries.js -->
+              </tbody>
+            </table>
+          </div><!-- /table-container -->
+
+          <!-- Table Footer Pagination -->
+          <div class="table-footer">
+            <div class="footer-left">
+              <span class="pagination-info" id="paginationInfo">Showing 1–10 of 248 enquiries</span>
+            </div>
+
+            <div class="footer-center">
+              <div class="pagination-buttons" id="paginationControls">
+                <button class="page-arrow" id="prevPageBtn" title="Previous page" disabled onclick="goToPage(0)">‹</button>
+                <button class="page-num active" onclick="goToPage(0)">1</button>
+                <button class="page-num" onclick="goToPage(1)">2</button>
+                <button class="page-num" onclick="goToPage(2)">3</button>
+                <button class="page-num" onclick="goToPage(3)">4</button>
+                <button class="page-num" onclick="goToPage(4)">5</button>
+                <button class="page-arrow" id="nextPageBtn" title="Next page" onclick="goToPage(1)">›</button>
+              </div>
+            </div>
+
+            <div class="footer-right">
+              <div class="page-size-wrapper">
+                <select id="pageSizeSelect" class="page-size-select" aria-label="Rows per page">
+                  <option value="10" selected>10 per page</option>
+                  <option value="20">20 per page</option>
+                  <option value="50">50 per page</option>
+                  <option value="100">100 per page</option>
+                </select>
+                <svg class="page-size-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </div>
+          </div><!-- /table-footer -->
+
+        </div><!-- /enquiries-table-panel -->
+
+
+        <!-- ── RIGHT COLUMN: NEW ENQUIRY CARD (~29% width, High-Contrast Light Card) ── -->
+        <aside class="new-enquiry-card" id="newEnquiryCard">
+
+          <!-- Card Header -->
+          <div class="form-header">
+            <div class="form-title-row">
+              <button type="button" class="close-card-btn" id="closeCardBtn" title="Reset / Clear Form">✕</button>
+              <h2 class="form-title">New Enquiry</h2>
+            </div>
+            <p class="form-subtitle">Capture customer details and requirements</p>
+          </div>
+
+          <!-- Step Tabs Navigation -->
+          <div class="form-step-tabs">
+            <button type="button" class="step-tab active" data-step="1" id="stepTab1">Enquiry Details</button>
+            <button type="button" class="step-tab" data-step="2" id="stepTab2">Design &amp; Requirements</button>
+            <button type="button" class="step-tab" data-step="3" id="stepTab3">Additional Info</button>
+          </div>
+
+          <!-- Form Element -->
+          <form class="enquiry-form" id="enquiryForm" autocomplete="off" onsubmit="handleFormSubmit(event)">
+
+            <!-- ── STEP 1: ENQUIRY DETAILS ── -->
+            <div class="step-content active" id="stepPane1">
+
+              <!-- Section: Customer Information -->
+              <div class="form-section-header">
+                <div class="sec-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="sec-icon">
+                    <circle cx="12" cy="7" r="4" />
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  </svg>
+                  <span class="sec-title">Customer Information</span>
+                </div>
+                <a href="#" class="search-existing-link" id="searchExistingCustomerLink"
+                  onclick="openExistingCustomerSearch(event)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <span>Search Existing Customer</span>
+                </a>
+              </div>
+
+              <!-- Row: Name & Mobile -->
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="customerName">Customer Name <span class="req">*</span></label>
+                  <input type="text" id="customerName" name="customerName" class="form-input"
+                    placeholder="Enter customer name" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="customerPhone">Mobile Number <span class="req">*</span></label>
+                  <div class="input-with-addon">
+                    <span class="input-addon">+91</span>
+                    <input type="tel" id="customerPhone" name="customerPhone" class="form-input addon-input"
+                      placeholder="Enter number" required maxlength="12" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row: Email & Source -->
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="customerEmail">Email</label>
+                  <input type="email" id="customerEmail" name="customerEmail" class="form-input"
+                    placeholder="Enter email address" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="enquirySource">Source <span class="req">*</span></label>
+                  <div class="select-wrapper">
+                    <select id="enquirySource" name="enquirySource" class="form-select" required>
+                      <option value="" disabled selected>Select source</option>
+                      <option value="Instagram">Instagram</option>
+                      <option value="Walk-in">Walk-in</option>
+                      <option value="Referral">Referral</option>
+                      <option value="WhatsApp">WhatsApp</option>
+                      <option value="Website">Website</option>
+                      <option value="Exhibition">Exhibition / Pop-up</option>
+                      <option value="Phone Call">Phone Call</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Customer Tailoring Preferences Badge (Populated when customer selected) -->
+              <div id="enquiryCustPrefBadge" style="display:none;margin-top:10px;padding:8px 12px;border-radius:8px;background:rgba(184,255,44,0.08);border:1px solid rgba(184,255,44,0.25);font-size:11.5px;color:#d9f99d;align-items:center;gap:6px;">
+                <i data-lucide="sparkles" style="width:13px;height:13px;flex-shrink:0;"></i>
+                <span id="enquiryCustPrefText"></span>
+              </div>
+
+              <!-- Section: Enquiry Details -->
+              <div class="form-section-header" style="margin-top: 14px;">
+                <div class="sec-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="sec-icon">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <span class="sec-title">Enquiry Details</span>
+                </div>
+              </div>
+
+              <!-- Row: Occasion & Preferred Date -->
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="enquiryOccasion">Occasion</label>
+                  <div class="select-wrapper">
+                    <select id="enquiryOccasion" name="enquiryOccasion" class="form-select">
+                      <option value="" disabled selected>Select occasion</option>
+                      <option value="Wedding">Wedding</option>
+                      <option value="Reception">Reception</option>
+                      <option value="Family Function">Family Function</option>
+                      <option value="Festival">Festival</option>
+                      <option value="Engagement">Engagement</option>
+                      <option value="Sangeet">Sangeet</option>
+                      <option value="Cocktail Party">Cocktail Party</option>
+                      <option value="Birthday">Birthday</option>
+                      <option value="Office Wear">Office Wear</option>
+                      <option value="Regular Wear">Regular Wear</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="preferredDate">Preferred Date</label>
+                  <div class="date-input-wrapper">
+                    <input type="date" id="preferredDate" name="preferredDate" class="form-input" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row: Garment Type & Estimated Budget -->
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="garmentType">Garment Type <span class="req">*</span></label>
+                  <div class="select-wrapper">
+                    <select id="garmentType" name="garmentType" class="form-select" required>
+                      <option value="" disabled selected>Select garment type</option>
+                      <option value="Bridal Lehenga">Bridal Lehenga</option>
+                      <option value="Saree Blouse">Saree Blouse</option>
+                      <option value="Chudi Set">Chudi Set</option>
+                      <option value="Blouse & Saree">Blouse &amp; Saree</option>
+                      <option value="Lehenga">Lehenga</option>
+                      <option value="Alterations">Alterations</option>
+                      <option value="Gown">Gown / Indo-Western</option>
+                      <option value="Kids Frock">Kids Frock</option>
+                      <option value="Kurti Set">Kurti Set</option>
+                      <option value="Anarkali Suit">Anarkali Suit</option>
+                      <option value="Sharara / Gharara">Sharara / Gharara</option>
+                      <option value="Western Dress">Western Dress</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="estimatedBudget">Estimated Budget</label>
+                  <div class="input-with-addon">
+                    <span class="input-addon">₹</span>
+                    <input type="number" id="estimatedBudget" name="estimatedBudget" class="form-input addon-input"
+                      placeholder="Enter amount" min="0" step="500" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row: Quick Note -->
+              <div class="form-group">
+                <label class="form-label" for="quickNotes">A quick note</label>
+                <textarea id="quickNotes" name="quickNotes" class="form-textarea" rows="2"
+                  placeholder="Customer's initial requirements..."></textarea>
+              </div>
+
+              <!-- Row: Upload Reference + Fabric Toggle -->
+              <div class="form-row-2 form-row-bottom">
+                <!-- Dropzone for Reference Images -->
+                <div class="upload-dropzone" id="uploadDropzone"
+                  onclick="document.getElementById('referenceFileInput').click()">
+                  <input type="file" id="referenceFileInput" multiple accept="image/*" style="display:none;"
+                    onchange="handleFileSelect(event)" />
+                  <div class="dropzone-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                  </div>
+                  <div class="dropzone-text">
+                    <div class="dz-title">Add Reference Images</div>
+                    <div class="dz-sub">Upload design ideas, inspiration (PNG, JPG)</div>
+                  </div>
+                </div>
+
+                <!-- Fabric Brought Switch -->
+                <div class="fabric-switch-container">
+                  <span class="fabric-label">Fabric Brought by Customer?</span>
+                  <label class="switch">
+                    <input type="checkbox" id="fabricBroughtToggle" name="fabricBrought" />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Thumbnail Previews Container -->
+              <div class="image-previews-container" id="imagePreviewsContainer"></div>
+
+            </div><!-- /stepPane1 -->
+
+
+            <!-- ── STEP 2: DESIGN & REQUIREMENTS ── -->
+            <div class="step-content" id="stepPane2">
+
+              <div class="form-section-header">
+                <div class="sec-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="sec-icon">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  <span class="sec-title">Design Specifications</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Design Category</label>
+                <div class="radio-pill-group">
+                  <label class="radio-pill"><input type="radio" name="designCategory" value="Custom Bespoke"
+                      checked /><span>Custom Bespoke</span></label>
+                  <label class="radio-pill"><input type="radio" name="designCategory"
+                      value="Catalog Adaptation" /><span>Catalog Adaptation</span></label>
+                  <label class="radio-pill"><input type="radio" name="designCategory"
+                      value="Reproduction" /><span>Reproduction</span></label>
+                  <label class="radio-pill"><input type="radio" name="designCategory"
+                      value="Ready Alteration" /><span>Alteration</span></label>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="primaryColor">Primary Color / Fabric</label>
+                  <input type="text" id="primaryColor" name="primaryColor" class="form-input"
+                    placeholder="e.g. Royal Maroon, Raw Silk" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="accentColor">Accent / Border Color</label>
+                  <input type="text" id="accentColor" name="accentColor" class="form-input"
+                    placeholder="e.g. Antique Gold Zari" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Embroidery &amp; Embellishment Type</label>
+                <div class="checkbox-pill-group">
+                  <label class="check-pill"><input type="checkbox" name="embroideryWork"
+                      value="Aari / Maggam" /><span>Aari / Maggam</span></label>
+                  <label class="check-pill"><input type="checkbox" name="embroideryWork"
+                      value="Zardozi" /><span>Zardozi</span></label>
+                  <label class="check-pill"><input type="checkbox" name="embroideryWork"
+                      value="Thread Embroidery" /><span>Thread</span></label>
+                  <label class="check-pill"><input type="checkbox" name="embroideryWork"
+                      value="Sequin Work" /><span>Sequin</span></label>
+                  <label class="check-pill"><input type="checkbox" name="embroideryWork"
+                      value="Mirror Work" /><span>Mirror</span></label>
+                  <label class="check-pill"><input type="checkbox" name="embroideryWork"
+                      value="Plain / Minimal" /><span>Plain</span></label>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="necklinePref">Neckline Preference</label>
+                  <div class="select-wrapper">
+                    <select id="necklinePref" name="necklinePref" class="form-select">
+                      <option value="">Select neckline</option>
+                      <option value="Sweetheart Neck">Sweetheart Neck</option>
+                      <option value="Boat Neck">Boat Neck</option>
+                      <option value="Deep U Neck">Deep U Neck</option>
+                      <option value="Deep V Neck">Deep V Neck</option>
+                      <option value="High Collar / Halter">High Collar / Halter</option>
+                      <option value="Square Neck">Square Neck</option>
+                      <option value="As per Sketch">As per Sketch</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="sleevePref">Sleeve Preference</label>
+                  <div class="select-wrapper">
+                    <select id="sleevePref" name="sleevePref" class="form-select">
+                      <option value="">Select sleeve length</option>
+                      <option value="Elbow Length (Classic)">Elbow Length (Classic)</option>
+                      <option value="Short Cap Sleeves">Short Cap Sleeves</option>
+                      <option value="Sleeveless">Sleeveless</option>
+                      <option value="Full Sleeves (Embroidered)">Full Sleeves</option>
+                      <option value="3/4th Sleeves">3/4th Sleeves</option>
+                      <option value="Bell / Balloon Sleeves">Bell / Balloon</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="measurementStatus">Measurements Plan</label>
+                <div class="select-wrapper">
+                  <select id="measurementStatus" name="measurementStatus" class="form-select">
+                    <option value="Take Measurements Now">Take Measurements Now</option>
+                    <option value="Customer Brought Sample Garment">Customer Brought Sample Garment</option>
+                    <option value="Schedule Fitting Appointment">Schedule Fitting Appointment</option>
+                    <option value="Existing Profile on Record">Use Existing Profile on Record</option>
+                  </select>
+                </div>
+              </div>
+
+            </div><!-- /stepPane2 -->
+
+            <!-- ── STEP 3: ADDITIONAL INFO ── -->
+            <div class="step-content" id="stepPane3">
+
+              <div class="form-section-header">
+                <div class="sec-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="sec-icon">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                  <span class="sec-title">Assignment &amp; Follow-up</span>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="assignedStaff">Assigned Stylist / Designer</label>
+                  <div class="select-wrapper">
+                    <select id="assignedStaff" name="assignedStaff" class="form-select">
+                      <option value="Unassigned" selected>Unassigned</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="enquiryPriority">Priority Level</label>
+                  <div class="select-wrapper">
+                    <select id="enquiryPriority" name="enquiryPriority" class="form-select">
+                      <option value="Normal">Normal</option>
+                      <option value="High Priority">High Priority</option>
+                      <option value="Urgent Bridal">Urgent Bridal (Next 10 days)</option>
+                      <option value="VIP Client">VIP Client</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="followUpDate">Next Follow-up Date</label>
+                  <input type="date" id="followUpDate" name="followUpDate" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="followUpAction">Next Action Summary</label>
+                  <input type="text" id="followUpAction" name="followUpAction" class="form-input"
+                    placeholder="e.g. Call on 9 Sep to confirm budget" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="internalNotes">Internal Boutique Notes</label>
+                <textarea id="internalNotes" name="internalNotes" class="form-textarea" rows="3"
+                  placeholder="Private internal notes for boutique staff and master tailor..."></textarea>
+              </div>
+
+            </div><!-- /stepPane3 -->
+
+            <!-- ── FORM STICKY BOTTOM ACTIONS ── -->
+            <div class="form-actions-bottom">
+              <button type="button" class="btn-draft" id="saveDraftBtn" onclick="saveFormDraft()">
+                Save as Draft
+              </button>
+              <button type="button" class="btn-next" id="nextStepBtn" onclick="goToNextStep()">
+                Next →
+              </button>
+              <button type="submit" class="btn-submit" id="submitEnquiryBtn" style="display:none;">
+                Create Enquiry ✓
+              </button>
+            </div>
+
+          </form>
+
+        </aside><!-- /new-enquiry-card -->
+
+      </section><!-- /enquiries-workspace -->
+
+      <!-- Notification Toast Container -->
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- Footer slot - injected by fragments.js -->
+      <div id="footerSlot"></div>
+
+    </main><!-- /main-content -->
+
+  </div><!-- /appShell -->
+
+  <!-- Customer Search Modal (Search Existing Customer) -->
+  <div class="modal-backdrop" id="customerSearchModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Select Existing Customer</h3>
+        <button class="modal-close" onclick="closeCustomerSearchModal()">✕</button>
+      </div>
+      <div class="modal-search">
+        <input type="text" id="modalSearchCustomerInput" placeholder="Search by name, phone or email..."
+          oninput="filterModalCustomers(event)" />
+      </div>
+      <div class="modal-customer-list" id="modalCustomerList">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Scripts -->
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+  <script src="enquiries.js"></script>
+
+</body>
+
+</html>

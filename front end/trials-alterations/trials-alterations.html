@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trial &amp; Alterations — Haulo Boutique ERP</title>
+  <meta name="description" content="Manage dress trials, fitting assessments, tailor alteration workflows and garment milestones." />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="trials-alterations.css?v=15" />
+
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+  <script src="../fragments/nav.js"></script>
+</head>
+<body data-module="trials-alterations">
+
+  <!-- Atmospheric Boutique Background Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- =====================================================
+         HAULO BOUTIQUE ERP — Shared Sidebar Fragment Slot
+         ===================================================== -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- =====================================================
+           GLOBAL TOPBAR FRAGMENT SLOT
+           ===================================================== -->
+      <div id="navbarSlot"></div>
+
+      <!-- =====================================================
+           PAGE CONTAINER
+           ===================================================== -->
+      <div class="page-container">
+
+        <!-- Page Header -->
+        <header class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">Trial &amp; Alterations</h1>
+            <p class="page-subtitle">Manage dress trials, fit feedback and alteration requests.</p>
+          </div>
+          <div class="header-datetime">
+            <div class="header-date" id="currentHeaderDate">—</div>
+            <div class="header-time" id="currentHeaderTime">—</div>
+          </div>
+        </header>
+
+        <!-- 5 KPI Cards Row -->
+        <section class="kpi-row" aria-label="Trial Metrics Overview">
+
+          <!-- Card 1: Upcoming Trials -->
+          <div class="kpi-card" id="kpiUpcoming">
+            <div class="kpi-icon-box green">
+              <i data-lucide="calendar"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-label">Upcoming Trials</div>
+              <div class="kpi-value" id="kpiValUpcoming">0</div>
+              <div class="kpi-subtext green" id="kpiSubUpcoming">—</div>
+            </div>
+          </div>
+
+          <!-- Card 2: Today's Trials -->
+          <div class="kpi-card" id="kpiToday">
+            <div class="kpi-icon-box purple">
+              <i data-lucide="calendar-check"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-label">Today's Trials</div>
+              <div class="kpi-value" id="kpiValToday">0</div>
+              <div class="kpi-subtext purple" id="kpiSubToday">—</div>
+            </div>
+          </div>
+
+          <!-- Card 3: Pending Alterations -->
+          <div class="kpi-card" id="kpiAlterations">
+            <div class="kpi-icon-box pink">
+              <i data-lucide="scissors"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-label">Pending Alterations</div>
+              <div class="kpi-value" id="kpiValAlterations">0</div>
+              <div class="kpi-subtext pink" id="kpiSubAlterations">—</div>
+            </div>
+          </div>
+
+          <!-- Card 4: Re-trials -->
+          <div class="kpi-card" id="kpiRetrials">
+            <div class="kpi-icon-box yellow">
+              <i data-lucide="refresh-cw"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-label">Re-trials</div>
+              <div class="kpi-value" id="kpiValRetrials">0</div>
+              <div class="kpi-subtext yellow" id="kpiSubRetrials">—</div>
+            </div>
+          </div>
+
+          <!-- Card 5: Ready for Delivery -->
+          <div class="kpi-card" id="kpiDelivery">
+            <div class="kpi-icon-box green-alt">
+              <i data-lucide="package"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-label">Ready for Delivery</div>
+              <div class="kpi-value" id="kpiValDelivery">0</div>
+              <div class="kpi-subtext green" id="kpiSubDelivery">—</div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Main 3-Column Grid -->
+        <div class="main-grid">
+
+          <!-- =====================================================
+               COLUMN 1: UPCOMING TRIALS PANEL
+               ===================================================== -->
+          <section class="col-trials glass-card" aria-label="Upcoming Trials List">
+
+            <!-- Header -->
+            <div class="col-header">
+              <div class="col-title">
+                <i data-lucide="calendar" class="header-icon purple-tint"></i>
+                <span>Upcoming Trials</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button type="button" class="btn-select-order-trigger" id="btnOpenOrderPicker" onclick="openOrderPickerModal()">
+                  <i data-lucide="folder-search" style="width:13px;height:13px;"></i>
+                  <span>Select Order</span>
+                </button>
+                <a href="../appointments/appointments.html" class="header-link" title="Open Calendar View">
+                  Calendar &rarr;
+                </a>
+              </div>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="filter-pills" id="filterPills">
+              <button class="filter-pill active" data-filter="all">All</button>
+              <button class="filter-pill" data-filter="today">Today</button>
+              <button class="filter-pill" data-filter="week">This Week</button>
+              <button class="filter-pill" data-filter="overdue">Overdue</button>
+            </div>
+
+            <!-- Search Box -->
+            <div class="search-box">
+              <i data-lucide="search" class="search-icon-sm"></i>
+              <input type="text" id="trialSearchInput" class="search-input" placeholder="Search by customer, order or garment..." autocomplete="off" />
+            </div>
+
+            <!-- Vertically Scrollable Trial List -->
+            <div class="trial-list custom-scrollbar" id="trialListContainer">
+              <!-- Rendered dynamically by JavaScript -->
+            </div>
+
+          </section>
+
+          <!-- =====================================================
+               COLUMN 2: TRIAL DETAILS
+               ===================================================== -->
+          <section class="col-details" aria-label="Selected Trial Details">
+
+            <!-- Card: Trial Details Header & Customer Summary -->
+            <div class="glass-card details-card">
+
+              <!-- Header with Mark as Completed Button -->
+              <div class="col-header border-bottom">
+                <div class="col-title">
+                  <i data-lucide="clipboard-list" class="header-icon yellow-tint"></i>
+                  <span>Trial Details</span>
+                </div>
+                <button class="btn-translucent" id="btnMarkCompleted" onclick="handleMarkCompletedClick()">
+                  Mark as Completed
+                </button>
+              </div>
+
+              <!-- Trial Attempt & Alteration Round Hero Strip -->
+              <div style="padding: 12px 18px 0 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div class="trial-counter-hero-badge" id="heroTrialCounter">
+                  <span class="attempt-number" id="detailAttemptNumber">🎯 Trial Attempt #1 (First Trial)</span>
+                  <span>&bull;</span>
+                  <span class="alt-counter" id="detailAlterationCounter">✂️ Alteration Round 0</span>
+                </div>
+                <span id="detailFitSummaryPill" class="stage-pill-purple" style="font-size:11px;">PENDING FITTING</span>
+              </div>
+
+              <!-- Customer & Order Information Hero Grid -->
+              <div class="customer-order-hero">
+
+                <!-- Customer Profile Block -->
+                <div class="customer-profile-block">
+                  <div class="customer-avatar-box">
+                    <img id="detailCustomerImg" src="../assets/user_avatar.jpg" alt="Customer Profile" onerror="this.src='../assets/user_avatar.jpg';" />
+                  </div>
+                  <div class="customer-text-meta">
+                    <div class="name-row">
+                      <span class="customer-name" id="detailCustomerName">—</span>
+                      <span class="vip-badge" id="detailVipBadge" style="display:none;">&starf; VIP Customer</span>
+                    </div>
+                    <div class="contact-line">
+                      <i data-lucide="phone" style="width:12px;height:12px;opacity:0.7;"></i>
+                      <span id="detailCustomerPhone">—</span>
+                    </div>
+                    <div class="contact-line">
+                      <i data-lucide="mail" style="width:12px;height:12px;opacity:0.7;"></i>
+                      <span id="detailCustomerEmail">—</span>
+                    </div>
+                    <div class="contact-line">
+                      <i data-lucide="map-pin" style="width:12px;height:12px;opacity:0.7;"></i>
+                      <span id="detailCustomerLoc">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Order Key / Value Specs Grid -->
+                <div class="order-specs-grid">
+                  <div class="spec-cell">
+                    <span class="spec-k">Order</span>
+                    <span class="spec-v bold" id="detailOrderId">—</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-k">Garment</span>
+                    <span class="spec-v" id="detailGarment">—</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-k">Trial Date</span>
+                    <span class="spec-v" id="detailTrialDate">—</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-k">Delivery Date</span>
+                    <span class="spec-v" id="detailDeliveryDate">—</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-k">Designer</span>
+                    <span class="spec-v" id="detailDesigner">—</span>
+                  </div>
+                  <div class="spec-cell">
+                    <span class="spec-k">Current Stage</span>
+                    <span class="stage-pill-purple" id="detailStage">—</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Tabs Navigation -->
+              <nav class="tabs-nav" id="detailsTabsNav" aria-label="Trial Details Navigation">
+                <button class="tab-btn active" data-tab="design">Design &amp; Reference</button>
+                <button class="tab-btn" data-tab="measurements">Measurements</button>
+                <button class="tab-btn" data-tab="previous">Previous Trials</button>
+                <button class="tab-btn" data-tab="notes">Notes</button>
+                <button class="tab-btn" data-tab="history">History</button>
+              </nav>
+
+              <!-- Tab Contents Panels -->
+              <div class="tab-panels">
+
+                <!-- Tab 1: Design & Reference (Default) -->
+                <div class="tab-panel active" id="tabPanelDesign">
+                  <div class="gallery-grid" id="designGalleryGrid">
+                    <!-- Injected dynamically based on selected trial garment -->
+                    <div class="gallery-add-tile" onclick="triggerImageUpload()">
+                      <i data-lucide="plus" style="width:22px;height:22px;"></i>
+                      <div class="add-tile-title">Add Images</div>
+                      <div class="add-tile-sub">JPG, PNG (Max 5MB)</div>
+                      <input type="file" id="imageUploadInput" accept="image/png, image/jpeg, image/webp" style="display:none;" onchange="handleImageUpload(event)" multiple />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab 2: Measurements -->
+                <div class="tab-panel" id="tabPanelMeasurements">
+                  <div class="measurements-grid" id="measurementsGridContainer">
+                    <!-- Injected dynamically based on selected trial -->
+                  </div>
+                  <div class="tab-footer-action">
+                    <button class="link-btn" onclick="openFullMeasurementsModal()">View Full Measurements &rarr;</button>
+                  </div>
+                </div>
+
+                <!-- Tab 3: Previous Trials -->
+                <div class="tab-panel" id="tabPanelPrevious">
+                  <div class="timeline-records" id="previousTrialsContainer">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
+                <!-- Tab 4: Notes -->
+                <div class="tab-panel" id="tabPanelNotes">
+                  <div class="notes-list" id="trialNotesContainer">
+                    <!-- Injected dynamically -->
+                  </div>
+                  <div class="add-note-box">
+                    <input type="text" id="newNoteInput" class="note-input" placeholder="Type a note for this trial..." />
+                    <button class="btn-lime-sm" onclick="handleAddNote()">Add Note</button>
+                  </div>
+                </div>
+
+                <!-- Tab 5: History -->
+                <div class="tab-panel" id="tabPanelHistory">
+                  <div class="history-list" id="trialHistoryContainer">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- Card: Garment Specifications -->
+            <div class="glass-card specs-card">
+              <div class="col-header border-bottom">
+                <div class="col-title">
+                  <i data-lucide="sliders" class="header-icon gold-tint"></i>
+                  <span>Garment Specifications</span>
+                </div>
+              </div>
+              <div class="specs-table" id="garmentSpecsTable">
+                <div class="specs-row">
+                  <span class="spec-label">Neck Style</span>
+                  <span class="spec-value" id="specNeck">—</span>
+                </div>
+                <div class="specs-row">
+                  <span class="spec-label">Sleeve Style</span>
+                  <span class="spec-value" id="specSleeve">—</span>
+                </div>
+                <div class="specs-row">
+                  <span class="spec-label">Lining</span>
+                  <span class="spec-value" id="specLining">—</span>
+                </div>
+                <div class="specs-row">
+                  <span class="spec-label">Embroidery</span>
+                  <span class="spec-value" id="specEmbroidery">—</span>
+                </div>
+                <div class="specs-row">
+                  <span class="spec-label">Fabric</span>
+                  <span class="spec-value" id="specFabric">—</span>
+                </div>
+                <div class="specs-row">
+                  <span class="spec-label">Special Notes</span>
+                  <span class="spec-value text-muted" id="specSpecialNotes">—</span>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- =====================================================
+               COLUMN 3: FIT ASSESSMENT, ALTERATION DETAILS & ACTIONS
+               ===================================================== -->
+          <section class="col-assessments" aria-label="Fit Assessment and Actions">
+
+            <!-- Card 1: Consumer Feedback -->
+            <div class="glass-card feedback-card">
+              <div class="col-header border-bottom">
+                <div class="col-title">
+                  <i data-lucide="message-square-heart" class="header-icon pink-tint"></i>
+                  <span>Consumer Feedback</span>
+                </div>
+                <div class="rating-display-value" id="feedbackRatingValueText">5.0 / 5.0 (Excellent)</div>
+              </div>
+              <div class="feedback-body">
+                <!-- 5-Star Rating -->
+                <div class="feedback-field-group">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <label class="form-label-sm" style="margin:0;">Client Satisfaction Rating</label>
+                    <span id="starRatingSubtext" style="font-size:11px;color:#fbbf24;font-weight:600;">★★★★★ 5 Stars</span>
+                  </div>
+                  <div class="star-rating-row" id="starRatingRow">
+                    <button type="button" class="star-btn active" data-rating="1" onclick="setCustomerRating(1)" title="1 Star - Poor">★</button>
+                    <button type="button" class="star-btn active" data-rating="2" onclick="setCustomerRating(2)" title="2 Stars - Fair">★</button>
+                    <button type="button" class="star-btn active" data-rating="3" onclick="setCustomerRating(3)" title="3 Stars - Good">★</button>
+                    <button type="button" class="star-btn active" data-rating="4" onclick="setCustomerRating(4)" title="4 Stars - Very Good">★</button>
+                    <button type="button" class="star-btn active" data-rating="5" onclick="setCustomerRating(5)" title="5 Stars - Excellent">★</button>
+                  </div>
+                </div>
+
+                <!-- Desired Fit Preference -->
+                <div class="feedback-field-group">
+                  <label class="form-label-sm">Client's Desired Fit Style</label>
+                  <div class="fit-preference-pills" id="fitPreferencePills">
+                    <button type="button" class="pref-pill" data-pref="Slim / Snug Fit" onclick="setFitPreference('Slim / Snug Fit')">Slim / Snug</button>
+                    <button type="button" class="pref-pill active" data-pref="Comfort / Regular Fit" onclick="setFitPreference('Comfort / Regular Fit')">Comfort / Regular</button>
+                    <button type="button" class="pref-pill" data-pref="Relaxed / Flowy Fit" onclick="setFitPreference('Relaxed / Flowy Fit')">Relaxed / Flowy</button>
+                    <button type="button" class="pref-pill" data-pref="Bridal / Traditional" onclick="setFitPreference('Bridal / Traditional')">Bridal Silhouette</button>
+                  </div>
+                </div>
+
+                <!-- Client's Direct Words / Notes -->
+                <div class="feedback-field-group">
+                  <label class="form-label-sm" for="customerFeedbackNotes">Client's Direct Comments / Impressions</label>
+                  <textarea id="customerFeedbackNotes" class="alteration-textarea textarea-compact" placeholder="e.g. Loved overall fall and neck cut; prefers 0.5&quot; ease around underarm for movement..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Fit Assessment -->
+            <div class="glass-card fit-card">
+              <div class="col-header border-bottom">
+                <div class="col-title">
+                  <i data-lucide="user-check" class="header-icon purple-tint"></i>
+                  <span>Fit Assessment</span>
+                </div>
+              </div>
+              <div class="section-subheading" style="padding: 10px 14px 4px;">Overall Fit Status</div>
+              <div class="fit-options-grid" style="padding: 0 14px 10px;">
+
+                <!-- Option 1: Perfect Fit -->
+                <div class="fit-option" data-fit="perfect" onclick="selectFitStatus('perfect')">
+                  <div class="fit-badge-icon check-green">
+                    <i data-lucide="check" style="width:14px;height:14px;stroke-width:3;"></i>
+                  </div>
+                  <div class="fit-opt-title">Perfect Fit</div>
+                  <div class="fit-opt-desc">No changes needed</div>
+                </div>
+
+                <!-- Option 2: Minor Alterations -->
+                <div class="fit-option" data-fit="minor" onclick="selectFitStatus('minor')">
+                  <div class="fit-dot dot-yellow"></div>
+                  <div class="fit-opt-title">Minor Alterations</div>
+                  <div class="fit-opt-desc">Few adjustments</div>
+                </div>
+
+                <!-- Option 3: Major Alterations -->
+                <div class="fit-option" data-fit="major" onclick="selectFitStatus('major')">
+                  <div class="fit-dot dot-pink"></div>
+                  <div class="fit-opt-title">Major Alterations</div>
+                  <div class="fit-opt-desc">Significant changes</div>
+                </div>
+
+                <!-- Option 4: Re-trial Required -->
+                <div class="fit-option" data-fit="retrial" onclick="selectFitStatus('retrial')">
+                  <div class="fit-dot dot-purple"></div>
+                  <div class="fit-opt-title">Re-trial Required</div>
+                  <div class="fit-opt-desc">Schedule another trial</div>
+                </div>
+
+              </div>
+
+              <!-- 8-Point Checkpoint Evaluation Grid -->
+              <div class="section-subheading border-top" style="padding: 10px 14px 4px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06);">
+                <span>Body Checkpoints Evaluation</span>
+                <span id="checkpointSummaryCounter" style="font-size:10.5px;color:rgba(255,255,255,0.45);">8 Checkpoints</span>
+              </div>
+              <div class="checkpoints-grid" id="checkpointsGrid">
+                <!-- Injected dynamically via JavaScript -->
+              </div>
+
+            </div>
+
+            <!-- Card: Alteration Details -->
+            <div class="glass-card alteration-card">
+              <div class="col-header border-bottom">
+                <div class="col-title">
+                  <i data-lucide="scissors" class="header-icon pink-tint"></i>
+                  <span>Alteration Details</span>
+                </div>
+                <button class="btn-link-action" onclick="openAddAlterationModal()">Add Item</button>
+              </div>
+
+              <!-- Checklist Container -->
+              <div class="alteration-checklist" id="alterationChecklist">
+                <!-- Checklist items injected dynamically -->
+              </div>
+
+              <!-- Additional Notes -->
+              <div class="additional-notes-section">
+                <div class="notes-header-row">
+                  <span class="notes-title">Additional Notes</span>
+                </div>
+                <textarea id="alterationAdditionalNotes" class="alteration-textarea" placeholder="Customer preference notes for alterations..."></textarea>
+              </div>
+            </div>
+
+            <!-- Bottom Split Row: Next Steps & Actions -->
+            <div class="bottom-split-row">
+
+              <!-- Next Steps Card -->
+              <div class="glass-card next-steps-card">
+                <div class="col-header border-bottom">
+                  <div class="col-title">
+                    <i data-lucide="calendar" class="header-icon lime-tint"></i>
+                    <span>Next Steps</span>
+                  </div>
+                </div>
+                <div class="steps-timeline" id="stepsTimelineContainer">
+                  <div class="step-item">
+                    <span class="step-label">Send to production</span>
+                    <span class="step-date" id="stepSendProd">—</span>
+                  </div>
+                  <div class="step-item">
+                    <span class="step-label">Expected completion</span>
+                    <span class="step-date" id="stepExpectedComp">—</span>
+                  </div>
+                  <div class="step-item">
+                    <span class="step-label">Next trial (if required)</span>
+                    <span class="step-date" id="stepNextTrial">—</span>
+                  </div>
+                  <div class="step-item">
+                    <span class="step-label">Final delivery</span>
+                    <span class="step-date" id="stepFinalDeliv">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions Card -->
+              <div class="glass-card actions-card">
+                <div class="col-header border-bottom">
+                  <div class="col-title">
+                    <i data-lucide="zap" class="header-icon lime-tint"></i>
+                    <span>Actions</span>
+                  </div>
+                </div>
+                <div class="action-buttons-group">
+                  <button class="btn-action-lime" id="btnAdvanceQC" onclick="handleAdvanceToQC()">
+                    <i data-lucide="check-check" style="width:15px;height:15px;"></i>
+                    <span>Advance to QC (Perfect Fit)</span>
+                  </button>
+                  <button class="btn-action-primary" id="btnSaveAlterations" onclick="handleSaveAlterations()">
+                    <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
+                    <span>Save Alterations &amp; Feedback</span>
+                  </button>
+                  <button class="btn-action-glass" id="btnScheduleRetrial" onclick="openScheduleRetrialModal()">
+                    <i data-lucide="calendar" style="width:14px;height:14px;"></i>
+                    <span>Schedule Re-trial</span>
+                  </button>
+                  <button class="btn-action-glass" id="btnNotifyCustomer" onclick="openNotifyModal()">
+                    <i data-lucide="bell" style="width:14px;height:14px;"></i>
+                    <span>Notify Customer</span>
+                  </button>
+                  <button class="btn-action-glass" id="btnPrintSlip" onclick="handlePrintTrialSlip()">
+                    <i data-lucide="printer" style="width:14px;height:14px;"></i>
+                    <span>Print Trial Slip</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </section>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- =====================================================
+       MODALS & OVERLAYS
+       ===================================================== -->
+
+  <!-- Modal 0: Select Order Modal -->
+  <div class="modal-backdrop" id="selectOrderModal" role="dialog" aria-modal="true" aria-labelledby="modalSelectOrderTitle">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <h3 class="modal-title" id="modalSelectOrderTitle">Select Order for Trial &amp; Alteration</h3>
+          <p class="modal-subtitle">Search or pick any active customer order from the database to record fitting assessment.</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('selectOrderModal')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-search-row">
+          <div class="search-box" style="width:100%;">
+            <i data-lucide="search" class="search-icon-sm"></i>
+            <input type="text" id="orderPickerSearchInput" class="search-input" placeholder="Search by order code, customer name, mobile, garment..." oninput="handleOrderPickerSearch(event)" />
+          </div>
+        </div>
+        <div class="order-picker-list custom-scrollbar" id="orderPickerListContainer">
+          <!-- Dynamically populated from /api/v1/trials/orders-for-trial -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-translucent" onclick="closeModal('selectOrderModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 1: Add Alteration Modal -->
+  <div class="modal-backdrop" id="addAlterationModal" role="dialog" aria-modal="true" aria-labelledby="modalAltTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalAltTitle">Add Alteration Item</h3>
+        <button class="modal-close" onclick="closeModal('addAlterationModal')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="modalAltDesc">Alteration Description</label>
+          <input type="text" id="modalAltDesc" class="form-control" placeholder="e.g. Reduce sleeve tightness by 0.5&quot;" />
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="modalAltCat">Category</label>
+            <select id="modalAltCat" class="form-control">
+              <option value="Sleeve">Sleeve</option>
+              <option value="Waist">Waist</option>
+              <option value="Neck">Neck</option>
+              <option value="Shoulder">Shoulder</option>
+              <option value="Length">Length</option>
+              <option value="Fit">Fit</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="modalAltPriority">Priority</label>
+            <select id="modalAltPriority" class="form-control">
+              <option value="Normal">Normal</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="modalAltTailor">Assign Specialist Tailor</label>
+            <select id="modalAltTailor" class="form-control">
+              <option value="">Select Staff...</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="modalAltTargetDate">Target Ready Date</label>
+            <input type="date" id="modalAltTargetDate" class="form-control" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modalAltNotes">Additional Tailor Notes</label>
+          <textarea id="modalAltNotes" class="form-control textarea-sm" placeholder="Any specific stitching or cut guidance..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-translucent" onclick="closeModal('addAlterationModal')">Cancel</button>
+        <button class="btn-action-primary" onclick="submitAddAlteration()">Add Alteration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Schedule Re-trial Modal -->
+  <div class="modal-backdrop" id="scheduleRetrialModal" role="dialog" aria-modal="true" aria-labelledby="modalRetrialTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalRetrialTitle">Schedule Re-trial</h3>
+        <button class="modal-close" onclick="closeModal('scheduleRetrialModal')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="modalRetrialDate">Re-trial Date</label>
+            <input type="date" id="modalRetrialDate" class="form-control" />
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="modalRetrialTime">Re-trial Time</label>
+            <input type="time" id="modalRetrialTime" class="form-control" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modalRetrialStaff">Assigned Staff / Tailor</label>
+          <select id="modalRetrialStaff" class="form-control">
+            <option value="">Select Staff...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modalRetrialNotes">Notes for Re-trial</label>
+          <textarea id="modalRetrialNotes" class="form-control textarea-sm" placeholder="Preparation notes for trial room..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-translucent" onclick="closeModal('scheduleRetrialModal')">Cancel</button>
+        <button class="btn-action-primary" onclick="submitScheduleRetrial()">Schedule Re-trial</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Notify Customer Modal -->
+  <div class="modal-backdrop" id="notifyCustomerModal" role="dialog" aria-modal="true" aria-labelledby="modalNotifyTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalNotifyTitle">Notify Customer</h3>
+        <button class="modal-close" onclick="closeModal('notifyCustomerModal')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="channel-selector">
+          <button class="channel-btn active" data-channel="whatsapp" onclick="selectNotifyChannel('whatsapp')">
+            <i data-lucide="message-circle" style="width:14px;height:14px;"></i> WhatsApp
+          </button>
+          <button class="channel-btn" data-channel="sms" onclick="selectNotifyChannel('sms')">
+            <i data-lucide="smartphone" style="width:14px;height:14px;"></i> SMS
+          </button>
+          <button class="channel-btn" data-channel="email" onclick="selectNotifyChannel('email')">
+            <i data-lucide="mail" style="width:14px;height:14px;"></i> Email
+          </button>
+        </div>
+        <div class="form-group mt-3">
+          <label class="form-label" for="notifyRecipient">Recipient Phone / Email</label>
+          <input type="text" id="notifyRecipient" class="form-control" value="" placeholder="Enter phone or email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="notifyMessageText">Message Preview</label>
+          <textarea id="notifyMessageText" class="form-control" rows="4" placeholder="Notification message text..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-translucent" onclick="closeModal('notifyCustomerModal')">Cancel</button>
+        <button class="btn-action-primary" onclick="submitNotification()">Send Notification</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Full Measurements Modal -->
+  <div class="modal-backdrop" id="fullMeasurementsModal" role="dialog" aria-modal="true" aria-labelledby="fullMeasCustomerTitle">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="fullMeasCustomerTitle">Measurements</h3>
+        <button class="modal-close" onclick="closeModal('fullMeasurementsModal')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="measurements-table-wrap">
+          <table class="meas-table">
+            <thead>
+              <tr>
+                <th>Body Point</th>
+                <th>Standard</th>
+                <th>Current Fit</th>
+                <th>Target After Alteration</th>
+                <th>Tolerance</th>
+              </tr>
+            </thead>
+            <tbody id="fullMeasTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-translucent" onclick="closeModal('fullMeasurementsModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Mark Completed Confirmation Modal -->
+  <div class="modal-backdrop" id="markCompletedModal" role="dialog" aria-modal="true" aria-labelledby="modalCompleteTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalCompleteTitle">Complete Trial</h3>
+        <button class="modal-close" onclick="closeModal('markCompletedModal')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 10px 0;font-size:14px;color:rgba(255,255,255,0.9);">
+          Are you sure you want to mark the trial for <strong id="completeCustomerName">—</strong> (<span id="completeOrderNum">—</span>) as completed?
+        </p>
+        <p style="margin:0;font-size:12.5px;color:rgba(255,255,255,0.5);">
+          This will archive the trial session, update KPIs, and advance the order workflow to the next step.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-translucent" onclick="closeModal('markCompletedModal')">Cancel</button>
+        <button class="btn-action-primary" onclick="confirmMarkCompleted()">Mark Completed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Printable Trial Slip -->
+  <div class="modal-backdrop" id="printSlipModal" role="dialog" aria-modal="true" aria-labelledby="modalPrintTitle">
+    <div class="modal-card modal-print-card">
+      <div class="modal-header no-print">
+        <h3 class="modal-title" id="modalPrintTitle">Print Trial Slip</h3>
+        <button class="modal-close" onclick="closeModal('printSlipModal')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body print-area" id="printArea">
+        <!-- Clean Printable Job Card -->
+        <div class="slip-header">
+          <div class="slip-brand">
+            <h2>HAULO BOUTIQUE ERP</h2>
+            <p>Official Dress Fitting &amp; Alteration Record</p>
+          </div>
+          <div class="slip-meta">
+            <div class="slip-code" id="printSlipOrder">—</div>
+            <div class="slip-date" id="printSlipDate">—</div>
+          </div>
+        </div>
+        <hr class="slip-hr" />
+        <div class="slip-grid">
+          <div><strong>Customer:</strong> <span id="printSlipCustomer">—</span></div>
+          <div><strong>Phone:</strong> <span id="printSlipPhone">—</span></div>
+          <div><strong>Garment:</strong> <span id="printSlipGarment">—</span></div>
+          <div><strong>Designer:</strong> <span id="printSlipDesigner">—</span></div>
+          <div><strong>Fit Assessment:</strong> <span id="printSlipFit">—</span></div>
+          <div><strong>Delivery Date:</strong> <span id="printSlipDelivery">—</span></div>
+          <div><strong>Trial Attempt:</strong> <span id="printSlipAttempt" style="font-weight:700;color:#c084fc;">—</span></div>
+          <div><strong>Alterations Cycle:</strong> <span id="printSlipRound" style="font-weight:700;color:#22c55e;">—</span></div>
+        </div>
+        <hr class="slip-hr" />
+        <div class="slip-section">
+          <h4>Required Alterations</h4>
+          <ul id="printSlipAlterationsList" class="slip-list">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+        <div class="slip-section">
+          <h4>Customer Fit Notes</h4>
+          <p id="printSlipNotes" class="slip-notes-text">—</p>
+        </div>
+        <div class="slip-signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <span>Customer Signature</span>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <span>Master Tailor / Inspector</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer no-print">
+        <button class="btn-translucent" onclick="closeModal('printSlipModal')">Close</button>
+        <button class="btn-action-primary" onclick="window.print()">Print Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Fullscreen Image Lightbox -->
+  <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox(event)" role="dialog" aria-modal="true" aria-label="Image Preview">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox()" aria-label="Close Lightbox">&times;</button>
+      <div class="lightbox-img-wrapper">
+        <img id="lightboxImg" src="" alt="Reference Full View" />
+      </div>
+      <div class="lightbox-footer">
+        <button class="lightbox-nav-btn" onclick="prevLightboxImage()">&larr; Previous</button>
+        <span class="lightbox-counter" id="lightboxCounter">—</span>
+        <button class="lightbox-nav-btn" onclick="nextLightboxImage()">Next &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Shared Footer Slot - Injected by fragments.js -->
+  <div id="footerSlot"></div>
+
+  <!-- Logic Controller Script & Global Fragments -->
+  <script src="trials-alterations.js?v=15"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+</body>
+</html>

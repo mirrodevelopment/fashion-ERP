@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workforce Management — Haulo Boutique ERP</title>
+  <meta name="description" content="Haulo Boutique ERP — Luxury fashion boutique workforce and staff management. Manage team, track productivity, allocate work and drive efficiency." />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400;1,600&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Unified Navigation & Page Styles -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="workforce.css" />
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+  <script src="../fragments/nav.js"></script>
+</head>
+<body data-module="employees">
+
+  <!-- Full-Screen Ambient Fashion Backdrop -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- Main Floating Glass Application Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar slot — injected by fragments.js -->
+    <div class="sidebar-slot" id="sidebarSlot"></div><!-- /sidebarSlot -->
+
+    <!-- Main content area -->
+    <div class="main-content" id="mainContent">
+
+      <!-- Navbar slot — injected by fragments.js -->
+      <div id="navbarSlot"></div><!-- /navbarSlot -->
+
+      <!-- Workforce Management Content Container -->
+      <div class="workforce-content" id="workforceContent">
+
+        <!-- ===================================================================
+             1. PAGE HEADER ROW: BREADCRUMB, TITLE & TOP ACTIONS
+             =================================================================== -->
+        <header class="page-header-row">
+          <div class="header-left">
+            <span class="page-breadcrumb"><a href="../dashboard/dashboard.html" style="text-decoration:none;color:inherit;opacity:0.75;">Dashboard</a> &gt; People</span>
+            <h1 class="page-title">Workforce Management</h1>
+            <p class="page-subtitle">Manage your team, track productivity, allocate work and drive efficiency.</p>
+          </div>
+
+          <div class="header-actions">
+            <button type="button" class="btn-add-employee" id="btnAddEmployee" aria-label="Add New Employee">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i>
+              <span>Add Employee</span>
+            </button>
+            <button type="button" class="btn-icon-more" id="btnHeaderMore" aria-label="More Options">
+              <i data-lucide="more-horizontal" style="width:18px;height:18px;"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- ===================================================================
+             2. KPI CARDS ROW (5 SUMMARY TILES)
+             =================================================================== -->
+        <section class="kpi-cards-grid" aria-label="Workforce Key Performance Indicators">
+          <!-- Card 1: Total Employees -->
+          <article class="kpi-card">
+            <div class="kpi-icon-wrap kpi-teal">
+              <i data-lucide="users" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Employees</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="kpiTotalEmployees">0</span>
+              </div>
+              <span class="kpi-delta kpi-delta-up">
+                <i data-lucide="arrow-up" style="width:12px;height:12px;"></i>
+                <span>&mdash;</span>
+              </span>
+            </div>
+          </article>
+
+          <!-- Card 2: Active Staff -->
+          <article class="kpi-card">
+            <div class="kpi-icon-wrap kpi-purple">
+              <i data-lucide="user-check" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Active Staff</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="kpiActiveStaff">0</span>
+              </div>
+              <span class="kpi-subtext" id="kpiActivePct">0% of total</span>
+            </div>
+          </article>
+
+          <!-- Card 3: On Leave -->
+          <article class="kpi-card">
+            <div class="kpi-icon-wrap kpi-coral">
+              <i data-lucide="calendar" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">On Leave</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="kpiOnLeave">0</span>
+              </div>
+              <span class="kpi-subtext" id="kpiLeavePct">0% of total</span>
+            </div>
+          </article>
+
+          <!-- Card 4: Total Labour Cost -->
+          <article class="kpi-card">
+            <div class="kpi-icon-wrap kpi-lime">
+              <span class="currency-symbol">&#8377;</span>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Labour Cost (This Month)</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="kpiLabourCost">&#8377;0</span>
+              </div>
+              <span class="kpi-delta kpi-delta-down">
+                <i data-lucide="arrow-down" style="width:12px;height:12px;"></i>
+                <span>&mdash;</span>
+              </span>
+            </div>
+          </article>
+
+          <!-- Card 5: Avg. Productivity -->
+          <article class="kpi-card">
+            <div class="kpi-icon-wrap kpi-indigo">
+              <i data-lucide="bar-chart-2" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Avg. Productivity</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="kpiAvgProductivity">0%</span>
+              </div>
+              <span class="kpi-delta kpi-delta-up">
+                <i data-lucide="arrow-up" style="width:12px;height:12px;"></i>
+                <span>&mdash;</span>
+              </span>
+            </div>
+          </article>
+        </section>
+
+        <!-- ===================================================================
+             3. ANALYTICS ROW (3 VISUAL CHARTS)
+             =================================================================== -->
+        <section class="analytics-row" aria-label="Workforce Analytics & Charts">
+          <!-- Analytics Card 1: Staff by Department -->
+          <article class="analytics-card">
+            <div class="card-top-title">
+              <span class="mini-green-badge"><i data-lucide="users" style="width:12px;height:12px;"></i></span>
+              <h2>Staff by Department</h2>
+            </div>
+            <div class="donut-chart-layout">
+              <div class="donut-canvas-wrap">
+                <canvas id="deptDonutChart"></canvas>
+                <div class="donut-center-info">
+                  <span class="donut-number" id="deptDonutTotal">0</span>
+                  <span class="donut-sub">Employees</span>
+                </div>
+              </div>
+              <div class="donut-legend-list" id="deptLegendList"></div>
+            </div>
+          </article>
+
+          <!-- Analytics Card 2: Productivity Trend -->
+          <article class="analytics-card">
+            <div class="card-top-title" style="justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="mini-green-badge"><i data-lucide="trending-up" style="width:12px;height:12px;"></i></span>
+                <h2>Productivity Trend</h2>
+              </div>
+              <div class="chart-header-legend">
+                <span class="legend-item"><span class="legend-dot" style="background:#8B5CF6;"></span>Target</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#B8FF2C;"></span>Actual</span>
+              </div>
+            </div>
+            <div class="bar-chart-container">
+              <canvas id="productivityBarChart"></canvas>
+            </div>
+          </article>
+
+          <!-- Analytics Card 3: Workload Status -->
+          <article class="analytics-card">
+            <div class="card-top-title">
+              <span class="mini-green-badge"><i data-lucide="pie-chart" style="width:12px;height:12px;"></i></span>
+              <h2>Workload Status</h2>
+            </div>
+            <div class="donut-chart-layout">
+              <div class="donut-canvas-wrap">
+                <canvas id="workloadDonutChart"></canvas>
+                <div class="donut-center-info">
+                  <span class="donut-number" id="workloadDonutTotal">0</span>
+                  <span class="donut-sub">Employees</span>
+                </div>
+              </div>
+              <div class="donut-legend-list" id="workloadLegendList"></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- ===================================================================
+             4. FILTER TOOLBAR (DEPARTMENT TABS + SEARCH & ACTIONS)
+             =================================================================== -->
+        <nav class="filter-toolbar" aria-label="Department Filtering and Search">
+          <div class="department-tabs" id="deptTabs" role="tablist">
+            <button type="button" class="dept-tab active" data-dept="all" role="tab" aria-selected="true">All Employees (0)</button>
+            <button type="button" class="dept-tab" data-dept="Designing" role="tab" aria-selected="false">Designing (0)</button>
+            <button type="button" class="dept-tab" data-dept="Cutting" role="tab" aria-selected="false">Cutting (0)</button>
+            <button type="button" class="dept-tab" data-dept="Stitching" role="tab" aria-selected="false">Stitching (0)</button>
+            <button type="button" class="dept-tab" data-dept="Finishing" role="tab" aria-selected="false">Finishing (0)</button>
+            <button type="button" class="dept-tab" data-dept="Embroidery" role="tab" aria-selected="false">Embroidery (0)</button>
+            <button type="button" class="dept-tab" data-dept="Administration" role="tab" aria-selected="false">Administration (0)</button>
+          </div>
+
+          <div class="toolbar-right-actions">
+            <div class="table-search-box">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="employeeSearchInput" placeholder="Search by name, department, skill..." aria-label="Search employees" />
+              <button type="button" id="btnClearSearch" class="btn-clear-search" style="display:none;" aria-label="Clear Search">&times;</button>
+            </div>
+
+            <button type="button" class="btn-toolbar-action" id="btnOpenFilterModal" aria-label="Filter Employees">
+              <i data-lucide="filter" style="width:14px;height:14px;"></i>
+              <span>Filter</span>
+              <span class="active-filter-dot" id="filterActiveDot" style="display:none;"></span>
+            </button>
+
+            <button type="button" class="btn-toolbar-action" id="btnExportCSV" aria-label="Export Employees CSV">
+              <i data-lucide="download" style="width:14px;height:14px;"></i>
+              <span>Export</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- ===================================================================
+             5. MAIN CONTENT SPLIT (LIGHT TABLE ~72% / RIGHT SIDEBAR ~28%)
+             =================================================================== -->
+        <div class="workforce-grid-split">
+
+          <!-- LEFT COLUMN: CONTRASTING LIGHT EMPLOYEE TABLE -->
+          <section class="employee-table-card" aria-label="Employees Master List">
+            <div class="table-responsive-wrap">
+              <table class="employee-table" id="employeeTable">
+                <thead>
+                  <tr>
+                    <th class="th-sortable" data-sort="name">Employee <i data-lucide="arrow-up-down" class="th-sort-icon"></i></th>
+                    <th class="th-sortable" data-sort="role">Role / Department <i data-lucide="arrow-up-down" class="th-sort-icon"></i></th>
+                    <th>Skills</th>
+                    <th class="th-sortable" data-sort="workload" style="min-width:140px;">Current Workload <i data-lucide="arrow-up-down" class="th-sort-icon"></i></th>
+                    <th class="th-sortable" data-sort="assigned" style="text-align:center;">Orders Assigned <i data-lucide="arrow-up-down" class="th-sort-icon"></i></th>
+                    <th class="th-sortable" data-sort="completed" style="text-align:center;">Completed (This Month) <i data-lucide="arrow-up-down" class="th-sort-icon"></i></th>
+                    <th class="th-sortable" data-sort="efficiency" style="text-align:center;">Efficiency <i data-lucide="arrow-up-down" class="th-sort-icon"></i></th>
+                    <th class="th-sortable" data-sort="status" style="text-align:center;">Status <i data-lucide="arrow-up-down" class="th-sort-icon"></i></th>
+                    <th style="width:44px;text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="employeeTableBody">
+                  <!-- Injected dynamically by workforce.js -->
+                </tbody>
+              </table>
+
+              <!-- Empty State -->
+              <div class="table-empty-state" id="tableEmptyState" style="display:none;">
+                <i data-lucide="user-x" style="width:40px;height:40px;color:#9CA3AF;"></i>
+                <h3>No employees found</h3>
+                <p>No records match your active filter or search criteria.</p>
+                <button type="button" class="btn-clear-filters-link" id="btnResetFilters">Reset Filters</button>
+              </div>
+            </div>
+
+            <!-- Table Pagination Bar -->
+            <footer class="table-pagination-bar" id="tablePaginationBar">
+              <div class="pagination-info" id="paginationInfo">Showing 0 employees</div>
+              <div class="pagination-controls" id="paginationControls">
+                <!-- Injected dynamically -->
+              </div>
+            </footer>
+          </section>
+
+          <!-- RIGHT COLUMN: SIDEBAR (UPCOMING LEAVE, BIRTHDAYS, QUICK ACTIONS) -->
+          <aside class="workforce-right-sidebar" aria-label="Workforce Side Information">
+
+            <!-- Card 1: Upcoming Leave -->
+            <article class="glass-side-card">
+              <div class="side-card-header">
+                <div class="header-title-wrap">
+                  <span class="mini-green-badge"><i data-lucide="calendar" style="width:12px;height:12px;"></i></span>
+                  <h3>Upcoming Leave</h3>
+                </div>
+                <button type="button" class="btn-card-link" id="btnViewAllLeave">View All →</button>
+              </div>
+              <div class="leave-items-list" id="upcomingLeaveList"></div>
+            </article>
+
+            <!-- Card 2: Birthdays & Anniversaries -->
+            <article class="glass-side-card">
+              <div class="side-card-header">
+                <div class="header-title-wrap">
+                  <span class="mini-green-badge"><i data-lucide="gift" style="width:12px;height:12px;"></i></span>
+                  <h3>Birthdays & Anniversaries</h3>
+                </div>
+                <button type="button" class="btn-card-link" id="btnViewAllEvents">View All →</button>
+              </div>
+              <div class="events-cards-grid" id="eventsCardsGrid"></div>
+            </article>
+
+            <!-- Card 3: Quick Actions -->
+            <article class="glass-side-card">
+              <div class="side-card-header">
+                <div class="header-title-wrap">
+                  <span class="mini-green-badge"><i data-lucide="zap" style="width:12px;height:12px;"></i></span>
+                  <h3>Quick Actions</h3>
+                </div>
+              </div>
+              <div class="quick-actions-tiles">
+                <!-- Tile 1: Add Employee -->
+                <button type="button" class="action-tile tile-green" id="tileAddEmployee">
+                  <div class="tile-icon-box"><i data-lucide="user-plus" style="width:18px;height:18px;"></i></div>
+                  <span class="tile-text">Add Employee</span>
+                </button>
+
+                <!-- Tile 2: Mark Attendance -->
+                <button type="button" class="action-tile tile-purple" id="tileMarkAttendance">
+                  <div class="tile-icon-box"><i data-lucide="calendar-check" style="width:18px;height:18px;"></i></div>
+                  <span class="tile-text">Mark Attendance</span>
+                </button>
+
+                <!-- Tile 3: Assign Work -->
+                <button type="button" class="action-tile tile-pink" id="tileAssignWork">
+                  <div class="tile-icon-box"><i data-lucide="clipboard-list" style="width:18px;height:18px;"></i></div>
+                  <span class="tile-text">Assign Work</span>
+                </button>
+
+                <!-- Tile 4: View Reports -->
+                <button type="button" class="action-tile tile-gold" id="tileViewReports">
+                  <div class="tile-icon-box"><i data-lucide="bar-chart" style="width:18px;height:18px;"></i></div>
+                  <span class="tile-text">View Reports</span>
+                </button>
+              </div>
+            </article>
+
+          </aside>
+        </div>
+
+      </div> <!-- /.workforce-content -->
+
+      <!-- Footer slot - injected by fragments.js -->
+      <div id="footerSlot"></div><!-- /footerSlot -->
+
+    </div> <!-- /.main-content -->
+
+  </div> <!-- /.app-shell -->
+
+  <!-- =========================================================================
+       6. MODAL DIALOGS & OVERLAYS
+       ========================================================================= -->
+
+  <!-- Modal A: Add / New Employee Modal -->
+  <div class="modal-backdrop" id="modalAddEmployee" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box">
+      <div class="modal-header">
+        <h2>Add New Employee</h2>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <form id="formAddEmployee" class="modal-form">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="empName">Full Name *</label>
+            <input type="text" id="empName" required placeholder="e.g. Priya Sundaram" />
+          </div>
+          <div class="form-group">
+            <label for="empCode">Employee ID *</label>
+            <input type="text" id="empCode" required placeholder="Auto-generated" />
+          </div>
+          <div class="form-group">
+            <label for="empDept">Department *</label>
+            <select id="empDept" required>
+              <option value="Designing">Designing</option>
+              <option value="Cutting">Cutting</option>
+              <option value="Stitching" selected>Stitching</option>
+              <option value="Finishing">Finishing</option>
+              <option value="Embroidery">Embroidery</option>
+              <option value="Administration">Administration</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="empRole">Role Title *</label>
+            <input type="text" id="empRole" required placeholder="e.g. Master Tailor" />
+          </div>
+          <div class="form-group">
+            <label for="empPhone">Phone Number</label>
+            <input type="tel" id="empPhone" placeholder="e.g. +91 98765 43210" />
+          </div>
+          <div class="form-group">
+            <label for="empEmail">Email</label>
+            <input type="email" id="empEmail" placeholder="employee@haulo.in" />
+          </div>
+          <div class="form-group">
+            <label for="empSalary">Monthly Rate (₹) *</label>
+            <input type="number" id="empSalary" required placeholder="e.g. 30000" min="0" step="500" />
+          </div>
+          <div class="form-group">
+            <label for="empStatus">Status</label>
+            <select id="empStatus">
+              <option value="Active" selected>Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px;">
+          <label for="empSkills">Skills (Comma separated tags)</label>
+          <input type="text" id="empSkills" placeholder="e.g. Blouse, Bridal Fitting, Aari Work" />
+        </div>
+
+        <div class="form-group" style="margin-top:12px;">
+          <label>Profile Photo</label>
+          <div class="avatar-upload-row">
+            <img id="addEmpAvatarPreview" src="../assets/user_avatar.jpg" alt="Preview" class="avatar-preview-img" />
+            <div style="flex:1;">
+              <input type="file" id="addEmpPhotoInput" accept="image/*" style="display:none;" />
+              <button type="button" class="btn-file-upload" id="btnTriggerAddPhoto">Choose Photo...</button>
+              <span class="file-hint">JPG, PNG or WEBP (Max 2MB)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn-modal-primary">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal B: Edit Employee Modal -->
+  <div class="modal-backdrop" id="modalEditEmployee" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box">
+      <div class="modal-header">
+        <h2>Edit Employee Details</h2>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <form id="formEditEmployee" class="modal-form">
+        <input type="hidden" id="editEmpId" />
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="editEmpName">Full Name *</label>
+            <input type="text" id="editEmpName" required />
+          </div>
+          <div class="form-group">
+            <label for="editEmpCode">Employee ID</label>
+            <input type="text" id="editEmpCode" readonly style="opacity:0.6;cursor:not-allowed;" />
+          </div>
+          <div class="form-group">
+            <label for="editEmpDept">Department *</label>
+            <select id="editEmpDept" required>
+              <option value="Designing">Designing</option>
+              <option value="Cutting">Cutting</option>
+              <option value="Stitching">Stitching</option>
+              <option value="Finishing">Finishing</option>
+              <option value="Embroidery">Embroidery</option>
+              <option value="Administration">Administration</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editEmpRole">Role Title *</label>
+            <input type="text" id="editEmpRole" required />
+          </div>
+          <div class="form-group">
+            <label for="editEmpSalary">Monthly Rate (₹) *</label>
+            <input type="number" id="editEmpSalary" required min="0" step="500" />
+          </div>
+          <div class="form-group">
+            <label for="editEmpStatus">Status</label>
+            <select id="editEmpStatus">
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px;">
+          <label for="editEmpSkills">Skills (Comma separated tags)</label>
+          <input type="text" id="editEmpSkills" />
+        </div>
+
+        <div class="form-grid-3" style="margin-top:12px;">
+          <div class="form-group">
+            <label for="editEmpWorkload">Workload (%)</label>
+            <input type="number" id="editEmpWorkload" min="0" max="100" />
+          </div>
+          <div class="form-group">
+            <label for="editEmpAssigned">Assigned Orders</label>
+            <input type="number" id="editEmpAssigned" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="editEmpEfficiency">Efficiency (%)</label>
+            <input type="number" id="editEmpEfficiency" min="0" max="100" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px;">
+          <label>Profile Photo</label>
+          <div class="avatar-upload-row">
+            <img id="editEmpAvatarPreview" src="../assets/user_avatar.jpg" alt="Preview" class="avatar-preview-img" onerror="this.onerror=null; this.src='../assets/user_avatar.jpg';" />
+            <div style="flex:1;">
+              <input type="file" id="editEmpPhotoInput" accept="image/*" style="display:none;" />
+              <button type="button" class="btn-file-upload" id="btnTriggerEditPhoto">Change Photo...</button>
+              <span class="file-hint">JPG, PNG or WEBP (Max 2MB) — Saved as &lt;empId&gt;_&lt;4randomDigits&gt;.ext</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-danger" id="btnDeleteEmployee">Delete Employee</button>
+          <div style="flex:1;"></div>
+          <button type="button" class="btn-modal-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn-modal-primary">Update Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal C: Employee Profile View Modal -->
+  <div class="modal-backdrop" id="modalEmployeeProfile" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box profile-modal-box">
+      <div class="modal-header">
+        <h2>Employee Profile</h2>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <div class="profile-modal-body" id="profileModalContent">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal D: Assign Work Modal -->
+  <div class="modal-backdrop" id="modalAssignWork" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box">
+      <div class="modal-header">
+        <h2>Allocate Order / Assign Work</h2>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <form id="formAssignWork" class="modal-form">
+        <div class="form-group">
+          <label for="assignEmployeeSelect">Assign To Employee *</label>
+          <select id="assignEmployeeSelect" required>
+            <!-- Injected dynamically -->
+          </select>
+        </div>
+        <div class="form-grid-2" style="margin-top:12px;">
+          <div class="form-group">
+            <label for="assignOrderNumber">Order Number *</label>
+            <input type="text" id="assignOrderNumber" value="ORD-2026-0532" required />
+          </div>
+          <div class="form-group">
+            <label for="assignGarment">Garment / Task *</label>
+            <input type="text" id="assignGarment" value="Bridal Blouse — Zari Cutwork" required />
+          </div>
+          <div class="form-group">
+            <label for="assignDueDate">Target Completion Date *</label>
+            <input type="date" id="assignDueDate" required />
+          </div>
+          <div class="form-group">
+            <label for="assignEstHours">Estimated Hours *</label>
+            <input type="number" id="assignEstHours" value="8" min="1" required />
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label for="assignNotes">Specific Instructions</label>
+          <textarea id="assignNotes" rows="3" placeholder="Fabric is delicate banarasi silk. Ensure back tie dori length is 18 inches with antique latkans."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn-modal-primary">Confirm Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal E: Mark Attendance Modal -->
+  <div class="modal-backdrop" id="modalMarkAttendance" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box attendance-modal-box">
+      <div class="modal-header">
+        <div>
+          <h2>Daily Attendance Sheet</h2>
+          <span style="font-size:12px;color:var(--text-secondary);" id="attendanceCurrentDate">Today</span>
+        </div>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <div class="attendance-sheet-wrap">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Department</th>
+              <th style="text-align:center;">Status</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceSheetTbody">
+            <!-- Injected dynamically -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-secondary" data-close-modal>Cancel</button>
+        <button type="button" class="btn-modal-primary" id="btnSaveAttendance">Save Attendance</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal F: Leave Approval & Management Modal -->
+  <div class="modal-backdrop" id="modalLeaveManagement" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box leave-modal-box">
+      <div class="modal-header">
+        <h2>Leave Requests & Management</h2>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <div class="leave-table-wrap">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Dates</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leaveModalTbody">
+            <!-- Injected dynamically -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-primary" data-close-modal>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal G: Detailed Filter Modal -->
+  <div class="modal-backdrop" id="modalDetailedFilter" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box" style="max-width:440px;">
+      <div class="modal-header">
+        <h2>Filter Employees</h2>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-form">
+        <div class="form-group">
+          <label for="filterWorkloadRange">Workload Status</label>
+          <select id="filterWorkloadRange">
+            <option value="all">All Workloads</option>
+            <option value="overloaded">Overloaded (&gt;80%)</option>
+            <option value="optimal">Optimal (50% – 80%)</option>
+            <option value="underloaded">Under capacity (&lt;50%)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label for="filterStatusSelect">Staff Status</label>
+          <select id="filterStatusSelect">
+            <option value="all">All Statuses</option>
+            <option value="Active">Active Only</option>
+            <option value="On Leave">On Leave Only</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label for="filterSkillInput">Specific Skill</label>
+          <input type="text" id="filterSkillInput" placeholder="e.g. Zari, Pattern Making, Blouse" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-secondary" id="btnResetFilterModal">Reset</button>
+          <button type="button" class="btn-modal-primary" id="btnApplyFilterModal">Apply Filters</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal H: View Reports Modal -->
+  <div class="modal-backdrop" id="modalReports" style="display:none;" role="dialog" aria-modal="true">
+    <div class="glass-modal-box reports-modal-box">
+      <div class="modal-header">
+        <h2>Workforce Analytics & Productivity Reports</h2>
+        <button type="button" class="btn-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+      <div class="reports-body">
+        <div class="report-stats-grid">
+          <div class="report-stat-card">
+            <div class="report-stat-num" id="reportPayroll">&#8377;0</div>
+            <div class="report-stat-lbl">Total Monthly Payroll</div>
+          </div>
+          <div class="report-stat-card">
+            <div class="report-stat-num" id="reportEfficiency">0%</div>
+            <div class="report-stat-lbl">Average Team Efficiency</div>
+          </div>
+          <div class="report-stat-card">
+            <div class="report-stat-num" id="reportOutput">0 hrs</div>
+            <div class="report-stat-lbl">Production Output</div>
+          </div>
+          <div class="report-stat-card">
+            <div class="report-stat-num" id="reportDelivery">0%</div>
+            <div class="report-stat-lbl">On-Time Delivery Rate</div>
+          </div>
+        </div>
+
+        <h3 style="font-size:14px;margin:20px 0 10px 0;color:var(--accent-lime);">Department Productivity Breakdown</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Headcount</th>
+              <th>Total Orders Handled</th>
+              <th>Avg Efficiency</th>
+              <th>Labour Cost</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-secondary" id="btnDownloadReportPdf">Export PDF Summary</button>
+        <button type="button" class="btn-modal-primary" data-close-modal>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  
+  <!-- Application Logic & Shared Fragment Scripts -->
+  <script src="workforce.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+
+</body>
+</html>

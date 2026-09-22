@@ -1,0 +1,1008 @@
+﻿=== ALL UNIQUE HEX COLORS ACROSS ALL FILES (253 unique) ===
+#000  ->  production\stages\stages.css
+#000000  ->  delivery\delivery.css | DesignStudio\design-studio.css | orders\view-order\view-order.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#0284C7  ->  appointments\appointments.css | dashboard\dashboard.css | production\production.css
+#0369A1  ->  enquiries\enquiries.css
+#059669  ->  production\production.css
+#064E3B  ->  appointments\appointments.css
+#06B6D4  ->  enquiries\enquiries.css | purchases\purchases.css
+#070A0E  ->  login\login.css
+#0A0600  ->  customer\customer-overview\customer-overview.css | orders\order-overview\order-over.css
+#0B0F15  ->  login\login.css
+#0B0F19  ->  production\stages\stages.css
+#0B1008  ->  DesignStudio\design-studio.css
+#0B1406  ->  orders\view-order\view-order.css
+#0C0E14  ->  production\stages\stages.css
+#0C0F14  ->  Measurements\measurement-overview\measurement-overview.css
+#0C4A6E  ->  appointments\appointments.css
+#0D0804  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | inventory\inventory.css | Measurements\measurement360\measurement360.css | orders\new-order\new-order.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | purchases\purchases.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#0D0A09  ->  payments\payments.css
+#0D0B0A  ->  Measurements\measurement360\measurement360.css
+#0D1205  ->  Measurements\measurement-overview\measurement-overview.css
+#0EA5E9  ->  dashboard\dashboard.css
+#0F1406  ->  customer\new-customer\new-customer.css | orders\new-order\new-order.css | orders\view-order\view-order.css
+#0F172A  ->  appointments\appointments.css | dashboard\dashboard.css | delivery\delivery.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | payments\payments.css
+#101520  ->  login\login.css
+#10B981  ->  appointments\appointments.css | enquiries\enquiries.css | orders\new-order\new-order.css | production\production.css | production\stages\stages.css | purchases\purchases.css
+#111  ->  DesignStudio\design-studio.css
+#111827  ->  trials-alterations\trials-alterations.css
+#120D0B  ->  appointments\appointments.css | fabrics-materials\fabrics-materials.css
+#120E0C  ->  customer\new-customer\new-customer.css | delivery\delivery.css | orders\new-order\new-order.css | orders\view-order\view-order.css | payments\payments.css | purchases\purchases.css | trials-alterations\trials-alterations.css
+#120F0D  ->  customer\Customer360\customer360.css
+#12100E  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | inventory\inventory.css | Measurements\measurement360\measurement360.css | orders\new-order\new-order.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | purchases\purchases.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#121216  ->  dashboard\dashboard.css
+#121808  ->  appointments\appointments.css | inventory\inventory.css | production\production.css | quality-control\quality-control.css
+#121826  ->  payments\payments.css
+#121C04  ->  Measurements\measurement360\measurement360.css
+#13151E  ->  production\stages\stages.css
+#131720  ->  Measurements\measurement-overview\measurement-overview.css
+#140F0D  ->  orders\view-order\view-order.css
+#14100D  ->  Measurements\measurement360\measurement360.css
+#14100E  ->  orders\view-order\view-order.css | trials-alterations\trials-alterations.css
+#141210  ->  customer\Customer360\customer360.css
+#142204  ->  dashboard\dashboard.css | enquiries\enquiries.css | fragments\fragments.css | fragments\nav.css
+#143506  ->  appointments\appointments.css
+#14B8A6  ->  production\production.css
+#151A24  ->  Measurements\measurement-overview\measurement-overview.css
+#15803D  ->  dashboard\dashboard.css | delivery\delivery.css | enquiries\enquiries.css | WorkforceManagement\workforce.css
+#166534  ->  appointments\appointments.css
+#181210  ->  orders\view-order\view-order.css
+#181310  ->  customer\Customer360\customer360.css | dashboard\dashboard.css | DesignStudio\design-studio.css | enquiries\enquiries.css | inventory\inventory.css | Measurements\measurement360\measurement360.css | orders\view-order\view-order.css | production\production.css | quality-control\quality-control.css | WorkforceManagement\workforce.css
+#181512  ->  DesignStudio\design-studio.css
+#181D28  ->  Measurements\measurement-overview\measurement-overview.css
+#191412  ->  customer\new-customer\new-customer.css
+#19202C  ->  Measurements\measurement-overview\measurement-overview.css
+#1A0F05  ->  orders\order-overview\order-over.css
+#1A1210  ->  fragments\fragments.css
+#1A1412  ->  payments\payments.css
+#1A1614  ->  fabrics-materials\fabrics-materials.css | Measurements\measurement360\measurement360.css
+#1A1A1A  ->  delivery\delivery.css | trials-alterations\trials-alterations.css
+#1A1C28  ->  production\stages\stages.css
+#1C120A  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | inventory\inventory.css | Measurements\measurement360\measurement360.css | orders\new-order\new-order.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | purchases\purchases.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#1C1412  ->  appointments\appointments.css
+#1C1512  ->  fabrics-materials\fabrics-materials.css
+#1C1613  ->  trials-alterations\trials-alterations.css
+#1E1315  ->  quality-control\quality-control.css
+#1E1715  ->  appointments\appointments.css
+#1E1814  ->  inventory\inventory.css | production\production.css | quality-control\quality-control.css
+#1E1B17  ->  DesignStudio\design-studio.css | WorkforceManagement\workforce.css
+#1E1B18  ->  fabrics-materials\fabrics-materials.css
+#1E1B4B  ->  appointments\appointments.css
+#1E2030  ->  production\stages\stages.css
+#1E293B  ->  appointments\appointments.css | dashboard\dashboard.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | Measurements\measurement-overview\measurement-overview.css
+#1E6675  ->  DesignStudio\design-studio.css
+#1F1815  ->  customer\new-customer\new-customer.css
+#1F1C18  ->  DesignStudio\design-studio.css
+#1F2937  ->  trials-alterations\trials-alterations.css
+#201916  ->  customer\new-customer\new-customer.css
+#202736  ->  Measurements\measurement-overview\measurement-overview.css
+#22124E  ->  appointments\appointments.css
+#22C55E  ->  customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | trials-alterations\trials-alterations.css
+#22D3EE  ->  production\stages\stages.css
+#231B16  ->  dashboard\dashboard.css | enquiries\enquiries.css | fragments\nav.css | inventory\inventory.css | production\production.css | quality-control\quality-control.css
+#241C18  ->  fabrics-materials\fabrics-materials.css
+#241C19  ->  trials-alterations\trials-alterations.css
+#241D1A  ->  Measurements\measurement360\measurement360.css | trials-alterations\trials-alterations.css
+#24201C  ->  customer\Customer360\customer360.css
+#25221E  ->  WorkforceManagement\workforce.css
+#2563EB  ->  purchases\purchases.css
+#25D366  ->  customer\Customer360\customer360.css | orders\view-order\view-order.css
+#261F1C  ->  trials-alterations\trials-alterations.css
+#292A27  ->  DesignStudio\design-studio.css
+#2B2823  ->  WorkforceManagement\workforce.css
+#2B6E3F  ->  DesignStudio\design-studio.css
+#2D2420  ->  Measurements\measurement360\measurement360.css
+#2D6A2E  ->  DesignStudio\design-studio.css
+#2DD4BF  ->  appointments\appointments.css | dashboard\dashboard.css | enquiries\enquiries.css | purchases\purchases.css | WorkforceManagement\workforce.css
+#333333  ->  delivery\delivery.css
+#334155  ->  appointments\appointments.css | dashboard\dashboard.css | enquiries\enquiries.css
+#34D399  ->  appointments\appointments.css | fabrics-materials\fabrics-materials.css | inventory\inventory.css | production\production.css | purchases\purchases.css | quality-control\quality-control.css
+#374151  ->  trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#38BDF8  ->  appointments\appointments.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | fragments\nav.css | login\login.css | Measurements\measurement360\measurement360.css | orders\new-order\new-order.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | purchases\purchases.css | trials-alterations\trials-alterations.css
+#3B0764  ->  appointments\appointments.css
+#3B82F6  ->  customer\new-customer\new-customer.css | enquiries\enquiries.css | orders\view-order\view-order.css | production\production.css | purchases\purchases.css
+#4338CA  ->  appointments\appointments.css | WorkforceManagement\workforce.css
+#444444  ->  delivery\delivery.css
+#473228  ->  orders\new-order\new-order.css
+#475569  ->  appointments\appointments.css | enquiries\enquiries.css | Measurements\measurement-overview\measurement-overview.css | payments\payments.css
+#4ADE80  ->  customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | inventory\inventory.css | login\login.css | Measurements\measurement-overview\measurement-overview.css | Measurements\measurement360\measurement360.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | production\stages\stages.css | purchases\purchases.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css
+#4B4842  ->  WorkforceManagement\workforce.css
+#4B5563  ->  trials-alterations\trials-alterations.css
+#4E1220  ->  appointments\appointments.css
+#4E3505  ->  appointments\appointments.css
+#4F46E5  ->  WorkforceManagement\workforce.css
+#575249  ->  DesignStudio\design-studio.css
+#58339E  ->  DesignStudio\design-studio.css
+#5EEAD4  ->  enquiries\enquiries.css | production\production.css
+#5FA000  ->  dashboard\dashboard.css | fragments\nav.css
+#60A5FA  ->  customer\customer-overview\customer-overview.css | inventory\inventory.css | Measurements\measurement-overview\measurement-overview.css | orders\order-overview\order-over.css | production\production.css | production\stages\stages.css | quality-control\quality-control.css
+#6366F1  ->  customer\new-customer\new-customer.css | enquiries\enquiries.css
+#64748B  ->  appointments\appointments.css | delivery\delivery.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | login\login.css | Measurements\measurement-overview\measurement-overview.css | payments\payments.css
+#65A30D  ->  inventory\inventory.css | production\production.css | quality-control\quality-control.css | WorkforceManagement\workforce.css
+#666666  ->  delivery\delivery.css
+#6B21A8  ->  appointments\appointments.css | enquiries\enquiries.css
+#6B6862  ->  DesignStudio\design-studio.css
+#6B7280  ->  trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#6D28D9  ->  dashboard\dashboard.css | fabrics-materials\fabrics-materials.css | production\stages\stages.css
+#6E6247  ->  DesignStudio\design-studio.css
+#6EE7B7  ->  DesignStudio\design-studio.css
+#7C3AED  ->  fabrics-materials\fabrics-materials.css | production\stages\stages.css
+#7DD3FC  ->  appointments\appointments.css | DesignStudio\design-studio.css | enquiries\enquiries.css | production\production.css
+#7DFF8A  ->  DesignStudio\design-studio.css
+#818CF8  ->  WorkforceManagement\workforce.css
+#84CC16  ->  Measurements\measurement-overview\measurement-overview.css | WorkforceManagement\workforce.css
+#854D0E  ->  enquiries\enquiries.css
+#86EFAC  ->  delivery\delivery.css | enquiries\enquiries.css | production\production.css
+#881337  ->  appointments\appointments.css | enquiries\enquiries.css
+#888  ->  DesignStudio\design-studio.css
+#8B48F5  ->  fabrics-materials\fabrics-materials.css
+#8B5CF6  ->  dashboard\dashboard.css | enquiries\enquiries.css | purchases\purchases.css
+#8BE28B  ->  DesignStudio\design-studio.css
+#8C887B  ->  WorkforceManagement\workforce.css
+#93C5FD  ->  production\production.css
+#94A3B8  ->  appointments\appointments.css | dashboard\dashboard.css | enquiries\enquiries.css | inventory\inventory.css | login\login.css | Measurements\measurement-overview\measurement-overview.css | Measurements\measurement360\measurement360.css | production\production.css | production\stages\stages.css | trials-alterations\trials-alterations.css
+#9A2C49  ->  DesignStudio\design-studio.css
+#9A3412  ->  enquiries\enquiries.css
+#9CA3AF  ->  trials-alterations\trials-alterations.css
+#9D174D  ->  dashboard\dashboard.css
+#9F1239  ->  appointments\appointments.css | enquiries\enquiries.css
+#A3E635  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css | dashboard\dashboard.css | delivery\delivery.css | enquiries\enquiries.css | fragments\fragments.css | fragments\nav.css | inventory\inventory.css | orders\order-overview\order-over.css | production\production.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css
+#A5B4FC  ->  enquiries\enquiries.css
+#A78BFA  ->  appointments\appointments.css | delivery\delivery.css | inventory\inventory.css | login\login.css | Measurements\measurement360\measurement360.css | production\production.css | production\stages\stages.css | quality-control\quality-control.css
+#A855F7  ->  customer\new-customer\new-customer.css | delivery\delivery.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | orders\new-order\new-order.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | production\stages\stages.css | purchases\purchases.css | trials-alterations\trials-alterations.css
+#A995FF  ->  DesignStudio\design-studio.css
+#AAA  ->  DesignStudio\design-studio.css
+#B45309  ->  appointments\appointments.css | fabrics-materials\fabrics-materials.css | WorkforceManagement\workforce.css
+#B4F039  ->  customer\Customer360\customer360.css | dashboard\dashboard.css | DesignStudio\design-studio.css | fragments\fragments.css | fragments\nav.css | Measurements\measurement360\measurement360.css | WorkforceManagement\workforce.css
+#B56BF8  ->  fabrics-materials\fabrics-materials.css
+#B7FF3C  ->  login\login.css
+#B8A4D4  ->  production\stages\stages.css
+#B8E61E  ->  trials-alterations\trials-alterations.css
+#B8F04A  ->  customer\customer-overview\customer-overview.css | orders\order-overview\order-over.css
+#B8FF2C  ->  DesignStudio\design-studio.css
+#B91C1C  ->  dashboard\dashboard.css | fabrics-materials\fabrics-materials.css
+#BAE6FD  ->  enquiries\enquiries.css
+#BBF451  ->  production\production.css | quality-control\quality-control.css
+#BBF7D0  ->  enquiries\enquiries.css
+#BE123C  ->  enquiries\enquiries.css
+#BE185D  ->  dashboard\dashboard.css | enquiries\enquiries.css
+#BEF264  ->  appointments\appointments.css
+#C084FC  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | Measurements\measurement-overview\measurement-overview.css | Measurements\measurement360\measurement360.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | purchases\purchases.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#C2410C  ->  dashboard\dashboard.css
+#C4B5FD  ->  appointments\appointments.css | login\login.css | production\production.css
+#C4F024  ->  customer\new-customer\new-customer.css | delivery\delivery.css | orders\new-order\new-order.css | orders\view-order\view-order.css | purchases\purchases.css | trials-alterations\trials-alterations.css
+#C4FF55  ->  login\login.css
+#C5FF4F  ->  Measurements\measurement360\measurement360.css
+#C8F542  ->  Measurements\measurement360\measurement360.css
+#C8F560  ->  Measurements\measurement-overview\measurement-overview.css
+#CBD5E1  ->  appointments\appointments.css | dashboard\dashboard.css | enquiries\enquiries.css | payments\payments.css | production\production.css | trials-alterations\trials-alterations.css
+#CDB4DB  ->  DesignStudio\design-studio.css
+#CFE8FF  ->  appointments\appointments.css
+#D2FF70  ->  customer\Customer360\customer360.css
+#D4AF37  ->  production\stages\stages.css
+#D4F8D3  ->  appointments\appointments.css
+#D4FF32  ->  customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | orders\new-order\new-order.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | purchases\purchases.css | trials-alterations\trials-alterations.css
+#D6FA7C  ->  Measurements\measurement-overview\measurement-overview.css
+#D8B4FE  ->  trials-alterations\trials-alterations.css
+#D97706  ->  appointments\appointments.css
+#DC2626  ->  production\stages\stages.css
+#DCD6FF  ->  appointments\appointments.css
+#DCF8A8  ->  appointments\appointments.css
+#DCFCE7  ->  dashboard\dashboard.css | delivery\delivery.css | WorkforceManagement\workforce.css
+#DEE2E6  ->  orders\view-order\view-order.css
+#E03556  ->  DesignStudio\design-studio.css
+#E0E7FF  ->  WorkforceManagement\workforce.css
+#E0F2FE  ->  dashboard\dashboard.css
+#E11D48  ->  enquiries\enquiries.css
+#E2DCFF  ->  appointments\appointments.css
+#E2E8F0  ->  appointments\appointments.css | enquiries\enquiries.css | login\login.css | Measurements\measurement360\measurement360.css
+#E5E5E5  ->  delivery\delivery.css
+#E5E7EB  ->  trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#E6D37A  ->  DesignStudio\design-studio.css
+#E8E5DF  ->  DesignStudio\design-studio.css
+#E8F7FA  ->  DesignStudio\design-studio.css
+#E9D5FF  ->  enquiries\enquiries.css | fabrics-materials\fabrics-materials.css
+#EAB308  ->  payments\payments.css | production\production.css
+#EAF7E9  ->  DesignStudio\design-studio.css
+#EC4899  ->  dashboard\dashboard.css | delivery\delivery.css | enquiries\enquiries.css | orders\view-order\view-order.css | production\production.css | purchases\purchases.css | trials-alterations\trials-alterations.css
+#EDE9FE  ->  dashboard\dashboard.css | fabrics-materials\fabrics-materials.css
+#EEF2FF  ->  WorkforceManagement\workforce.css
+#EEF8F0  ->  DesignStudio\design-studio.css
+#EF4444  ->  dashboard\dashboard.css | delivery\delivery.css | enquiries\enquiries.css | fragments\fragments.css | fragments\nav.css | inventory\inventory.css | orders\new-order\new-order.css | orders\view-order\view-order.css | production\production.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css
+#F1DF91  ->  customer\Customer360\customer360.css
+#F1F0F4  ->  production\stages\stages.css
+#F1F5F9  ->  appointments\appointments.css | dashboard\dashboard.css | delivery\delivery.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | payments\payments.css
+#F2F0EB  ->  DesignStudio\design-studio.css
+#F3EEFF  ->  DesignStudio\design-studio.css
+#F3F4F6  ->  production\stages\stages.css | WorkforceManagement\workforce.css
+#F43F5E  ->  appointments\appointments.css | enquiries\enquiries.css | payments\payments.css | production\production.css | purchases\purchases.css
+#F472B6  ->  customer\Customer360\customer360.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | inventory\inventory.css | login\login.css | payments\payments.css | production\production.css | production\stages\stages.css | purchases\purchases.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#F59E0B  ->  customer\customer-overview\customer-overview.css | customer\new-customer\new-customer.css | delivery\delivery.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | purchases\purchases.css | trials-alterations\trials-alterations.css
+#F5F0E8  ->  customer\customer-overview\customer-overview.css | orders\order-overview\order-over.css
+#F5F3ED  ->  DesignStudio\design-studio.css
+#F87171  ->  customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | DesignStudio\design-studio.css | fabrics-materials\fabrics-materials.css | fragments\fragments.css | fragments\nav.css | Measurements\measurement360\measurement360.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | production\production.css | production\stages\stages.css | purchases\purchases.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#F8F8F8  ->  delivery\delivery.css
+#F8F9FA  ->  orders\view-order\view-order.css | trials-alterations\trials-alterations.css
+#F8FAFC  ->  appointments\appointments.css | enquiries\enquiries.css | Measurements\measurement-overview\measurement-overview.css
+#F97316  ->  dashboard\dashboard.css | orders\view-order\view-order.css | production\production.css | quality-control\quality-control.css
+#F9FAFB  ->  trials-alterations\trials-alterations.css
+#FACC15  ->  login\login.css | Measurements\measurement-overview\measurement-overview.css | orders\view-order\view-order.css
+#FB7185  ->  appointments\appointments.css | inventory\inventory.css | Measurements\measurement-overview\measurement-overview.css | production\production.css | production\stages\stages.css | quality-control\quality-control.css
+#FB923C  ->  customer\customer-overview\customer-overview.css | dashboard\dashboard.css | enquiries\enquiries.css | orders\order-overview\order-over.css | production\production.css | quality-control\quality-control.css
+#FBBF24  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | fabrics-materials\fabrics-materials.css | fragments\nav.css | inventory\inventory.css | Measurements\measurement-overview\measurement-overview.css | Measurements\measurement360\measurement360.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | production\stages\stages.css | purchases\purchases.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+#FCA5A5  ->  customer\Customer360\customer360.css | login\login.css | purchases\purchases.css
+#FCD34D  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css
+#FCE7F3  ->  dashboard\dashboard.css
+#FDA4AF  ->  appointments\appointments.css | production\production.css
+#FDE047  ->  inventory\inventory.css | production\production.css | quality-control\quality-control.css
+#FDEEF2  ->  DesignStudio\design-studio.css
+#FED5DC  ->  appointments\appointments.css
+#FED7AA  ->  enquiries\enquiries.css
+#FEE2E2  ->  dashboard\dashboard.css | fabrics-materials\fabrics-materials.css
+#FEF08A  ->  enquiries\enquiries.css | production\production.css
+#FEF0C3  ->  appointments\appointments.css
+#FEF3C7  ->  fabrics-materials\fabrics-materials.css | WorkforceManagement\workforce.css
+#FF4D6D  ->  DesignStudio\design-studio.css
+#FF758F  ->  DesignStudio\design-studio.css
+#FF7597  ->  customer\Customer360\customer360.css
+#FF91B8  ->  DesignStudio\design-studio.css
+#FFD6E0  ->  appointments\appointments.css
+#FFD76A  ->  DesignStudio\design-studio.css
+#FFD875  ->  Measurements\measurement360\measurement360.css
+#FFEDD5  ->  dashboard\dashboard.css
+#FFF  ->  appointments\appointments.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | DesignStudio\design-studio.css | enquiries\enquiries.css | fragments\nav.css | inventory\inventory.css | orders\new-order\new-order.css | orders\view-order\view-order.css | production\production.css | production\stages\stages.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css
+#FFFFFF  ->  appointments\appointments.css | customer\customer-overview\customer-overview.css | customer\Customer360\customer360.css | customer\new-customer\new-customer.css | dashboard\dashboard.css | delivery\delivery.css | DesignStudio\design-studio.css | enquiries\enquiries.css | fabrics-materials\fabrics-materials.css | fragments\fragments.css | fragments\nav.css | inventory\inventory.css | login\login.css | Measurements\measurement360\measurement360.css | orders\new-order\new-order.css | orders\order-overview\order-over.css | orders\view-order\view-order.css | payments\payments.css | production\production.css | production\stages\stages.css | purchases\purchases.css | quality-control\quality-control.css | trials-alterations\trials-alterations.css | WorkforceManagement\workforce.css
+
+=== COLORS PER FILE ===
+
+[appointments\appointments.css]
+  #0284C7
+  #064E3B
+  #0C4A6E
+  #0D0804
+  #0F172A
+  #10B981
+  #120D0B
+  #12100E
+  #121808
+  #143506
+  #166534
+  #1C120A
+  #1C1412
+  #1E1715
+  #1E1B4B
+  #1E293B
+  #22124E
+  #2DD4BF
+  #334155
+  #34D399
+  #38BDF8
+  #3B0764
+  #4338CA
+  #475569
+  #4E1220
+  #4E3505
+  #64748B
+  #6B21A8
+  #7DD3FC
+  #881337
+  #94A3B8
+  #9F1239
+  #A3E635
+  #A78BFA
+  #B45309
+  #BEF264
+  #C084FC
+  #C4B5FD
+  #CBD5E1
+  #CFE8FF
+  #D4F8D3
+  #D97706
+  #DCD6FF
+  #DCF8A8
+  #E2DCFF
+  #E2E8F0
+  #F1F5F9
+  #F43F5E
+  #F8FAFC
+  #FB7185
+  #FBBF24
+  #FCD34D
+  #FDA4AF
+  #FED5DC
+  #FEF0C3
+  #FFD6E0
+  #FFF
+  #FFFFFF
+
+[customer\Customer360\customer360.css]
+  #0D0804
+  #120F0D
+  #12100E
+  #141210
+  #181310
+  #1C120A
+  #24201C
+  #25D366
+  #4ADE80
+  #B4F039
+  #C084FC
+  #D2FF70
+  #F1DF91
+  #F472B6
+  #F87171
+  #FBBF24
+  #FCA5A5
+  #FF7597
+  #FFF
+  #FFFFFF
+
+[customer\customer-overview\customer-overview.css]
+  #0A0600
+  #0D0804
+  #12100E
+  #1C120A
+  #4ADE80
+  #60A5FA
+  #A3E635
+  #B8F04A
+  #C084FC
+  #F59E0B
+  #F5F0E8
+  #F87171
+  #FB923C
+  #FBBF24
+  #FCD34D
+  #FFFFFF
+
+[customer\new-customer\new-customer.css]
+  #0D0804
+  #0F1406
+  #120E0C
+  #12100E
+  #191412
+  #1C120A
+  #1F1815
+  #201916
+  #22C55E
+  #3B82F6
+  #4ADE80
+  #6366F1
+  #A855F7
+  #C084FC
+  #C4F024
+  #D4FF32
+  #F59E0B
+  #F87171
+  #FBBF24
+  #FFF
+  #FFFFFF
+
+[dashboard\dashboard.css]
+  #0284C7
+  #0D0804
+  #0EA5E9
+  #0F172A
+  #12100E
+  #121216
+  #142204
+  #15803D
+  #181310
+  #1C120A
+  #1E293B
+  #22C55E
+  #231B16
+  #2DD4BF
+  #334155
+  #38BDF8
+  #4ADE80
+  #5FA000
+  #6D28D9
+  #8B5CF6
+  #94A3B8
+  #9D174D
+  #A3E635
+  #B4F039
+  #B91C1C
+  #BE185D
+  #C084FC
+  #C2410C
+  #CBD5E1
+  #D4FF32
+  #DCFCE7
+  #E0F2FE
+  #EC4899
+  #EDE9FE
+  #EF4444
+  #F1F5F9
+  #F472B6
+  #F87171
+  #F97316
+  #FB923C
+  #FBBF24
+  #FCE7F3
+  #FEE2E2
+  #FFEDD5
+  #FFF
+  #FFFFFF
+
+[delivery\delivery.css]
+  #000000
+  #0D0804
+  #0F172A
+  #120E0C
+  #12100E
+  #15803D
+  #1A1A1A
+  #1C120A
+  #22C55E
+  #333333
+  #38BDF8
+  #444444
+  #4ADE80
+  #64748B
+  #666666
+  #86EFAC
+  #A3E635
+  #A78BFA
+  #A855F7
+  #C084FC
+  #C4F024
+  #D4FF32
+  #DCFCE7
+  #E5E5E5
+  #EC4899
+  #EF4444
+  #F1F5F9
+  #F472B6
+  #F59E0B
+  #F8F8F8
+  #FBBF24
+  #FFFFFF
+
+[DesignStudio\design-studio.css]
+  #000000
+  #0B1008
+  #0D0804
+  #111
+  #12100E
+  #181310
+  #181512
+  #1C120A
+  #1E1B17
+  #1E6675
+  #1F1C18
+  #292A27
+  #2B6E3F
+  #2D6A2E
+  #38BDF8
+  #4ADE80
+  #575249
+  #58339E
+  #6B6862
+  #6E6247
+  #6EE7B7
+  #7DD3FC
+  #7DFF8A
+  #888
+  #8BE28B
+  #9A2C49
+  #A995FF
+  #AAA
+  #B4F039
+  #B8FF2C
+  #C084FC
+  #CDB4DB
+  #D4FF32
+  #E03556
+  #E6D37A
+  #E8E5DF
+  #E8F7FA
+  #EAF7E9
+  #EEF8F0
+  #F2F0EB
+  #F3EEFF
+  #F472B6
+  #F5F3ED
+  #F87171
+  #FBBF24
+  #FDEEF2
+  #FF4D6D
+  #FF758F
+  #FF91B8
+  #FFD76A
+  #FFF
+  #FFFFFF
+
+[enquiries\enquiries.css]
+  #0369A1
+  #06B6D4
+  #0D0804
+  #0F172A
+  #10B981
+  #12100E
+  #142204
+  #15803D
+  #181310
+  #1C120A
+  #1E293B
+  #231B16
+  #2DD4BF
+  #334155
+  #38BDF8
+  #3B82F6
+  #475569
+  #4ADE80
+  #5EEAD4
+  #6366F1
+  #64748B
+  #6B21A8
+  #7DD3FC
+  #854D0E
+  #86EFAC
+  #881337
+  #8B5CF6
+  #94A3B8
+  #9A3412
+  #9F1239
+  #A3E635
+  #A5B4FC
+  #A855F7
+  #BAE6FD
+  #BBF7D0
+  #BE123C
+  #BE185D
+  #C084FC
+  #CBD5E1
+  #E11D48
+  #E2E8F0
+  #E9D5FF
+  #EC4899
+  #EF4444
+  #F1F5F9
+  #F43F5E
+  #F472B6
+  #F8FAFC
+  #FB923C
+  #FED7AA
+  #FEF08A
+  #FFF
+  #FFFFFF
+
+[fabrics-materials\fabrics-materials.css]
+  #0D0804
+  #0F172A
+  #120D0B
+  #12100E
+  #1A1614
+  #1C120A
+  #1C1512
+  #1E1B18
+  #1E293B
+  #241C18
+  #34D399
+  #38BDF8
+  #64748B
+  #6D28D9
+  #7C3AED
+  #8B48F5
+  #A855F7
+  #B45309
+  #B56BF8
+  #B91C1C
+  #C084FC
+  #E9D5FF
+  #EDE9FE
+  #F1F5F9
+  #F87171
+  #FBBF24
+  #FEE2E2
+  #FEF3C7
+  #FFFFFF
+
+[fragments\fragments.css]
+  #142204
+  #1A1210
+  #A3E635
+  #B4F039
+  #EF4444
+  #F87171
+  #FFFFFF
+
+[fragments\nav.css]
+  #142204
+  #231B16
+  #38BDF8
+  #5FA000
+  #A3E635
+  #B4F039
+  #EF4444
+  #F87171
+  #FBBF24
+  #FFF
+  #FFFFFF
+
+[inventory\inventory.css]
+  #0D0804
+  #12100E
+  #121808
+  #181310
+  #1C120A
+  #1E1814
+  #231B16
+  #34D399
+  #4ADE80
+  #60A5FA
+  #65A30D
+  #94A3B8
+  #A3E635
+  #A78BFA
+  #EF4444
+  #F472B6
+  #FB7185
+  #FBBF24
+  #FDE047
+  #FFF
+  #FFFFFF
+
+[login\login.css]
+  #070A0E
+  #0B0F15
+  #101520
+  #38BDF8
+  #4ADE80
+  #64748B
+  #94A3B8
+  #A78BFA
+  #B7FF3C
+  #C4B5FD
+  #C4FF55
+  #E2E8F0
+  #F472B6
+  #FACC15
+  #FCA5A5
+  #FFFFFF
+
+[Measurements\measurement360\measurement360.css]
+  #0D0804
+  #0D0B0A
+  #12100E
+  #121C04
+  #14100D
+  #181310
+  #1A1614
+  #1C120A
+  #241D1A
+  #2D2420
+  #38BDF8
+  #4ADE80
+  #94A3B8
+  #A78BFA
+  #B4F039
+  #C084FC
+  #C5FF4F
+  #C8F542
+  #E2E8F0
+  #F87171
+  #FBBF24
+  #FFD875
+  #FFFFFF
+
+[Measurements\measurement-overview\measurement-overview.css]
+  #0C0F14
+  #0D1205
+  #131720
+  #151A24
+  #181D28
+  #19202C
+  #1E293B
+  #202736
+  #475569
+  #4ADE80
+  #60A5FA
+  #64748B
+  #84CC16
+  #94A3B8
+  #C084FC
+  #C8F560
+  #D6FA7C
+  #F8FAFC
+  #FACC15
+  #FB7185
+  #FBBF24
+
+[orders\new-order\new-order.css]
+  #0D0804
+  #0F1406
+  #10B981
+  #120E0C
+  #12100E
+  #1C120A
+  #38BDF8
+  #473228
+  #A855F7
+  #C4F024
+  #D4FF32
+  #EF4444
+  #FFF
+  #FFFFFF
+
+[orders\order-overview\order-over.css]
+  #0A0600
+  #0D0804
+  #12100E
+  #1A0F05
+  #1C120A
+  #4ADE80
+  #60A5FA
+  #A3E635
+  #B8F04A
+  #F59E0B
+  #F5F0E8
+  #F87171
+  #FB923C
+  #FBBF24
+  #FFFFFF
+
+[orders\view-order\view-order.css]
+  #000000
+  #0B1406
+  #0D0804
+  #0F1406
+  #120E0C
+  #12100E
+  #140F0D
+  #14100E
+  #181210
+  #181310
+  #1C120A
+  #22C55E
+  #25D366
+  #38BDF8
+  #3B82F6
+  #4ADE80
+  #A855F7
+  #C084FC
+  #C4F024
+  #D4FF32
+  #DEE2E6
+  #EC4899
+  #EF4444
+  #F59E0B
+  #F87171
+  #F8F9FA
+  #F97316
+  #FACC15
+  #FBBF24
+  #FFF
+  #FFFFFF
+
+[payments\payments.css]
+  #0D0804
+  #0D0A09
+  #0F172A
+  #120E0C
+  #12100E
+  #121826
+  #1A1412
+  #1C120A
+  #22C55E
+  #38BDF8
+  #475569
+  #4ADE80
+  #64748B
+  #A855F7
+  #C084FC
+  #CBD5E1
+  #D4FF32
+  #EAB308
+  #F1F5F9
+  #F43F5E
+  #F472B6
+  #FBBF24
+  #FFFFFF
+
+[production\production.css]
+  #0284C7
+  #059669
+  #0D0804
+  #10B981
+  #12100E
+  #121808
+  #14B8A6
+  #181310
+  #1C120A
+  #1E1814
+  #22C55E
+  #231B16
+  #34D399
+  #38BDF8
+  #3B82F6
+  #4ADE80
+  #5EEAD4
+  #60A5FA
+  #65A30D
+  #7DD3FC
+  #86EFAC
+  #93C5FD
+  #94A3B8
+  #A3E635
+  #A78BFA
+  #A855F7
+  #BBF451
+  #C084FC
+  #C4B5FD
+  #CBD5E1
+  #D4FF32
+  #EAB308
+  #EC4899
+  #EF4444
+  #F43F5E
+  #F472B6
+  #F87171
+  #F97316
+  #FB7185
+  #FB923C
+  #FBBF24
+  #FDA4AF
+  #FDE047
+  #FEF08A
+  #FFF
+  #FFFFFF
+
+[production\stages\stages.css]
+  #000
+  #0B0F19
+  #0C0E14
+  #10B981
+  #13151E
+  #1A1C28
+  #1E2030
+  #22D3EE
+  #4ADE80
+  #60A5FA
+  #6D28D9
+  #7C3AED
+  #94A3B8
+  #A78BFA
+  #A855F7
+  #B8A4D4
+  #D4AF37
+  #DC2626
+  #F1F0F4
+  #F3F4F6
+  #F472B6
+  #F87171
+  #FB7185
+  #FBBF24
+  #FFF
+  #FFFFFF
+
+[purchases\purchases.css]
+  #06B6D4
+  #0D0804
+  #10B981
+  #120E0C
+  #12100E
+  #1C120A
+  #2563EB
+  #2DD4BF
+  #34D399
+  #38BDF8
+  #3B82F6
+  #4ADE80
+  #8B5CF6
+  #A855F7
+  #C084FC
+  #C4F024
+  #D4FF32
+  #EC4899
+  #F43F5E
+  #F472B6
+  #F59E0B
+  #F87171
+  #FBBF24
+  #FCA5A5
+  #FFFFFF
+
+[quality-control\quality-control.css]
+  #000000
+  #0D0804
+  #12100E
+  #121808
+  #181310
+  #1C120A
+  #1E1315
+  #1E1814
+  #231B16
+  #34D399
+  #4ADE80
+  #60A5FA
+  #65A30D
+  #A3E635
+  #A78BFA
+  #BBF451
+  #C084FC
+  #EF4444
+  #F97316
+  #FB7185
+  #FB923C
+  #FDE047
+  #FFF
+  #FFFFFF
+
+[trials-alterations\trials-alterations.css]
+  #000000
+  #0D0804
+  #111827
+  #120E0C
+  #12100E
+  #14100E
+  #1A1A1A
+  #1C120A
+  #1C1613
+  #1F2937
+  #22C55E
+  #241C19
+  #241D1A
+  #261F1C
+  #374151
+  #38BDF8
+  #4ADE80
+  #4B5563
+  #6B7280
+  #94A3B8
+  #9CA3AF
+  #A3E635
+  #A855F7
+  #B8E61E
+  #C084FC
+  #C4F024
+  #CBD5E1
+  #D4FF32
+  #D8B4FE
+  #E5E7EB
+  #EC4899
+  #EF4444
+  #F472B6
+  #F59E0B
+  #F87171
+  #F8F9FA
+  #F9FAFB
+  #FBBF24
+  #FFF
+  #FFFFFF
+
+[WorkforceManagement\workforce.css]
+  #000000
+  #0D0804
+  #12100E
+  #15803D
+  #181310
+  #1C120A
+  #1E1B17
+  #25221E
+  #2B2823
+  #2DD4BF
+  #374151
+  #4338CA
+  #4B4842
+  #4F46E5
+  #65A30D
+  #6B7280
+  #818CF8
+  #84CC16
+  #8C887B
+  #B45309
+  #B4F039
+  #C084FC
+  #DCFCE7
+  #E0E7FF
+  #E5E7EB
+  #EEF2FF
+  #F3F4F6
+  #F472B6
+  #F87171
+  #FBBF24
+  #FEF3C7
+  #FFFFFF

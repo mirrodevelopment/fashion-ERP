@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Order — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="new-order.css?v=2.5" />
+
+  <!-- Navigation & Fragment Base Configuration (2 levels deep) -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="orders">
+
+  <!-- Background Atmospheric Image Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Global Topbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- New Order Scrollable Area -->
+      <div class="new-order-scroll" id="newOrderScroll">
+
+        <!-- Page Operations Header with 7-Step Workflow Progress -->
+        <div class="page-header-row">
+          <div class="page-title-group">
+            <div class="breadcrumb-nav">
+              <span class="bc-item">Orders</span>
+              <span class="bc-sep">&gt;</span>
+              <span class="bc-item current">New Order</span>
+            </div>
+            <h1 class="page-title">New Order</h1>
+            <p class="page-subtitle">Create a new garment order for your customer</p>
+          </div>
+
+          <!-- 7-Step Horizontal Order Workflow Indicator -->
+          <div class="workflow-stepper" id="workflowStepper">
+            <div class="step-node active" data-step="1" title="Customer Details">
+              <div class="step-circle">1</div>
+              <div class="step-label">Customer</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="2" title="Garment Type">
+              <div class="step-circle">2</div>
+              <div class="step-label">Garment</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="3" title="Design Details">
+              <div class="step-circle">3</div>
+              <div class="step-label">Design</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="4" title="Fabric & Materials">
+              <div class="step-circle">4</div>
+              <div class="step-label">Fabric</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="5" title="Measurements">
+              <div class="step-circle">5</div>
+              <div class="step-label">Measurements</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="6" title="Production Details">
+              <div class="step-circle">6</div>
+              <div class="step-label">Production</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="7" title="Payment Details">
+              <div class="step-circle">7</div>
+              <div class="step-label">Payment</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             MAIN THREE-COLUMN GRID WORKSPACE
+             Left Col (~38%), Middle Col (~38%), Right Col (~24%)
+             ===================================================== -->
+        <div class="order-grid">
+
+          <!-- ================= LEFT COLUMN ================= -->
+          <div class="col-left">
+
+            <!-- STEP 1: CUSTOMER DETAILS CARD -->
+            <section class="section-card" id="cardCustomer">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">1</div>
+                  <div>
+                    <h2 class="card-title">Customer Details</h2>
+                    <p class="card-subtitle">Select existing customer or add a new one</p>
+                  </div>
+                </div>
+                <div class="card-header-right">
+                  <button type="button" class="btn-text-action" id="btnOpenCustomerSearch">
+                    <span>Search Customer</span>
+                    <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Customer Search Input Bar -->
+              <div class="customer-search-wrap">
+                <div class="input-with-icon">
+                  <i data-lucide="search" class="input-icon"></i>
+                  <input type="text" id="customerSearchInput" class="form-input" placeholder="Search by name or mobile number..." autocomplete="off" />
+                  <button type="button" class="btn-clear-search" id="btnClearCustomerSearch" style="display:none;">&times;</button>
+                </div>
+                <!-- Autocomplete Dropdown List -->
+                <div class="customer-search-results" id="customerSearchResults" style="display:none;"></div>
+              </div>
+
+              <!-- Selected Customer Profile Display -->
+              <div class="selected-customer-card" id="selectedCustomerCard">
+                <div class="customer-profile-layout">
+                  <div class="customer-avatar-box">
+                    <img src="../../assets/user_avatar.jpg" alt="Customer Profile" class="customer-avatar-img" id="customerAvatarImg" onerror="this.src='../../assets/user_avatar.jpg';"/>
+                  </div>
+
+                  <div class="customer-meta-box">
+                    <div class="customer-name-row">
+                      <span class="customer-name" id="customerNameDisplay">—</span>
+                      <span class="badge-vip" id="customerBadgeDisplay" style="display:none;">★ VIP Customer</span>
+                    </div>
+
+                    <div class="customer-detail-list">
+                      <div class="customer-detail-item">
+                        <i data-lucide="phone" class="detail-icon"></i>
+                        <span id="customerPhoneDisplay">—</span>
+                      </div>
+                      <div class="customer-detail-item">
+                        <i data-lucide="mail" class="detail-icon"></i>
+                        <span id="customerEmailDisplay">—</span>
+                      </div>
+                      <div class="customer-detail-item">
+                        <i data-lucide="map-pin" class="detail-icon"></i>
+                        <span id="customerLocationDisplay">—</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Customer Metrics / Stats Pill -->
+                  <div class="customer-stats-box">
+                    <div class="stat-cell">
+                      <span class="stat-label">Customer Since</span>
+                      <span class="stat-val" id="customerSinceDisplay">Mar 2023</span>
+                    </div>
+                    <div class="stat-cell">
+                      <span class="stat-label">Total Orders</span>
+                      <span class="stat-val" id="customerOrdersDisplay">12</span>
+                    </div>
+                    <div class="stat-cell">
+                      <span class="stat-label">Total Spent</span>
+                      <span class="stat-val" id="customerSpentDisplay">₹1,24,500</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 3: DESIGN DETAILS CARD -->
+            <section class="section-card" id="cardDesign">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">3</div>
+                  <div>
+                    <h2 class="card-title">Design Details</h2>
+                    <p class="card-subtitle">Add design references and specifications</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Design Specs Form Row -->
+              <div class="form-row-3col">
+                <div class="form-group">
+                  <label class="form-label" for="designCategorySelect">Design Category</label>
+                  <div class="select-wrapper">
+                    <select id="designCategorySelect" class="form-select">
+                      <option value="Custom Design" selected>Custom Design</option>
+                      <option value="Bridal Collection">Bridal Collection</option>
+                      <option value="Heritage Craft">Heritage Craft</option>
+                      <option value="Minimal Chic">Minimal Chic</option>
+                      <option value="Contemporary">Contemporary</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="neckStyleSelect">Neck Style</label>
+                  <div class="select-wrapper">
+                    <select id="neckStyleSelect" class="form-select">
+                      <option value="Round Neck" selected>Round Neck</option>
+                      <option value="Boat Neck">Boat Neck</option>
+                      <option value="Sweetheart Neck">Sweetheart Neck</option>
+                      <option value="V-Neck">V-Neck</option>
+                      <option value="Square Neck">Square Neck</option>
+                      <option value="High Collar">High Collar</option>
+                      <option value="Deep U-Back">Deep U-Back</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="sleeveStyleSelect">Sleeve Style</label>
+                  <div class="select-wrapper">
+                    <select id="sleeveStyleSelect" class="form-select">
+                      <option value="3/4 Sleeve" selected>3/4 Sleeve</option>
+                      <option value="Sleeveless">Sleeveless</option>
+                      <option value="Half Sleeve">Half Sleeve</option>
+                      <option value="Elbow Length">Elbow Length</option>
+                      <option value="Full Sleeve">Full Sleeve</option>
+                      <option value="Cap Sleeve">Cap Sleeve</option>
+                      <option value="Bell Sleeve">Bell Sleeve</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Design Notes Multiline -->
+              <div class="form-group">
+                <label class="form-label" for="designNotesInput">Design Notes</label>
+                <textarea id="designNotesInput" class="form-textarea" rows="2" placeholder="Specific embellishments, zari details, cut, embroidery notes...">Stone work on neckline. Plain back. Customer prefers subtle embroidery.</textarea>
+              </div>
+
+              <!-- Reference Images Gallery & Upload -->
+              <div class="form-group mb-0">
+                <label class="form-label">Reference Images</label>
+                <div class="reference-images-strip" id="referenceImagesStrip">
+                  <!-- Default Thumbnails from reference image -->
+                  <div class="ref-image-item" data-id="ref-1">
+                    <img src="../../assets/designs/zari-bloom-back.jpg" alt="Blouse Back Design" onerror="this.src='../../assets/designs/blouse-stage.png';"/>
+                    <button type="button" class="btn-remove-img" onclick="removeReferenceImage('ref-1')" title="Remove">&times;</button>
+                  </div>
+                  <div class="ref-image-item" data-id="ref-2">
+                    <img src="../../assets/designs/zari-bloom-front.jpg" alt="Front Neck Detail" onerror="this.src='../../assets/designs/blouse-stage.png';"/>
+                    <button type="button" class="btn-remove-img" onclick="removeReferenceImage('ref-2')" title="Remove">&times;</button>
+                  </div>
+                  <div class="ref-image-item" data-id="ref-3">
+                    <img src="../../assets/designs/zari-bloom-detail.jpg" alt="Sleeve Embroidery" onerror="this.src='../../assets/designs/blouse-stage.png';"/>
+                    <button type="button" class="btn-remove-img" onclick="removeReferenceImage('ref-3')" title="Remove">&times;</button>
+                  </div>
+                  <div class="ref-image-item" data-id="ref-4">
+                    <img src="../../assets/pink_silk.jpg" alt="Fabric &amp; Zari Swatch" onerror="this.src='../../assets/designs/blouse-stage.png';"/>
+                    <button type="button" class="btn-remove-img" onclick="removeReferenceImage('ref-4')" title="Remove">&times;</button>
+                  </div>
+
+                  <!-- Upload Images Tile -->
+                  <div class="upload-tile" id="uploadTile" onclick="document.getElementById('refFileInput').click();">
+                    <input type="file" id="refFileInput" multiple accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleImageUpload(event)" />
+                    <i data-lucide="plus" class="upload-icon"></i>
+                    <span class="upload-title">Upload Images</span>
+                    <span class="upload-hint">JPG, PNG (Max 5MB)</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 6: PRODUCTION DETAILS CARD -->
+            <section class="section-card" id="cardProduction">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">6</div>
+                  <div>
+                    <h2 class="card-title">Production Details</h2>
+                    <p class="card-subtitle">Set timeline and assign team</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row-4col">
+                <div class="form-group">
+                  <label class="form-label" for="deliveryDateInput">Preferred Delivery Date</label>
+                  <div class="input-with-icon">
+                    <i data-lucide="calendar" class="input-icon"></i>
+                    <input type="date" id="deliveryDateInput" class="form-input" value="2026-09-22" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="prioritySelect">Priority</label>
+                  <div class="select-wrapper">
+                    <select id="prioritySelect" class="form-select">
+                      <option value="Normal" selected>Normal</option>
+                      <option value="High">High</option>
+                      <option value="Urgent">Urgent</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="assignToSelect">Assign To</label>
+                  <div class="select-wrapper assign-select-wrapper">
+                    <div class="assignee-preview" id="assigneePreview">
+                      <img src="../../assets/user_avatar.jpg" alt="Assignee" class="assignee-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
+                      <span class="assignee-initial" style="display:none;">—</span>
+                    </div>
+                    <select id="assignToSelect" class="form-select assign-select">
+                      <option value="">Select Employee</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="productionNotesInput">Production Notes</label>
+                  <input type="text" id="productionNotesInput" class="form-input" value="" placeholder="Production remarks..." />
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+
+          <!-- ================= MIDDLE COLUMN ================= -->
+          <div class="col-middle">
+
+            <!-- STEP 2: GARMENT TYPE CARD -->
+            <section class="section-card" id="cardGarment">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">2</div>
+                  <div>
+                    <h2 class="card-title">Garment Type</h2>
+                    <p class="card-subtitle">Select the type of garment</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 7 Selectable Garment Tiles -->
+              <div class="garment-tiles-grid" id="garmentTilesGrid">
+
+                <!-- 1. Blouse (Default Active) -->
+                <div class="garment-tile active" data-garment="Blouse">
+                  <div class="tile-icon-wrap">
+                    <svg viewBox="0 0 48 48" fill="none" class="tile-svg">
+                      <path d="M12 12C14 12 17 18 24 18C31 18 34 12 36 12L42 20L36 24L34 20V38H14V20L12 24L6 20L12 12Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <span class="tile-name">Blouse</span>
+                </div>
+
+                <!-- 2. Chudi -->
+                <div class="garment-tile" data-garment="Chudi">
+                  <div class="tile-icon-wrap">
+                    <svg viewBox="0 0 48 48" fill="none" class="tile-svg">
+                      <path d="M18 10H30L34 20L28 22V40H20V22L14 20L18 10Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                      <path d="M20 10C20 14 28 14 28 10" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <span class="tile-name">Chudi</span>
+                </div>
+
+                <!-- 3. Lehenga -->
+                <div class="garment-tile" data-garment="Lehenga">
+                  <div class="tile-icon-wrap">
+                    <svg viewBox="0 0 48 48" fill="none" class="tile-svg">
+                      <path d="M18 8H30L32 14H16L18 8Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M16 18H32L38 42H10L16 18Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                      <line x1="24" y1="18" x2="24" y2="42" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                    </svg>
+                  </div>
+                  <span class="tile-name">Lehenga</span>
+                </div>
+
+                <!-- 4. Saree -->
+                <div class="garment-tile" data-garment="Saree">
+                  <div class="tile-icon-wrap">
+                    <svg viewBox="0 0 48 48" fill="none" class="tile-svg">
+                      <circle cx="24" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                      <path d="M20 18C20 18 17 26 15 32C13 38 18 42 24 42C30 42 33 36 33 30C33 24 28 18 20 18Z" stroke="currentColor" stroke-width="2.2"/>
+                      <path d="M20 22C24 26 30 24 32 20" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                  </div>
+                  <span class="tile-name">Saree</span>
+                </div>
+
+                <!-- 5. Gown -->
+                <div class="garment-tile" data-garment="Gown">
+                  <div class="tile-icon-wrap">
+                    <svg viewBox="0 0 48 48" fill="none" class="tile-svg">
+                      <path d="M19 8H29L32 16L24 19L16 16L19 8Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M16 20L8 42H40L32 20H16Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <span class="tile-name">Gown</span>
+                </div>
+
+                <!-- 6. Alteration -->
+                <div class="garment-tile" data-garment="Alteration">
+                  <div class="tile-icon-wrap">
+                    <svg viewBox="0 0 48 48" fill="none" class="tile-svg">
+                      <circle cx="16" cy="34" r="5" stroke="currentColor" stroke-width="2.2"/>
+                      <circle cx="32" cy="34" r="5" stroke="currentColor" stroke-width="2.2"/>
+                      <line x1="19" y1="30" x2="36" y2="10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                      <line x1="29" y1="30" x2="12" y2="10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <span class="tile-name">Alteration</span>
+                </div>
+
+                <!-- 7. Custom -->
+                <div class="garment-tile" data-garment="Custom">
+                  <div class="tile-icon-wrap">
+                    <svg viewBox="0 0 48 48" fill="none" class="tile-svg">
+                      <circle cx="17" cy="17" r="4" stroke="currentColor" stroke-width="2.5"/>
+                      <circle cx="31" cy="17" r="4" stroke="currentColor" stroke-width="2.5"/>
+                      <circle cx="17" cy="31" r="4" stroke="currentColor" stroke-width="2.5"/>
+                      <circle cx="31" cy="31" r="4" stroke="currentColor" stroke-width="2.5"/>
+                    </svg>
+                  </div>
+                  <span class="tile-name">Custom</span>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- STEP 4: FABRIC & MATERIALS CARD -->
+            <section class="section-card" id="cardFabric">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">4</div>
+                  <div>
+                    <h2 class="card-title">Fabric &amp; Materials</h2>
+                    <p class="card-subtitle">Select fabric and additional materials</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Source Toggle Pills -->
+              <div class="segmented-pills-row">
+                <label class="seg-pill active" id="pillCustSupplied">
+                  <input type="radio" name="fabricSource" value="Customer Supplied" checked onchange="toggleFabricSource('Customer Supplied')"/>
+                  <span class="seg-radio-dot"></span>
+                  <span class="seg-label">Customer Supplied</span>
+                </label>
+                <label class="seg-pill" id="pillBoutiqueSupplied">
+                  <input type="radio" name="fabricSource" value="Boutique Supplied" onchange="toggleFabricSource('Boutique Supplied')"/>
+                  <span class="seg-radio-dot"></span>
+                  <span class="seg-label">Boutique Supplied</span>
+                </label>
+              </div>
+
+              <!-- Customer Supplied View -->
+              <div id="customerFabricView">
+                <div class="form-row-3col">
+                  <div class="form-group">
+                    <label class="form-label" for="fabricTypeSelect">Fabric Type</label>
+                    <div class="select-wrapper">
+                      <select id="fabricTypeSelect" class="form-select">
+                        <option value="Silk" selected>Silk</option>
+                        <option value="Raw Silk">Raw Silk</option>
+                        <option value="Banarasi Silk">Banarasi Silk</option>
+                        <option value="Georgette">Georgette</option>
+                        <option value="Chanderi">Chanderi</option>
+                        <option value="Organza">Organza</option>
+                        <option value="Cotton">Cotton</option>
+                        <option value="Velvet">Velvet</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="fabricColourSelect">Colour</label>
+                    <div class="select-wrapper">
+                      <select id="fabricColourSelect" class="form-select">
+                        <option value="Dusty Pink" selected>Dusty Pink</option>
+                        <option value="Rani Pink">Rani Pink</option>
+                        <option value="Royal Blue">Royal Blue</option>
+                        <option value="Emerald Green">Emerald Green</option>
+                        <option value="Crimson Red">Crimson Red</option>
+                        <option value="Ivory Gold">Ivory Gold</option>
+                        <option value="Mustard Yellow">Mustard Yellow</option>
+                        <option value="Wine Maroon">Wine Maroon</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="fabricQuantityInput">Quantity</label>
+                    <input type="text" id="fabricQuantityInput" class="form-input" value="2.5 m" placeholder="e.g. 2.5 m" />
+                  </div>
+                </div>
+
+                <div class="form-group mb-0">
+                  <label class="form-label" for="fabricNotesInput">Fabric Notes</label>
+                  <textarea id="fabricNotesInput" class="form-textarea" rows="2" placeholder="Lining requirements, material delivery note...">Customer will bring fabric. Need matching lining and hooks.</textarea>
+                </div>
+              </div>
+
+              <!-- Boutique Supplied View (Hidden by Default) -->
+              <div id="boutiqueFabricView" style="display:none;">
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label">Search Library Material</label>
+                    <div class="select-wrapper">
+                      <select id="libraryMaterialSelect" class="form-select" onchange="handleLibraryMaterialSelect()">
+                        <option value="1" selected>Banarasi Silk (Rani Pink) — ₹1,850/m [120m avail]</option>
+                        <option value="2">Organza Tissue (Emerald Green) — ₹980/m [45m avail]</option>
+                        <option value="3">Pure Raw Silk (Royal Blue) — ₹1,450/m [60m avail]</option>
+                        <option value="4">Chanderi Brocade (Ivory Gold) — ₹1,200/m [32m avail]</option>
+                        <option value="5">Heritage Velvet (Wine Maroon) — ₹2,200/m [28m avail]</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Quantity Required (m)</label>
+                    <input type="number" id="boutiqueQtyInput" class="form-input" min="0.5" step="0.5" value="2.5" oninput="calculateMaterialSubtotal()" />
+                  </div>
+                </div>
+
+                <!-- Additional Boutique Materials -->
+                <div class="boutique-materials-box">
+                  <div class="box-header-row">
+                    <span class="box-title">Additional Materials &amp; Trims</span>
+                    <button type="button" class="btn-sm-ghost" onclick="addMaterialRow()">+ Add Material</button>
+                  </div>
+                  <div class="material-rows-list" id="materialRowsList">
+                    <div class="mat-row" data-id="mat-1">
+                      <span class="mat-name">Matching Cotton Silk Lining</span>
+                      <span class="mat-qty">2.5 m</span>
+                      <span class="mat-price">₹450</span>
+                      <button type="button" class="mat-del-btn" onclick="removeMaterialRow('mat-1')">&times;</button>
+                    </div>
+                    <div class="mat-row" data-id="mat-2">
+                      <span class="mat-name">Premium Steel Hooks &amp; Loop Strip</span>
+                      <span class="mat-qty">1 set</span>
+                      <span class="mat-price">₹80</span>
+                      <button type="button" class="mat-del-btn" onclick="removeMaterialRow('mat-2')">&times;</button>
+                    </div>
+                  </div>
+                  <div class="mat-subtotal-row">
+                    <span>Materials Subtotal:</span>
+                    <strong id="materialSubtotalDisplay">₹5,155</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 5: MEASUREMENTS CARD -->
+            <section class="section-card" id="cardMeasurements">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">5</div>
+                  <div>
+                    <h2 class="card-title">Measurements</h2>
+                    <p class="card-subtitle">Choose measurement profile</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Measurement Mode Segmented Pills -->
+              <div class="segmented-pills-row">
+                <label class="seg-pill active" id="pillExistingProfile">
+                  <input type="radio" name="measurementMode" value="existing" checked onchange="toggleMeasurementMode('existing')"/>
+                  <span class="seg-radio-dot"></span>
+                  <span class="seg-label">Use Existing Profile</span>
+                </label>
+                <label class="seg-pill" id="pillNewMeasurements">
+                  <input type="radio" name="measurementMode" value="new" onchange="toggleMeasurementMode('new')"/>
+                  <span class="seg-radio-dot"></span>
+                  <span class="seg-label">Take New Measurements</span>
+                </label>
+              </div>
+
+              <!-- Existing Profile Card -->
+              <div class="measurement-profile-card" id="existingProfileCard" onclick="openProfileViewerModal()">
+                <div class="profile-card-icon">
+                  <i data-lucide="ruler" style="width:18px;height:18px;opacity:0.85;"></i>
+                </div>
+                <div class="profile-card-details">
+                  <div class="profile-card-title-row">
+                    <span class="profile-title" id="profileNameDisplay">Blouse — 08 Sep 2026</span>
+                    <span class="profile-tag">Profile</span>
+                  </div>
+                  <div class="profile-measurements-preview" id="profileMeasurementsPreview">
+                    <span class="meas-pill highlight">Bust <strong id="measBustVal">34"</strong></span>
+                    <span class="meas-pill">Waist <strong id="measWaistVal">28"</strong></span>
+                    <span class="meas-pill">Shoulder <strong id="measShoulderVal">14"</strong></span>
+                  </div>
+                </div>
+                <div class="profile-card-arrow">
+                  <i data-lucide="chevron-right" style="width:18px;height:18px;"></i>
+                </div>
+              </div>
+
+              <!-- Take New Measurements Form (Hidden by default) -->
+              <div class="new-measurements-form" id="newMeasurementsForm" style="display:none;">
+                <div class="measurements-grid" id="newMeasurementsGrid">
+                  <!-- Dynamically populated based on selected garment -->
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 7: PAYMENT DETAILS CARD -->
+            <section class="section-card" id="cardPayment">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">7</div>
+                  <div>
+                    <h2 class="card-title">Payment Details</h2>
+                    <p class="card-subtitle">Set pricing and collect advance</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row-3col">
+                <div class="form-group">
+                  <label class="form-label" for="estimatedAmountInput">Estimated Amount</label>
+                  <div class="input-currency-wrap">
+                    <span class="curr-symbol">₹</span>
+                    <input type="text" id="estimatedAmountInput" class="form-input text-right" value="12,500" oninput="handleAmountInput(this, 'estimated')" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="advanceAmountInput">Advance Amount</label>
+                  <div class="input-currency-wrap">
+                    <span class="curr-symbol">₹</span>
+                    <input type="text" id="advanceAmountInput" class="form-input text-right" value="6,250" oninput="handleAmountInput(this, 'advance')" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="paymentMethodSelect">Payment Method</label>
+                  <div class="select-wrapper">
+                    <select id="paymentMethodSelect" class="form-select">
+                      <option value="UPI" selected>UPI</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Card">Card</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Reminder Toggle -->
+              <div class="payment-reminder-row">
+                <label class="switch-toggle">
+                  <input type="checkbox" id="paymentReminderToggle" checked />
+                  <span class="slider round"></span>
+                </label>
+                <div class="reminder-text">
+                  <span class="reminder-label">Send payment reminder</span>
+                  <span class="reminder-helper">
+                    <i data-lucide="info" style="width:11px;height:11px;opacity:0.6;display:inline-block;vertical-align:middle;margin-right:2px;"></i>
+                    Customer will receive a WhatsApp payment confirmation.
+                  </span>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+
+          <!-- ================= RIGHT COLUMN (STICKY) ================= -->
+          <div class="col-right">
+
+            <!-- ORDER SUMMARY CARD -->
+            <section class="section-card sticky-card" id="cardSummary">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="icon-badge-green">
+                    <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                  </div>
+                  <div>
+                    <h2 class="card-title">Order Summary</h2>
+                    <p class="card-subtitle">Review order details before creating</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Summary Key-Value List -->
+              <div class="summary-list">
+                <div class="summary-row">
+                  <span class="summary-label">Customer</span>
+                  <span class="summary-val" id="sumCustomer">—</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Garment Type</span>
+                  <span class="summary-val" id="sumGarment">Blouse</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Design</span>
+                  <span class="summary-val" id="sumDesign">Custom Design</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Fabric</span>
+                  <span class="summary-val" id="sumFabric">Customer Supplied</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Measurements</span>
+                  <span class="summary-val" id="sumMeasurements">Existing Profile (08 Sep 2026)</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Due Date</span>
+                  <span class="summary-val" id="sumDueDate">22 Sep 2026</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Assigned To</span>
+                  <span class="summary-val" id="sumAssigned">Sneha</span>
+                </div>
+                <div class="summary-row summary-highlight-row">
+                  <span class="summary-label">Estimated Amount</span>
+                  <span class="summary-val amount-val" id="sumEstimatedAmount">₹12,500</span>
+                </div>
+              </div>
+
+              <!-- Highlighted Advance Payment Sub-Card -->
+              <div class="advance-payment-card" id="advancePaymentCard">
+                <div class="adv-left">
+                  <div class="rupee-icon-badge">₹</div>
+                  <div>
+                    <div class="adv-label">Advance Payment</div>
+                    <div class="adv-amount" id="advanceSummaryDisplay">₹6,250 (50%)</div>
+                  </div>
+                </div>
+                <div class="adv-right">
+                  <div class="collected-badge">
+                    <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
+                    <span>Collected</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- TIMELINE CARD -->
+            <section class="section-card" id="cardTimeline">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="icon-badge-lime">
+                    <i data-lucide="clock" style="width:16px;height:16px;"></i>
+                  </div>
+                  <div>
+                    <h2 class="card-title">Timeline</h2>
+                    <p class="card-subtitle">Key dates for this order</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vertical Timeline Structure -->
+              <div class="vertical-timeline" id="orderTimeline">
+
+                <!-- 1. Order Created -->
+                <div class="timeline-step">
+                  <div class="tl-node-col">
+                    <div class="tl-dot purple"></div>
+                    <div class="tl-line"></div>
+                  </div>
+                  <div class="tl-content-row">
+                    <span class="tl-title">Order Created</span>
+                    <div class="tl-date-group">
+                      <span class="tl-date" id="tlDateCreated">08 Sep 2026</span>
+                      <span class="badge-today">Today</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Design Approval -->
+                <div class="timeline-step">
+                  <div class="tl-node-col">
+                    <div class="tl-dot muted"></div>
+                    <div class="tl-line"></div>
+                  </div>
+                  <div class="tl-content-row">
+                    <span class="tl-title">Design Approval</span>
+                    <span class="tl-date" id="tlDateDesign">10 Sep 2026</span>
+                  </div>
+                </div>
+
+                <!-- 3. Fabric Confirmation -->
+                <div class="timeline-step">
+                  <div class="tl-node-col">
+                    <div class="tl-dot lime"></div>
+                    <div class="tl-line"></div>
+                  </div>
+                  <div class="tl-content-row">
+                    <span class="tl-title">Fabric Confirmation</span>
+                    <span class="tl-date" id="tlDateFabric">12 Sep 2026</span>
+                  </div>
+                </div>
+
+                <!-- 4. Start Production -->
+                <div class="timeline-step">
+                  <div class="tl-node-col">
+                    <div class="tl-dot muted"></div>
+                    <div class="tl-line"></div>
+                  </div>
+                  <div class="tl-content-row">
+                    <span class="tl-title">Start Production</span>
+                    <span class="tl-date" id="tlDateProd">13 Sep 2026</span>
+                  </div>
+                </div>
+
+                <!-- 5. Trial (If required) -->
+                <div class="timeline-step">
+                  <div class="tl-node-col">
+                    <div class="tl-dot purple-ring"></div>
+                    <div class="tl-line"></div>
+                  </div>
+                  <div class="tl-content-row">
+                    <span class="tl-title">Trial (If required)</span>
+                    <span class="tl-date" id="tlDateTrial">18 Sep 2026</span>
+                  </div>
+                </div>
+
+                <!-- 6. Expected Delivery -->
+                <div class="timeline-step">
+                  <div class="tl-node-col">
+                    <div class="tl-dot lime"></div>
+                  </div>
+                  <div class="tl-content-row">
+                    <span class="tl-title">Expected Delivery</span>
+                    <span class="tl-date" id="tlDateDelivery">22 Sep 2026</span>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- BOTTOM ACTION BUTTONS -->
+            <div class="bottom-actions-row">
+              <button type="button" class="btn-ghost-draft" id="btnSaveDraft" onclick="saveOrderDraft()">
+                <span>Save as Draft</span>
+              </button>
+              <button type="button" class="btn-create-order" id="btnCreateOrder" onclick="submitCreateOrder()">
+                <span>Create Order</span>
+                <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div><!-- /new-order-scroll -->
+
+      <!-- Footer slot - injected by fragments.js -->
+      <div id="footerSlot"></div><!-- /footerSlot -->
+
+    </main>
+  </div><!-- /appShell -->
+
+  <!-- =====================================================
+       MODAL: ADD NEW CUSTOMER
+       ===================================================== -->
+  <div class="modal-backdrop" id="newCustomerModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="user-plus" style="width:18px;height:18px;color:var(--lime,#d4ff32);"></i>
+          <h3 class="modal-title">Add New Customer</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeNewCustomerModal()">&times;</button>
+      </div>
+      <form id="newCustomerForm" onsubmit="handleCreateCustomer(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="ncName">Customer Name <span style="color:#f87171;">*</span></label>
+            <input type="text" id="ncName" class="form-input" required placeholder="e.g. Radhika Menon" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ncPhone">Mobile Number <span style="color:#f87171;">*</span></label>
+            <input type="tel" id="ncPhone" class="form-input" required placeholder="e.g. +91 98401 23456" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ncEmail">Email Address</label>
+            <input type="email" id="ncEmail" class="form-input" placeholder="e.g. radhika.menon@gmail.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ncLocation">Location / City</label>
+            <input type="text" id="ncLocation" class="form-input" placeholder="e.g. T. Nagar, Chennai" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeNewCustomerModal()">Cancel</button>
+          <button type="submit" class="btn-primary-action">Save &amp; Select Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL: MEASUREMENT PROFILE VIEWER
+       ===================================================== -->
+  <div class="modal-backdrop" id="profileViewerModal" style="display:none;">
+    <div class="modal-card modal-card-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="ruler" style="width:18px;height:18px;color:var(--lime,#d4ff32);"></i>
+          <h3 class="modal-title">Customer Measurement Profiles</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeProfileViewerModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-tabs-row" id="profileTabsRow">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="profile-specs-grid" id="profileSpecsGrid">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeProfileViewerModal()">Close</button>
+        <button type="button" class="btn-primary-action" onclick="applySelectedProfile()">Use This Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL: ORDER CREATION SUCCESS CONFIRMATION
+       ===================================================== -->
+  <div class="modal-backdrop" id="orderSuccessModal" style="display:none;">
+    <div class="modal-card modal-card-success">
+      <div class="success-icon-wrap">
+        <i data-lucide="check" class="success-check-icon"></i>
+      </div>
+      <h3 class="modal-success-title">Order Created Successfully!</h3>
+      <p class="modal-success-desc">New order job card has been generated and queued for production.</p>
+      <div class="order-id-pill" id="createdOrderIdDisplay">—</div>
+
+      <div class="success-meta-table">
+        <div class="sm-row"><span>Customer:</span><strong id="succCustomer">—</strong></div>
+        <div class="sm-row"><span>Garment:</span><strong id="succGarment">—</strong></div>
+        <div class="sm-row"><span>Delivery Date:</span><strong id="succDelivery">—</strong></div>
+        <div class="sm-row"><span>Total Amount:</span><strong id="succAmount">—</strong></div>
+      </div>
+
+      <div class="modal-footer justify-center">
+        <button type="button" class="btn-ghost" onclick="window.location.href='../view-order/view-order.html'">View Order</button>
+        <button type="button" class="btn-ghost" onclick="window.location.href='../../dashboard/dashboard.html'">Go to Dashboard</button>
+        <button type="button" class="btn-primary-action" onclick="resetNewOrderForm()">Create Another Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Page Logic Script -->
+  <script src="new-order.js?v=2.5"></script>
+
+  <!-- Lucide Icon Initialization -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Studio — Haulo Boutique ERP</title>
+  <meta name="description" content="Haulo Boutique ERP — Luxury fashion boutique design studio and design library. Browse, manage and organise design collections from concept to creation." />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400;1,600&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Unified Navigation & Page Styles -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="design-studio.css?v=3.0" />
+  <script src="../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+</head>
+<body data-module="designs">
+
+  <!-- Atmospheric Boutique Background Layer -->
+  <div class="app-background">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-image-layer"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- Main Unified Application Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar slot — injected by fragments.js -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Navbar slot — injected by fragments.js -->
+      <div id="navbarSlot"></div>
+
+      <!-- Design Studio Content Container -->
+      <div class="studio-content" id="studioContent">
+
+        <!-- ===================================================================
+             1. PAGE HEADER ROW: BREADCRUMB, TITLE & TOP ACTIONS
+             =================================================================== -->
+        <header class="page-header-row">
+          <div class="header-left">
+            <span class="page-breadcrumb">
+              <a href="../dashboard/dashboard.html" style="text-decoration:none;color:inherit;opacity:0.75;">Dashboard</a> &gt; Design
+            </span>
+            <h1 class="page-title">Design Studio / Design Library</h1>
+            <p class="page-subtitle">Create, manage and organise your design collections. From concept to creation.</p>
+          </div>
+          <div class="header-actions">
+            <button type="button" class="btn-new-design" id="btnNewDesign" aria-label="Create New Design">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i>
+              <span>New Design</span>
+            </button>
+            <button type="button" class="btn-icon-more" id="btnMoreHeaderOptions" aria-label="More Options">
+              <i data-lucide="more-horizontal" style="width:18px;height:18px;"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- ===================================================================
+             2. KPI ANALYTICS STRIP (6 CARDS)
+             =================================================================== -->
+        <section class="kpi-grid" aria-label="Design Analytics Summary">
+
+          <!-- KPI 1: Total Designs -->
+          <div class="kpi-card" id="kpiTotalDesigns">
+            <div class="kpi-icon-box icon-yellow">
+              <i data-lucide="palette" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Total Designs</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiTotalDesignsVal">0</span>
+              </div>
+              <span class="kpi-trend trend-up">
+                <i data-lucide="arrow-up-right" style="width:13px;height:13px;"></i>
+                Catalog
+              </span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Active Collections -->
+          <div class="kpi-card" id="kpiActiveCollections">
+            <div class="kpi-icon-box icon-lavender">
+              <i data-lucide="shopping-bag" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Active Collections</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiActiveCollectionsVal">0</span>
+              </div>
+              <span class="kpi-subtext">Curated collections</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Most Used Fabric -->
+          <div class="kpi-card" id="kpiMostUsedFabric">
+            <div class="kpi-icon-box icon-green">
+              <i data-lucide="layers" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Most Used Fabric</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value-text" id="kpiMostUsedFabricVal">—</span>
+              </div>
+              <span class="kpi-subtext" id="kpiMostUsedFabricSub">By design usage</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Popular Category -->
+          <div class="kpi-card" id="kpiPopularCategory">
+            <div class="kpi-icon-box icon-gold">
+              <i data-lucide="crown" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Popular Category</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value-text" id="kpiPopularCategoryVal">—</span>
+              </div>
+              <span class="kpi-subtext" id="kpiPopularCategorySub">Top garment type</span>
+            </div>
+          </div>
+
+          <!-- KPI 5: Designs to Production -->
+          <div class="kpi-card" id="kpiDesignsProduction">
+            <div class="kpi-icon-box icon-pink">
+              <i data-lucide="scissors" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Designs to Production</span>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiDesignsProductionVal">0</span>
+              </div>
+              <span class="kpi-trend trend-up">
+                <i data-lucide="arrow-up-right" style="width:13px;height:13px;"></i>
+                Active orders
+              </span>
+            </div>
+          </div>
+
+          <!-- KPI 6: By Category Donut Chart -->
+          <div class="kpi-card kpi-chart-card" id="kpiCategoryChart">
+            <div class="donut-container">
+              <canvas id="categoryDonutChart" width="86" height="86"></canvas>
+              <div class="donut-center-text">
+                <span class="donut-center-number" id="donutTotalCount">0</span>
+                <span class="donut-center-label">Total</span>
+              </div>
+            </div>
+            <div class="donut-legend-col">
+              <div class="donut-title">By Category</div>
+              <div class="donut-legend-items">
+                <!-- Rendered dynamically via design-studio.js based on live database data -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             3. CATEGORY TABS & SEARCH / FILTER / SORT BAR
+             =================================================================== -->
+        <div class="filter-action-toolbar">
+
+          <!-- Category Filter Tabs (Dynamic Counts Injected via JS) -->
+          <!-- Category Filter Tabs (Populated 100% Dynamically from Database via JS) -->
+          <nav class="category-tabs" id="categoryTabs" aria-label="Design Categories"></nav>
+
+          <!-- Search, Filter, Sort, and View Controls -->
+          <div class="toolbar-controls">
+
+            <!-- Live Search Bar -->
+            <div class="search-input-wrap">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="designSearchInput" placeholder="Search by design name, code, category..." aria-label="Search designs" />
+              <kbd class="search-kbd">⌘ K</kbd>
+              <button type="button" class="clear-search-btn" id="btnClearSearch" title="Clear Search" style="display:none;">&times;</button>
+            </div>
+
+            <!-- Filter Trigger Button -->
+            <div class="dropdown-wrap">
+              <button type="button" class="btn-tool" id="btnToggleFilter" aria-label="Open Filter Options">
+                <i data-lucide="filter" style="width:14px;height:14px;"></i>
+                <span>Filter</span>
+                <span class="filter-active-indicator" id="filterActiveBadge" style="display:none;"></span>
+              </button>
+            </div>
+
+            <!-- Sort Trigger Button -->
+            <div class="dropdown-wrap">
+              <button type="button" class="btn-tool" id="btnSortDropdown" aria-label="Sort options">
+                <i data-lucide="arrow-up-down" style="width:14px;height:14px;"></i>
+                <span id="sortButtonLabel">Sort</span>
+              </button>
+            </div>
+
+            <!-- View Toggle: Table vs Grid -->
+            <div class="view-toggle-group" role="group" aria-label="View toggle">
+              <button type="button" class="btn-view-toggle active" id="btnViewTable" title="Table View" aria-label="Table View">
+                <i data-lucide="table" style="width:14px;height:14px;"></i>
+                <span class="view-toggle-label">Table</span>
+              </button>
+              <button type="button" class="btn-view-toggle" id="btnViewGrid" title="Grid View" aria-label="Grid View">
+                <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
+                <span class="view-toggle-label">Grid</span>
+              </button>
+              <button type="button" class="btn-view-toggle" id="btnViewList" title="List View" aria-label="List View" style="display:none;"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             4. MAIN WORKSPACE: GALLERY GRID & DETAIL PANEL
+             =================================================================== -->
+        <div class="studio-workspace" id="studioWorkspace">
+
+          <!-- LEFT COLUMN: CARDS GALLERY / LIST VIEW -->
+          <div class="gallery-column">
+
+            <!-- Grid Mode Container -->
+            <div class="gallery-grid" id="designGrid">
+              <!-- Rendered dynamically via design-studio.js -->
+            </div>
+
+            <!-- Table View Container -->
+            <div class="design-list-container" id="designListContainer">
+              <div class="table-responsive-wrapper">
+                <table class="design-table" id="designTable">
+                  <thead>
+                    <tr>
+                      <th class="th-checkbox" style="width:36px;text-align:center;">
+                        <input type="checkbox" id="selectAllDesigns" class="design-checkbox" title="Select All Designs" aria-label="Select all designs" />
+                      </th>
+                      <th class="sortable-th" data-sort="code" style="min-width:115px;">
+                        <span>Design ID</span>
+                        <i data-lucide="arrow-up-down" class="th-sort-icon"></i>
+                      </th>
+                      <th style="width:52px;text-align:center;">Garment</th>
+                      <th class="sortable-th" data-sort="name" style="min-width:170px;">
+                        <span>Design Name</span>
+                        <i data-lucide="arrow-up-down" class="th-sort-icon"></i>
+                      </th>
+                      <th class="sortable-th" data-sort="category" style="min-width:105px;">
+                        <span>Category</span>
+                        <i data-lucide="arrow-up-down" class="th-sort-icon"></i>
+                      </th>
+                      <th style="min-width:140px;">Fabric & Palette</th>
+                      <th style="min-width:130px;">Style / Occasion</th>
+                      <th class="sortable-th" data-sort="status" style="min-width:105px;">
+                        <span>Status</span>
+                        <i data-lucide="arrow-up-down" class="th-sort-icon"></i>
+                      </th>
+                      <th class="sortable-th" data-sort="cost" style="min-width:95px;">
+                        <span>Est. Cost</span>
+                        <i data-lucide="arrow-up-down" class="th-sort-icon"></i>
+                      </th>
+                      <th class="sortable-th" data-sort="price" style="min-width:110px;">
+                        <span>Suggested</span>
+                        <i data-lucide="arrow-up-down" class="th-sort-icon"></i>
+                      </th>
+                      <th style="text-align:right;min-width:100px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="designListTbody">
+                    <!-- Rendered dynamically via design-studio.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Empty State Display -->
+            <div class="gallery-empty-state" id="galleryEmptyState" style="display:none;">
+              <div class="empty-icon-wrap">
+                <i data-lucide="x-circle" style="width:36px;height:36px;color:var(--text-muted);"></i>
+              </div>
+              <h3 class="empty-title">No designs match your criteria</h3>
+              <p class="empty-desc">Try clearing your search query or relaxing your active filters to see all available designs.</p>
+              <button type="button" class="btn-secondary-glass" id="btnResetAllFilters">Reset All Filters</button>
+            </div>
+
+            <!-- Pagination Row -->
+            <footer class="pagination-bar" id="paginationBar" style="display:none;">
+              <span class="pagination-info" id="paginationInfo">Showing 0 designs</span>
+              <div class="pagination-controls" id="paginationControls">
+                <!-- Rendered dynamically via design-studio.js -->
+              </div>
+            </footer>
+          </div>
+
+          <!-- RIGHT COLUMN: SELECTED DESIGN DETAIL PANEL -->
+          <aside class="detail-column" id="selectedDesignPanel" aria-label="Design Details" style="display:none;">
+
+            <!-- Header Row: Code, Category Pill, Favorite, Menu & Close -->
+            <div class="detail-header-row">
+              <div class="detail-header-left">
+                <span class="detail-code" id="detailCode">—</span>
+                <span class="detail-header-category-badge" id="headerCategoryBadge" style="display:none;"></span>
+              </div>
+              <div class="detail-header-actions">
+                <button type="button" class="btn-detail-icon" id="btnDetailFavorite" title="Add to Favorites" aria-label="Favorite this design">
+                  <i data-lucide="heart" class="heart-icon"></i>
+                </button>
+                <button type="button" class="btn-detail-icon" id="btnDetailMoreMenu" title="More Actions" aria-label="More actions for this design">
+                  <i data-lucide="more-horizontal" style="width:16px;height:16px;"></i>
+                </button>
+                <button type="button" class="btn-detail-icon" id="btnDetailClose" title="Close Panel" aria-label="Close detail panel">
+                  <i data-lucide="x" style="width:15px;height:15px;"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Title & Category Badges -->
+            <h2 class="detail-title" id="detailTitle">Select a Design</h2>
+            <div class="detail-badges" id="detailBadges">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Editorial Description -->
+            <p class="detail-description" id="detailDescription"></p>
+
+            <!-- Interactive Image Gallery: Thumbnails + Large Preview -->
+            <div class="detail-gallery-row">
+              <div class="thumbnail-strip" id="thumbnailStrip">
+                <!-- Thumbnails rendered dynamically via design-studio.js -->
+              </div>
+              <div class="main-preview-wrap" id="mainPreviewWrap">
+                <img id="detailMainImage" src="" alt="Selected Design Main Image" />
+                <span class="preview-category-chip" id="previewCategoryChip" style="display:none;"></span>
+                <div class="zoom-overlay-hint">
+                  <i data-lucide="maximize-2" style="width:14px;height:14px;"></i>
+                  <span>Click to view full preview</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Color Swatches Row -->
+            <div class="detail-colors-wrap">
+              <span class="colors-label">Available Shades:</span>
+              <div class="color-swatches-list" id="colorSwatchesList">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Action Buttons: Use in New Order & Edit Design -->
+            <div class="detail-actions-row">
+              <button type="button" class="btn-primary-dark" id="btnUseInNewOrder">
+                <i data-lucide="shopping-cart" style="width:15px;height:15px;"></i>
+                <span>Use in New Order</span>
+              </button>
+              <button type="button" class="btn-secondary-glass" id="btnEditDesign">
+                <i data-lucide="edit-3" style="width:14px;height:14px;"></i>
+                <span>Edit Design</span>
+              </button>
+            </div>
+
+            <!-- Detail Tabs: Details, Materials, Measurements, Production, Related Orders -->
+            <div class="detail-tabs-bar" id="detailTabsBar">
+              <button type="button" class="detail-tab active" data-tab="details">Details</button>
+              <button type="button" class="detail-tab" data-tab="materials">Materials</button>
+              <button type="button" class="detail-tab" data-tab="measurements">Measurements</button>
+              <button type="button" class="detail-tab" data-tab="production">Production</button>
+              <button type="button" class="detail-tab" data-tab="orders" title="Related Orders">Orders</button>
+            </div>
+
+            <!-- Tab Content Display Pane -->
+            <div class="detail-tab-pane" id="detailTabPane">
+              <!-- Rendered dynamically via design-studio.js -->
+            </div>
+
+            <!-- Tags Section at Bottom -->
+            <div class="detail-tags-section">
+              <span class="tags-title">Tags:</span>
+              <div class="tags-list" id="detailTagsList">
+                <!-- Rendered dynamically via design-studio.js -->
+              </div>
+              <button type="button" class="btn-add-tag" id="btnAddTag" title="Add Tag" aria-label="Add new tag">+</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <!-- /studio-content -->
+
+      <!-- Footer slot — injected by fragments.js -->
+      <div id="footerSlot"></div>
+    </main>
+    <!-- /main-content -->
+  </div>
+  <!-- /app-shell -->
+
+  <!-- ===================================================================
+       5. INTERACTIVE MODALS & OVERLAYS
+       =================================================================== -->
+
+  <!-- Modal: Create New Design -->
+  <div class="modal-backdrop" id="modalCreateDesign" style="display: none;">
+    <div class="modal-card modal-large" role="dialog" aria-modal="true" aria-labelledby="modalCreateTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <i data-lucide="plus-circle" style="width:18px;height:18px;color:var(--accent-lime);"></i>
+          <h3 class="modal-title" id="modalCreateTitle">Create New Design</h3>
+        </div>
+        <button type="button" class="btn-modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="formCreateDesign">
+        <div class="modal-body form-grid-modal">
+          <div class="form-group">
+            <label for="newDesignName">Design Name *</label>
+            <input type="text" id="newDesignName" required placeholder="e.g. Embroidered Silk Blouse" />
+          </div>
+          <div class="form-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <label for="newDesignCode">Design Code *</label>
+              <span class="badge-auto-code" id="badgeAutoCode"><i data-lucide="sparkles" style="width:11px;height:11px;"></i> Auto</span>
+            </div>
+            <div class="auto-code-input-wrap">
+              <input type="text" id="newDesignCode" required placeholder="Auto-generating code..." />
+              <button type="button" class="btn-code-refresh" id="btnRegenDesignCode" title="Regenerate next code" aria-label="Regenerate code">
+                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="newDesignCategory">Category *</label>
+            <select id="newDesignCategory" required>
+              <option value="">Select Category</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newDesignSubCat">Sub Category / Tag</label>
+            <input type="text" id="newDesignSubCat" placeholder="e.g. Bridal, Festive, Wedding" />
+          </div>
+          <div class="form-group">
+            <label for="newDesignStyle">Style</label>
+            <input type="text" id="newDesignStyle" list="dbStyleList" placeholder="e.g. Embroidered, Printed, Handloom" />
+          </div>
+          <div class="form-group">
+            <label for="newDesignOccasion">Occasion</label>
+            <input type="text" id="newDesignOccasion" list="dbOccasionList" placeholder="e.g. Wedding, Reception, Festive" />
+          </div>
+          <div class="form-group">
+            <label for="newDesignFabric">Primary Fabric</label>
+            <input type="text" id="newDesignFabric" list="dbFabricList" placeholder="e.g. Banarasi Silk, Velvet, Chanderi" />
+          </div>
+          <div class="form-group">
+            <label for="newDesignCost">Estimated Cost (₹)</label>
+            <input type="number" id="newDesignCost" placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label for="newDesignPrice">Suggested Price (₹)</label>
+            <input type="number" id="newDesignPrice" placeholder="0.00" />
+          </div>
+          <div class="form-group full-width">
+            <label for="newDesignDesc">Description</label>
+            <textarea id="newDesignDesc" rows="3" placeholder="Enter design highlights, embroidery details, styling suggestions..."></textarea>
+          </div>
+          <div class="form-group full-width">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <label>Design Images</label>
+              <span style="font-size:11px;color:var(--text-muted);" id="createImageCountHint">0 photos selected</span>
+            </div>
+            <div class="file-dropzone" id="createDropzone">
+              <i data-lucide="images" style="width:24px;height:24px;color:var(--accent-lime);margin-bottom:6px;"></i>
+              <span class="dropzone-text">Click or drag & drop photos (select multiple)</span>
+              <span class="dropzone-sub">Supports JPG, PNG, WEBP — First image is primary</span>
+              <input type="file" id="newDesignImageFile" accept="image/*" multiple style="display:none;" />
+            </div>
+            <div class="multi-image-preview-grid" id="createImagePreviewGrid" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-glass" data-close-modal>Cancel</button>
+          <button type="submit" class="btn-primary-dark">
+            <i data-lucide="check" style="width:15px;height:15px;"></i>
+            <span>Create Design</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Design -->
+  <div class="modal-backdrop" id="modalEditDesign" style="display: none;">
+    <div class="modal-card modal-large" role="dialog" aria-modal="true" aria-labelledby="modalEditTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <i data-lucide="edit-3" style="width:18px;height:18px;color:var(--accent-lime);"></i>
+          <h3 class="modal-title" id="modalEditTitle">Edit Design</h3>
+        </div>
+        <button type="button" class="btn-modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="formEditDesign">
+        <input type="hidden" id="editDesignId" />
+        <div class="modal-body form-grid-modal">
+          <div class="form-group">
+            <label for="editDesignName">Design Name *</label>
+            <input type="text" id="editDesignName" required />
+          </div>
+          <div class="form-group">
+            <label for="editDesignCode">Design Code</label>
+            <input type="text" id="editDesignCode" readonly style="opacity:0.7;" />
+          </div>
+          <div class="form-group">
+            <label for="editDesignCategory">Category *</label>
+            <select id="editDesignCategory" required>
+              <option value="">Select Category</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editDesignSubCat">Sub Category / Tag</label>
+            <input type="text" id="editDesignSubCat" />
+          </div>
+          <div class="form-group">
+            <label for="editDesignStyle">Style</label>
+            <input type="text" id="editDesignStyle" list="dbStyleList" />
+          </div>
+          <div class="form-group">
+            <label for="editDesignOccasion">Occasion</label>
+            <input type="text" id="editDesignOccasion" list="dbOccasionList" />
+          </div>
+          <div class="form-group">
+            <label for="editDesignFabric">Primary Fabric</label>
+            <input type="text" id="editDesignFabric" list="dbFabricList" />
+          </div>
+          <div class="form-group">
+            <label for="editDesignCost">Estimated Cost (₹)</label>
+            <input type="number" id="editDesignCost" />
+          </div>
+          <div class="form-group">
+            <label for="editDesignPrice">Suggested Price (₹)</label>
+            <input type="number" id="editDesignPrice" />
+          </div>
+          <div class="form-group full-width">
+            <label for="editDesignDesc">Description</label>
+            <textarea id="editDesignDesc" rows="3"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <label>Design Images</label>
+              <span style="font-size:11px;color:var(--text-muted);" id="editImageCountHint">0 photos</span>
+            </div>
+            <div class="file-dropzone" id="editDropzone">
+              <i data-lucide="images" style="width:24px;height:24px;color:var(--accent-lime);margin-bottom:6px;"></i>
+              <span class="dropzone-text">Click or drag & drop to add more photos</span>
+              <span class="dropzone-sub">Supports multiple JPG, PNG, WEBP files</span>
+              <input type="file" id="editDesignImageFile" accept="image/*" multiple style="display:none;" />
+            </div>
+            <div class="multi-image-preview-grid" id="editImagePreviewGrid" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-glass" data-close-modal>Cancel</button>
+          <button type="submit" class="btn-primary-dark">
+            <i data-lucide="check" style="width:15px;height:15px;"></i>
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Use in New Order -->
+  <div class="modal-backdrop" id="modalUseInOrder" style="display: none;">
+    <div class="modal-card modal-medium" role="dialog" aria-modal="true" aria-labelledby="modalOrderTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <i data-lucide="shopping-cart" style="width:18px;height:18px;color:var(--accent-lime);"></i>
+          <h3 class="modal-title" id="modalOrderTitle">Use Design in New Order</h3>
+        </div>
+        <button type="button" class="btn-modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="formUseInOrder">
+        <div class="modal-body form-grid-modal">
+          <div class="form-group">
+            <label for="orderDesignName">Selected Design</label>
+            <input type="text" id="orderDesignName" readonly style="opacity:0.75;" />
+          </div>
+          <div class="form-group">
+            <label for="orderDesignCode">Design Code</label>
+            <input type="text" id="orderDesignCode" readonly style="opacity:0.75;" />
+          </div>
+          <div class="form-group">
+            <label for="orderCustomerName">Customer Name *</label>
+            <input type="text" id="orderCustomerName" required placeholder="Enter customer name" />
+          </div>
+          <div class="form-group">
+            <label for="orderGarmentType">Garment Type</label>
+            <input type="text" id="orderGarmentType" readonly style="opacity:0.75;" />
+          </div>
+          <div class="form-group">
+            <label for="orderQuantity">Quantity</label>
+            <input type="number" id="orderQuantity" min="1" value="1" />
+          </div>
+          <div class="form-group">
+            <label for="orderDueDate">Target Delivery Date *</label>
+            <input type="date" id="orderDueDate" required />
+          </div>
+          <div class="form-group">
+            <label for="orderPrice">Final Agreed Price (₹)</label>
+            <input type="number" id="orderPrice" required />
+          </div>
+          <div class="form-group full-width">
+            <label for="orderNotes">Customisation & Fitting Notes</label>
+            <textarea id="orderNotes" rows="2" placeholder="e.g. Deep back neckline, attach gold latkans, customer provides fabric..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-glass" data-close-modal>Cancel</button>
+          <button type="submit" class="btn-primary-dark">
+            <i data-lucide="check" style="width:15px;height:15px;"></i>
+            <span>Create Order</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add to Collection -->
+  <div class="modal-backdrop" id="modalAddToCollection" style="display: none;">
+    <div class="modal-card modal-small" role="dialog" aria-modal="true" aria-labelledby="modalCollectionTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <i data-lucide="folder-plus" style="width:18px;height:18px;color:var(--accent-lime);"></i>
+          <h3 class="modal-title" id="modalCollectionTitle">Add to Collection</h3>
+        </div>
+        <button type="button" class="btn-modal-close" data-close-modal>&times;</button>
+      </div>
+      <form id="formAddToCollection">
+        <div class="modal-body">
+          <p class="modal-subtitle" id="collectionTargetDesignText">Select collection for design:</p>
+          <div class="collection-options-list" id="collectionOptionsList">
+            <!-- Populated dynamically from live collections in database -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-glass" data-close-modal>Cancel</button>
+          <button type="submit" class="btn-primary-dark">Add to Collection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Delete Confirmation -->
+  <div class="modal-backdrop" id="modalDeleteConfirm" style="display: none;">
+    <div class="modal-card modal-small" role="dialog" aria-modal="true" aria-labelledby="modalDeleteTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <i data-lucide="trash-2" style="width:18px;height:18px;color:#FF6E6E;"></i>
+          <h3 class="modal-title" id="modalDeleteTitle">Delete Design?</h3>
+        </div>
+        <button type="button" class="btn-modal-close" data-close-modal>&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-message">Are you sure you want to delete <strong id="deleteDesignName">—</strong>?</p>
+        <p class="confirm-sub">This action cannot be undone. Associated orders will maintain historical design records.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary-glass" data-close-modal>Cancel</button>
+        <button type="button" class="btn-danger" id="btnConfirmDelete">Delete Design</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox: Full-Screen Image Preview -->
+  <div class="lightbox-backdrop" id="imageLightbox" style="display: none;" role="dialog" aria-modal="true">
+    <button type="button" class="btn-lightbox-close" id="btnCloseLightbox" aria-label="Close Preview">&times;</button>
+    <button type="button" class="btn-lightbox-nav btn-lightbox-prev" id="btnLightboxPrev" aria-label="Previous image">
+      <i data-lucide="chevron-left" style="width:28px;height:28px;"></i>
+    </button>
+    <div class="lightbox-content">
+      <img id="lightboxImage" src="" alt="Design Full Preview" />
+      <div class="lightbox-caption" id="lightboxCaption"></div>
+    </div>
+    <button type="button" class="btn-lightbox-nav btn-lightbox-next" id="btnLightboxNext" aria-label="Next image">
+      <i data-lucide="chevron-right" style="width:28px;height:28px;"></i>
+    </button>
+  </div>
+
+  <!-- Popover: Filters Dropdown -->
+  <div class="filter-popover" id="filterPopover" style="display: none;">
+    <div class="popover-header">
+      <h4>Filter Designs</h4>
+      <button type="button" class="btn-popover-close" id="btnCloseFilterPopover">&times;</button>
+    </div>
+    <div class="popover-body">
+      <div class="filter-field">
+        <label for="filterStyle">Style</label>
+        <select id="filterStyle">
+          <option value="">All Styles</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="filterOccasion">Occasion</label>
+        <select id="filterOccasion">
+          <option value="">All Occasions</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="filterFabric">Primary Fabric</label>
+        <select id="filterFabric">
+          <option value="">All Fabrics</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="filterStatus">Production Status</label>
+        <select id="filterStatus">
+          <option value="">All Statuses</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label class="checkbox-label" for="filterFavoritesOnly">
+          <input type="checkbox" id="filterFavoritesOnly" />
+          <span>Show Favorites Only</span>
+        </label>
+      </div>
+    </div>
+    <div class="popover-footer">
+      <button type="button" class="btn-link" id="btnClearPopoverFilters">Clear All</button>
+      <button type="button" class="btn-primary-dark" id="btnApplyPopoverFilters">Apply Filters</button>
+    </div>
+  </div>
+
+  <!-- Popover: Sort Menu -->
+  <div class="sort-popover" id="sortPopover" style="display: none;">
+    <button type="button" class="sort-option-btn active" data-sort="newest">Newest First</button>
+    <button type="button" class="sort-option-btn" data-sort="oldest">Oldest First</button>
+    <button type="button" class="sort-option-btn" data-sort="most-used">Most Used in Orders</button>
+    <button type="button" class="sort-option-btn" data-sort="name-asc">Name A to Z</button>
+    <button type="button" class="sort-option-btn" data-sort="name-desc">Name Z to A</button>
+    <button type="button" class="sort-option-btn" data-sort="price-asc">Price: Low to High</button>
+    <button type="button" class="sort-option-btn" data-sort="price-desc">Price: High to Low</button>
+  </div>
+
+  <!-- Popover: Add Tag -->
+  <div class="add-tag-popover" id="addTagPopover" style="display: none;">
+    <input type="text" id="inputNewTag" placeholder="Enter tag name..." maxlength="20" />
+    <button type="button" class="btn-save-tag" id="btnSaveTag">Add</button>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Dynamic Autocomplete Datalists populated from Database -->
+  <datalist id="dbFabricList"></datalist>
+  <datalist id="dbStyleList"></datalist>
+  <datalist id="dbOccasionList"></datalist>
+
+  <!-- Scripts -->
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+  <script src="design-studio.js?v=3.0"></script>
+</body>
+</html>
