@@ -4,21 +4,21 @@
  * Path: front end/quality-control/quality-control.js
  */
 
-// Fallback image in case any image fails to load
-const FALLBACK_IMG = '../assets/designs/blouse-stage.png';
+// Neutral SVG silhouette in case an image fails to load or no photo is provided
+const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
 
-// Local Garment Images Map
+// Garment default fallback (uses neutral silhouette instead of mock photos)
 const GARMENT_IMG_MAP = {
-  Blouse: '../assets/designs/blouse-stage.png',
-  'Bridal Blouse': '../assets/designs/zari-bloom-front.jpg',
-  Lehenga: '../assets/designs/lehenga-stage.png',
-  'Designer Lehenga': '../assets/designs/lehenga-mannequin.png',
-  'Chudi Set': '../assets/designs/chudi-stage.png',
-  Chudi: '../assets/designs/chudi-stage.png',
-  Saree: '../assets/designs/saree-stage.png',
-  'Silk Saree': '../assets/designs/saree-stage.png',
-  Gown: '../assets/designs/gown-stage.png',
-  default: '../assets/designs/blouse-stage.png'
+  Blouse: FALLBACK_IMG,
+  'Bridal Blouse': FALLBACK_IMG,
+  Lehenga: FALLBACK_IMG,
+  'Designer Lehenga': FALLBACK_IMG,
+  'Chudi Set': FALLBACK_IMG,
+  Chudi: FALLBACK_IMG,
+  Saree: FALLBACK_IMG,
+  'Silk Saree': FALLBACK_IMG,
+  Gown: FALLBACK_IMG,
+  default: FALLBACK_IMG
 };
 
 // QC Orders (loaded from API)
@@ -58,6 +58,26 @@ function ensureOrderChecklist(order) {
       if (!Array.isArray(item.images)) item.images = [];
     }
   });
+}
+
+/**
+ * Calculate Checkpoint Pass Rate and Status Counts for an individual order
+ */
+function getOrderCheckpointStats(order) {
+  if (!order) {
+    return { passed: 0, failed: 0, pending: 6, total: 6, rate: 0 };
+  }
+  ensureOrderChecklist(order);
+  const keys = ['stitching', 'measurements', 'fabric', 'finishing', 'accessories', 'overall'];
+  let passed = 0, failed = 0, pending = 0;
+  keys.forEach(k => {
+    const st = order.checklist[k]?.status || 'Pending';
+    if (st === 'Pass') passed++;
+    else if (st === 'Fail') failed++;
+    else pending++;
+  });
+  const rate = Math.round((passed / keys.length) * 100);
+  return { passed, failed, pending, total: keys.length, rate };
 }
 
 /**
@@ -448,6 +468,7 @@ async function loadQcOrdersFromApi() {
         }
 
         const val = Number(o.totalAmount || o.amount) || 0;
+        const validRefImgs = Array.isArray(refImgs) ? refImgs.filter(s => s && typeof s === 'string' && s.trim().length > 0) : [];
 
         return {
           id: o.orderCode || ('ORD-' + o.id),
@@ -460,8 +481,8 @@ async function loadQcOrdersFromApi() {
           urgency: '',
           status: displayStatus,
           orderValue: '₹' + val.toLocaleString('en-IN'),
-          image: (refImgs && refImgs.length > 0) ? refImgs[0] : (GARMENT_IMG_MAP[o.garmentType] || GARMENT_IMG_MAP.default),
-          refImages: refImgs,
+          image: (validRefImgs.length > 0) ? validRefImgs[0] : (o.designImageUrl || o.imageUrl || FALLBACK_IMG),
+          refImages: validRefImgs,
           customerNotes: o.notes || '',
           checklist: createDefaultChecklist(),
           remarks: o.productionNotes || '',
@@ -534,6 +555,24 @@ function clearInspectionWorkspace() {
   if (heroDueDate) heroDueDate.textContent = '—';
   if (heroDueUrgency) heroDueUrgency.style.display = 'none';
   if (heroOrderValue) heroOrderValue.textContent = '—';
+
+  // Hero & Checklist Header Order Pass Rate Reset
+  const heroPassRate = document.getElementById('selectedOrderPassRate');
+  if (heroPassRate) heroPassRate.textContent = '—';
+  const pill = document.getElementById('inspectionOrderPassRate');
+  if (pill) {
+    pill.textContent = '0/6 (0%)';
+    pill.className = 'ch-pass-rate-pill';
+  }
+
+  // Customer notes reset
+  const notesBubble = document.getElementById('customerNotesText');
+  if (notesBubble) notesBubble.textContent = 'Select an order to view customer tailoring notes.';
+
+  // Clear Reference Images Grid & subtabs
+  renderRefImages([], false);
+  const photoPane = document.getElementById('subtabContentPhotos');
+  if (photoPane) renderPhotosSubtab();
 }
 
 // Active State
@@ -544,37 +583,7 @@ let currentPage = 1;
 const itemsPerPage = 8;
 let activeSubtab = 'checklist';
 
-async function updateKPISummaries() {
-  try {
-    const { default: api } = await import('../api.js');
-    const kpis = await api.qc.kpis().catch(() => null);
-    if (!kpis) return;
 
-    const elAwaiting = document.getElementById('kpiAwaitingQC');
-    const elInInsp   = document.getElementById('kpiInInspection');
-    const elPassed   = document.getElementById('kpiPassedQC');
-    const elRework   = document.getElementById('kpiReworkRequired');
-    const elReady    = document.getElementById('kpiReadyDelivery');
-
-    if (elAwaiting) elAwaiting.textContent = (kpis.awaitingQc != null ? kpis.awaitingQc : '—');
-    if (elInInsp)   elInInsp.textContent   = (kpis.inInspection != null ? kpis.inInspection : '—');
-    if (elPassed)   elPassed.textContent   = (kpis.passedQc != null ? kpis.passedQc : '—');
-    if (elRework)   elRework.textContent   = (kpis.reworkRequired != null ? kpis.reworkRequired : '—');
-    if (elReady)    elReady.textContent    = (kpis.readyForDelivery != null ? kpis.readyForDelivery : '—');
-
-    const elDonutPct = document.getElementById('donutPercentage');
-    const elLegPass  = document.getElementById('legPassedCount');
-    const elLegRew   = document.getElementById('legReworkCount');
-    const elLegPend  = document.getElementById('legPendingCount');
-
-    if (elDonutPct && kpis.passRate != null) elDonutPct.textContent = Math.round(kpis.passRate) + '%';
-    if (elLegPass && kpis.passedQc != null) elLegPass.textContent = kpis.passedQc;
-    if (elLegRew && kpis.reworkRequired != null) elLegRew.textContent = kpis.reworkRequired;
-    if (elLegPend && kpis.awaitingQc != null) elLegPend.textContent = kpis.awaitingQc;
-  } catch (e) {
-    console.error('[QC] Failed to update KPI summaries:', e.message);
-  }
-}
 
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -671,17 +680,15 @@ function renderOrdersTable() {
     }
 
     tr.onclick = (e) => {
-      if (e.target.closest('input[type="checkbox"]') || e.target.closest('.btn-row-menu')) return;
+      if (e.target.closest('.btn-row-menu')) return;
       selectOrder(order.id);
     };
 
     const statusBadgeClass = getStatusBadgeClass(order.status);
     const urgencyClass = order.urgency ? 'alert' : '';
+    const stats = getOrderCheckpointStats(order);
 
     tr.innerHTML = `
-      <td>
-        <input type="checkbox" data-order-id="${order.id}" onclick="event.stopPropagation()" />
-      </td>
       <td>
         <div class="order-user-cell">
           <img src="${order.image}" alt="${order.garment}" class="row-thumb" onerror="handleImgError(this)" loading="lazy" />
@@ -705,6 +712,17 @@ function renderOrdersTable() {
           ${order.stage === 'QC' && qcStageImageUrl ? `<img src="${qcStageImageUrl}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(212,175,55,0.7);box-shadow:0 1px 4px rgba(0,0,0,0.4);" alt="QC" onerror="this.remove()" />` : ''}
           <span>${order.stage}</span>
         </span>
+      </td>
+      <td>
+        <div class="order-qc-progress-cell">
+          <div class="qc-rate-label ${stats.failed > 0 ? 'has-fail' : (stats.rate === 100 ? 'complete' : '')}">
+            <span>${stats.passed}/${stats.total} Passed</span>
+            <span>${stats.rate}%</span>
+          </div>
+          <div class="qc-mini-progress-bar">
+            <div class="qc-mini-progress-fill ${stats.failed > 0 ? 'has-fail' : (stats.rate === 100 ? 'complete' : '')}" style="width: ${stats.rate}%;"></div>
+          </div>
+        </div>
       </td>
       <td>
         <div class="due-cell-wrap">
@@ -807,7 +825,10 @@ async function loadOrderIntoInspection(orderId) {
   const heroDueUrgency = document.getElementById('selectedDueUrgency');
   const heroOrderValue = document.getElementById('selectedOrderValue');
 
-  if (heroImg) heroImg.src = order.image;
+  if (heroImg) {
+    const validRefs = Array.isArray(order.refImages) ? order.refImages.filter(s => s && s.trim().length > 0) : [];
+    heroImg.src = (validRefs.length > 0) ? validRefs[0] : (order.image || FALLBACK_IMG);
+  }
   if (heroOrderId) {
     if (order.qcReworkCount > 0) {
       heroOrderId.innerHTML = `${order.id} <span class="qc-rework-badge" style="vertical-align:middle;margin-left:6px;" title="Sent for QC rework ${order.qcReworkCount} time(s)">⚠ QC Rework ×${order.qcReworkCount}</span>`;
@@ -864,29 +885,74 @@ async function loadOrderIntoInspection(orderId) {
 
   // Customer Notes
   const notesBubble = document.getElementById('customerNotesText');
-  if (notesBubble) notesBubble.textContent = order.customerNotes || 'No specific tailoring remarks.';
+  if (notesBubble) notesBubble.textContent = order.customerNotes || order.notes || 'No specific tailoring remarks for this order.';
 
-  // Reference Images Grid
-  renderRefImages(order.refImages || []);
+  // Reference Images Grid (Order is selected)
+  renderRefImages(order.refImages || [], true);
+  if (activeSubtab === 'photos') renderPhotosSubtab();
 }
 
-function renderRefImages(imagesList) {
+function renderRefImages(imagesList = [], isOrderSelected = false) {
   const grid = document.getElementById('refImagesGrid');
   if (!grid) return;
 
-  // Retain Add Photos tile
-  const addTile = grid.querySelector('.add-photo-tile');
   grid.innerHTML = '';
 
-  imagesList.forEach((src, idx) => {
-    const tile = document.createElement('div');
-    tile.className = 'ref-tile';
-    tile.onclick = () => openLightbox(src);
-    tile.innerHTML = `<img src="${src}" alt="Ref ${idx + 1}" class="ref-img" onerror="handleImgError(this)" />`;
-    grid.appendChild(tile);
-  });
+  if (!isOrderSelected) {
+    // State 1: No order selected
+    const emptyState = document.createElement('div');
+    emptyState.className = 'ref-empty-state';
+    emptyState.innerHTML = `
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>Select an order to view reference photos</span>
+    `;
+    grid.appendChild(emptyState);
+    return;
+  }
 
-  if (addTile) {
+  // Filter out any blank or whitespace strings
+  const validImages = Array.isArray(imagesList) ? imagesList.filter(s => s && typeof s === 'string' && s.trim().length > 0) : [];
+
+  if (validImages.length === 0) {
+    // State 2: Order selected, but 0 reference photos
+    const noPhotos = document.createElement('div');
+    noPhotos.className = 'ref-empty-state';
+    noPhotos.innerHTML = `
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      <span>No reference photos attached to this order</span>
+    `;
+    grid.appendChild(noPhotos);
+  } else {
+    // State 3: Order selected with photos
+    validImages.forEach((src, idx) => {
+      const tile = document.createElement('div');
+      tile.className = 'ref-tile';
+      tile.title = `Click to view reference photo #${idx + 1}`;
+      tile.onclick = () => openLightbox(src);
+      tile.innerHTML = `<img src="${src}" alt="Ref ${idx + 1}" class="ref-img" onerror="handleImgError(this)" />`;
+      grid.appendChild(tile);
+    });
+  }
+
+  // Add Photos Tile (if fewer than 5 photos)
+  if (validImages.length < 5) {
+    const addTile = document.createElement('div');
+    addTile.className = 'ref-tile add-photo-tile';
+    addTile.title = 'Upload photo to this order';
+    addTile.onclick = triggerPhotoUpload;
+    addTile.innerHTML = `
+      <input type="file" id="photoUploadInput" accept="image/png, image/jpeg, image/webp" style="display:none;" onchange="handlePhotoUpload(event)" />
+      <div class="add-icon-plus">+</div>
+      <span class="add-text">Add Photos</span>
+      <span class="add-subtext">JPG, PNG (Max 5MB)</span>
+    `;
     grid.appendChild(addTile);
   }
 }
@@ -1102,6 +1168,32 @@ function syncQualityGateUI(order) {
   const hasFailed = failedItems.length > 0;
   const hasPending = pendingItems.length > 0;
   const allPassed = !hasFailed && !hasPending;
+
+  // Update live per-order pass rate in header and hero
+  const stats = getOrderCheckpointStats(order);
+  const pill = document.getElementById('inspectionOrderPassRate');
+  if (pill) {
+    pill.textContent = `${stats.passed}/${stats.total} (${stats.rate}%)`;
+    pill.className = 'ch-pass-rate-pill ' + (stats.failed > 0 ? 'has-fail' : (stats.rate === 100 ? 'complete' : (stats.passed > 0 ? 'in-progress' : '')));
+  }
+  const heroRate = document.getElementById('selectedOrderPassRate');
+  if (heroRate) {
+    heroRate.textContent = `${stats.rate}% (${stats.passed}/${stats.total})`;
+  }
+
+  // Update corresponding row in table if present
+  const rowRateCell = document.querySelector(`#row-${order.id} .order-qc-progress-cell`);
+  if (rowRateCell) {
+    rowRateCell.innerHTML = `
+      <div class="qc-rate-label ${stats.failed > 0 ? 'has-fail' : (stats.rate === 100 ? 'complete' : '')}">
+        <span>${stats.passed}/${stats.total} Passed</span>
+        <span>${stats.rate}%</span>
+      </div>
+      <div class="qc-mini-progress-bar">
+        <div class="qc-mini-progress-fill ${stats.failed > 0 ? 'has-fail' : (stats.rate === 100 ? 'complete' : '')}" style="width: ${stats.rate}%;"></div>
+      </div>
+    `;
+  }
 
   const radioPass = document.getElementById('resPass');
   const radioRework = document.getElementById('resRework');
@@ -1486,7 +1578,7 @@ async function saveQCResult() {
 async function updateKPISummaries() {
   const awaiting = qcOrders.filter(o => o.status === 'Awaiting QC').length;
   const inInspection = qcOrders.filter(o => o.status === 'In Inspection').length;
-  const passed = qcOrders.filter(o => o.status === 'Passed').length;
+  const passed = qcOrders.filter(o => o.status === 'Passed' || o.status === 'Ready for Delivery').length;
   const rework = qcOrders.filter(o => o.status === 'Rework').length;
   const ready = qcOrders.filter(o => o.status === 'Ready for Delivery').length;
   const total = qcOrders.length;
@@ -1539,36 +1631,59 @@ async function updateKPISummaries() {
 
   if (legPassed) legPassed.textContent = finalPassed;
   if (legRework) legRework.textContent = finalRework;
-  if (legPending) legPending.textContent = finalAwaiting;
+  if (legPending) legPending.textContent = finalAwaiting + finalInspection;
 
   // 5. Pass rate calculation & Donut Graphic
-  let passRate = 100;
-  if (apiKpis && apiKpis.passRate != null) {
+  const totalAudited = finalPassed + finalRework;
+  let passRate = 0;
+  if (totalAudited > 0) {
+    passRate = Math.round((finalPassed / totalAudited) * 100);
+  } else if (apiKpis && apiKpis.passRate != null && Number(apiKpis.passRate) > 0) {
     passRate = Math.round(Number(apiKpis.passRate));
   } else {
-    const totalAudited = finalPassed + finalRework;
-    if (totalAudited > 0) {
-      passRate = Math.round((finalPassed / totalAudited) * 100);
-    }
+    passRate = 0;
   }
 
   const donutPct = document.getElementById('donutPercentage');
   if (donutPct) donutPct.textContent = `${passRate}%`;
 
-  updateDonutSegments(finalPassed, finalAwaiting, finalRework);
+  updateDonutSegments(finalPassed, finalAwaiting + finalInspection, finalRework);
 }
 
 function updateDonutSegments(passed, pending, rework) {
-  const total = (passed + pending + rework) || 1;
   const circumference = 239; // 2 * PI * 38 ≈ 238.76
-
-  const passLen = Math.round((passed / total) * circumference);
-  const pendLen = Math.round((pending / total) * circumference);
-  const rewLen = circumference - passLen - pendLen;
 
   const segPassed = document.querySelector('.donut-seg.seg-passed');
   const segPending = document.querySelector('.donut-seg.seg-pending');
   const segRework = document.querySelector('.donut-seg.seg-rework');
+
+  const total = passed + pending + rework;
+  if (total === 0) {
+    if (segPassed) {
+      segPassed.setAttribute('stroke-dasharray', `0 ${circumference}`);
+      segPassed.setAttribute('stroke-dashoffset', '0');
+    }
+    if (segPending) {
+      segPending.setAttribute('stroke-dasharray', `0 ${circumference}`);
+      segPending.setAttribute('stroke-dashoffset', '0');
+    }
+    if (segRework) {
+      segRework.setAttribute('stroke-dasharray', `0 ${circumference}`);
+      segRework.setAttribute('stroke-dashoffset', '0');
+    }
+    return;
+  }
+
+  const passLen = passed > 0 ? Math.round((passed / total) * circumference) : 0;
+  const rewLen  = rework > 0 ? Math.round((rework / total) * circumference) : 0;
+  let pendLen = pending > 0 ? Math.round((pending / total) * circumference) : 0;
+
+  // Ensure segments accurately fill circumference if non-zero
+  if (pending > 0 && (passLen + rewLen + pendLen) !== circumference) {
+    pendLen = Math.max(0, circumference - passLen - rewLen);
+  } else if (rework > 0 && passLen > 0 && pending === 0) {
+    rewLen = Math.max(0, circumference - passLen);
+  }
 
   if (segPassed) {
     segPassed.setAttribute('stroke-dasharray', `${passLen} ${circumference}`);
@@ -1579,7 +1694,7 @@ function updateDonutSegments(passed, pending, rework) {
     segPending.setAttribute('stroke-dashoffset', `-${passLen}`);
   }
   if (segRework) {
-    segRework.setAttribute('stroke-dasharray', `${Math.max(0, rewLen)} ${circumference}`);
+    segRework.setAttribute('stroke-dasharray', `${rewLen} ${circumference}`);
     segRework.setAttribute('stroke-dashoffset', `-${passLen + pendLen}`);
   }
 }
@@ -1640,7 +1755,9 @@ function setSubTab(tabId, btnElement) {
   if (notesPane) notesPane.style.display = tabId === 'notes' ? 'block' : 'none';
   if (histPane) histPane.style.display = tabId === 'history' ? 'block' : 'none';
 
-  if (tabId !== 'checklist') {
+  if (tabId === 'photos') {
+    renderPhotosSubtab();
+  } else if (tabId !== 'checklist') {
     showToast(`Viewing ${tabId.charAt(0).toUpperCase() + tabId.slice(1)} records for ${currentSelectedOrderId}`);
   }
 }
@@ -1653,21 +1770,129 @@ function triggerPhotoUpload() {
   if (input) input.click();
 }
 
-function handlePhotoUpload(e) {
+async function handlePhotoUpload(e) {
   const file = e.target.files?.[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    const order = qcOrders.find(o => o.id === currentSelectedOrderId);
-    if (order) {
+  const order = qcOrders.find(o => o.id === currentSelectedOrderId);
+  if (!order) {
+    showToast('Please select an order before uploading photos.', 'warning');
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Image size exceeds 5MB limit.', 'error');
+    return;
+  }
+
+  try {
+    const { default: api } = await import('../api.js');
+    showToast('Uploading order reference photo...');
+
+    const currentImgs = Array.isArray(order.refImages) ? order.refImages.filter(Boolean) : [];
+    const nextSlot = Math.min(currentImgs.length + 1, 5);
+
+    // Call backend API to persist photo to the order if orderId exists
+    if (order.orderId && api?.orders?.uploadReferenceImage) {
+      const updated = await api.orders.uploadReferenceImage(order.orderId, nextSlot, file);
+      if (updated && Array.isArray(updated.referenceImages)) {
+        order.refImages = updated.referenceImages.filter(Boolean);
+        order.image = order.refImages[0] || order.image;
+      } else {
+        const localUrl = URL.createObjectURL(file);
+        if (!order.refImages) order.refImages = [];
+        order.refImages.push(localUrl);
+        order.image = localUrl;
+      }
+    } else {
+      const localUrl = URL.createObjectURL(file);
+      if (!order.refImages) order.refImages = [];
+      order.refImages.push(localUrl);
+      order.image = localUrl;
+    }
+
+    renderRefImages(order.refImages, true);
+    if (activeSubtab === 'photos') renderPhotosSubtab();
+
+    const heroImg = document.getElementById('selectedGarmentImg');
+    if (heroImg && order.refImages.length > 0) {
+      heroImg.src = order.refImages[0];
+    }
+    showToast('Reference photo uploaded successfully!');
+  } catch (err) {
+    console.error('[QC] Upload error:', err);
+    // Safe client-side fallback so user is not blocked
+    const reader = new FileReader();
+    reader.onload = function(evt) {
       if (!order.refImages) order.refImages = [];
       order.refImages.push(evt.target.result);
-      renderRefImages(order.refImages);
-      showToast('Reference photo attached successfully!');
-    }
-  };
-  reader.readAsDataURL(file);
+      renderRefImages(order.refImages, true);
+      if (activeSubtab === 'photos') renderPhotosSubtab();
+      showToast('Photo attached locally (offline mode).');
+    };
+    reader.readAsDataURL(file);
+  } finally {
+    e.target.value = '';
+  }
+}
+
+/**
+ * Render Photos Subtab Gallery
+ */
+function renderPhotosSubtab() {
+  const photoPane = document.getElementById('subtabContentPhotos');
+  if (!photoPane) return;
+
+  const order = qcOrders.find(o => o.id === currentSelectedOrderId);
+  if (!order) {
+    photoPane.innerHTML = `
+      <div style="padding: 40px 20px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.4;">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <p style="font-size: 11px;">No order selected. Select an order to view its photo records.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const validImgs = Array.isArray(order.refImages) ? order.refImages.filter(s => s && s.trim().length > 0) : [];
+
+  if (validImgs.length === 0) {
+    photoPane.innerHTML = `
+      <div style="padding: 40px 20px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.4;">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        <p style="font-size: 11px;">No reference or inspection photos recorded for <strong>${order.id}</strong>.</p>
+        <button class="btn-primary" style="padding: 6px 14px; font-size: 11px; margin-top: 8px;" onclick="triggerPhotoUpload()">+ Upload Reference Photo</button>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 16px 8px 16px; border-bottom: 1px solid var(--border-card);">
+      <span style="font-size:11px; font-weight:600; color:var(--text-primary);">Order Reference & Inspection Photos (${validImgs.length}/5)</span>
+      ${validImgs.length < 5 ? `<button class="btn-primary" style="padding: 4px 10px; font-size: 10px;" onclick="triggerPhotoUpload()">+ Add Photo</button>` : ''}
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; padding: 16px;">
+  `;
+
+  validImgs.forEach((src, idx) => {
+    html += `
+      <div style="position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-card); background: var(--bg-body); aspect-ratio: 1; cursor: pointer;" onclick="openLightbox('${src}')">
+        <span style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); color: #fff; font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);">Photo #${idx + 1}</span>
+        <img src="${src}" alt="Order Photo ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="handleImgError(this)" />
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  photoPane.innerHTML = html;
 }
 
 /**
@@ -1684,8 +1909,11 @@ function openLightbox(src) {
 
 function openPhotoViewerModal() {
   const order = qcOrders.find(o => o.id === currentSelectedOrderId);
-  if (order && order.refImages && order.refImages.length > 0) {
-    openLightbox(order.refImages[0]);
+  const imgs = order && Array.isArray(order.refImages) ? order.refImages.filter(Boolean) : [];
+  if (imgs.length > 0) {
+    openLightbox(imgs[0]);
+  } else {
+    showToast('No reference images attached to this order.', 'warning');
   }
 }
 

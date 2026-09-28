@@ -17,7 +17,7 @@
   <!-- Base ERP Stylesheets -->
   <link rel="stylesheet" href="../../fragments/fragments.css" />
   <link rel="stylesheet" href="../../fragments/nav.css" />
-  <link rel="stylesheet" href="order-over.css?v=2.5" />
+  <link rel="stylesheet" href="order-over.css?v=3.5" />
   <!-- Navigation & Fragment Base Configuration -->
   <script>window.FRAGMENT_BASE = '../../fragments/';</script>
 </head>
@@ -224,6 +224,10 @@
     </div>
     <div class="drawer-body" id="drawerBody"></div>
     <div class="drawer-footer">
+      <button type="button" class="btn-drawer-cancel" id="btnDrawerCancel" style="display:none;">
+        <i data-lucide="x-circle" style="width:14px;height:14px;"></i>
+        Cancel Order
+      </button>
       <a href="#" class="btn-drawer-view" id="btnDrawerView">
         <i data-lucide="eye" style="width:14px;height:14px;"></i>
         View Full Order
@@ -239,6 +243,6 @@
   <script>window.FRAGMENT_BASE = '../../fragments/';</script>
   <script src="../../fragments/fragments-inline.js"></script>
   <script src="../../fragments/fragments.js"></script>
-  <script type="module" src="order-over.js?v=2.5"></script>
+  <script type="module" src="order-over.js?v=3.5"></script>
 </body>
 </html>

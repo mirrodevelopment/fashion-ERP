@@ -154,9 +154,24 @@ public class DesignController {
             categoryBreakdown.add(m);
         }
 
-        // Top collection
+        // Top collection & distinct collections count
         List<Object[]> collRows = designRepository.topCollections();
         String topCollection = collRows.isEmpty() ? "N/A" : (String) collRows.get(0)[0];
+        long activeCollections = designRepository.distinctCollections().size();
+
+        // Most used fabric
+        List<Object[]> fabricRows = designRepository.topFabrics();
+        String mostUsedFabric = "N/A";
+        long mostUsedFabricCount = 0;
+        if (!fabricRows.isEmpty()) {
+            mostUsedFabric = (String) fabricRows.get(0)[0];
+            mostUsedFabricCount = ((Number) fabricRows.get(0)[1]).longValue();
+        }
+
+        long designsToProd = designRepository.countByProductionStatus("Active");
+        if (designsToProd == 0) {
+            designsToProd = approved;
+        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("total",               total);
@@ -164,7 +179,10 @@ public class DesignController {
         result.put("inReview",            inReview);
         result.put("draft",               draft);
         result.put("archived",            archived);
-        result.put("designsToProduction", approved);
+        result.put("activeCollections",   activeCollections);
+        result.put("mostUsedFabric",      mostUsedFabric);
+        result.put("mostUsedFabricCount", mostUsedFabricCount);
+        result.put("designsToProduction", designsToProd);
         result.put("totalTimesUsed",      totalUsed);
         result.put("avgSuggestedPrice",   avgPrice);
         result.put("popularCategory",     popularCategory);

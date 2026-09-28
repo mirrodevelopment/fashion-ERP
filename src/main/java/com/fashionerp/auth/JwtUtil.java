@@ -2,6 +2,7 @@ package com.fashionerp.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -10,11 +11,12 @@ import java.util.UUID;
 @Component
 public class JwtUtil {
 
-    // 256-bit secret — in production use environment variable
-    private static final String SECRET = "HauloB0ut1queERPSecretKey2026XYZ!@#";
     private static final long EXPIRY_MS = 24 * 60 * 60 * 1000L; // 24 hours
+    private final SecretKey key;
 
-    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    public JwtUtil(@Value("${jwt.secret:HauloB0ut1queERPSecretKey2026XYZ!@#}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(UUID userId, String username, String role) {
         return Jwts.builder()

@@ -8,6 +8,7 @@ import com.fashionerp.order.OrderStatus;
 import com.fashionerp.payment.PaymentRepository;
 import com.fashionerp.payment.PaymentStatus;
 import com.fashionerp.workforce.EmployeeRepository;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/dashboard")
 @RequiredArgsConstructor
@@ -126,11 +128,37 @@ public class DashboardController {
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
+        // BUG-P2-04 FIX: Fetch real monthly purchase spend from purchase_orders instead of hardcoding 40%
+        Map<YearMonth, BigDecimal> costMap = new LinkedHashMap<>();
+        try {
+            List<Object[]> costRows = em.createNativeQuery(
+                "SELECT DATE_TRUNC('month', created_at) AS month_start, " +
+                "       COALESCE(SUM(total_amount), 0) AS spend " +
+                "FROM purchase_orders " +
+                "WHERE created_at >= NOW() - INTERVAL '9 months' " +
+                "GROUP BY 1 ORDER BY 1"
+            ).getResultList();
+            for (Object[] crow : costRows) {
+                LocalDateTime cldt;
+                if (crow[0] instanceof LocalDateTime) {
+                    cldt = (LocalDateTime) crow[0];
+                } else if (crow[0] instanceof java.sql.Timestamp) {
+                    cldt = ((java.sql.Timestamp) crow[0]).toLocalDateTime();
+                } else {
+                    cldt = LocalDateTime.parse(crow[0].toString().replace(" ", "T"));
+                }
+                YearMonth cym = YearMonth.of(cldt.getYear(), cldt.getMonth());
+                BigDecimal spend = crow[1] instanceof BigDecimal ? (BigDecimal) crow[1] : new BigDecimal(crow[1].toString());
+                costMap.put(cym, spend);
+            }
+        } catch (Exception e) {
+            log.warn("Could not calculate purchase spend history: {}", e.getMessage());
+        }
+
         for (int i = 8; i >= 0; i--) {
             YearMonth ym = YearMonth.now().minusMonths(i);
             BigDecimal rev = revenueMap.getOrDefault(ym, BigDecimal.ZERO);
-            // Cost approximated at 40% of revenue
-            BigDecimal cost = rev.multiply(BigDecimal.valueOf(0.40)).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal cost = costMap.getOrDefault(ym, BigDecimal.ZERO);
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("month",   ym.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH) + " " + ym.getYear());
             m.put("revenue", rev);

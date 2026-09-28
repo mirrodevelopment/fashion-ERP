@@ -4,8 +4,8 @@
    Pure CSS Geometrics & Lime Accent (var(--lime-bright))
    ========================================================================== */
 
-/* ── 1. Variables & Tokens ─────────────────────────────────────────────── */
-/* :root color/sizing tokens moved to fragments/theme/theme.css */
+@import url('../fragments/theme/haulo-tokens.css');
+/* Dual-theme tokens from haulo-tokens.css */
 
 /* ── 2. Reset & Base ───────────────────────────────────────────────────── */
 *, *::before, *::after {

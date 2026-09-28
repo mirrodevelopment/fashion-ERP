@@ -38,7 +38,7 @@
     phone: '',
     email: '',
     location: '',
-    avatar: '../../assets/user_avatar.jpg',
+    avatar: '',
     vip: false,
     tier: 'REGULAR',
     totalOrders: 0,
@@ -239,7 +239,7 @@
           CustomerData.phone = c.mobileNumber || c.phone || '—';
           CustomerData.email = c.email || '—';
           CustomerData.location = c.location || (c.city ? `${c.city}${c.state ? `, ${c.state}` : ''}` : '—');
-          CustomerData.avatar = c.avatarUrl || '../../assets/user_avatar.jpg';
+          CustomerData.avatar = (c.avatarUrl && !c.avatarUrl.includes('user_avatar.jpg')) ? c.avatarUrl : '';
           CustomerData.tier = c.tier || 'REGULAR';
           CustomerData.vip = c.tier === 'VIP_PLATINUM' || c.tier === 'VIP_GOLD';
 
@@ -294,12 +294,23 @@
         );
         if (matchingBtn) {
           matchingBtn.click();
-          return;
+        } else {
+          await syncCurrentGarmentFromApi();
         }
+      } else {
+        await syncCurrentGarmentFromApi();
       }
 
-      // 4. Sync measurements from database for the active garment
-      await syncCurrentGarmentFromApi();
+      // 4. Auto-enable edit mode if requested in URL
+      const isEditRequested = params.get('edit') === 'true' || params.get('edit') === '1';
+      if (isEditRequested) {
+        setTimeout(() => {
+          State.isEditMode = true;
+          updateEditButtonState();
+          renderMeasurementDetailsList();
+          showToast('Edit mode enabled. Enter dimensions and click Update Measurements.');
+        }, 150);
+      }
 
     } catch (err) {
       console.error('[Measurement360] Initialization error:', err.message);
@@ -407,21 +418,23 @@
     const nameEl = document.getElementById('customerName');
     const phoneEl = document.getElementById('customerPhone');
     const emailEl = document.getElementById('customerEmail');
-    const locEl = document.getElementById('customerLocation');
-    const avatarEl = document.getElementById('customerAvatar');
-    const tierBadge = document.getElementById('customerTierBadge');
-    const tierText = document.getElementById('customerTierText');
-    const totalOrdersEl = document.getElementById('statTotalOrders');
-    const activeOrdersEl = document.getElementById('statActiveOrders');
-    const custSinceEl = document.getElementById('statCustomerSince');
-    const custSinceSub = document.getElementById('statCustomerSinceSub');
-    const addNoteLabel = document.getElementById('addNoteLabel');
+    const avatarWrapper = document.getElementById('customerAvatarWrapper') || (avatarEl ? avatarEl.parentElement : null);
 
     if (nameEl) nameEl.textContent = CustomerData.name || 'Client Profile';
     if (phoneEl) phoneEl.textContent = CustomerData.phone || '—';
     if (emailEl) emailEl.textContent = CustomerData.email || '—';
     if (locEl) locEl.textContent = CustomerData.location || '—';
-    if (avatarEl && CustomerData.avatar) avatarEl.src = CustomerData.avatar;
+
+    if (avatarWrapper) {
+      if (typeof window.applyPatronAvatarElement === 'function') {
+        window.applyPatronAvatarElement(avatarWrapper, CustomerData.name, CustomerData.avatar, 'haulo-avatar-xl');
+      } else if (typeof window.renderPatronAvatarHtml === 'function') {
+        avatarWrapper.innerHTML = window.renderPatronAvatarHtml(CustomerData.name, CustomerData.avatar, 'haulo-avatar-xl');
+      } else {
+        const inits = typeof window.getPatronInitials === 'function' ? window.getPatronInitials(CustomerData.name) : 'CU';
+        avatarWrapper.innerHTML = `<div class="haulo-patron-avatar-initials haulo-avatar-xl">${inits}</div>`;
+      }
+    }
 
     if (tierBadge) {
       if (CustomerData.vip) {

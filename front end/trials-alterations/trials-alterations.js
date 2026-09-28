@@ -380,8 +380,30 @@
     setInterval(tick, 30000);
   }
 
+  // ── Update Dynamic Counts on Filter Pills ──
+  function updateFilterCounts() {
+    const total = TRIALS_DATA.length;
+    const todayCount = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'today').length;
+    const overdueCount = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'overdue').length;
+    const weekCount = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() !== 'overdue').length;
+
+    const elAll = document.getElementById('countAll');
+    if (elAll) elAll.textContent = total;
+
+    const elToday = document.getElementById('countToday');
+    if (elToday) elToday.textContent = todayCount;
+
+    const elWeek = document.getElementById('countWeek');
+    if (elWeek) elWeek.textContent = weekCount;
+
+    const elOverdue = document.getElementById('countOverdue');
+    if (elOverdue) elOverdue.textContent = overdueCount;
+  }
+
   // ── Render Upcoming Trials List ──
   function renderTrialList() {
+    updateFilterCounts();
+
     const container = document.getElementById('trialListContainer');
     if (!container) return;
 
@@ -418,36 +440,29 @@
 
     container.innerHTML = filtered.map(item => {
       const isSelected = item.id === state.selectedTrialId;
-      const initials = item.customer.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
       const statusClass = (item.trial.status || 'scheduled').toLowerCase().replace(/\s+/g, '-');
-      const attemptNum = item.trialAttempt || 1;
-      const altsCount = item.alterationCount != null ? item.alterationCount : (item.alterations ? item.alterations.length : 0);
 
       return `
         <div class="trial-item ${isSelected ? 'selected' : ''}" 
              data-trial-code="${item.trialCode || ''}" 
              onclick="window.selectTrial('${item.id}')">
           <div class="trial-item-left">
-            <div class="trial-avatar-box">
-              <img src="${item.customer.image || '../assets/user_avatar.jpg'}" alt="${item.customer.name}" class="trial-avatar-img" onerror="this.src='../assets/user_avatar.jpg';" />
+            <div class="trial-avatar-box" style="display:inline-flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;border:none;">
+              ${typeof window.renderPatronAvatarHtml === 'function'
+                ? window.renderPatronAvatarHtml(item.customer.name, item.customer.image, 'haulo-avatar-sm', 'width:36px;height:36px;border-radius:9px;')
+                : `<div class="haulo-patron-avatar-initials haulo-avatar-sm">${typeof window.getPatronInitials === 'function' ? window.getPatronInitials(item.customer.name) : 'CU'}</div>`}
             </div>
             <div class="trial-info-text">
               <span class="trial-customer-name">${item.customer.name}</span>
               <span class="trial-garment-name">${item.garment.type}</span>
               <span class="trial-order-id">${item.orderId}</span>
-              <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:3px;">
-                <span class="trial-attempt-pill ${attemptNum > 1 ? 'retrial' : ''}">
-                  Attempt #${attemptNum} ${attemptNum > 1 ? '(Re-trial)' : ''}
-                </span>
-                ${altsCount > 0 ? `
-                  <span class="alteration-count-pill">Alt: ${altsCount}</span>
-                ` : ''}
-              </div>
             </div>
           </div>
           <div class="trial-item-right">
-            <span class="trial-date-text">${item.trial.date}</span>
-            <span class="trial-time-text">${item.trial.time}</span>
+            <div class="trial-datetime-group">
+              <span class="trial-date-text">${item.trial.date}</span>
+              <span class="trial-time-text">${item.trial.time}</span>
+            </div>
             <span class="status-badge-sm ${statusClass}">${item.trial.status}</span>
           </div>
         </div>
@@ -485,8 +500,8 @@
         const el = document.getElementById(id);
         if (el) el.textContent = '—';
       });
-      const imgEl = document.getElementById('detailCustomerImg');
-      if (imgEl) imgEl.src = '../assets/user_avatar.jpg';
+      const avatarBox = document.getElementById('detailCustomerAvatarBox');
+      if (avatarBox) avatarBox.innerHTML = '<div class="haulo-patron-avatar-initials haulo-avatar-md" style="width:48px;height:48px;border-radius:12px;">CU</div>';
       const vipBadge = document.getElementById('detailVipBadge');
       if (vipBadge) vipBadge.style.display = 'none';
       const checklist = document.getElementById('alterationChecklist');
@@ -530,9 +545,18 @@
       fitPill.textContent = fitMap[trial.trial.fitStatus] || (trial.trial.status || 'SCHEDULED').toUpperCase();
     }
 
-    // 1. Customer Card & Order Meta
-    const imgEl = document.getElementById('detailCustomerImg');
-    if (imgEl) imgEl.src = trial.customer.image || '../assets/user_avatar.jpg';
+    // 1. Customer Card & Order Meta (Universal Patron Engine)
+    const avatarBox = document.getElementById('detailCustomerAvatarBox');
+    if (avatarBox) {
+      if (typeof window.applyPatronAvatarElement === 'function') {
+        window.applyPatronAvatarElement(avatarBox, trial.customer.name, trial.customer.image, 'haulo-avatar-md', 'width:48px;height:48px;border-radius:12px;');
+      } else if (typeof window.renderPatronAvatarHtml === 'function') {
+        avatarBox.innerHTML = window.renderPatronAvatarHtml(trial.customer.name, trial.customer.image, 'haulo-avatar-md', 'width:48px;height:48px;border-radius:12px;');
+      } else {
+        const inits = typeof window.getPatronInitials === 'function' ? window.getPatronInitials(trial.customer.name) : 'CU';
+        avatarBox.innerHTML = `<div class="haulo-patron-avatar-initials haulo-avatar-md" style="width:48px;height:48px;border-radius:12px;">${inits}</div>`;
+      }
+    }
 
     const nameEl = document.getElementById('detailCustomerName');
     if (nameEl) nameEl.textContent = trial.customer.name;
@@ -678,7 +702,7 @@
 
     const imagesHtml = refs.map((imgSrc, idx) => `
       <div class="gallery-item" onclick="openLightbox(${idx})">
-        <img src="${imgSrc}" alt="Design Reference ${idx + 1}" onerror="this.src='../assets/user_avatar.jpg';" />
+        <img src="${imgSrc}" alt="Design Reference ${idx + 1}" onerror="this.style.opacity='0.25';" />
       </div>
     `).join('');
 
@@ -1271,6 +1295,7 @@
       }
     }
   };
+  window.openSelectOrderModal = window.openOrderPickerModal;
 
   window.handleOrderPickerSearch = function (e) {
     const q = (e.target.value || '').toLowerCase().trim();
@@ -1462,6 +1487,7 @@
     document.getElementById('completeOrderNum').textContent = trial.orderId;
     openModal('markCompletedModal');
   };
+  window.openMarkCompletedModal = window.handleMarkCompletedClick;
 
   window.confirmMarkCompleted = function () {
     const trial = getActiveTrial();
@@ -1629,8 +1655,33 @@
     if (m) m.classList.remove('open');
   };
 
-  // ── Toast Notifications ──
+  // ── Toast Notifications & NotificationCenter Integration ──
   function showToast(message, type = 'info') {
+    if (window.NotificationCenter && typeof window.NotificationCenter.toast === 'function') {
+      const sevMap = { error: 'danger', danger: 'danger', warn: 'warn', warning: 'warn', success: 'success', info: 'info' };
+      const sev = sevMap[type] || 'info';
+      window.NotificationCenter.toast({
+        title: type === 'success' ? 'Trials & Alterations' : (type === 'warn' ? 'Trial Notice' : 'Trial Update'),
+        message: message,
+        severity: sev,
+        duration: 3800
+      });
+
+      // If this is an important lifecycle update, persist as dynamic notification too
+      if (type === 'success' && (message.includes('advanced to Quality Check') || message.includes('scheduled for') || message.includes('Completed'))) {
+        window.NotificationCenter.push({
+          type: 'trials',
+          module: 'Trials & Alterations',
+          severity: 'success',
+          title: message.includes('advanced') ? 'Trial Approved — Advanced to QC' : 'Trial Update',
+          message: message,
+          silent: true,
+          actionUrl: '../trials-alterations/trials-alterations.html'
+        });
+      }
+      return;
+    }
+
     const container = document.getElementById('toastContainer');
     if (!container) return;
 

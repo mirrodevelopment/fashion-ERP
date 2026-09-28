@@ -105,9 +105,13 @@ public class EmployeeService {
                     : (emp.getId() != null ? emp.getId().toString().substring(0, 8) : "EMP");
 
             String originalFilename = file.getOriginalFilename();
-            String ext = (originalFilename != null && originalFilename.contains("."))
-                    ? originalFilename.substring(originalFilename.lastIndexOf('.'))
-                    : ".jpg";
+            String ext = ".jpg";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                ext = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase();
+            }
+            if (!java.util.List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext)) {
+                throw new IllegalArgumentException("Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
+            }
 
             int fourDigits = 1000 + new Random().nextInt(9000);
             String filename = empId + "_" + fourDigits + ext;

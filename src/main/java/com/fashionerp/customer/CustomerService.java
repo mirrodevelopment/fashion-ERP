@@ -484,7 +484,7 @@ public class CustomerService {
         String cleanMobile = cleanPhone(mobileNumber);
         String targetMobile = customerRepository.findById(cleanMobile)
                 .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .map(Customer::getMobileNumber)
+                .map(c -> c.getMobileNumber())
                 .orElse(cleanMobile);
         return noteRepository.findByCustomerMobileOrderByCreatedAtDesc(targetMobile).stream()
                 .map(CustomerDto.NoteResponse::from)

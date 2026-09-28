@@ -13,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @RestController
@@ -114,7 +113,8 @@ public class EnquiryController {
         if (newThisWeek == 0) newThisWeek = newCount;
 
         long pendingFollowUp = followUp;
-        long appointmentsCount = appointmentRepository != null ? appointmentRepository.count() : inDiscussion;
+        // BUG-P2-03 FIX: appointmentRepository is injected as a required Spring bean
+        long appointmentsCount = appointmentRepository.count();
 
         BigDecimal conversionRate = total > 0
                 ? BigDecimal.valueOf(converted * 100.0 / total).setScale(1, RoundingMode.HALF_UP)

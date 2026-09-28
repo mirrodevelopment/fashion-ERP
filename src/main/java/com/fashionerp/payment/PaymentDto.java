@@ -41,12 +41,14 @@ public class PaymentDto {
         private String receivedBy;
         private String referenceNo;
         private LocalDateTime transactionDate;
+        private String notes;
 
         public static TransactionResponse from(PaymentTransaction t) {
             return TransactionResponse.builder()
                     .id(t.getId()).amount(t.getAmount()).method(t.getMethod())
                     .receivedBy(t.getReceivedBy()).referenceNo(t.getReferenceNo())
-                    .transactionDate(t.getTransactionDate()).build();
+                    .transactionDate(t.getTransactionDate())
+                    .notes(t.getNotes()).build();
         }
     }
 

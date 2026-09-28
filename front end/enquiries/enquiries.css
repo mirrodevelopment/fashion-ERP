@@ -40,23 +40,27 @@ body {
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Fallback background matches dashboard warm gradient */
+  background: var(--bg-body-gradient);
+  background-attachment: fixed;
 }
 
-/* -- Background Atmospheric Layer -- */
+/* -- Background Atmospheric Layer — matches dashboard warm gradient -- */
 .app-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(circle at 82% 20%, var(--bg-glow-warm, rgba(255, 210, 160, 0.08)) 0%, transparent 30%),
-    linear-gradient(135deg, #1F211F 0%, #3A3732 28%, #625B52 52%, #403C37 72%, #242522 100%);
+    radial-gradient(circle at 82% 20%, var(--bg-glow-warm) 0%, transparent 30%),
+    var(--bg-body-gradient);
+  pointer-events: none;
 }
 
 .app-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 40%, rgba(35, 28, 24, 0.45) 0%, rgba(18, 14, 12, 0.72) 100%);
+  background: none; /* removed dark overlay — use theme gradient only */
 }
 
 /* -- Main App Shell -- */
@@ -100,7 +104,7 @@ body {
   width: 4px;
 }
 .main-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
   border-radius: 4px;
 }
 
@@ -346,7 +350,7 @@ body {
 }
 
 .tab-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   color: #ffffff;
 }
 
@@ -376,7 +380,7 @@ body {
   align-items: center;
   gap: 6px;
   background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-input);
   border-radius: 20px;
   padding: 0 9px;
   height: 28px;
@@ -415,8 +419,8 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 20px;
   padding: 0 11px;
   height: 28px;
@@ -429,7 +433,7 @@ body {
 }
 
 .btn-filter:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--bg-card-hover);
 }
 
 .btn-filter svg {
@@ -442,8 +446,8 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -453,7 +457,7 @@ body {
 }
 
 .btn-icon-more:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--bg-card-hover);
 }
 
 .btn-icon-more svg {
@@ -474,7 +478,7 @@ body {
   height: 4px;
 }
 .table-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
   border-radius: 4px;
 }
 
@@ -530,7 +534,7 @@ body {
 }
 
 .enquiry-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
 }
 
 .enquiry-table tbody tr.row-selected {
@@ -574,7 +578,7 @@ input[type="checkbox"] {
   height: 13px;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   border-radius: 3.5px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-inner);
   cursor: pointer;
   position: relative;
   vertical-align: middle;
@@ -611,7 +615,7 @@ input[type="checkbox"]:checked::after {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--border-card-hover);
 }
 
 .avatar-circle {
@@ -716,7 +720,7 @@ input[type="checkbox"]:checked::after {
 
 .row-action-btn:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
 }
 
 /* -- Table Footer Pagination -- */
@@ -727,10 +731,10 @@ input[type="checkbox"]:checked::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(28, 24, 20, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-card);
+  background: var(--bg-card);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
   flex-shrink: 0;
   z-index: 5;
   box-sizing: border-box;
@@ -774,7 +778,7 @@ input[type="checkbox"]:checked::after {
   height: 22px;
   border-radius: 5px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
   color: rgba(255, 255, 255, 0.75);
   font-family: inherit;
   font-size: 10.5px;
@@ -787,7 +791,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .page-num:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--bg-card-hover);
   color: #ffffff;
 }
 
@@ -803,8 +807,8 @@ input[type="checkbox"]:checked::after {
   width: 22px;
   height: 22px;
   border-radius: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-card);
+  background: var(--glass-inner);
   color: rgba(255, 255, 255, 0.75);
   font-size: 12px;
   cursor: pointer;
@@ -815,7 +819,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .page-arrow:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
   color: #ffffff;
 }
 
@@ -834,7 +838,7 @@ input[type="checkbox"]:checked::after {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   border: 1px solid rgba(255, 255, 255, 0.14);
   padding: 2px 20px 2px 7px;
   border-radius: 5px;
@@ -849,7 +853,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .page-size-select:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--bg-card-hover);
   border-color: rgba(255, 255, 255, 0.24);
   color: #ffffff;
 }
@@ -902,7 +906,7 @@ input[type="checkbox"]:checked::after {
   width: 4px;
 }
 .new-enquiry-card::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
   border-radius: 4px;
 }
 
@@ -919,8 +923,8 @@ input[type="checkbox"]:checked::after {
 }
 
 .close-card-btn {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 5px;
   width: 20px;
   height: 20px;
@@ -934,7 +938,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .close-card-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
   color: #ffffff;
 }
 
@@ -1140,7 +1144,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .input-addon {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-inner);
   padding: 0 6px;
   display: flex;
   align-items: center;
@@ -1190,7 +1194,7 @@ input[type="checkbox"]:checked::after {
 /* Upload Dropzone */
 .upload-dropzone {
   border: 1px dashed rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass-inner);
   border-radius: 6px;
   padding: 5px 6px;
   display: flex;
@@ -1209,13 +1213,13 @@ input[type="checkbox"]:checked::after {
   width: 22px;
   height: 22px;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--lime, #B8FF3D);
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-input);
 }
 
 .dropzone-icon svg {
@@ -1236,8 +1240,8 @@ input[type="checkbox"]:checked::after {
 
 /* Fabric Switch Box */
 .fabric-switch-container {
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-card);
+  background: var(--glass-inner);
   border-radius: 6px;
   padding: 5px 7px;
   display: flex;
@@ -1317,7 +1321,7 @@ input:checked + .slider:before {
 .btn-draft {
   flex: 1;
   padding: 5px 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
   font-family: inherit;
@@ -1329,7 +1333,7 @@ input:checked + .slider:before {
 }
 
 .btn-draft:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--bg-card-hover);
   border-color: rgba(255, 255, 255, 0.25);
 }
 
@@ -1372,8 +1376,8 @@ input:checked + .slider:before {
 .check-pill span {
   display: inline-block;
   padding: 3px 7px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-input);
   border-radius: 12px;
   font-size: 9px;
   font-weight: 600;
@@ -1443,8 +1447,8 @@ input:checked + .slider:before {
 .modal-search input {
   width: 100%;
   padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-input);
   border-radius: 7px;
   font-size: 11px;
   color: var(--text-primary, #F7F7F5);
@@ -1469,7 +1473,7 @@ input:checked + .slider:before {
 }
 
 .modal-cust-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
 }
 
 /* Toast Container */

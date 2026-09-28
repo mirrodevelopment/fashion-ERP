@@ -10,12 +10,22 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleRateLimit(RateLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of(
+                "timestamp", LocalDateTime.now().toString(),
+                "status", 429,
+                "error", "Too Many Requests",
+                "message", ex.getMessage()
+        ));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "timestamp", LocalDateTime.now().toString(),
-                "status", 404,
-                "error", "Not Found",
+                "status", 400,
+                "error", "Bad Request",
                 "message", ex.getMessage()
         ));
     }

@@ -8,32 +8,15 @@
 'use strict';
 
 // ────────────────────────────────────────────────────────────
-// 1. DATA REPOSITORY & SYNTHETIC DATA INITIALIZATION
+// 1. DATA REPOSITORY & DATABASE API INTEGRATION
 // ────────────────────────────────────────────────────────────
 
-// High-definition local swatch images with fallback
-const SAMPLE_IMAGES = {
-  silk_pink: '../assets/fabrics/silk.jpg',
-  organza_green: '../assets/fabrics/georgette.jpg',
-  chanderi_ivory: '../assets/fabrics/chanderi.jpg',
-  tissue_maroon: '../assets/fabrics/tissue.jpg',
-  rawsilk_blue: '../assets/fabrics/rawsilk.jpg',
-  lining_beige: '../assets/fabrics/lining.jpg',
-  thread_gold: '../assets/fabrics/thread-gold.jpg',
-  button_gold: '../assets/fabrics/button-gold.jpg',
-  zipper_pink: '../assets/fabrics/zipper.jpg',
-  motif_zari: '../assets/fabrics/zari-motif.jpg',
-  velvet_maroon: '../assets/fabrics/velvet.jpg',
-  lace_ivory: '../assets/fabrics/lace.jpg',
-};
-
-// 1. DATA REPOSITORY & DATABASE API INTEGRATION
 let ALL_MATERIALS = [];
 let currentFilterCategory = 'all';
 let currentSearchTerm = '';
 let currentViewMode = 'grid'; // 'grid' or 'list'
 let currentPage = 1;
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 let selectedMaterialId = null;
 let currentDetailTab = 'overview';
 
@@ -53,43 +36,60 @@ function mapInventoryToMaterial(item) {
   const reserved = Number(item.reservedQty || 0);
   const available = item.availableQty != null ? Number(item.availableQty) : Math.max(0, stock - reserved);
   const cost = Number(item.purchasePrice || 0);
-  const price = Math.round(cost * 1.35) || cost;
+  const sellingPrice = Number(item.sellingPrice || (cost > 0 ? Math.round(cost * 1.35) : 0));
+  const fallbackImg = '../assets/boutique_bg.png';
+  const splitUrls = str => (str || '').split(/[\n,;|]+/).map(s => s.trim()).filter(Boolean);
+  let parsedImages = [];
+  if (Array.isArray(item.images)) {
+    parsedImages = item.images.filter(Boolean);
+  } else if (item.imageUrls) {
+    parsedImages = splitUrls(item.imageUrls);
+  } else if (item.imageUrl) {
+    parsedImages = splitUrls(item.imageUrl);
+  }
+  const img = parsedImages[0] || (item.imageUrl && item.imageUrl.trim() !== '' ? item.imageUrl : fallbackImg);
+  const images = parsedImages.length > 0 ? parsedImages : [img];
+
   return {
     id: item.id,
     code: item.itemCode || `MAT-${String(item.id).substring(0, 6).toUpperCase()}`,
-    name: item.name || 'Untitled Material',
+    name: item.name || '',
     category: item.category || 'Fabrics',
-    subCategory: item.variant || 'General',
-    color: item.variant || 'Standard',
-    composition: item.composition || (item.name + ' fabric'),
-    width: item.width || '44 inches',
-    gsm: item.gsm || '120 GSM',
-    weave: item.weave || 'Standard Mill Weave',
-    origin: item.origin || 'India',
-    hsn: item.hsn || '5007',
+    subCategory: item.variant || '',
+    color: item.variant || '',
+    composition: item.composition || '',
+    width: item.width || '',
+    gsm: item.gsm || '',
+    weave: item.weave || '',
+    origin: item.origin || '',
+    hsn: item.hsnCode || '',
     uom: item.unit || 'm',
     cost: cost,
-    price: price,
+    price: sellingPrice,
     stock: stock,
     reserved: reserved,
     available: available,
-    reorderLevel: Number(item.reorderLevel || 15),
-    location: item.location || 'Warehouse Storage Bin',
-    supplier: item.supplierName || 'Textile Supplier',
-    supplierContact: item.supplierContact || '+91 98390 12345',
-    leadTime: item.leadTime || '5-7 days',
-    image: item.imageUrl || SAMPLE_IMAGES.silk_pink,
-    images: [item.imageUrl || SAMPLE_IMAGES.silk_pink],
-    notes: 'Stored in climate-controlled boutique stockroom.'
+    reorderLevel: Number(item.reorderLevel || 0),
+    location: item.location || '',
+    supplier: item.supplierName || '',
+    supplierContact: item.supplierContact || '',
+    leadTime: item.leadTime || '',
+    image: img,
+    images: images,
+    notes: item.notes || ''
   };
 }
 
 async function loadMaterialsFromApi() {
   try {
-    if (window.api && window.api.inventory) {
-      const items = await window.api.inventory.list({ size: 200 });
-      ALL_MATERIALS = (items || []).map(mapInventoryToMaterial);
+    const { default: api, Auth } = await import('../api.js');
+    if (!Auth.isLoggedIn()) {
+      Auth.requireLogin();
+      return;
     }
+    const res = await api.inventory.list({ page: 0, size: 200 });
+    const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
+    ALL_MATERIALS = (items || []).map(mapInventoryToMaterial);
   } catch (err) {
     console.error('Failed to load materials from API:', err);
     ALL_MATERIALS = [];
@@ -137,8 +137,14 @@ function populateSupplierFilter() {
 function updateKpiNumbers() {
   const total = ALL_MATERIALS.length;
   const fabrics = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase() === 'fabrics').length;
-  const trims = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase().includes('trim')).length;
-  const consumables = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase().includes('consumable')).length;
+  const trims = ALL_MATERIALS.filter(m => {
+    const c = (m.category || '').toLowerCase();
+    return c.includes('trim') || c.includes('accessori');
+  }).length;
+  const consumables = ALL_MATERIALS.filter(m => {
+    const c = (m.category || '').toLowerCase();
+    return c.includes('consumable') || c.includes('thread') || c.includes('lining');
+  }).length;
   const others = total - fabrics - trims - consumables;
   const suppliers = new Set(ALL_MATERIALS.map(m => m.supplier).filter(Boolean)).size;
 
@@ -212,10 +218,19 @@ function updateKpiNumbers() {
 function updateCategoryCounts() {
   const allCount = ALL_MATERIALS.length;
   const fabricsCount = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase() === 'fabrics').length;
-  const trimsCount = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase().includes('trim')).length;
-  const consumablesCount = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase().includes('consumable')).length;
+  const trimsCount = ALL_MATERIALS.filter(m => {
+    const c = (m.category || '').toLowerCase();
+    return c.includes('trim') || c.includes('accessori');
+  }).length;
+  const consumablesCount = ALL_MATERIALS.filter(m => {
+    const c = (m.category || '').toLowerCase();
+    return c.includes('consumable') || c.includes('thread') || c.includes('lining');
+  }).length;
   const packagingCount = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase().includes('packaging')).length;
-  const othersCount = ALL_MATERIALS.filter(m => (m.category || '').toLowerCase().includes('other')).length;
+  const othersCount = ALL_MATERIALS.filter(m => {
+    const c = (m.category || '').toLowerCase();
+    return !c.includes('fabric') && !c.includes('trim') && !c.includes('accessori') && !c.includes('thread') && !c.includes('lining') && !c.includes('packaging');
+  }).length;
 
   setElText('tabCountAll', allCount.toLocaleString());
   setElText('tabCountFabrics', fabricsCount.toLocaleString());
@@ -239,15 +254,17 @@ function getFilteredMaterials() {
 
   // 1. Category Filter
   if (currentFilterCategory !== 'all') {
-    const map = {
-      'fabrics': 'Fabrics',
-      'trims': 'Trims',
-      'consumables': 'Consumables',
-      'packaging': 'Packaging',
-      'others': 'Others'
-    };
-    const targetCat = map[currentFilterCategory] || currentFilterCategory;
-    list = list.filter(m => m.category.toLowerCase() === targetCat.toLowerCase());
+    list = list.filter(m => {
+      const c = (m.category || '').toLowerCase();
+      if (currentFilterCategory === 'fabrics') return c === 'fabrics';
+      if (currentFilterCategory === 'trims') return c.includes('trim') || c.includes('accessori');
+      if (currentFilterCategory === 'consumables') return c.includes('consumable') || c.includes('thread') || c.includes('lining');
+      if (currentFilterCategory === 'packaging') return c.includes('packaging');
+      if (currentFilterCategory === 'others') {
+        return !c.includes('fabric') && !c.includes('trim') && !c.includes('accessori') && !c.includes('thread') && !c.includes('lining') && !c.includes('packaging');
+      }
+      return c === currentFilterCategory.toLowerCase();
+    });
   }
 
   // 2. Search Term
@@ -500,6 +517,108 @@ function getSelectedMaterial() {
   return ALL_MATERIALS.find(m => String(m.id) === String(selectedMaterialId)) || ALL_MATERIALS[0];
 }
 
+function getColorHex(colorName) {
+  if (!colorName) return 'rgba(255,255,255,0.4)';
+  const c = colorName.toLowerCase().trim();
+  const colorMap = {
+    'skin nude': '#E8BEAC',
+    'nude': '#E8BEAC',
+    'beige': '#d4b996',
+    'black': '#1c1917',
+    'white': '#f8fafc',
+    'ivory': '#fffff0',
+    'silk ivory': '#fffff0',
+    'cream': '#fdfbf7',
+    'red': '#ef4444',
+    'crimson': '#dc2626',
+    'burgundy': '#800020',
+    'blue': '#3b82f6',
+    'navy': '#1e3a8a',
+    'royal blue': '#1d4ed8',
+    'green': '#10b981',
+    'emerald': '#059669',
+    'olive': '#84cc16',
+    'yellow': '#eab308',
+    'gold': '#d97706',
+    'amber': '#f59e0b',
+    'purple': '#a855f7',
+    'violet': '#7c3aed',
+    'pink': '#ec4899',
+    'rose': '#f43f5e',
+    'orange': '#f97316',
+    'grey': '#6b7280',
+    'gray': '#6b7280',
+    'silver': '#9ca3af',
+    'charcoal': '#374151',
+    'brown': '#78350f',
+    'tan': '#d2b48c'
+  };
+  for (const [key, hex] of Object.entries(colorMap)) {
+    if (c.includes(key)) return hex;
+  }
+  return 'rgba(255,255,255,0.5)';
+}
+
+function isMaterialFavorite(id) {
+  try {
+    const favs = JSON.parse(localStorage.getItem('haulo_favorite_materials') || '[]');
+    return favs.includes(String(id));
+  } catch (e) {
+    return false;
+  }
+}
+
+function toggleMaterialFavorite(id) {
+  try {
+    let favs = JSON.parse(localStorage.getItem('haulo_favorite_materials') || '[]');
+    const sId = String(id);
+    let active = false;
+    if (favs.includes(sId)) {
+      favs = favs.filter(x => x !== sId);
+      showToast('Removed from favorites', 'info');
+      active = false;
+    } else {
+      favs.push(sId);
+      showToast('Added to favorites', 'success');
+      active = true;
+    }
+    localStorage.setItem('haulo_favorite_materials', JSON.stringify(favs));
+    const favBtn = document.getElementById('productDetailFavBtn');
+    if (favBtn) {
+      favBtn.classList.toggle('active', active);
+      const svg = favBtn.querySelector('svg');
+      if (svg) svg.setAttribute('fill', active ? 'currentColor' : 'none');
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function selectDetailThumbnail(imgUrl, el) {
+  const mainImg = document.getElementById('productDetailMainImg');
+  if (mainImg) {
+    mainImg.src = imgUrl;
+  }
+  const expandBtn = document.getElementById('productDetailExpandBtn');
+  const m = getSelectedMaterial();
+  if (expandBtn && m) {
+    expandBtn.setAttribute('onclick', `openFullImageModal('${escapeHtml(imgUrl)}', '${escapeHtml(m.name)}')`);
+  }
+  document.querySelectorAll('.mat-thumb-item').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function openFullImageModal(url, title) {
+  const modal = document.getElementById('imageLightboxModal');
+  const img = document.getElementById('lightboxImg');
+  const titleEl = document.getElementById('lightboxTitle');
+  if (modal && img) {
+    img.src = url || '../assets/boutique_bg.png';
+    if (titleEl) titleEl.textContent = title || 'Product Image';
+    modal.style.display = 'flex';
+  }
+}
+
 function renderSelectedDetails() {
   const panel = document.getElementById('materialDetailsPanel');
   if (!panel) return;
@@ -514,49 +633,148 @@ function renderSelectedDetails() {
     return;
   }
 
-  const marginPercent = m.price > 0 ? (((m.price - m.cost) / m.price) * 100).toFixed(1) : 0;
   const status = getStockStatus(m);
+  const activeImg = m.image || '../assets/boutique_bg.png';
+  const isFavorite = isMaterialFavorite(m.id);
+
+  const metaParts = [...new Set([m.category, m.subCategory, m.color].filter(Boolean))];
+  const metaCategory = metaParts.join(' / ') || 'Material';
+  const subtitleParts = [...new Set([m.color, m.composition || m.subCategory].filter(Boolean))];
+  const subtitle = subtitleParts.join(' • ');
+
+  // Image Thumbnails (up to 5 thumbnails) - Only shown under the image if design/material has multiple images
+  const imagesList = (m.images && m.images.length > 0) ? m.images : [activeImg];
+  const hasMultipleImages = imagesList.length > 1;
+  const maxThumbs = 5;
+  const thumbsToShow = imagesList.slice(0, maxThumbs);
+  const remainingCount = imagesList.length - maxThumbs;
+
+  const thumbnailsHtml = hasMultipleImages ? `
+    <div class="product-thumbnails-row">
+      ${thumbsToShow.map((imgUrl, idx) => {
+        const isLast = (idx === maxThumbs - 1) && remainingCount > 0;
+        return `
+          <div class="mat-thumb-item ${imgUrl === activeImg ? 'active' : ''}" onclick="selectDetailThumbnail('${escapeHtml(imgUrl)}', this)">
+            <img src="${escapeHtml(imgUrl)}" alt="Thumbnail ${idx + 1}" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';" />
+            ${isLast ? `<div class="mat-thumb-overlay">+${remainingCount}</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  ` : '';
+
+  // Primary Supplier Box (Render only if supplier info exists)
+  const hasSupplierInfo = m.supplier || m.location || m.leadTime || m.supplierContact;
+  const supplierSectionHtml = hasSupplierInfo ? `
+    <div class="product-supplier-section">
+      <div class="supplier-section-header">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <span>Primary Supplier</span>
+      </div>
+      <div class="supplier-card-box">
+        <div class="supplier-left-details">
+          <div class="supplier-icon-badge">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="supplier-text-group">
+            <div class="supplier-main-name">${escapeHtml(m.supplier || 'Primary Supplier')}</div>
+            ${m.location ? `
+              <div class="supplier-detail-line">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>${escapeHtml(m.location)}</span>
+              </div>` : ''}
+            ${m.leadTime ? `
+              <div class="supplier-detail-line">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Lead Time: ${escapeHtml(m.leadTime)}</span>
+              </div>` : ''}
+            ${m.supplierContact ? `
+              <div class="supplier-detail-line">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>${escapeHtml(m.supplierContact)}</span>
+              </div>` : ''}
+          </div>
+        </div>
+        ${m.supplier ? `
+          <button type="button" class="btn-contact-supplier" onclick="openSupplierContact('${escapeHtml(m.supplier)}')">
+            <span>Contact Supplier</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>` : ''}
+      </div>
+    </div>
+  ` : '';
 
   panel.innerHTML = `
-    <!-- Hero Header -->
-    <div class="panel-hero">
-      <div class="panel-hero-thumb-wrap">
-        <img src="${m.image}" alt="${escapeHtml(m.name)}" class="panel-hero-thumb" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';"/>
-      </div>
-      <div class="panel-hero-info">
-        <div class="panel-badges-row">
-          <span class="badge-code">${escapeHtml(m.code)}</span>
-          <span class="badge-cat">${escapeHtml(m.category)} / ${escapeHtml(m.subCategory || 'Material')}</span>
-        </div>
-        <div class="panel-hero-title">${escapeHtml(m.name)}</div>
-        <div class="panel-hero-subtitle">${escapeHtml(m.color)} • ${escapeHtml(m.composition || 'Premium Grade')}</div>
-        <div class="panel-actions-row">
-          <button type="button" class="panel-quick-btn primary" onclick="openStockAdjustmentForCurrent()">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            <span>Adjust Stock</span>
+    <!-- Upper 2-Column Split -->
+    <div class="product-card-body-split">
+      <!-- Left Side: Large Product Image & Thumbnails (50%) -->
+      <div class="product-image-column">
+        <div class="product-main-image-wrap">
+          <img id="productDetailMainImg" src="${escapeHtml(activeImg)}" alt="${escapeHtml(m.name)}" class="product-main-img" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';" />
+          ${status.label ? `<span class="product-status-badge ${status.cssClass}">${status.label}</span>` : ''}
+          <button type="button" class="product-fav-btn ${isFavorite ? 'active' : ''}" id="productDetailFavBtn" title="Favorite" onclick="toggleMaterialFavorite('${m.id}')">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
-          <button type="button" class="panel-quick-btn" onclick="copyMaterialCode('${escapeHtml(m.code)}')">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <button type="button" class="product-expand-btn" id="productDetailExpandBtn" title="View Full Image" onclick="openFullImageModal('${escapeHtml(activeImg)}', '${escapeHtml(m.name)}')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            <span>View Full Image</span>
+          </button>
+        </div>
+
+        <!-- Thumbnails Row (Only shown if design/material has multiple images) -->
+        ${thumbnailsHtml}
+      </div>
+
+      <!-- Right Side: Product Information (55-60%) -->
+      <div class="product-info-column">
+        <!-- Top Row: Badges & Menu -->
+        <div class="product-meta-row">
+          <div class="product-meta-badges">
+            <span class="badge-code">${escapeHtml(m.code)}</span>
+            <span class="badge-cat">${escapeHtml(metaCategory)}</span>
+          </div>
+          <button type="button" class="btn-detail-menu" title="Actions" onclick="openContextMenu(event, '${m.id}')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></svg>
+          </button>
+        </div>
+
+        <!-- Product Title & Details -->
+        <h2 class="product-detail-title">${escapeHtml(m.name)}</h2>
+        <div class="product-detail-subtitle">${escapeHtml(subtitle)}</div>
+
+        <!-- Copy Code Action -->
+        <div class="product-actions-line">
+          <button type="button" class="btn-copy-code" onclick="copyMaterialCode('${escapeHtml(m.code)}')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             <span>Copy Code</span>
           </button>
         </div>
+
+        <!-- Description Box -->
+        ${m.notes ? `
+          <div class="product-desc-box">
+            ${escapeHtml(m.notes)}
+          </div>
+        ` : ''}
       </div>
     </div>
 
-    <!-- 6 Tabs Navigation -->
+    <!-- Full Width Tabs Navigation -->
     <div class="details-tabs-nav">
       <button type="button" class="details-tab-btn ${currentDetailTab === 'overview' ? 'active' : ''}" onclick="switchDetailTab('overview')">Overview</button>
-      <button type="button" class="details-tab-btn ${currentDetailTab === 'pricing' ? 'active' : ''}" onclick="switchDetailTab('pricing')">Stock &amp; Pricing</button>
-      <button type="button" class="details-tab-btn ${currentDetailTab === 'suppliers' ? 'active' : ''}" onclick="switchDetailTab('suppliers')">Suppliers</button>
-      <button type="button" class="details-tab-btn ${currentDetailTab === 'usage' ? 'active' : ''}" onclick="switchDetailTab('usage')">Usage</button>
-      <button type="button" class="details-tab-btn ${currentDetailTab === 'images' ? 'active' : ''}" onclick="switchDetailTab('images')">Images (${(m.images || []).length})</button>
-      <button type="button" class="details-tab-btn ${currentDetailTab === 'notes' ? 'active' : ''}" onclick="switchDetailTab('notes')">Notes</button>
+      <button type="button" class="details-tab-btn ${currentDetailTab === 'materials' ? 'active' : ''}" onclick="switchDetailTab('materials')">Materials</button>
+      <button type="button" class="details-tab-btn ${currentDetailTab === 'measurements' ? 'active' : ''}" onclick="switchDetailTab('measurements')">Measurements</button>
+      <button type="button" class="details-tab-btn ${currentDetailTab === 'production' ? 'active' : ''}" onclick="switchDetailTab('production')">Production</button>
+      <button type="button" class="details-tab-btn ${currentDetailTab === 'images' ? 'active' : ''}" onclick="switchDetailTab('images')">Images</button>
     </div>
 
-    <!-- Tab Content Render -->
+    <!-- Full Width Tab Content (Material Specifications, etc.) -->
     <div class="details-tab-content">
-      ${renderActiveDetailTab(m, marginPercent, status)}
+      ${renderActiveDetailTab(m, status)}
     </div>
+
+    <!-- Lower Section: Primary Supplier (Full Width) -->
+    ${supplierSectionHtml}
   `;
 }
 
@@ -565,162 +783,144 @@ function switchDetailTab(tabName) {
   renderSelectedDetails();
 }
 
-function renderActiveDetailTab(m, marginPercent, status) {
+function renderActiveDetailTab(m, status) {
   switch (currentDetailTab) {
     case 'overview':
       return `
-        <!-- Material Specifications -->
-        <div class="detail-section">
-          <div class="detail-section-title">
-            <span>Material Specifications</span>
-            <span style="font-size:10px;color:#c084fc;">HSN: ${m.hsn || '5007'}</span>
+        <!-- Material Specifications (Full Width) -->
+        <div class="spec-section-card">
+          <div class="spec-section-header">
+            <div class="spec-section-title-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              <span>Material Specifications</span>
+            </div>
+            ${m.hsn ? `<span class="badge-hsn">HSN: ${escapeHtml(m.hsn)}</span>` : ''}
           </div>
-          <div class="specs-grid">
-            <div class="spec-item"><span class="spec-lbl">Composition</span><span class="spec-val">${escapeHtml(m.composition || '100% Silk')}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Width</span><span class="spec-val">${escapeHtml(m.width || '44 inches')}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Weight / GSM</span><span class="spec-val">${escapeHtml(m.gsm || '180 GSM')}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Weave / Style</span><span class="spec-val">${escapeHtml(m.weave || 'Brocade')}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Origin</span><span class="spec-val">${escapeHtml(m.origin || 'Varanasi, UP')}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Unit of Measure</span><span class="spec-val">${escapeHtml(m.uom)}</span></div>
-          </div>
-        </div>
 
-        <!-- Stock Level Breakdown (4 Tiles) -->
-        <div class="detail-section">
-          <div class="detail-section-title">
-            <span>Stock Level Breakdown</span>
-            <span class="card-status-badge ${status.cssClass}" style="position:static;display:inline-block;">${status.label}</span>
-          </div>
-          <div class="stock-tiles-grid">
-            <div class="stock-tile">
-              <div class="stock-tile-val">${m.stock} ${m.uom}</div>
-              <div class="stock-tile-lbl">Current</div>
-            </div>
-            <div class="stock-tile">
-              <div class="stock-tile-val" style="color:#fbbf24;">${m.reserved} ${m.uom}</div>
-              <div class="stock-tile-lbl">Reserved</div>
-            </div>
-            <div class="stock-tile">
-              <div class="stock-tile-val" style="color:#34d399;">${m.available} ${m.uom}</div>
-              <div class="stock-tile-lbl">Available</div>
-            </div>
-            <div class="stock-tile">
-              <div class="stock-tile-val" style="color:#c084fc;">${m.reorderLevel} ${m.uom}</div>
-              <div class="stock-tile-lbl">Reorder</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pricing & Margin Summary -->
-        <div class="detail-section">
-          <div class="detail-section-title">Pricing &amp; Margins</div>
-          <div class="pricing-grid">
-            <div class="price-box">
-              <div class="price-box-val cost">₹${m.cost.toLocaleString()}</div>
-              <div class="price-box-lbl">Cost / ${m.uom}</div>
-            </div>
-            <div class="price-box">
-              <div class="price-box-val purple">₹${m.price.toLocaleString()}</div>
-              <div class="price-box-lbl">Selling / ${m.uom}</div>
-            </div>
-            <div class="price-box">
-              <div class="price-box-val">${marginPercent}%</div>
-              <div class="price-box-lbl">Gross Margin</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Primary Supplier -->
-        <div class="detail-section">
-          <div class="detail-section-title">Primary Supplier</div>
-          <div class="supplier-card-mini">
-            <div class="supplier-mini-info">
-              <div class="supplier-mini-name">${escapeHtml(m.supplier || 'Standard Supplier')}</div>
-              <div class="supplier-mini-meta">Lead Time: ${escapeHtml(m.leadTime || '5-7 days')} • ${escapeHtml(m.supplierContact || '+91 98390 12345')}</div>
-            </div>
-            <button type="button" class="panel-quick-btn" onclick="openSupplierContact('${escapeHtml(m.supplier)}')">Contact</button>
+          <div class="specs-table-rows">
+            ${m.composition ? `
+              <div class="spec-row">
+                <span class="spec-label">Composition</span>
+                <span class="spec-value">${escapeHtml(m.composition)}</span>
+              </div>` : ''}
+            ${m.width ? `
+              <div class="spec-row">
+                <span class="spec-label">Width / Size</span>
+                <span class="spec-value">${escapeHtml(m.width)}</span>
+              </div>` : ''}
+            ${m.gsm ? `
+              <div class="spec-row">
+                <span class="spec-label">Weight / GSM</span>
+                <span class="spec-value">${escapeHtml(m.gsm)}</span>
+              </div>` : ''}
+            ${m.weave ? `
+              <div class="spec-row">
+                <span class="spec-label">Weave / Style</span>
+                <span class="spec-value">${escapeHtml(m.weave)}</span>
+              </div>` : ''}
+            ${m.color ? `
+              <div class="spec-row">
+                <span class="spec-label">Colour</span>
+                <span class="spec-value">
+                  <span class="spec-color-dot" style="background-color: ${getColorHex(m.color)};"></span>
+                  <span>${escapeHtml(m.color.replace(/^size\s*[\d\w-]+\s*/i, '').trim() || m.color)}</span>
+                </span>
+              </div>` : ''}
+            ${(m.origin || m.location) ? `
+              <div class="spec-row">
+                <span class="spec-label">Origin</span>
+                <span class="spec-value">${escapeHtml(m.origin || m.location)}</span>
+              </div>` : ''}
+            ${m.uom ? `
+              <div class="spec-row">
+                <span class="spec-label">Unit of Measure</span>
+                <span class="spec-value">${escapeHtml(m.uom)}</span>
+              </div>` : ''}
           </div>
         </div>
       `;
 
-    case 'pricing':
-      const inventoryValuation = m.stock * m.cost;
+    case 'materials':
       return `
-        <div class="detail-section">
-          <div class="detail-section-title">Warehouse &amp; Valuation</div>
-          <div class="specs-grid">
-            <div class="spec-item"><span class="spec-lbl">Storage Location</span><span class="spec-val">${escapeHtml(m.location || 'Warehouse Storage')}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Current Valuation</span><span class="spec-val" style="color:#34d399;">₹${inventoryValuation.toLocaleString()}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Purchase Cost</span><span class="spec-val">₹${m.cost.toLocaleString()} / ${m.uom}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Selling Price</span><span class="spec-val">₹${m.price.toLocaleString()} / ${m.uom}</span></div>
-            <div class="spec-item"><span class="spec-lbl">Margin</span><span class="spec-val" style="color:#c084fc;">₹${(m.price - m.cost).toLocaleString()} (${marginPercent}%)</span></div>
-            <div class="spec-item"><span class="spec-lbl">Minimum Order Qty</span><span class="spec-val">10 ${m.uom}</span></div>
-          </div>
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-head-primary" style="width: 100%; justify-content: center;" onclick="openStockAdjustmentForCurrent()">
-              Record Stock Adjustment
-            </button>
-          </div>
-        </div>
-      `;
-
-    case 'suppliers':
-      return `
-        <div class="detail-section">
-          <div class="detail-section-title">Supplier Information</div>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <div class="supplier-card-mini">
-              <div class="supplier-mini-info">
-                <div class="supplier-mini-name">${escapeHtml(m.supplier || 'Standard Supplier')} <span style="font-size:9.5px;color:#34d399;margin-left:4px;">● Preferred</span></div>
-                <div class="supplier-mini-meta">Quote: ₹${m.cost}/${m.uom} • Lead: ${m.leadTime || '5-7 days'} • Contact: ${escapeHtml(m.supplierContact || '+91 98390 12345')}</div>
-              </div>
-              <button type="button" class="panel-quick-btn" onclick="showToast('Reorder request generated for ${escapeHtml(m.supplier)}', 'success')">Order</button>
+        <div class="spec-section-card">
+          <div class="spec-section-header">
+            <div class="spec-section-title-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              <span>Fiber &amp; Material Properties</span>
             </div>
           </div>
+          <div class="specs-table-rows">
+            ${m.composition ? `<div class="spec-row"><span class="spec-label">Composition</span><span class="spec-value">${escapeHtml(m.composition)}</span></div>` : ''}
+            ${m.weave ? `<div class="spec-row"><span class="spec-label">Weave Structure</span><span class="spec-value">${escapeHtml(m.weave)}</span></div>` : ''}
+            ${m.color ? `<div class="spec-row"><span class="spec-label">Dye / Colorway</span><span class="spec-value"><span class="spec-color-dot" style="background-color: ${getColorHex(m.color)};"></span><span>${escapeHtml(m.color.replace(/^size\s*[\d\w-]+\s*/i, '').trim() || m.color)}</span></span></div>` : ''}
+            ${m.origin ? `<div class="spec-row"><span class="spec-label">Country / Mill Origin</span><span class="spec-value">${escapeHtml(m.origin)}</span></div>` : ''}
+          </div>
+          ${m.notes ? `
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+              <div class="spec-label" style="margin-bottom: 4px;">Care &amp; Handling Notes</div>
+              <div style="font-size: 11.5px; color: rgba(255,255,255,0.7); line-height: 1.45;">${escapeHtml(m.notes)}</div>
+            </div>` : ''}
         </div>
       `;
 
-    case 'usage':
+    case 'measurements':
       return `
-        <div class="detail-section">
-          <div class="detail-section-title">Recent Garment Allocations</div>
-          <div style="text-align:center;padding:24px 16px;color:var(--text-3);font-size:13px;">
-            <i data-lucide="package" style="width:28px;height:28px;margin-bottom:8px;opacity:0.4;display:block;margin:0 auto 10px;"></i>
-            Usage history is tracked via orders.<br>
-            <a href="../orders/order-overview/order-overview.html" style="color:var(--lime);text-decoration:none;font-weight:600;">View Orders →</a>
+        <div class="spec-section-card">
+          <div class="spec-section-header">
+            <div class="spec-section-title-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/><path d="m14.5 3.5 6 6"/><path d="m7.5 10.5 2 2"/><path d="m10.5 13.5 2 2"/><path d="m13.5 16.5 2 2"/></svg>
+              <span>Dimensional &amp; Weight Specs</span>
+            </div>
+          </div>
+          <div class="specs-table-rows">
+            ${m.width ? `<div class="spec-row"><span class="spec-label">Cuttable Width / Size</span><span class="spec-value">${escapeHtml(m.width)}</span></div>` : ''}
+            ${m.gsm ? `<div class="spec-row"><span class="spec-label">Fabric Weight / GSM</span><span class="spec-value">${escapeHtml(m.gsm)}</span></div>` : ''}
+            ${m.uom ? `<div class="spec-row"><span class="spec-label">Unit of Measure</span><span class="spec-value">${escapeHtml(m.uom)}</span></div>` : ''}
+            ${m.hsn ? `<div class="spec-row"><span class="spec-label">HSN / Tariff Code</span><span class="spec-value">${escapeHtml(m.hsn)}</span></div>` : ''}
+          </div>
+        </div>
+      `;
+
+    case 'production':
+      return `
+        <div class="spec-section-card">
+          <div class="spec-section-header">
+            <div class="spec-section-title-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              <span>Garment Allocations &amp; Production</span>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 20px 12px; color: rgba(255,255,255,0.5); font-size: 12px;">
+            <div>Material allocations are managed via active production orders.</div>
+            <a href="../orders/order-overview/order-overview.html" style="display: inline-flex; align-items: center; gap: 4px; color: var(--lime, #B8FF3D); text-decoration: none; font-weight: 600; margin-top: 8px;">
+              <span>View Production Orders</span>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
           </div>
         </div>
       `;
 
     case 'images':
-      const imagesList = m.images && m.images.length > 0 ? m.images : [m.image];
+      const imagesList = (m.images && m.images.length > 0) ? m.images : [m.image];
       return `
-        <div class="detail-section">
-          <div class="detail-section-title">
-            <span>High-Res Swatches</span>
-            <button type="button" class="panel-quick-btn" onclick="openAddImageModal()">+ Add Photo</button>
+        <div class="spec-section-card">
+          <div class="spec-section-header">
+            <div class="spec-section-title-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Swatches &amp; High-Res Photos</span>
+            </div>
+            <button type="button" class="btn-detail-small" onclick="openAddImageModal()">+ Add Photo</button>
           </div>
           <div class="swatches-grid">
             ${imagesList.map((img, i) => `
-              <div class="swatch-item" onclick="openImageLightbox('${img}')">
-                <img src="${img}" alt="Swatch ${i + 1}" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';"/>
+              <div class="swatch-item" onclick="selectDetailThumbnail('${escapeHtml(img)}'); openFullImageModal('${escapeHtml(img)}', '${escapeHtml(m.name)}')">
+                <img src="${escapeHtml(img)}" alt="Swatch ${i + 1}" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';"/>
               </div>
             `).join('')}
             <div class="btn-add-swatch" onclick="openAddImageModal()">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
               <span>Add Swatch</span>
             </div>
-          </div>
-        </div>
-      `;
-
-    case 'notes':
-      return `
-        <div class="detail-section">
-          <div class="detail-section-title">Care Guide &amp; Technical Notes</div>
-          <textarea class="notes-textarea" id="materialNotesInput" rows="4">${escapeHtml(m.notes || 'Handle with care. Dry cleaning recommended.')}</textarea>
-          <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
-            <button type="button" class="btn-head-primary" onclick="saveMaterialNotes()">Save Notes</button>
           </div>
         </div>
       `;
@@ -821,67 +1021,39 @@ async function handleSaveNewMaterial(event) {
   const code = document.getElementById('newMatCode').value.trim();
   const name = document.getElementById('newMatName').value.trim();
   const category = document.getElementById('newMatCategory').value;
-  const subCategory = document.getElementById('newMatSubCat').value.trim() || 'General';
+  const subCategory = document.getElementById('newMatSubCat').value.trim();
   const color = document.getElementById('newMatColor').value.trim();
-  const composition = document.getElementById('newMatComposition').value.trim() || 'Premium';
-  const width = document.getElementById('newMatWidth').value.trim() || '44 inches';
-  const gsm = document.getElementById('newMatGsm').value.trim() || '150 GSM';
+  const composition = document.getElementById('newMatComposition').value.trim();
+  const width = document.getElementById('newMatWidth').value.trim();
+  const gsm = document.getElementById('newMatGsm').value.trim();
   const uom = document.getElementById('newMatUom').value;
   const cost = parseFloat(document.getElementById('newMatCost').value) || 0;
   const price = parseFloat(document.getElementById('newMatPrice').value) || 0;
   const stock = parseFloat(document.getElementById('newMatStock').value) || 0;
-  const reorder = parseFloat(document.getElementById('newMatReorder').value) || 15;
-  const supplier = document.getElementById('newMatSupplier').value.trim() || 'Standard Supplier';
-  const imageUrl = document.getElementById('newMatImageUrl').value.trim() || SAMPLE_IMAGES.silk_pink;
+  const reorder = parseFloat(document.getElementById('newMatReorder').value) || 0;
+  const supplier = document.getElementById('newMatSupplier').value.trim();
+  const imageUrl = document.getElementById('newMatImageUrl').value.trim();
 
   try {
-    let newMaterial;
-    if (window.api && window.api.inventory) {
-      const created = await window.api.inventory.create({
-        name,
-        category,
-        variant: subCategory || color,
-        unit: uom,
-        stockQty: stock,
-        reservedQty: 0,
-        reorderLevel: reorder,
-        purchasePrice: cost,
-        supplierName: supplier,
-        imageUrl: imageUrl
-      });
-      newMaterial = mapInventoryToMaterial(created);
-    } else {
-      const newId = Date.now();
-      newMaterial = {
-        id: newId,
-        code,
-        name,
-        category,
-        subCategory,
-        color,
-        composition,
-        width,
-        gsm,
-        weave: 'Standard Quality',
-        origin: 'India',
-        hsn: '5007',
-        uom,
-        cost,
-        price,
-        stock,
-        reserved: 0,
-        available: stock,
-        reorderLevel: reorder,
-        location: 'Central Storage Bin',
-        supplier,
-        supplierContact: '+91 98390 12345',
-        leadTime: '7 days',
-        image: imageUrl,
-        images: [imageUrl],
-        notes: 'Newly added catalog material.'
-      };
-    }
+    const { default: api } = await import('../api.js');
+    const created = await api.inventory.create({
+      name,
+      category,
+      variant: subCategory || color || 'Standard',
+      unit: uom,
+      stockQty: stock,
+      reservedQty: 0,
+      reorderLevel: reorder,
+      purchasePrice: cost,
+      sellingPrice: price,
+      supplierName: supplier,
+      composition,
+      width,
+      gsm,
+      imageUrl: imageUrl || null
+    });
 
+    const newMaterial = mapInventoryToMaterial(created);
     ALL_MATERIALS.unshift(newMaterial);
     selectedMaterialId = newMaterial.id;
 
@@ -894,7 +1066,7 @@ async function handleSaveNewMaterial(event) {
     renderMaterialList();
     renderSelectedDetails();
 
-    showToast(`Material ${newMaterial.code} created successfully!`, 'success');
+    showToast(`Material ${newMaterial.code} created and saved to database!`, 'success');
   } catch (err) {
     console.error('Error creating material:', err);
     showToast('Failed to create material: ' + (err.message || 'Unknown error'), 'error');
@@ -963,19 +1135,40 @@ async function handleSaveStockAdjustment(event) {
   let delta = (adjType === 'add') ? qty : (adjType === 'sub' ? -qty : (qty - adjustmentTargetMaterial.stock));
 
   try {
-    if (window.api && window.api.inventory && adjustmentTargetMaterial.id) {
-      const updated = await window.api.inventory.adjust(adjustmentTargetMaterial.id, delta, reason, 'Admin');
-      adjustmentTargetMaterial.stock = Number(updated.stockQty || 0);
-      adjustmentTargetMaterial.available = Number(updated.availableQty != null ? updated.availableQty : Math.max(0, adjustmentTargetMaterial.stock - adjustmentTargetMaterial.reserved));
-    } else {
-      let newStock = adjustmentTargetMaterial.stock;
-      if (adjType === 'add') newStock += qty;
-      else if (adjType === 'sub') newStock = Math.max(0, newStock - qty);
-      else newStock = Math.max(0, qty);
-      adjustmentTargetMaterial.stock = newStock;
-      adjustmentTargetMaterial.available = Math.max(0, newStock - adjustmentTargetMaterial.reserved);
+    const { default: api } = await import('../api.js');
+    if (adjustmentTargetMaterial.id) {
+      const updated = await api.inventory.adjust(adjustmentTargetMaterial.id, delta, reason, 'Admin');
+      if (updated) {
+        adjustmentTargetMaterial.stock = Number(updated.stockQty || 0);
+        adjustmentTargetMaterial.available = Number(updated.availableQty != null ? updated.availableQty : Math.max(0, adjustmentTargetMaterial.stock - adjustmentTargetMaterial.reserved));
+      }
     }
-    if (location) adjustmentTargetMaterial.location = location;
+    if (location) {
+      adjustmentTargetMaterial.location = location;
+      api.inventory.update(adjustmentTargetMaterial.id, {
+        name: adjustmentTargetMaterial.name,
+        category: adjustmentTargetMaterial.category,
+        variant: adjustmentTargetMaterial.color,
+        unit: adjustmentTargetMaterial.uom,
+        stockQty: adjustmentTargetMaterial.stock,
+        reservedQty: adjustmentTargetMaterial.reserved,
+        reorderLevel: adjustmentTargetMaterial.reorderLevel,
+        purchasePrice: adjustmentTargetMaterial.cost,
+        sellingPrice: adjustmentTargetMaterial.price,
+        composition: adjustmentTargetMaterial.composition,
+        weave: adjustmentTargetMaterial.weave,
+        width: adjustmentTargetMaterial.width,
+        gsm: adjustmentTargetMaterial.gsm,
+        hsnCode: adjustmentTargetMaterial.hsn,
+        origin: adjustmentTargetMaterial.origin,
+        location: location,
+        leadTime: adjustmentTargetMaterial.leadTime,
+        supplierName: adjustmentTargetMaterial.supplier,
+        supplierContact: adjustmentTargetMaterial.supplierContact,
+        notes: adjustmentTargetMaterial.notes,
+        imageUrl: adjustmentTargetMaterial.image
+      }).catch(err => console.warn('Could not update location:', err));
+    }
 
     closeModal('stockAdjustmentModal');
     event.target.reset();
@@ -985,7 +1178,7 @@ async function handleSaveStockAdjustment(event) {
     renderMaterialList();
     renderSelectedDetails();
 
-    showToast(`Stock updated to ${adjustmentTargetMaterial.stock} ${adjustmentTargetMaterial.uom} (${reason})`, 'success');
+    showToast(`Stock updated in database to ${adjustmentTargetMaterial.stock} ${adjustmentTargetMaterial.uom} (${reason})`, 'success');
   } catch (err) {
     console.error('Error adjusting stock:', err);
     showToast('Failed to adjust stock: ' + (err.message || 'Unknown error'), 'error');
@@ -1082,8 +1275,12 @@ function handleSaveImage(event) {
   const m = getSelectedMaterial();
 
   if (url && m) {
-    if (!m.images) m.images = [];
-    m.images.push(url);
+    if (!m.images || m.images.length === 0) {
+      m.images = [m.image || '../assets/boutique_bg.png'];
+    }
+    if (!m.images.includes(url)) {
+      m.images.push(url);
+    }
     closeModal('addImageModal');
     event.target.reset();
     renderSelectedDetails();
@@ -1091,20 +1288,82 @@ function handleSaveImage(event) {
   }
 }
 
+function selectDetailThumbnail(url, el) {
+  const mainImg = document.getElementById('productDetailMainImg');
+  if (mainImg) {
+    mainImg.src = url;
+  }
+  const expandBtn = document.getElementById('productDetailExpandBtn');
+  if (expandBtn) {
+    const m = getSelectedMaterial();
+    expandBtn.setAttribute('onclick', `openFullImageModal('${escapeHtml(url)}', '${escapeHtml(m ? m.name : '')}')`);
+  }
+  if (el) {
+    const parent = el.closest('.product-thumbnails-row');
+    if (parent) {
+      parent.querySelectorAll('.mat-thumb-item').forEach(thumb => thumb.classList.remove('active'));
+      el.classList.add('active');
+    }
+  }
+}
+
+function openFullImageModal(url, title) {
+  const modal = document.getElementById('imageLightboxModal');
+  const img = document.getElementById('lightboxImg');
+  const titleEl = document.getElementById('lightboxTitle');
+  if (modal && img) {
+    img.src = url || '../assets/boutique_bg.png';
+    if (titleEl) titleEl.textContent = title || 'Product Image';
+    modal.style.display = 'flex';
+  }
+}
+
 function openImageLightbox(url) {
   const m = getSelectedMaterial();
-  m.image = url;
-  renderSelectedDetails();
-  showToast('Thumbnail view updated', 'info');
+  if (m) {
+    m.image = url;
+    renderSelectedDetails();
+    showToast('Thumbnail view updated', 'info');
+  }
 }
 
 // Save Notes from Tab
-function saveMaterialNotes() {
+async function saveMaterialNotes() {
   const m = getSelectedMaterial();
   const textarea = document.getElementById('materialNotesInput');
   if (m && textarea) {
-    m.notes = textarea.value.trim();
-    showToast('Care instructions and notes saved!', 'success');
+    const notes = textarea.value.trim();
+    try {
+      const { default: api } = await import('../api.js');
+      await api.inventory.update(m.id, {
+        name: m.name,
+        category: m.category,
+        variant: m.color,
+        unit: m.uom,
+        stockQty: m.stock,
+        reservedQty: m.reserved,
+        reorderLevel: m.reorderLevel,
+        purchasePrice: m.cost,
+        sellingPrice: m.price,
+        composition: m.composition,
+        weave: m.weave,
+        width: m.width,
+        gsm: m.gsm,
+        hsnCode: m.hsn,
+        origin: m.origin,
+        location: m.location,
+        leadTime: m.leadTime,
+        supplierName: m.supplier,
+        supplierContact: m.supplierContact,
+        notes: notes,
+        imageUrl: m.image
+      });
+      m.notes = notes;
+      showToast('Care instructions and notes saved to database!', 'success');
+    } catch (err) {
+      console.error('Failed to save notes:', err);
+      showToast('Failed to save notes: ' + (err.message || 'Unknown error'), 'error');
+    }
   }
 }
 
@@ -1250,6 +1509,31 @@ function escapeHtml(str) {
 // ────────────────────────────────────────────────────────────
 
 function showToast(message, type = 'info') {
+  if (window.NotificationCenter && typeof window.NotificationCenter.toast === 'function') {
+    const sevMap = { error: 'danger', danger: 'danger', warn: 'warn', warning: 'warn', success: 'success', info: 'info' };
+    const sev = sevMap[type] || 'info';
+    window.NotificationCenter.toast({
+      title: type === 'success' ? 'Inventory & Materials' : (type === 'warn' ? 'Stock Warning' : 'Materials'),
+      message: message,
+      severity: sev,
+      duration: 3800
+    });
+
+    // If this is a reorder or significant stock event, push dynamic notification
+    if (type === 'success' && (message.includes('Reorder drafted') || message.includes('Stock updated') || message.includes('created and saved'))) {
+      window.NotificationCenter.push({
+        type: 'fabrics',
+        module: 'Inventory & Materials',
+        severity: 'success',
+        title: message.includes('Reorder') ? 'Reorder Drafted' : 'Stock Updated',
+        message: message,
+        silent: true,
+        actionUrl: '../fabrics-materials/fabrics-materials.html'
+      });
+    }
+    return;
+  }
+
   let container = document.getElementById('toastContainer');
   if (!container) {
     container = document.createElement('div');
@@ -1284,3 +1568,40 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.remove(), 260);
   }, 3400);
 }
+
+// ────────────────────────────────────────────────────────────
+// EXPOSE HANDLERS TO WINDOW (For HTML onclick and module safety)
+// ────────────────────────────────────────────────────────────
+window.exportMaterialsCSV = exportMaterialsCSV;
+window.openStockAdjustmentModal = openStockAdjustmentModal;
+window.openAddMaterialModal = openAddMaterialModal;
+window.selectCategoryFilter = selectCategoryFilter;
+window.handleSearch = handleSearch;
+window.openFilterModal = openFilterModal;
+window.setViewMode = setViewMode;
+window.changePage = changePage;
+window.goToPage = goToPage;
+window.closeModal = closeModal;
+window.handleSaveNewMaterial = handleSaveNewMaterial;
+window.updateAdjTypeLabels = updateAdjTypeLabels;
+window.handleSaveStockAdjustment = handleSaveStockAdjustment;
+window.resetFilters = resetFilters;
+window.applyAdvancedFilters = applyAdvancedFilters;
+window.openAddImageModal = openAddImageModal;
+window.handleSaveImage = handleSaveImage;
+window.handleCardMenuAction = handleCardMenuAction;
+window.selectMaterial = selectMaterial;
+window.switchDetailTab = switchDetailTab;
+window.openStockAdjustmentForCurrent = openStockAdjustmentForCurrent;
+window.openSupplierContact = openSupplierContact;
+window.openImageLightbox = openImageLightbox;
+window.saveMaterialNotes = saveMaterialNotes;
+window.openContextMenu = openContextMenu;
+window.copyMaterialCode = copyMaterialCode;
+window.showToast = showToast;
+window.toggleMaterialFavorite = toggleMaterialFavorite;
+window.isMaterialFavorite = isMaterialFavorite;
+window.selectDetailThumbnail = selectDetailThumbnail;
+window.openFullImageModal = openFullImageModal;
+window.getColorHex = getColorHex;
+

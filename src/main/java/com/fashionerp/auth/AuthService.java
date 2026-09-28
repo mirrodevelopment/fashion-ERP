@@ -16,6 +16,7 @@ public class AuthService {
     private final AppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final LoginRateLimiter rateLimiter;
 
     @PostConstruct
     public void initAdmin() {
@@ -46,11 +47,31 @@ public class AuthService {
     }
 
     public AuthDto.LoginResponse login(AuthDto.LoginRequest req) {
-        AppUser user = userRepository.findByUsernameAndActiveTrue(req.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+        return login(req, null);
+    }
 
-        if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
+    public AuthDto.LoginResponse login(AuthDto.LoginRequest req, String clientIp) {
+        String rateLimitKey = (clientIp != null ? clientIp : "unknown") + ":" + (req != null && req.getUsername() != null ? req.getUsername() : "anonymous");
+        rateLimiter.checkBlocked(rateLimitKey);
+        if (clientIp != null) {
+            rateLimiter.checkBlocked(clientIp);
+        }
+
+        AppUser user = (req != null && req.getUsername() != null)
+                ? userRepository.findByUsernameAndActiveTrue(req.getUsername()).orElse(null)
+                : null;
+
+        if (user == null || req.getPassword() == null || !passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
+            rateLimiter.recordFailedAttempt(rateLimitKey);
+            if (clientIp != null) {
+                rateLimiter.recordFailedAttempt(clientIp);
+            }
             throw new IllegalArgumentException("Invalid username or password");
+        }
+
+        rateLimiter.recordSuccess(rateLimitKey);
+        if (clientIp != null) {
+            rateLimiter.recordSuccess(clientIp);
         }
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());

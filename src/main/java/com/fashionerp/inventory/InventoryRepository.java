@@ -12,6 +12,7 @@ import java.util.UUID;
 @Repository
 public interface InventoryRepository extends JpaRepository<InventoryItem, UUID> {
     Optional<InventoryItem> findByItemCode(String itemCode);
+    boolean existsByItemCode(String itemCode);
 
     @Query("""
         SELECT i FROM InventoryItem i
@@ -29,4 +30,7 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, UUID> 
                                Pageable pageable);
 
     long countByStatus(InventoryStatus status);
+
+    @Query("SELECT i FROM InventoryItem i WHERE LOWER(i.category) = 'fabric'")
+    java.util.List<InventoryItem> findFabrics();
 }

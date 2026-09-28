@@ -173,6 +173,7 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<OrderProgressStage> progressStages = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)

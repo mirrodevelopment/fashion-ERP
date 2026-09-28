@@ -1,10 +1,12 @@
-﻿/* ============================================================
+/* ============================================================
    HAULO BOUTIQUE ERP — Fragments Shared Styles (Dark Warm Glass)
    Path: front end/fragments/fragments.css
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('theme/theme.css');
+@import url('theme/haulo-tokens.css');  /* Dual-theme token file — Classic & Haulo Dark */
+@import url('theme/theme.css');          /* Legacy base styles (layouts, glass cards, etc.) */
+@import url('notifications/notifications.css'); /* Dynamic notifications & toast system */
 
 /* :root tokens are now fully defined in theme/theme.css — imported above. */
 
@@ -116,13 +118,35 @@ body:not([data-module="dashboard"]) #sidebarSlot {
 .sidebar.collapsed .nav-item svg { opacity: 0.7; width: 17px; height: 17px; }
 
 .nav-item.active {
-  background: var(--lime);
-  color: var(--lime-dark);
-  font-weight: 700;
-  box-shadow: 0 2px 12px var(--lime-glow);
+  background: var(--nav-lime, var(--lime, #B8FF3D)) !important;
+  color: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 14px var(--lime-glow, rgba(184, 255, 61, 0.28)) !important;
 }
-.nav-item.active svg { opacity: 1; color: var(--lime-dark); }
-.nav-item.active:hover { background: var(--lime-hover); color: var(--lime-dark); }
+.nav-item.active svg,
+.nav-item.active .ni {
+  opacity: 1 !important;
+  color: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+  stroke: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+}
+.nav-item.active span {
+  color: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+  font-weight: 700 !important;
+}
+.nav-item.active:hover {
+  background: var(--lime-hover, #CAFF5C) !important;
+  color: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+  box-shadow: 0 2px 16px var(--lime-glow, rgba(184, 255, 61, 0.35)) !important;
+}
+.nav-item.active:hover svg,
+.nav-item.active:hover .ni {
+  color: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+  stroke: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+  opacity: 1 !important;
+}
+.nav-item.active:hover span {
+  color: var(--nav-lime-dark, var(--lime-dark, #182018)) !important;
+}
 
 /* ============================================================
    UNCOMPLETED / IN-PROGRESS NAVIGATION ITEMS — AMBIENT RED GLOW
@@ -366,5 +390,36 @@ body:not([data-module="dashboard"]) .sidebar-slot {
 .sidebar.collapsed {
   width: var(--sidebar-collapsed-w, 58px) !important;
   min-width: var(--sidebar-collapsed-w, 58px) !important;
+}
+
+/* ── Theme Switcher Button ── */
+.haulo-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--bg-input, rgba(255, 255, 255, 0.07));
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  padding: 0;
+}
+.haulo-theme-btn:hover {
+  background: var(--bg-card-subtle, rgba(255, 255, 255, 0.14));
+  border-color: var(--border-strong, rgba(255, 255, 255, 0.22));
+  color: var(--lime, #B8FF3D);
+  transform: translateY(-1px);
+}
+.haulo-theme-btn svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.3s ease;
+}
+.haulo-theme-btn:hover svg {
+  transform: rotate(20deg);
 }
 

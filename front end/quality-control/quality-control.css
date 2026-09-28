@@ -1,5 +1,5 @@
-﻿/* ============================================================
-   HAULO BOUTIQUE ERP � Quality Control & Final Inspection CSS
+/* ============================================================
+   HAULO BOUTIQUE ERP ? Quality Control & Final Inspection CSS
    Pixel-Accurate Glassmorphic Split Layout (Fully Visible & Compact)
    Path: front end/quality-control/quality-control.css
    ============================================================ */
@@ -75,8 +75,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-card);
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
@@ -84,7 +84,7 @@ body {
 }
 
 .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   color: var(--text-primary);
 }
 
@@ -111,13 +111,13 @@ body {
   display: flex;
   align-items: center;
   gap: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   color: rgba(255, 255, 255, 0.60);
   font-size: 9px;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--border-card);
 }
 
 .chevron-icon {
@@ -151,8 +151,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
   border-radius: 18px;
   padding: 2px 8px 2px 3px;
   cursor: pointer;
@@ -160,7 +160,7 @@ body {
 }
 
 .user-pill:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
 }
 
 .user-avatar-initials {
@@ -217,7 +217,7 @@ body {
 }
 
 .qc-workspace::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--bg-card-strong);
   border-radius: 4px;
 }
 
@@ -308,10 +308,10 @@ body {
 }
 
 .kpi-card {
-  background: rgba(30, 30, 28, 0.55);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--border-card);
   border-radius: 8px;
   padding: 4px 7px;
   display: flex;
@@ -324,7 +324,7 @@ body {
 
 .kpi-card:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: var(--border-card-hover);
 }
 
 .kpi-icon-box {
@@ -562,7 +562,7 @@ body {
 
 .tab-pill:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
 }
 
 .tab-pill.active {
@@ -582,8 +582,8 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 0 8px;
   height: 24px;
@@ -618,8 +618,8 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 0 9px;
   height: 24px;
@@ -631,7 +631,7 @@ body {
 }
 
 .btn-filter-toggle:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   border-color: rgba(255, 255, 255, 0.20);
 }
 
@@ -660,10 +660,10 @@ body {
 }
 
 .glass-card {
-  background: rgba(30, 30, 28, 0.55);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--border-card);
   border-radius: 12px;
   padding: 8px 10px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
@@ -737,7 +737,7 @@ body {
 }
 
 .table-responsive-wrap::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
   border-radius: 3px;
 }
 
@@ -769,11 +769,11 @@ body {
 }
 
 .qc-table tr:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-inner);
 }
 
 .qc-table tr.selected-row {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
 }
 
 .order-user-cell {
@@ -787,7 +787,7 @@ body {
   height: 32px;
   border-radius: 4px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--border-card);
   background: var(--bg-body);
   flex-shrink: 0;
 }
@@ -877,6 +877,82 @@ body {
   color: var(--amber-soft);
 }
 
+/* Per-Order QC Progress & Pass Rate */
+.order-qc-progress-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 90px;
+}
+
+.qc-rate-label {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.qc-rate-label.complete {
+  color: var(--lime);
+}
+
+.qc-rate-label.has-fail {
+  color: var(--red-soft);
+}
+
+.qc-mini-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.qc-mini-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--purple-accent);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.qc-mini-progress-fill.complete {
+  background: var(--lime);
+}
+
+.qc-mini-progress-fill.has-fail {
+  background: var(--red-soft);
+}
+
+/* Inspection Header Live Pass Rate Pill */
+.ch-pass-rate-pill {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+}
+
+.ch-pass-rate-pill.complete {
+  background: rgba(163, 230, 53, 0.15);
+  color: #a3e635;
+  border-color: rgba(163, 230, 53, 0.35);
+}
+
+.ch-pass-rate-pill.has-fail {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.ch-pass-rate-pill.in-progress {
+  background: rgba(192, 132, 252, 0.15);
+  color: #c084fc;
+  border-color: rgba(192, 132, 252, 0.35);
+}
+
 .btn-row-menu {
   background: transparent;
   border: none;
@@ -931,7 +1007,7 @@ body {
 
 .page-num-btn:hover,
 .page-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.10);
+  background: var(--bg-card);
   color: var(--text-primary);
 }
 
@@ -1062,7 +1138,7 @@ body {
 }
 
 .btn-more-dots {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   width: 24px;
@@ -1076,7 +1152,7 @@ body {
 }
 
 .btn-more-dots:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   color: var(--text-primary);
 }
 
@@ -1128,7 +1204,7 @@ body {
 }
 
 .inspection-inner-grid::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   border-radius: 2px;
 }
 
@@ -1175,7 +1251,7 @@ body {
 }
 
 .ci-icon.pending {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
   color: rgba(255, 255, 255, 0.40);
 }
 
@@ -1218,9 +1294,9 @@ body {
 }
 
 .btn-ci-status.pending {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   color: rgba(255, 255, 255, 0.60);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-input);
 }
 
 .btn-ci-status.fail {
@@ -1235,7 +1311,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 4px 6px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 6px;
   margin-bottom: 4px;
@@ -1286,13 +1362,13 @@ body {
 }
 
 .btn-ch-action.reset {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
   color: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-input);
 }
 
 .btn-ch-action.reset:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   color: var(--text-primary);
 }
 
@@ -1360,7 +1436,7 @@ body {
 }
 
 .cdd-severity-select {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 4px;
   color: var(--text-primary);
@@ -1412,7 +1488,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
   border: 1px dashed rgba(255, 255, 255, 0.20);
   border-radius: 5px;
   color: rgba(255, 255, 255, 0.75);
@@ -1424,7 +1500,7 @@ body {
 }
 
 .btn-add-defect-photo:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   color: var(--text-primary);
   border-color: rgba(255, 255, 255, 0.35);
 }
@@ -1442,7 +1518,7 @@ body {
   height: 32px;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--border-card-hover);
   background: var(--bg-gradient-deep);
   cursor: pointer;
   transition: transform 0.15s;
@@ -1618,8 +1694,8 @@ body {
 
 #qcRemarksInput {
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-card);
   border-radius: 6px;
   padding: 3px 6px;
   color: var(--text-primary);
@@ -1725,8 +1801,8 @@ body {
 .custom-dropdown-wrap select {
   width: 100%;
   appearance: none;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-card);
   border-radius: 5px;
   padding: 3px 16px 3px 6px;
   color: var(--text-primary);
@@ -1753,8 +1829,8 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-card);
   border-radius: 5px;
   padding: 3px 6px;
   font-size: 9.5px;
@@ -1821,7 +1897,7 @@ body {
   height: 42px;
   border-radius: 5px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--border-card);
   background: var(--bg-body);
   cursor: pointer;
   transition: transform 0.15s ease;
@@ -1841,7 +1917,7 @@ body {
 
 .add-photo-tile {
   border: 1px dashed rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass-inner);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1867,6 +1943,27 @@ body {
 .add-subtext {
   font-size: 7px;
   color: rgba(255, 255, 255, 0.40);
+}
+
+.ref-empty-state {
+  grid-column: span 2;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 8.5px;
+  color: var(--text-muted);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ref-empty-state svg {
+  opacity: 0.5;
+  stroke: var(--text-muted);
 }
 
 /* Customer Notes */
@@ -1897,7 +1994,7 @@ body {
 }
 
 .cn-bubble {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   padding: 5px 7px;
@@ -1914,7 +2011,7 @@ body {
   gap: 6px;
   width: 100%;
   background: rgba(20, 16, 14, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--border-card);
   border-radius: 18px;
   padding: 5px 0;
   color: var(--text-primary);
@@ -1929,7 +2026,8 @@ body {
 }
 
 .btn-save-qc-result:hover {
-  background: var(--lime-dark);
+  background: var(--bg-body-gradient);
+  background-attachment: fixed;
   border-color: var(--lime);
   color: var(--lime);
   transform: translateY(-1px);
@@ -2033,8 +2131,8 @@ body {
 .form-group input,
 .form-group select,
 .form-group textarea {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-input);
   border-radius: 6px;
   padding: 6px 8px;
   color: var(--text-primary);
@@ -2066,7 +2164,7 @@ body {
 
 .btn-cancel {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-input);
   border-radius: 6px;
   padding: 0 12px;
   height: 28px;
@@ -2156,7 +2254,7 @@ body {
 }
 
 .context-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   color: var(--text-primary);
 }
 

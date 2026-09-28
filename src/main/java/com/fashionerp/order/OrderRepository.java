@@ -50,4 +50,11 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     @Query("SELECT o FROM Order o WHERE o.customer.mobileNumber = :customerMobile ORDER BY o.orderDate DESC, o.createdAt DESC")
     java.util.List<Order> findByCustomerMobile(@Param("customerMobile") String customerMobile);
+
+    java.util.List<Order> findByCollectionIgnoreCase(String collection);
+
+    @Query("SELECT o FROM Order o WHERE LOWER(o.collection) IN :collections")
+    java.util.List<Order> findByCollectionInIgnoreCase(@Param("collections") java.util.Collection<String> collections);
+
+    long countByCollectionIgnoreCase(String collection);
 }

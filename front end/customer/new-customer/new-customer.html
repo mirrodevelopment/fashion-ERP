@@ -1,1 +1,759 @@
-﻿<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <title>New Customer — Haulo Boutique ERP</title>  <meta name="description" content="Register a new bespoke clientele profile, capture sizing, style DNA, Indian mobile contacts, and atelier preferences." />  <!-- Google Fonts: Plus Jakarta Sans & Inter -->  <link rel="preconnect" href="https://fonts.googleapis.com" />  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />  <!-- Lucide Icons -->  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>  <!-- Base ERP Stylesheets -->  <link rel="stylesheet" href="../../fragments/fragments.css" />  <link rel="stylesheet" href="../../fragments/nav.css" />  <link rel="stylesheet" href="new-customer.css" />  <!-- Navigation & Fragment Base Configuration (2 levels deep) -->  <script>window.FRAGMENT_BASE = '../../fragments/';</script>  <script src="../../fragments/nav.js"></script></head><body data-module="customers">  <!-- Background Atmospheric Image Layer -->  <div class="app-bg"></div>  <!-- App Shell -->  <div class="app-shell" id="appShell">    <!-- Shared Sidebar Fragment Slot -->    <div class="sidebar-slot" id="sidebarSlot"></div>    <!-- Main Content Wrapper -->    <div class="main-wrapper">      <!-- Global Top Header Bar -->      <div id="navbarSlot"></div>      <!-- Main Page Content Area -->      <main class="main-content" id="mainContent">        <!-- Page Operations Header with 6-Step Workflow Progress -->        <div class="page-header-row">          <div class="page-title-group">            <div class="breadcrumb-nav">              <a href="../../dashboard/dashboard.html" class="bc-item bc-link">Dashboard</a>              <span class="bc-sep">&gt;</span>              <a href="../customer-overview/customer-overview.html" class="bc-item bc-link">Customers</a>              <span class="bc-sep">&gt;</span>              <span class="bc-item current">New Customer</span>            </div>            <h1 class="page-title">              <i data-lucide="user-plus" class="title-icon"></i>              New Customer            </h1>            <p class="page-subtitle">Register a new bespoke clientele profile, capture sizing, Indian contacts, and fashion DNA</p>          </div>          <!-- 6-Step Horizontal Workflow Stepper -->          <div class="workflow-stepper" id="workflowStepper">            <div class="step-node active" data-step="1" title="Personal Identity">              <div class="step-circle">1</div>              <div class="step-label">Identity</div>            </div>            <div class="step-line"></div>            <div class="step-node" data-step="2" title="Contact & Channels">              <div class="step-circle">2</div>              <div class="step-label">Contact</div>            </div>            <div class="step-line"></div>            <div class="step-node" data-step="3" title="Address & Fitting Location">              <div class="step-circle">3</div>              <div class="step-label">Address</div>            </div>            <div class="step-line"></div>            <div class="step-node" data-step="4" title="Style DNA & Preferences">              <div class="step-circle">4</div>              <div class="step-label">Style DNA</div>            </div>            <div class="step-line"></div>            <div class="step-node" data-step="5" title="Body Measurements">              <div class="step-circle">5</div>              <div class="step-label">Measurements</div>            </div>            <div class="step-line"></div>            <div class="step-node" data-step="6" title="Account Classification">              <div class="step-circle">6</div>              <div class="step-label">Account</div>            </div>          </div>        </div>        <!-- =====================================================             MAIN THREE-COLUMN GRID WORKSPACE (37fr 38fr 25fr)             ===================================================== -->        <form id="newCustomerForm" onsubmit="handleCustomerSubmit(event)" novalidate>          <div class="customer-grid">            <!-- ================= LEFT COLUMN ================= -->            <div class="col-left">              <!-- STEP 1: CLIENT IDENTITY CARD -->              <section class="section-card" id="cardIdentity">                <div class="card-header">                  <div class="card-header-left">                    <div class="step-badge">1</div>                    <div>                      <h2 class="card-title">Client Identity</h2>                      <p class="card-subtitle">Personal details, salutation & portrait</p>                    </div>                  </div>                </div>                <!-- Avatar Upload Section -->                <div class="avatar-upload-zone" id="avatarUploadZone">                  <div class="avatar-preview-box" id="avatarPreviewBox">                    <img src="" alt="Customer Preview" class="avatar-preview-img" id="avatarPreviewImg" style="display:none;" />                    <div class="avatar-fallback" id="avatarFallback">                      <span id="avatarInitials">KN</span>                    </div>                    <button type="button" class="avatar-upload-overlay" id="btnTriggerUpload" title="Upload Client Photo">                      <i data-lucide="camera" style="width:16px;height:16px;"></i>                    </button>                  </div>                  <div class="avatar-upload-meta">                    <span class="upload-title">Client Portrait</span>                    <span class="upload-hint">Upload high-res portrait (JPEG, PNG). Max 5MB.</span>                    <div class="upload-btn-row">                      <label for="avatarFileInput" class="btn-sm-ghost" tabindex="0">                        <i data-lucide="upload" style="width:12px;height:12px;"></i>                        <span>Choose Photo</span>                      </label>                      <button type="button" class="btn-sm-text danger" id="btnRemoveAvatar" style="display:none;" onclick="removeAvatar()">                        Remove                      </button>                      <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFileSelect(this)" />                    </div>                  </div>                </div>                <!-- Salutation & Gender Row -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="salutationSelect">Salutation</label>                    <div class="select-wrapper">                      <select id="salutationSelect" class="form-select" onchange="syncCustomerPreview()">                        <option value="Ms." selected>Ms.</option>                        <option value="Mrs.">Mrs.</option>                        <option value="Mr.">Mr.</option>                        <option value="Dr.">Dr.</option>                        <option value="Smt.">Smt.</option>                        <option value="Shri">Shri</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                  <div class="form-group">                    <label class="form-label">Gender</label>                    <div class="gender-pills-row">                      <label class="gender-pill active" id="genderFemale">                        <input type="radio" name="gender" value="Female" checked onchange="handleGenderChange('Female')" />                        <span>Female</span>                      </label>                      <label class="gender-pill" id="genderMale">                        <input type="radio" name="gender" value="Male" onchange="handleGenderChange('Male')" />                        <span>Male</span>                      </label>                      <label class="gender-pill" id="genderOther">                        <input type="radio" name="gender" value="Other" onchange="handleGenderChange('Other')" />                        <span>Other</span>                      </label>                    </div>                  </div>                </div>                <!-- Name Inputs -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="firstNameInput">First Name <span class="req-star">*</span></label>                    <input type="text" id="firstNameInput" class="form-input" placeholder="e.g. First Name" value="" required oninput="syncCustomerPreview()" />                  </div>                  <div class="form-group">                    <label class="form-label" for="lastNameInput">Last Name <span class="req-star">*</span></label>                    <input type="text" id="lastNameInput" class="form-input" placeholder="e.g. Last Name" value="" required oninput="syncCustomerPreview()" />                  </div>                </div>                <!-- Key Dates Row -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="dobInput">Date of Birth</label>                    <div class="input-with-icon">                      <i data-lucide="cake" class="input-icon"></i>                      <input type="date" id="dobInput" class="form-input" value="" onchange="updateReadinessProgress()" />                    </div>                    <span class="field-hint">Used for VIP birthday gifts & wishes</span>                  </div>                  <div class="form-group">                    <label class="form-label" for="anniversaryInput">Wedding Anniversary</label>                    <div class="input-with-icon">                      <i data-lucide="heart" class="input-icon"></i>                      <input type="date" id="anniversaryInput" class="form-input" value="" onchange="updateReadinessProgress()" />                    </div>                    <span class="field-hint">Anniversary couture reminders</span>                  </div>                </div>                <!-- Lifestyle & Persona Notes -->                <div class="form-group mb-0">                  <label class="form-label" for="clientNotesInput">Client Persona & Styling Notes</label>                  <textarea id="clientNotesInput" class="form-textarea" rows="2" placeholder="Lifestyle notes, preference for heritage silks, fabric sensitivity or fitting schedules..."></textarea>                </div>              </section>              <!-- STEP 2: CONTACT & COMMUNICATION CARD -->              <section class="section-card" id="cardContact">                <div class="card-header">                  <div class="card-header-left">                    <div class="step-badge">2</div>                    <div>                      <h2 class="card-title">Contact & Communication</h2>                      <p class="card-subtitle">Indian mobile (+91), WhatsApp & socials</p>                    </div>                  </div>                </div>                <!-- Primary Indian Mobile Number with Country Prefix -->                <div class="form-group">                  <label class="form-label" for="primaryMobileInput">Primary Mobile Number <span class="req-star">*</span></label>                  <div class="phone-input-group">                    <div class="country-prefix-pill">                      <span class="flag-icon">🇮🇳</span>                      <span class="prefix-code">+91</span>                    </div>                    <input type="tel" id="primaryMobileInput" class="form-input phone-field" placeholder="98401 23456" value="" maxlength="11" required oninput="handlePhoneInput(this)" />                  </div>                  <span class="field-hint">Enter 10-digit Indian mobile number</span>                </div>                <!-- WhatsApp Status Toggle -->                <div class="whatsapp-toggle-row">                  <label class="switch-toggle">                    <input type="checkbox" id="whatsappToggle" checked onchange="syncCustomerPreview()" />                    <span class="slider round"></span>                  </label>                  <div class="toggle-text-wrap">                    <div class="toggle-title-row">                      <span class="toggle-title">Active on WhatsApp</span>                      <span class="tag-whatsapp" id="whatsappTag">                        <i data-lucide="message-circle" style="width:11px;height:11px;"></i>                        <span>WhatsApp Enabled</span>                      </span>                    </div>                    <span class="toggle-desc">Send automated order tracking, measurement reminders and invoice receipts.</span>                  </div>                </div>                <!-- Secondary Phone & Email -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="altPhoneInput">Alternative / Landline</label>                    <div class="phone-input-group">                      <div class="country-prefix-pill small">                        <span class="prefix-code">+91</span>                      </div>                      <input type="tel" id="altPhoneInput" class="form-input phone-field" placeholder="044 2834 1234" value="" oninput="updateReadinessProgress()" />                    </div>                  </div>                  <div class="form-group">                    <label class="form-label" for="emailInput">Email Address</label>                    <div class="input-with-icon">                      <i data-lucide="mail" class="input-icon"></i>                      <input type="email" id="emailInput" class="form-input" placeholder="client@example.com" value="" oninput="syncCustomerPreview()" />                    </div>                  </div>                </div>                <!-- Instagram & Social Handle -->                <div class="form-row-2col mb-0">                  <div class="form-group mb-0">                    <label class="form-label" for="instagramInput">Instagram Profile</label>                    <div class="input-with-icon">                      <i data-lucide="instagram" class="input-icon"></i>                      <input type="text" id="instagramInput" class="form-input" placeholder="@handle" value="" oninput="updateReadinessProgress()" />                    </div>                  </div>                  <div class="form-group mb-0">                    <label class="form-label" for="prefChannelSelect">Preferred Channel</label>                    <div class="select-wrapper">                      <select id="prefChannelSelect" class="form-select">                        <option value="WhatsApp" selected>WhatsApp</option>                        <option value="Phone Call">Phone Call</option>                        <option value="Email">Email</option>                        <option value="SMS">SMS</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                </div>              </section>            </div>            <!-- ================= MIDDLE COLUMN ================= -->            <div class="col-middle">              <!-- STEP 3: ADDRESS & FITTING LOGISTICS CARD -->              <section class="section-card" id="cardAddress">                <div class="card-header">                  <div class="card-header-left">                    <div class="step-badge">3</div>                    <div>                      <h2 class="card-title">Address & Fitting Logistics</h2>                      <p class="card-subtitle">Indian residential address, city & landmark</p>                    </div>                  </div>                </div>                <!-- Address Textarea -->                <div class="form-group">                  <label class="form-label" for="streetAddressInput">Street Address / Residence <span class="req-star">*</span></label>                  <textarea id="streetAddressInput" class="form-textarea" rows="2" placeholder="Door/Flat No, Apartment name, Street name" required oninput="syncCustomerPreview()"></textarea>                </div>                <!-- Indian City & Locality Row -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="citySelect">City / Metro <span class="req-star">*</span></label>                    <div class="select-wrapper">                      <select id="citySelect" class="form-select" onchange="handleCityChange(this.value)">                        <option value="Chennai" selected>Chennai</option>                        <option value="Mumbai">Mumbai</option>                        <option value="Bengaluru">Bengaluru</option>                        <option value="New Delhi">New Delhi</option>                        <option value="Hyderabad">Hyderabad</option>                        <option value="Kolkata">Kolkata</option>                        <option value="Kochi">Kochi</option>                        <option value="Ahmedabad">Ahmedabad</option>                        <option value="Pune">Pune</option>                        <option value="Other">Other City...</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                  <div class="form-group">                    <label class="form-label" for="localityInput">Locality / Area <span class="req-star">*</span></label>                    <input type="text" id="localityInput" class="form-input" placeholder="e.g. Area / Locality" value="" required oninput="syncCustomerPreview()" />                  </div>                </div>                <!-- State & Pincode Row -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="stateSelect">State</label>                    <div class="select-wrapper">                      <select id="stateSelect" class="form-select" onchange="syncCustomerPreview()">                        <option value="Tamil Nadu" selected>Tamil Nadu</option>                        <option value="Maharashtra">Maharashtra</option>                        <option value="Karnataka">Karnataka</option>                        <option value="Delhi NCR">Delhi NCR</option>                        <option value="Telangana">Telangana</option>                        <option value="Kerala">Kerala</option>                        <option value="West Bengal">West Bengal</option>                        <option value="Gujarat">Gujarat</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                  <div class="form-group">                    <label class="form-label" for="pincodeInput">PIN Code</label>                    <input type="text" id="pincodeInput" class="form-input" placeholder="600001" value="" maxlength="6" oninput="updateReadinessProgress()" />                  </div>                </div>                <!-- Landmark & Delivery Notes -->                <div class="form-group mb-0">                  <label class="form-label" for="landmarkInput">Prominent Landmark & Dispatch Notes</label>                  <input type="text" id="landmarkInput" class="form-input" placeholder="Near Panagal Park, Opp. GRT Jewellers. Call security before entering." value="" oninput="updateReadinessProgress()" />                </div>              </section>              <!-- STEP 4: STYLE DNA & PREFERENCES CARD -->              <section class="section-card" id="cardStyleDNA">                <div class="card-header">                  <div class="card-header-left">                    <div class="step-badge">4</div>                    <div>                      <h2 class="card-title">Style DNA & Haute Couture</h2>                      <p class="card-subtitle">Indian couture favorites, silhouettes & colors</p>                    </div>                  </div>                </div>                <!-- Garment Category Chips (Multi-Select) -->                <div class="form-group">                  <label class="form-label">Preferred Garment Categories (Multi-select)</label>                  <div class="garment-chips-wrap" id="garmentChipsWrap">                    <button type="button" class="garment-chip active" data-style="Designer Blouse" onclick="toggleGarmentChip(this)">                      <i data-lucide="scissors" style="width:13px;height:13px;"></i>                      <span>Designer Blouse</span>                    </button>                    <button type="button" class="garment-chip active" data-style="Bridal Lehenga" onclick="toggleGarmentChip(this)">                      <i data-lucide="sparkles" style="width:13px;height:13px;"></i>                      <span>Bridal Lehenga</span>                    </button>                    <button type="button" class="garment-chip active" data-style="Kanjeevaram Saree" onclick="toggleGarmentChip(this)">                      <i data-lucide="layers" style="width:13px;height:13px;"></i>                      <span>Kanjeevaram Saree</span>                    </button>                    <button type="button" class="garment-chip" data-style="Anarkali Suit" onclick="toggleGarmentChip(this)">                      <i data-lucide="feather" style="width:13px;height:13px;"></i>                      <span>Anarkali Suit</span>                    </button>                    <button type="button" class="garment-chip" data-style="Indo-Western Gown" onclick="toggleGarmentChip(this)">                      <i data-lucide="gem" style="width:13px;height:13px;"></i>                      <span>Indo-Western Gown</span>                    </button>                    <button type="button" class="garment-chip" data-style="Kurta & Palazzo" onclick="toggleGarmentChip(this)">                      <i data-lucide="shirt" style="width:13px;height:13px;"></i>                      <span>Kurta & Palazzo</span>                    </button>                    <button type="button" class="garment-chip" data-style="Sherwani" onclick="toggleGarmentChip(this)">                      <i data-lucide="award" style="width:13px;height:13px;"></i>                      <span>Sherwani</span>                    </button>                  </div>                </div>                <!-- Festive Indian Color Palette Swatches -->                <div class="form-group">                  <label class="form-label">Favorite Silk & Couture Color Palettes</label>                  <div class="color-palette-wrap" id="colorPaletteWrap">                    <button type="button" class="color-swatch-btn active" data-color="Rani Pink" title="Rani Pink" onclick="toggleColorSwatch(this)">                      <span class="swatch-circle" style="background:#e11d48;"></span>                      <span class="swatch-name">Rani Pink</span>                    </button>                    <button type="button" class="color-swatch-btn active" data-color="Peacock Blue" title="Peacock Blue" onclick="toggleColorSwatch(this)">                      <span class="swatch-circle" style="background:#0284c7;"></span>                      <span class="swatch-name">Peacock Blue</span>                    </button>                    <button type="button" class="color-swatch-btn active" data-color="Emerald Green" title="Emerald Green" onclick="toggleColorSwatch(this)">                      <span class="swatch-circle" style="background:#059669;"></span>                      <span class="swatch-name">Emerald Green</span>                    </button>                    <button type="button" class="color-swatch-btn active" data-color="Ivory Gold" title="Ivory Gold" onclick="toggleColorSwatch(this)">                      <span class="swatch-circle" style="background:#eab308;"></span>                      <span class="swatch-name">Ivory Gold</span>                    </button>                    <button type="button" class="color-swatch-btn" data-color="Wine Maroon" title="Wine Maroon" onclick="toggleColorSwatch(this)">                      <span class="swatch-circle" style="background:#881337;"></span>                      <span class="swatch-name">Wine Maroon</span>                    </button>                    <button type="button" class="color-swatch-btn" data-color="Mustard Yellow" title="Mustard Yellow" onclick="toggleColorSwatch(this)">                      <span class="swatch-circle" style="background:#d97706;"></span>                      <span class="swatch-name">Mustard Yellow</span>                    </button>                  </div>                </div>                <!-- Fit Preference & Sensitivities -->                <div class="form-row-2col mb-0">                  <div class="form-group mb-0">                    <label class="form-label">Fit Preference</label>                    <div class="select-wrapper">                      <select id="fitPreferenceSelect" class="form-select">                        <option value="Structured Corseted" selected>Structured Corseted Fit</option>                        <option value="Classic Tailored">Classic Tailored Fit</option>                        <option value="Relaxed Flowing">Relaxed &amp; Flowing</option>                        <option value="Skin-Fit Saree Blouse">Skin-Fit Saree Blouse</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                  <div class="form-group mb-0">                    <label class="form-label" for="fabricAllergyInput">Fabric Sensitivities</label>                    <input type="text" id="fabricAllergyInput" class="form-input" placeholder="e.g. Pure cotton lining only, sensitive to polyester" value="Pure cotton lining only"                 oninput="updateReadinessProgress()" />                  </div>                </div>                <!-- Tailoring Preferences Row -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="prefNeckSelect">Preferred Neck Style</label>                    <div class="select-wrapper">                      <select id="prefNeckSelect" class="form-select" onchange="updateReadinessProgress()">                        <option value="">Not specified</option>                        <option value="Round Neck">Round Neck</option>                        <option value="V-Neck">V-Neck</option>                        <option value="Boat Neck">Boat Neck</option>                        <option value="Sweetheart">Sweetheart</option>                        <option value="Square Neck">Square Neck</option>                        <option value="Halter Neck">Halter Neck</option>                        <option value="Deep U-Back">Deep U-Back</option>                        <option value="Illusion Sheer Yoke">Illusion Sheer Yoke</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                  <div class="form-group">                    <label class="form-label" for="prefSleeveSelect">Preferred Sleeve Style</label>                    <div class="select-wrapper">                      <select id="prefSleeveSelect" class="form-select" onchange="updateReadinessProgress()">                        <option value="">Not specified</option>                        <option value="Sleeveless">Sleeveless</option>                        <option value="Cap Sleeve">Cap Sleeve</option>                        <option value="Elbow Length">Elbow Length</option>                        <option value="3/4 Sleeve">3/4 Sleeve</option>                        <option value="Full Sleeve">Full Sleeve</option>                        <option value="Cape Drape">Cape Drape</option>                        <option value="Bell Sleeve">Bell Sleeve</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                </div>                <div class="form-row-2col mb-0">                  <div class="form-group mb-0">                    <label class="form-label" for="prefOccasionsInput">Preferred Occasions</label>                    <input type="text" id="prefOccasionsInput" class="form-input" placeholder="e.g. Weddings, Festivals, Cocktail Parties" oninput="updateReadinessProgress()" />                  </div>                  <div class="form-group mb-0">                    <label class="form-label" for="prefDeliverySelect">Delivery Preference</label>                    <div class="select-wrapper">                      <select id="prefDeliverySelect" class="form-select">                        <option value="Standard Boutique Pickup">Standard Boutique Pickup</option>                        <option value="Home Delivery">Home Delivery</option>                        <option value="Evening Atelier Delivery">Evening Atelier Delivery</option>                        <option value="Express Atelier Delivery">Express Atelier Delivery</option>                        <option value="Weekday Afternoon Fitting">Weekday Afternoon Fitting</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                </div>              </section>              <!-- STEP 5: INITIAL MEASUREMENTS SETUP CARD -->              <section class="section-card" id="cardMeasurements">                <div class="card-header">                  <div class="card-header-left">                    <div class="step-badge">5</div>                    <div>                      <h2 class="card-title">Initial Measurements Profile</h2>                      <p class="card-subtitle">Standard size or custom 10-point tape measures</p>                    </div>                  </div>                  <div class="card-header-right">                    <div class="unit-toggle-wrap">                      <button type="button" class="unit-btn active" id="unitInchesBtn" onclick="toggleMeasurementUnit('in')">Inches (")</button>                      <button type="button" class="unit-btn" id="unitCmBtn" onclick="toggleMeasurementUnit('cm')">Centimeters (cm)</button>                    </div>                  </div>                </div>                <!-- Sizing Mode Switcher -->                <div class="segmented-pills-row">                  <label class="seg-pill active" id="pillCustomTape">                    <input type="radio" name="measuringMode" value="bespoke" checked onchange="toggleMeasuringMode('bespoke')" />                    <span class="seg-radio-dot"></span>                    <span class="seg-label">Bespoke Tape Measurements</span>                  </label>                  <label class="seg-pill" id="pillStandardSizing">                    <input type="radio" name="measuringMode" value="standard" onchange="toggleMeasuringMode('standard')" />                    <span class="seg-radio-dot"></span>                    <span class="seg-label">Standard Sizing (UK/India)</span>                  </label>                </div>                <!-- Standard Size Grid View (Hidden by default) -->                <div class="standard-size-view" id="standardSizeView" style="display:none;">                  <span class="std-label">Select Standard Sizing Base:</span>                  <div class="std-pills-row">                    <button type="button" class="std-pill" onclick="selectStandardSize(this, 32)">Size 32 (XS)</button>                    <button type="button" class="std-pill active" onclick="selectStandardSize(this, 34)">Size 34 (S)</button>                    <button type="button" class="std-pill" onclick="selectStandardSize(this, 36)">Size 36 (M)</button>                    <button type="button" class="std-pill" onclick="selectStandardSize(this, 38)">Size 38 (L)</button>                    <button type="button" class="std-pill" onclick="selectStandardSize(this, 40)">Size 40 (XL)</button>                    <button type="button" class="std-pill" onclick="selectStandardSize(this, 42)">Size 42 (XXL)</button>                  </div>                </div>                <!-- Garment Type Selector Pills -->                <div class="form-group" style="margin-bottom: 16px;">                  <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 8px; display: block;">Garment Profile Specification</label>                  <div class="garment-pills-row" id="measGarmentPills" style="display: flex; gap: 8px; flex-wrap: wrap;">                    <button type="button" class="btn-garment-pill active" data-garment="BLOUSE" onclick="switchMeasGarment('BLOUSE', this)">Blouse (19 pts)</button>                    <button type="button" class="btn-garment-pill" data-garment="CHUDI" onclick="switchMeasGarment('CHUDI', this)">Chudi (25 pts)</button>                    <button type="button" class="btn-garment-pill" data-garment="LEHENGA" onclick="switchMeasGarment('LEHENGA', this)">Lehenga (22 pts)</button>                    <button type="button" class="btn-garment-pill" data-garment="SAREE" onclick="switchMeasGarment('SAREE', this)">Saree (19 pts)</button>                    <button type="button" class="btn-garment-pill" data-garment="GOWN" onclick="switchMeasGarment('GOWN', this)">Gown (21 pts)</button>                  </div>                </div>                <!-- Bespoke Tape Measurement Grid Container -->                <div class="measurements-grid" id="measurementsGrid">                  <div class="meas-field">                    <span class="meas-label">Bust / Chest</span>                    <div class="meas-input-wrap">                      <input type="number" id="measBust" class="form-input meas-num" value="34.0" step="0.25" min="20" max="65" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelBust">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Underbust</span>                    <div class="meas-input-wrap">                      <input type="number" id="measUnderbust" class="form-input meas-num" value="29.0" step="0.25" min="20" max="60" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelUnderbust">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Waist</span>                    <div class="meas-input-wrap">                      <input type="number" id="measWaist" class="form-input meas-num" value="28.0" step="0.25" min="18" max="60" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelWaist">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">High Hip</span>                    <div class="meas-input-wrap">                      <input type="number" id="measHighHip" class="form-input meas-num" value="35.5" step="0.25" min="20" max="70" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelHighHip">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Low Hip</span>                    <div class="meas-input-wrap">                      <input type="number" id="measLowHip" class="form-input meas-num" value="38.5" step="0.25" min="20" max="75" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelLowHip">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Shoulder</span>                    <div class="meas-input-wrap">                      <input type="number" id="measShoulder" class="form-input meas-num" value="14.5" step="0.25" min="10" max="25" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelShoulder">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Front Neck Depth</span>                    <div class="meas-input-wrap">                      <input type="number" id="measFrontNeck" class="form-input meas-num" value="7.0" step="0.25" min="4" max="15" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelFrontNeck">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Back Neck Depth</span>                    <div class="meas-input-wrap">                      <input type="number" id="measBackNeck" class="form-input meas-num" value="8.5" step="0.25" min="4" max="16" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelBackNeck">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Armhole / Bicep</span>                    <div class="meas-input-wrap">                      <input type="number" id="measArmhole" class="form-input meas-num" value="15.0" step="0.25" min="8" max="30" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelArmhole">"</span>                    </div>                  </div>                  <div class="meas-field">                    <span class="meas-label">Blouse/Top Length</span>                    <div class="meas-input-wrap">                      <input type="number" id="measFullLength" class="form-input meas-num" value="14.5" step="0.25" min="10" max="65" oninput="syncCustomerPreview()" />                      <span class="meas-unit" id="unitLabelFullLength">"</span>                    </div>                  </div>                </div>              </section>              <!-- STEP 6: ACCOUNT CLASSIFICATION & STYLIST -->              <section class="section-card" id="cardAccount">                <div class="card-header">                  <div class="card-header-left">                    <div class="step-badge">6</div>                    <div>                      <h2 class="card-title">Account Classification</h2>                      <p class="card-subtitle">Tier, lead consultant & payment terms</p>                    </div>                  </div>                </div>                <!-- Membership Tier Cards -->                <div class="tier-select-grid">                  <label class="tier-card active" id="tierPlatinumCard">                    <input type="radio" name="membershipTier" value="VIP Platinum" checked onchange="handleTierChange('VIP Platinum')" />                    <div class="tier-icon platinum">                      <i data-lucide="crown" style="width:16px;height:16px;"></i>                    </div>                    <div class="tier-info">                      <span class="tier-title">VIP Platinum</span>                      <span class="tier-sub">Express fitting, 15% VIP discount</span>                    </div>                  </label>                  <label class="tier-card" id="tierGoldCard">                    <input type="radio" name="membershipTier" value="VIP Gold" onchange="handleTierChange('VIP Gold')" />                    <div class="tier-icon gold">                      <i data-lucide="star" style="width:16px;height:16px;"></i>                    </div>                    <div class="tier-info">                      <span class="tier-title">VIP Gold</span>                      <span class="tier-sub">Priority trials, 10% VIP perk</span>                    </div>                  </label>                  <label class="tier-card" id="tierRegularCard">                    <input type="radio" name="membershipTier" value="Regular" onchange="handleTierChange('Regular')" />                    <div class="tier-icon regular">                      <i data-lucide="user" style="width:16px;height:16px;"></i>                    </div>                    <div class="tier-info">                      <span class="tier-title">Regular</span>                      <span class="tier-sub">Standard atelier scheduling</span>                    </div>                  </label>                </div>                <!-- Lead Stylist & Referral Row -->                <div class="form-row-2col">                  <div class="form-group">                    <label class="form-label" for="assignedStylistSelect">Assigned Lead Stylist</label>                    <div class="select-wrapper">                      <select id="assignedStylistSelect" class="form-select" onchange="syncCustomerPreview()">                        <option value="">Select Stylist...</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                  <div class="form-group">                    <label class="form-label" for="referralSelect">Referral Source</label>                    <div class="select-wrapper">                      <select id="referralSelect" class="form-select">                        <option value="Instagram" selected>Instagram / Social Media</option>                        <option value="Client Recommendation">Client Recommendation</option>                        <option value="Bridal Expo">Bridal Expo / Exhibition</option>                        <option value="Walk-in">Walk-in Boutique Client</option>                        <option value="Private Trunk Show">Private Trunk Show</option>                      </select>                      <i data-lucide="chevron-down" class="select-arrow"></i>                    </div>                  </div>                </div>                <!-- Opening Balance / Advance Credit -->                <div class="form-row-2col mb-0">                  <div class="form-group mb-0">                    <label class="form-label" for="openingCreditInput">Opening Advance / Store Credit (₹)</label>                    <div class="input-currency-wrap">                      <span class="curr-symbol">₹</span>                      <input type="number" id="openingCreditInput" class="form-input text-right" value="0" min="0" step="500" placeholder="0" />                    </div>                  </div>                  <div class="form-group mb-0">                    <label class="form-label" for="creditLimitInput">Approved Credit Limit (₹)</label>                    <div class="input-currency-wrap">                      <span class="curr-symbol">₹</span>                      <input type="number" id="creditLimitInput" class="form-input text-right" value="25000" min="0" step="5000" />                    </div>                  </div>                </div>              </section>            </div>            <!-- ================= RIGHT COLUMN (STICKY) ================= -->            <div class="col-right">              <!-- LIVE PROFILE PREVIEW CARD -->              <section class="section-card sticky-card" id="cardPreview">                <div class="card-header">                  <div class="card-header-left">                    <div class="icon-badge-green">                      <i data-lucide="id-card" style="width:16px;height:16px;"></i>                    </div>                    <div>                      <h2 class="card-title">Live Client Profile</h2>                      <p class="card-subtitle">Real-time profile preview</p>                    </div>                  </div>                  <div class="card-header-right">                    <span class="badge-live-dot">                      <span class="live-pulse"></span>                      <span>Live Sync</span>                    </span>                  </div>                </div>                <!-- Preview Card Body -->                <div class="client-preview-card">                  <div class="preview-header-row">                    <div class="preview-avatar-box">                      <img src="" alt="Client" class="preview-avatar-img" id="sumAvatarImg" style="display:none;" />                      <div class="preview-avatar-fallback" id="sumAvatarFallback">                        <span id="sumAvatarInitials">—</span>                      </div>                      <span class="vip-crown-badge" id="sumVipIcon" title="VIP Platinum">👑</span>                    </div>                    <div class="preview-info-box">                      <div class="preview-name-row">                        <span class="preview-name" id="sumClientName">—</span>                        <span class="tier-pill-badge platinum" id="sumTierBadge">VIP Platinum</span>                      </div>                      <span class="preview-id" id="sumClientId">—</span>                    </div>                  </div>                  <!-- Quick Contact Preview Chips -->                  <div class="preview-contact-list">                    <div class="preview-contact-item">                      <i data-lucide="phone" class="pc-icon"></i>                      <span id="sumPhone">—</span>                      <span class="pc-whatsapp-badge" id="sumWhatsappBadge" title="WhatsApp Active">                        <i data-lucide="message-circle" style="width:10px;height:10px;"></i>                      </span>                    </div>                    <div class="preview-contact-item">                      <i data-lucide="mail" class="pc-icon"></i>                      <span id="sumEmail">—</span>                    </div>                    <div class="preview-contact-item">                      <i data-lucide="map-pin" class="pc-icon"></i>                      <span id="sumLocation">—</span>                    </div>                  </div>                  <!-- Style DNA Preview Strip -->                  <div class="preview-style-strip">                    <span class="preview-subhead">Style DNA:</span>                    <div class="preview-style-tags" id="sumStyleTags">                      <span class="p-tag">Designer Blouse</span>                      <span class="p-tag">Bridal Lehenga</span>                      <span class="p-tag">Kanjeevaram Saree</span>                    </div>                  </div>                  <!-- Measurement Status Pill -->                  <div class="preview-meas-pill" id="sumMeasStatus">                    <div class="meas-pill-left">                      <i data-lucide="ruler" style="width:14px;height:14px;color:var(--lime,#d4ff32);"></i>                      <span class="meas-status-text">Measurements Recorded</span>                    </div>                    <span class="meas-dims" id="sumMeasDims">—</span>                  </div>                  <!-- Assigned Stylist Row -->                  <div class="preview-stylist-row">                    <span class="preview-subhead">Lead Stylist:</span>                    <span class="preview-stylist-name" id="sumStylist">—</span>                  </div>                </div>              </section>              <!-- ONBOARDING READINESS CHECKLIST CARD -->              <section class="section-card" id="cardReadiness">                <div class="card-header">                  <div class="card-header-left">                    <div class="icon-badge-lime">                      <i data-lucide="check-circle-2" style="width:16px;height:16px;"></i>                    </div>                    <div>                      <h2 class="card-title">Onboarding Readiness</h2>                      <p class="card-subtitle">Client profile completion rate</p>                    </div>                  </div>                  <div class="card-header-right">                    <span class="progress-percent" id="readinessPercent">100%</span>                  </div>                </div>                <!-- Progress Bar -->                <div class="progress-track">                  <div class="progress-fill" id="readinessBar" style="width: 100%;"></div>                </div>                <!-- 6-Item Checklist -->                <div class="checklist-items" id="readinessChecklist">                  <div class="check-item completed" id="chkIdentity">                    <i data-lucide="check-circle" class="chk-icon"></i>                    <span class="chk-text">Personal Identity &amp; Salutation</span>                  </div>                  <div class="check-item completed" id="chkContact">                    <i data-lucide="check-circle" class="chk-icon"></i>                    <span class="chk-text">Indian Mobile (+91) &amp; Channels</span>                  </div>                  <div class="check-item completed" id="chkAddress">                    <i data-lucide="check-circle" class="chk-icon"></i>                    <span class="chk-text">Delivery Address &amp; Indian Locality</span>                  </div>                  <div class="check-item completed" id="chkStyle">                    <i data-lucide="check-circle" class="chk-icon"></i>                    <span class="chk-text">Style DNA &amp; Festive Color Palette</span>                  </div>                  <div class="check-item completed" id="chkMeasurements">                    <i data-lucide="check-circle" class="chk-icon"></i>                    <span class="chk-text">Initial Measurement Profile</span>                  </div>                  <div class="check-item completed" id="chkAccount">                    <i data-lucide="check-circle" class="chk-icon"></i>                    <span class="chk-text">VIP Tier &amp; Lead Stylist Assigned</span>                  </div>                </div>              </section>              <!-- BOTTOM ACTION BUTTONS -->              <div class="bottom-actions-row">                <button type="button" class="btn-ghost-draft" id="btnSaveDraft" onclick="saveCustomerDraft()">                  <i data-lucide="bookmark" style="width:14px;height:14px;"></i>                  <span>Save as Draft</span>                </button>                <button type="submit" class="btn-create-customer" id="btnRegisterCustomer">                  <span>Register Customer</span>                  <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>                </button>              </div>            </div>          </div>        </form>        <!-- Footer Slot injected by fragments.js -->        <div id="footerSlot"></div>      </main>    </div>  </div>  <!-- SUCCESS CONFIRMATION MODAL -->  <div class="modal-backdrop" id="successModal" style="display:none;">    <div class="modal-card">      <div class="modal-header">        <div class="modal-title-wrap">          <div class="modal-success-icon">            <i data-lucide="check" style="width:20px;height:20px;color:#0f1406;"></i>          </div>          <div>            <h3 class="modal-title">Customer Registered Successfully!</h3>            <p class="modal-subtitle" id="modalCustomerSubtitle">Profile saved to Haulo Atelier client directory.</p>          </div>        </div>        <button type="button" class="modal-close-btn" onclick="closeSuccessModal()">&times;</button>      </div>      <div class="modal-body">        <div class="created-customer-summary" id="modalCustomerSummary">          <!-- Dynamically populated -->        </div>      </div>      <div class="modal-footer">        <button type="button" class="btn-ghost" onclick="navigateToOverview()">View Client Directory</button>        <button type="button" class="btn-primary-action" onclick="navigateToNewOrder()">          <span>Create First Order</span>          <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>        </button>      </div>    </div>  </div>  <!-- Toast Notification Container -->  <div class="toast-container" id="toastContainer"></div>  <!-- Scripts: Inline Fragment Definitions + Fragments Loader + Page Controller -->  <script src="../../fragments/fragments-inline.js"></script>  <script src="../../fragments/fragments.js"></script>  <script src="new-customer.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Customer — Haulo Boutique ERP</title>
+  <meta name="description" content="Register a new bespoke clientele profile, capture sizing, Indian contacts, and fashion DNA." />
+
+  <!-- Google Fonts: Plus Jakarta Sans, Playfair Display & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="new-customer.css" />
+
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="customers">
+
+  <!-- Background Atmospheric Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Shared Sidebar Fragment Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Global Top Header Bar -->
+      <div id="navbarSlot"></div>
+
+      <!-- New Customer Scrollable Area -->
+      <div class="new-customer-scroll" id="newCustomerScroll">
+
+        <!-- Page Operations Header with 6-Step Workflow Progress -->
+        <div class="page-header-row">
+          <div class="page-title-group">
+            <div class="breadcrumb-nav">
+              <a href="../../dashboard/dashboard.html" class="bc-item bc-link">Dashboard</a>
+              <span class="bc-sep">&gt;</span>
+              <a href="../customer-overview/customer-overview.html" class="bc-item bc-link">Customers</a>
+              <span class="bc-sep">&gt;</span>
+              <span class="bc-item current">New Customer</span>
+            </div>
+            <h1 class="page-title">New Customer</h1>
+            <p class="page-subtitle">Register a new bespoke clientele profile, capture sizing, Indian contacts, and fashion DNA</p>
+          </div>
+
+          <!-- 5-Step Horizontal Workflow Stepper (Exact Visual Match to Reference) -->
+          <div class="workflow-stepper" id="workflowStepper">
+            <div class="step-node active" data-step="1" title="Personal Identity &amp; Tier">
+              <div class="step-circle">1</div>
+              <div class="step-label">Identity</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="2" title="Contact &amp; Channels">
+              <div class="step-circle">2</div>
+              <div class="step-label">Contact</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="3" title="Address &amp; Fitting Location">
+              <div class="step-circle">3</div>
+              <div class="step-label">Address</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="4" title="Style DNA &amp; Preferences">
+              <div class="step-circle">4</div>
+              <div class="step-label">Style DNA</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="5" title="Body Measurements">
+              <div class="step-circle">5</div>
+              <div class="step-label">Measurements</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             MAIN THREE-COLUMN GRID WORKSPACE (37fr 37fr 26fr)
+             ===================================================== -->
+        <form id="newCustomerForm" onsubmit="handleCustomerSubmit(event)" novalidate>
+          <div class="customer-grid">
+
+            <!-- ================= LEFT COLUMN ================= -->
+            <div class="col-left">
+
+              <!-- STEP 1: CLIENT IDENTITY CARD (NO AVATAR UPLOAD, CLEAN 2-COL) -->
+              <section class="section-card" id="cardIdentity">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">1</div>
+                    <div>
+                      <h2 class="card-title">Client Identity</h2>
+                      <p class="card-subtitle">Personal details, salutation &amp; membership tier</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 1: First Name & Last Name -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="firstNameInput">First Name <span class="req-star">*</span></label>
+                    <input type="text" id="firstNameInput" class="form-input" placeholder="Enter first name" required oninput="syncCustomerPreview()" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="lastNameInput">Last Name <span class="req-star">*</span></label>
+                    <input type="text" id="lastNameInput" class="form-input" placeholder="Enter last name" required oninput="syncCustomerPreview()" />
+                  </div>
+                </div>
+
+                <!-- Row 2: Salutation & Gender -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="salutationSelect">Salutation <span class="req-star">*</span></label>
+                    <div class="select-wrapper">
+                      <select id="salutationSelect" class="form-select" onchange="syncCustomerPreview()">
+                        <option value="" disabled>Select</option>
+                        <option value="Ms." selected>Ms.</option>
+                        <option value="Mrs.">Mrs.</option>
+                        <option value="Mr.">Mr.</option>
+                        <option value="Dr.">Dr.</option>
+                        <option value="Smt.">Smt.</option>
+                        <option value="Shri">Shri</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Gender <span class="req-star">*</span></label>
+                    <div class="gender-pills-row">
+                      <label class="gender-pill active" id="genderFemale">
+                        <input type="radio" name="gender" value="Female" checked onchange="handleGenderChange('Female')" />
+                        <span>Female</span>
+                      </label>
+                      <label class="gender-pill" id="genderMale">
+                        <input type="radio" name="gender" value="Male" onchange="handleGenderChange('Male')" />
+                        <span>Male</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 3: Date of Birth & Anniversary -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="dobInput">Date of Birth</label>
+                    <div class="input-with-icon">
+                      <input type="text" id="dobInput" class="form-input" placeholder="dd-mm-yyyy" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" onchange="updateReadinessProgress()" />
+                      <i data-lucide="calendar" class="input-icon-right"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="anniversaryInput">Wedding Anniversary</label>
+                    <div class="input-with-icon">
+                      <input type="text" id="anniversaryInput" class="form-input" placeholder="dd-mm-yyyy" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" onchange="updateReadinessProgress()" />
+                      <i data-lucide="calendar" class="input-icon-right"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 4: Client Persona & Styling Notes -->
+                <div class="form-group">
+                  <label class="form-label" for="clientNotesInput">Client Persona &amp; Styling Notes</label>
+                  <textarea id="clientNotesInput" class="form-textarea" rows="2" placeholder="Lifestyle notes, preference for heritage silks, fabric sensitivity or fitting schedules..."></textarea>
+                </div>
+
+                <!-- Row 5: Membership Tier Selection Cards -->
+                <div class="form-group mb-0">
+                  <label class="form-label">Membership Tier</label>
+                  <div class="tier-cards-row">
+                    <label class="tier-box-card active" id="tierPlatinumCard">
+                      <input type="radio" name="membershipTier" value="VIP Platinum" checked onchange="handleTierChange('VIP Platinum')" />
+                      <div class="tier-box-icon platinum">
+                        <i data-lucide="crown" style="width:16px;height:16px;"></i>
+                      </div>
+                      <span class="tier-box-title">VIP Platinum</span>
+                      <span class="tier-box-sub">Exclusive service</span>
+                      <span class="tier-box-sub">Priority bookings</span>
+                    </label>
+
+                    <label class="tier-box-card" id="tierGoldCard">
+                      <input type="radio" name="membershipTier" value="VIP Gold" onchange="handleTierChange('VIP Gold')" />
+                      <div class="tier-box-icon gold">
+                        <i data-lucide="star" style="width:16px;height:16px;"></i>
+                      </div>
+                      <span class="tier-box-title">VIP Gold</span>
+                      <span class="tier-box-sub">Early access</span>
+                      <span class="tier-box-sub">Tailored offers</span>
+                    </label>
+
+                    <label class="tier-box-card" id="tierRegularCard">
+                      <input type="radio" name="membershipTier" value="Regular" onchange="handleTierChange('Regular')" />
+                      <div class="tier-box-icon regular">
+                        <i data-lucide="user" style="width:16px;height:16px;"></i>
+                      </div>
+                      <span class="tier-box-title">Regular</span>
+                      <span class="tier-box-sub">Standard service</span>
+                      <span class="tier-box-sub">Seasonal updates</span>
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 2: CONTACT & COMMUNICATION CARD -->
+              <section class="section-card" id="cardContact">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">2</div>
+                    <div>
+                      <h2 class="card-title">Contact &amp; Communication</h2>
+                      <p class="card-subtitle">Indian mobile (+91), WhatsApp &amp; socials</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 1: Primary Mobile & Alternate Mobile -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="primaryMobileInput">Primary Mobile Number <span class="req-star">*</span></label>
+                    <div class="phone-input-group">
+                      <div class="country-prefix-pill">
+                        <span class="prefix-code">IN +91</span>
+                      </div>
+                      <input type="tel" id="primaryMobileInput" class="form-input phone-field" placeholder="Enter 10-digit mobile number" value="" maxlength="11" required oninput="handlePhoneInput(this)" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="altPhoneInput">Alternate Mobile Number</label>
+                    <div class="phone-input-group">
+                      <div class="country-prefix-pill">
+                        <span class="prefix-code">IN +91</span>
+                      </div>
+                      <input type="tel" id="altPhoneInput" class="form-input phone-field" placeholder="Enter 10-digit number" value="" oninput="updateReadinessProgress()" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 2: Email Address & Instagram Handle -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="emailInput">Email Address</label>
+                    <input type="email" id="emailInput" class="form-input" placeholder="e.g. name@example.com" value="" oninput="syncCustomerPreview()" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="instagramInput">Instagram Profile / Handle</label>
+                    <div class="input-with-icon">
+                      <input type="text" id="instagramInput" class="form-input" placeholder="@handle (e.g. @priya_couture)" value="" oninput="updateReadinessProgress()" />
+                      <i data-lucide="instagram" class="input-icon-right"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 3: Preferred Communication Channel Text Field -->
+                <div class="form-group">
+                  <label class="form-label" for="prefChannelInput">Preferred Mode to Communicate</label>
+                  <input type="text" id="prefChannelInput" class="form-input" placeholder="e.g. WhatsApp, Phone Call after 5 PM, SMS" value="WhatsApp" oninput="updateReadinessProgress()" />
+                </div>
+
+                <!-- Row 4: Enable WhatsApp Communications Toggle -->
+                <div class="whatsapp-toggle-row">
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="whatsappToggle" checked onchange="syncCustomerPreview()" />
+                    <span class="slider round"></span>
+                  </label>
+                  <div class="toggle-text-wrap">
+                    <span class="toggle-title">Enable WhatsApp Communications</span>
+                    <span class="toggle-desc">Send order updates, appointment reminders and offers.</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 3: ADDRESS & FITTING LOGISTICS CARD -->
+              <section class="section-card" id="cardAddress">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">3</div>
+                    <div>
+                      <h2 class="card-title">Address &amp; Fitting Logistics</h2>
+                      <p class="card-subtitle">Indian residential address, city &amp; landmark</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Address Input -->
+                <div class="form-group">
+                  <label class="form-label" for="streetAddressInput">Street Address / Residence <span class="req-star">*</span></label>
+                  <textarea id="streetAddressInput" class="form-textarea" rows="2" placeholder="Door/Flat No, Apartment name, Street name" required oninput="syncCustomerPreview()"></textarea>
+                </div>
+
+                <!-- Indian City & Locality Row -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="citySelect">City / Metro <span class="req-star">*</span></label>
+                    <div class="select-wrapper">
+                      <select id="citySelect" class="form-select" onchange="handleCityChange(this.value)">
+                        <option value="Chennai" selected>Chennai</option>
+                        <option value="Mumbai">Mumbai</option>
+                        <option value="Bengaluru">Bengaluru</option>
+                        <option value="New Delhi">New Delhi</option>
+                        <option value="Hyderabad">Hyderabad</option>
+                        <option value="Kolkata">Kolkata</option>
+                        <option value="Kochi">Kochi</option>
+                        <option value="Ahmedabad">Ahmedabad</option>
+                        <option value="Pune">Pune</option>
+                        <option value="Other">Other City...</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="localityInput">Locality / Area <span class="req-star">*</span></label>
+                    <input type="text" id="localityInput" class="form-input" placeholder="e.g. Area / Locality" value="" required oninput="syncCustomerPreview()" />
+                  </div>
+                </div>
+
+                <!-- State & Pincode Row -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="stateSelect">State</label>
+                    <div class="select-wrapper">
+                      <select id="stateSelect" class="form-select" onchange="syncCustomerPreview()">
+                        <option value="Tamil Nadu" selected>Tamil Nadu</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Delhi NCR">Delhi NCR</option>
+                        <option value="Telangana">Telangana</option>
+                        <option value="Kerala">Kerala</option>
+                        <option value="West Bengal">West Bengal</option>
+                        <option value="Gujarat">Gujarat</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="pincodeInput">PIN Code</label>
+                    <input type="text" id="pincodeInput" class="form-input" placeholder="600001" value="" maxlength="6" oninput="updateReadinessProgress()" />
+                  </div>
+                </div>
+
+                <!-- Landmark & Dispatch Notes -->
+                <div class="form-group mb-0">
+                  <label class="form-label" for="landmarkInput">Prominent Landmark &amp; Dispatch Notes</label>
+                  <input type="text" id="landmarkInput" class="form-input" placeholder="Near Panagal Park, Opp. GRT Jewellers. Call security before entering." value="" oninput="updateReadinessProgress()" />
+                </div>
+              </section>
+
+            </div>
+
+            <!-- ================= MAIN RIGHT AREA (COLUMNS 2 & 3: REST OF WIDTH) ================= -->
+            <div class="col-main-right">
+
+              <!-- Top Row: Style DNA & Live Profile side-by-side -->
+              <div class="top-row-2col">
+
+              <!-- STEP 4: STYLE DNA & HAUTE COUTURE CARD -->
+              <section class="section-card" id="cardStyleDNA">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">4</div>
+                    <div>
+                      <h2 class="card-title">Style DNA &amp; Haute Couture</h2>
+                      <p class="card-subtitle">Indian couture favorites, silhouettes &amp; colors</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Preferred Garment Categories (3x3 Grid) -->
+                <div class="form-group">
+                  <label class="section-sub-label">PREFERRED GARMENT CATEGORIES (MULTI-SELECT)</label>
+                  <div class="garment-grid-3x3" id="garmentChipsWrap">
+                    <button type="button" class="btn-garment-tile" data-style="Designer Blouse" onclick="toggleGarmentChip(this)">
+                      <i data-lucide="scissors" class="tile-icon"></i>
+                      <span>Designer Blouse</span>
+                    </button>
+                    <button type="button" class="btn-garment-tile" data-style="Bridal Lehenga" onclick="toggleGarmentChip(this)">
+                      <i data-lucide="sparkles" class="tile-icon"></i>
+                      <span>Bridal Lehenga</span>
+                    </button>
+                    <button type="button" class="btn-garment-tile" data-style="Saree" onclick="toggleGarmentChip(this)">
+                      <span class="tile-circle-dot"></span>
+                      <span>Saree</span>
+                    </button>
+
+                    <button type="button" class="btn-garment-tile" data-style="Chudidar" onclick="toggleGarmentChip(this)">
+                      <span class="tile-circle-dot" style="background:#c084fc;"></span>
+                      <span>Chudidar</span>
+                    </button>
+                    <button type="button" class="btn-garment-tile" data-style="Anarkali Suit" onclick="toggleGarmentChip(this)">
+                      <i data-lucide="feather" class="tile-icon"></i>
+                      <span>Anarkali Suit</span>
+                    </button>
+                    <button type="button" class="btn-garment-tile" data-style="Gown" onclick="toggleGarmentChip(this)">
+                      <span class="tile-circle-dot"></span>
+                      <span>Gown</span>
+                    </button>
+
+                    <button type="button" class="btn-garment-tile" data-style="Kurta &amp; Palazzo" onclick="toggleGarmentChip(this)">
+                      <span class="tile-circle-dot" style="background:#38bdf8;"></span>
+                      <span>Kurta &amp; Palazzo</span>
+                    </button>
+                    <button type="button" class="btn-garment-tile" data-style="Sherwani" onclick="toggleGarmentChip(this)">
+                      <span class="tile-circle-dot"></span>
+                      <span>Sherwani</span>
+                    </button>
+                    <button type="button" class="btn-garment-tile" data-style="Indo-Western" onclick="toggleGarmentChip(this)">
+                      <span class="tile-circle-dot"></span>
+                      <span>Indo-Western</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Favorite Silk & Couture Color Palettes (3x2 Grid) -->
+                <div class="form-group">
+                  <label class="section-sub-label">FAVORITE SILK &amp; COUTURE COLOR PALETTES</label>
+                  <div class="color-grid-3x2" id="colorPaletteWrap">
+                    <button type="button" class="color-chip-btn" data-color="Rani Pink" onclick="toggleColorSwatch(this)">
+                      <span class="color-dot" style="background:#e11d48;"></span>
+                      <span>Rani Pink</span>
+                    </button>
+                    <button type="button" class="color-chip-btn" data-color="Peacock Blue" onclick="toggleColorSwatch(this)">
+                      <span class="color-dot" style="background:#0284c7;"></span>
+                      <span>Peacock Blue</span>
+                    </button>
+                    <button type="button" class="color-chip-btn" data-color="Emerald Green" onclick="toggleColorSwatch(this)">
+                      <span class="color-dot" style="background:#059669;"></span>
+                      <span>Emerald Green</span>
+                    </button>
+
+                    <button type="button" class="color-chip-btn" data-color="Ivory Gold" onclick="toggleColorSwatch(this)">
+                      <span class="color-dot" style="background:#eab308;"></span>
+                      <span>Ivory Gold</span>
+                    </button>
+                    <button type="button" class="color-chip-btn" data-color="Wine Maroon" onclick="toggleColorSwatch(this)">
+                      <span class="color-dot" style="background:#881337;"></span>
+                      <span>Wine Maroon</span>
+                    </button>
+                    <button type="button" class="color-chip-btn" data-color="Mustard Yellow" onclick="toggleColorSwatch(this)">
+                      <span class="color-dot" style="background:#d97706;"></span>
+                      <span>Mustard Yellow</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Fit Preference & Fabric Sensitivities -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="fitPreferenceSelect">Fit Preference</label>
+                    <div class="select-wrapper">
+                      <select id="fitPreferenceSelect" class="form-select">
+                        <option value="" disabled>Select fit preference</option>
+                        <option value="Structured Corseted" selected>Structured Corseted</option>
+                        <option value="Classic Tailored">Classic Tailored</option>
+                        <option value="Relaxed Flowing">Relaxed &amp; Flowing</option>
+                        <option value="Skin-Fit Saree Blouse">Skin-Fit Saree Blouse</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="fabricAllergyInput">Fabric Sensitivities</label>
+                    <div class="select-wrapper">
+                      <select id="fabricAllergyInput" class="form-select" onchange="updateReadinessProgress()">
+                        <option value="" disabled>Select sensitivities</option>
+                        <option value="Pure cotton lining only" selected>Pure cotton lining only</option>
+                        <option value="Sensitive to polyester">Sensitive to polyester</option>
+                        <option value="Skin allergies to metallic zips">Skin allergies to metallic zips</option>
+                        <option value="None">None</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Preferred Neck Style & Preferred Sleeve Style -->
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label" for="prefNeckSelect">Preferred Neck Style</label>
+                    <div class="select-wrapper">
+                      <select id="prefNeckSelect" class="form-select" onchange="updateReadinessProgress()">
+                        <option value="" disabled selected>Select neck style</option>
+                        <option value="Round Neck">Round Neck</option>
+                        <option value="V-Neck">V-Neck</option>
+                        <option value="Boat Neck">Boat Neck</option>
+                        <option value="Sweetheart">Sweetheart</option>
+                        <option value="Square Neck">Square Neck</option>
+                        <option value="Halter Neck">Halter Neck</option>
+                        <option value="Deep U-Back">Deep U-Back</option>
+                        <option value="Illusion Sheer Yoke">Illusion Sheer Yoke</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="prefSleeveSelect">Preferred Sleeve Style</label>
+                    <div class="select-wrapper">
+                      <select id="prefSleeveSelect" class="form-select" onchange="updateReadinessProgress()">
+                        <option value="" disabled selected>Select sleeve style</option>
+                        <option value="Sleeveless">Sleeveless</option>
+                        <option value="Cap Sleeve">Cap Sleeve</option>
+                        <option value="Elbow Length">Elbow Length</option>
+                        <option value="3/4 Sleeve">3/4 Sleeve</option>
+                        <option value="Full Sleeve">Full Sleeve</option>
+                        <option value="Cape Drape">Cape Drape</option>
+                        <option value="Bell Sleeve">Bell Sleeve</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Preferred Occasion & Delivery Preference -->
+                <div class="form-row-2col mb-0">
+                  <div class="form-group mb-0">
+                    <label class="form-label" for="prefOccasionsInput">Preferred Occasion(s)</label>
+                    <input type="text" id="prefOccasionsInput" class="form-input" placeholder="e.g. Weddings, Festivals, Parties" oninput="updateReadinessProgress()" />
+                  </div>
+                  <div class="form-group mb-0">
+                    <label class="form-label" for="prefDeliverySelect">Delivery Preference</label>
+                    <div class="select-wrapper">
+                      <select id="prefDeliverySelect" class="form-select">
+                        <option value="" disabled>Select delivery preference</option>
+                        <option value="Standard Boutique Pickup" selected>Standard Boutique Pickup</option>
+                        <option value="Home Delivery">Home Delivery</option>
+                        <option value="Evening Atelier Delivery">Evening Atelier Delivery</option>
+                        <option value="Express Atelier Delivery">Express Atelier Delivery</option>
+                        <option value="Weekday Afternoon Fitting">Weekday Afternoon Fitting</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- RIGHT COLUMN: LIVE PROFILE + ACTION BUTTONS -->
+              <div class="col-profile-wrap">
+                <!-- LIVE CLIENT PROFILE CARD -->
+                <section class="section-card" id="cardPreview">
+                  <div class="card-header">
+                    <div class="card-header-left">
+                      <div class="step-badge icon-only">
+                        <i data-lucide="user" style="width:13px;height:13px;"></i>
+                      </div>
+                      <div>
+                        <h2 class="card-title">Live Client Profile</h2>
+                        <p class="card-subtitle">Real-time profile preview</p>
+                      </div>
+                    </div>
+                    <div class="card-header-right">
+                      <span class="badge-live-sync">
+                        <span class="live-dot-pulse"></span>
+                        <span>Live Sync</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Profile Card Body -->
+                  <div class="client-preview-card">
+                    <div class="preview-header-row">
+                      <div class="preview-avatar-circle">
+                        <img src="" alt="Client" class="preview-avatar-img" id="sumAvatarImg" style="display:none;" />
+                        <div class="preview-avatar-fallback" id="sumAvatarFallback">
+                          <i data-lucide="user" style="width:26px;height:26px;color:#a3a099;"></i>
+                        </div>
+                      </div>
+                      <div class="preview-title-box">
+                        <div class="preview-name-line">
+                          <span class="preview-name" id="sumClientName">— New Customer</span>
+                        </div>
+                        <div class="preview-tier-line">
+                          <span class="preview-tier-badge" id="sumTierBadge">
+                            <i data-lucide="shield" style="width:10px;height:10px;"></i>
+                            <span>STANDARD</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Contact Items -->
+                    <div class="preview-contacts">
+                      <div class="preview-c-item">
+                        <i data-lucide="phone" class="pci-icon"></i>
+                        <span id="sumPhone">—</span>
+                      </div>
+                      <div class="preview-c-item">
+                        <i data-lucide="mail" class="pci-icon"></i>
+                        <span id="sumEmail">—</span>
+                      </div>
+                      <div class="preview-c-item">
+                        <i data-lucide="map-pin" class="pci-icon"></i>
+                        <span id="sumLocation">Chennai, Tamil Nadu</span>
+                      </div>
+                    </div>
+
+                    <!-- Style DNA Section -->
+                    <div class="preview-dna-section">
+                      <span class="dna-title">STYLE DNA</span>
+                      <div class="dna-tags-wrap" id="sumStyleTags">
+                        <span class="dna-empty-pill">No styles selected</span>
+                      </div>
+                    </div>
+
+                    <!-- Preferred Colours Section -->
+                    <div class="preview-dna-section">
+                      <span class="dna-title">PREFERRED COLOURS</span>
+                      <div class="dna-tags-wrap" id="sumColorTags">
+                        <span class="dna-empty-pill">No colours selected</span>
+                      </div>
+                    </div>
+
+                    <!-- Measurements Pill -->
+                    <div class="preview-meas-bar" id="sumMeasStatus">
+                      <div class="pmb-left">
+                        <i data-lucide="ruler" class="pmb-icon"></i>
+                        <span class="pmb-title">Measurements</span>
+                      </div>
+                      <span class="pmb-val" id="sumMeasDims">Not recorded</span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- BOTTOM ACTION BUTTONS -->
+                <div class="bottom-actions-row">
+                  <button type="button" class="btn-ghost-draft" id="btnSaveDraft" onclick="saveCustomerDraft()">
+                    <i data-lucide="bookmark" style="width:14px;height:14px;"></i>
+                    <span>Save as Draft</span>
+                  </button>
+                  <button type="submit" class="btn-create-customer" id="btnRegisterCustomer">
+                    <span>Register Customer</span>
+                    <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div><!-- /top-row-2col -->
+
+            <!-- STEP 5: INITIAL MEASUREMENTS SETUP CARD (Spans rest of width: Columns 2 & 3) -->
+            <section class="section-card" id="cardMeasurements">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="step-badge">5</div>
+                  <div>
+                    <h2 class="card-title">Initial Measurements Profile</h2>
+                    <p class="card-subtitle">Standard size or custom 10-point tape measures</p>
+                  </div>
+                </div>
+                <div class="card-header-right">
+                  <div class="unit-toggle-wrap">
+                    <button type="button" class="unit-btn active" id="unitInchesBtn" onclick="toggleMeasurementUnit('in')">Inches (")</button>
+                    <button type="button" class="unit-btn" id="unitCmBtn" onclick="toggleMeasurementUnit('cm')">Centimeters (cm)</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sizing Mode Switcher & Garment Selector Bar -->
+              <div class="meas-top-controls-bar">
+                <div class="sizing-mode-grid">
+                  <button type="button" class="mode-tile-btn active" id="pillCustomTape" onclick="toggleMeasuringMode('bespoke')">
+                    <i data-lucide="ruler" class="mode-icon"></i>
+                    <span class="mode-text">Bespoke Tape Measurements</span>
+                  </button>
+                  <button type="button" class="mode-tile-btn" id="pillStandardSizing" onclick="toggleMeasuringMode('standard')">
+                    <i data-lucide="shirt" class="mode-icon"></i>
+                    <span class="mode-text">Standard Sizing (UK/India)</span>
+                  </button>
+                </div>
+
+                <!-- Garment Type Selector Pills -->
+                <div class="garment-pills-row" id="measGarmentPills">
+                  <button type="button" class="btn-garment-pill active" data-garment="BLOUSE" onclick="switchMeasGarment('BLOUSE', this)">Blouse</button>
+                  <button type="button" class="btn-garment-pill" data-garment="CHUDI" onclick="switchMeasGarment('CHUDI', this)">Chudidar</button>
+                  <button type="button" class="btn-garment-pill" data-garment="LEHENGA" onclick="switchMeasGarment('LEHENGA', this)">Lehenga</button>
+                  <button type="button" class="btn-garment-pill" data-garment="SAREE" onclick="switchMeasGarment('SAREE', this)">Saree</button>
+                  <button type="button" class="btn-garment-pill" data-garment="GOWN" onclick="switchMeasGarment('GOWN', this)">Gown</button>
+                </div>
+              </div>
+
+              <!-- Standard Size Grid View (Hidden by default) -->
+              <div class="standard-size-view" id="standardSizeView" style="display:none;">
+                <span class="std-label">Select Standard Sizing Base:</span>
+                <div class="std-pills-row">
+                  <button type="button" class="std-pill" onclick="selectStandardSize(this, 32)">Size 32 (XS)</button>
+                  <button type="button" class="std-pill active" onclick="selectStandardSize(this, 34)">Size 34 (S)</button>
+                  <button type="button" class="std-pill" onclick="selectStandardSize(this, 36)">Size 36 (M)</button>
+                  <button type="button" class="std-pill" onclick="selectStandardSize(this, 38)">Size 38 (L)</button>
+                  <button type="button" class="std-pill" onclick="selectStandardSize(this, 40)">Size 40 (XL)</button>
+                  <button type="button" class="std-pill" onclick="selectStandardSize(this, 42)">Size 42 (XXL)</button>
+                </div>
+              </div>
+
+              <!-- Bespoke Tape Measurement Grid Container -->
+              <div class="measurements-grid" id="measurementsGrid">
+                <!-- Dynamically populated by renderMeasurementFields() -->
+              </div>
+            </section>
+
+          </div><!-- /col-main-right -->
+
+          </div>
+        </form>
+
+      </div><!-- /new-customer-scroll -->
+
+      <!-- Global Footer / Status Bar Slot -->
+      <div id="footerSlot"></div>
+
+    </main><!-- /main-content -->
+
+  </div><!-- /app-shell -->
+
+  <!-- SUCCESS CONFIRMATION MODAL -->
+  <div class="modal-backdrop" id="successModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-success-icon">
+            <i data-lucide="check" style="width:20px;height:20px;color:#0f1406;"></i>
+          </div>
+          <div>
+            <h3 class="modal-title">Customer Registered Successfully!</h3>
+            <p class="modal-subtitle" id="modalCustomerSubtitle">Profile saved to Haulo Atelier client directory.</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeSuccessModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="created-customer-summary" id="modalCustomerSummary">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="navigateToOverview()">View Client Directory</button>
+        <button type="button" class="btn-primary-action" onclick="navigateToNewOrder()">
+          <span>Create First Order</span>
+          <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts: Inline Fragment Definitions + Fragments Loader + Page Controller -->
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="new-customer.js"></script>
+
+</body>
+</html>

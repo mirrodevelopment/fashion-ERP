@@ -25,14 +25,19 @@ const GARMENT_IMAGES = {
 };
 
 // Available Stages — populated from stage_definitions table on load.
-// STAGES_FALLBACK contains only the 3 system-mandatory stages used as a safety net
-// when the API is unreachable. All other stages are fully user-managed.
+// STAGES_FALLBACK contains strictly the 2 fixed system stages used as a safety net
+// when the API is unreachable. All other intermediate stages are 100% user-managed.
 const STAGES_FALLBACK = [
-  { id: 'ordertaken',     name: 'Order Taken',      dot: 'dot-emerald', barClass: 'bar-emerald', pillClass: 'pill-emerald', stageKey: 'ORDER_TAKEN',      deptLabel: 'Order Intake & Reception', imageUrl: '/front end/assets/stages/Order_Taken_1010.jpg' },
-  { id: 'qc',             name: 'QC',               dot: 'dot-coral',   barClass: 'bar-coral',   pillClass: 'pill-coral',   stageKey: 'QC',               deptLabel: 'Quality Control',          imageUrl: '/front end/assets/stages/QC_7019.jpg' },
-  { id: 'readytodeliver', name: 'Ready to Deliver', dot: 'dot-silver',  barClass: 'bar-silver',  pillClass: 'pill-silver',  stageKey: 'READY_TO_DELIVER', deptLabel: 'Delivery & Handover',      imageUrl: '/front end/assets/stages/Ready_8043.jpg' }
+  { id: 'ordertaken', name: 'Order Taken', dot: 'dot-emerald', barClass: 'bar-emerald', pillClass: 'pill-emerald', stageKey: 'ORDER_TAKEN', deptLabel: 'Order Intake & Reception', imageUrl: '/front end/assets/stages/Order_Taken_1010.jpg' },
+  { id: 'readytodeliver', name: 'Ready to Deliver', dot: 'dot-silver', barClass: 'bar-silver', pillClass: 'pill-silver', stageKey: 'READY_TO_DELIVER', deptLabel: 'Delivery & Handover', imageUrl: '/front end/assets/stages/Ready_8043.jpg' }
 ];
 let STAGES = [...STAGES_FALLBACK];
+
+// Workflow Collapse State Keys & Variables (declared early to prevent TDZ ReferenceErrors)
+var _COL_STORAGE_KEY = 'haulo_prod_collapsed_cols';
+var _SEC_KEY = 'haulo_prod_section_collapsed';
+var _ALL_KEY = 'haulo_prod_all_collapsed';
+var _allCollapsed = false;
 
 function isFinalStage(stageId) {
   return stageId === 'readytodeliver' || stageId === 'ready';
@@ -71,38 +76,22 @@ function mapKanbanToBackendStage(kanbanStageId) {
   if (stageObj && stageObj.stageKey) return stageObj.stageKey;
   // Fallback aliases for system-mandatory stages only
   const lookup = {
-    'ordertaken':     'ORDER_TAKEN',
-    'qc':             'QC',
+    'ordertaken': 'ORDER_TAKEN',
     'readytodeliver': 'READY_TO_DELIVER',
-    'ready':          'READY_TO_DELIVER'
+    'ready': 'READY_TO_DELIVER'
   };
   return lookup[kanbanStageId] || kanbanStageId.toUpperCase();
 }
 
 function getStageHeaderIconSvg(stageId) {
-  switch (stageId) {
-    case 'ordertaken':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
-    case 'designing':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" /></svg>`;
-    case 'lining':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>`;
-    case 'handwork':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>`;
-    case 'cutting':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fde047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><line x1="20" y1="4" x2="8.12" y2="15.88" /><line x1="14.47" y1="14.48" x2="20" y2="20" /><line x1="8.12" y1="8.12" x2="12" y2="12" /></svg>`;
-    case 'stitching':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>`;
-    case 'trial':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" /></svg>`;
-    case 'qc':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fb7185" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>`;
-    case 'readytodeliver':
-    case 'ready':
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>`;
-    default:
-      return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>`;
+  if (stageId === 'ordertaken' || stageId === 'order') {
+    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
   }
+  if (stageId === 'readytodeliver' || stageId === 'ready') {
+    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>`;
+  }
+  // Dynamic workflow icon for all user-defined intermediate stages
+  return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.85;"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>`;
 }
 
 /**
@@ -111,32 +100,65 @@ function getStageHeaderIconSvg(stageId) {
  */
 async function loadStageDefinitions(api) {
   try {
-    const defs = await api.production.stageDefinitions.list({ activeOnly: true });
+    let defs = await api.production.stageDefinitions.list({ activeOnly: true });
     if (!defs || defs.length === 0) return; // keep fallback
 
-    const dotFallbacks = ['dot-emerald','dot-purple','dot-blue','dot-yellow','dot-pink','dot-green','dot-cyan','dot-coral','dot-silver'];
+    // Client-side boundary invariant enforcement:
+    // 1. Enforce ORDER_TAKEN is strictly at index 0 (Stage 1)
+    const otIdx = defs.findIndex(d => (d.stageKey || '').toUpperCase().trim() === 'ORDER_TAKEN');
+    if (otIdx > 0) {
+      const [ot] = defs.splice(otIdx, 1);
+      defs.unshift(ot);
+    } else if (otIdx === -1) {
+      defs.unshift({
+        stageKey: 'ORDER_TAKEN',
+        displayName: 'Order Taken',
+        colorClass: 'stage-emerald',
+        deptLabel: 'Order Intake & Reception',
+        imageUrl: '/front end/assets/stages/Order_Taken_1010.jpg',
+        sortOrder: 1
+      });
+    }
+
+    // 2. Enforce READY_TO_DELIVER is strictly at the last index (Final Stage)
+    const rdIdx = defs.findIndex(d => (d.stageKey || '').toUpperCase().trim() === 'READY_TO_DELIVER');
+    if (rdIdx >= 0 && rdIdx < defs.length - 1) {
+      const [rd] = defs.splice(rdIdx, 1);
+      defs.push(rd);
+    } else if (rdIdx === -1) {
+      defs.push({
+        stageKey: 'READY_TO_DELIVER',
+        displayName: 'Ready to Deliver',
+        colorClass: 'stage-silver',
+        deptLabel: 'Delivery & Handover',
+        imageUrl: '/front end/assets/stages/Ready_8043.jpg',
+        sortOrder: defs.length + 1
+      });
+    }
+
+    const dotFallbacks = ['dot-emerald', 'dot-purple', 'dot-blue', 'dot-yellow', 'dot-pink', 'dot-green', 'dot-cyan', 'dot-coral', 'dot-silver'];
     STAGES = defs.map((d, idx) => {
-      const dot   = d.colorClass || dotFallbacks[idx % dotFallbacks.length];
+      const dot = d.colorClass || dotFallbacks[idx % dotFallbacks.length];
       const color = dot.replace('dot-', '');
       // Derive id from stage key: ORDER_TAKEN → ordertaken, READY_TO_DELIVER → readytodeliver
       const id = d.stageKey.toLowerCase().replace(/_/g, '');
       return {
         id,
-        name:         d.displayName,
+        name: d.displayName,
         dot,
-        barClass:     `bar-${color}`,
-        pillClass:    `pill-${color}`,
-        stageKey:     d.stageKey,
-        deptLabel:    d.deptLabel,
+        barClass: `bar-${color}`,
+        pillClass: `pill-${color}`,
+        stageKey: d.stageKey,
+        deptLabel: d.deptLabel,
         requiredRole: d.requiredRole,
-        imageUrl:     d.imageUrl,
+        imageUrl: d.imageUrl,
+        pinnedEmployees: d.pinnedEmployees || []
       };
     });
 
-    // Rebuild roleMap from live definitions
-    const roleMap = {};
-    STAGES.forEach(st => { if (st.requiredRole) roleMap[st.id] = st.requiredRole; });
-    window._stageRoleMap = roleMap;
+    if (cachedEmployees && cachedEmployees.length > 0) {
+      updateStageLeadsFromEmployees(cachedEmployees);
+    }
 
     renderKanbanColumns();
     updateModalStageOptions();
@@ -158,13 +180,18 @@ function renderKanbanColumns() {
     return `
       <div class="kanban-col col-${stage.id}" data-stage-id="${stage.id}" ondragover="handleDragOver(event)"
         ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '${stage.id}')">
-        <div class="k-col-header">
+        <div class="k-col-header" onclick="toggleCollapseCol(event,'${stage.id}')" style="cursor:pointer;">
           <div class="k-title-group">
             <span class="stage-dot ${stage.dot}"></span>
             ${imgHtml}
             <span class="k-col-name">${stage.name}</span>
           </div>
-          <span class="k-col-count" id="count-${stage.id}">0</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="k-col-count" id="count-${stage.id}">0</span>
+            <button class="k-col-collapse-btn" onclick="toggleCollapseCol(event,'${stage.id}')" title="Collapse column" aria-label="Toggle ${stage.name} column">
+              <svg class="chevron-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          </div>
         </div>
         <div class="k-cards-zone" id="zone-${stage.id}">
           <!-- Injected via JS -->
@@ -180,6 +207,9 @@ function renderKanbanColumns() {
       </div>
     `;
   }).join('');
+
+  // Restore collapse state after DOM rebuild
+  if (typeof restoreCollapsedCols === 'function') restoreCollapsedCols();
 }
 
 function updateModalStageOptions() {
@@ -221,36 +251,41 @@ let STAGE_LEADS = {};
 
 function updateStageLeadsFromEmployees(employees) {
   if (!employees || employees.length === 0) return;
-  // Use live role map from stage definitions if available, otherwise default
-  const roleMap = window._stageRoleMap || {
-    'ordertaken':     'STYLIST',
-    'designing':      'DESIGNER',
-    'lining':         'FINISHER',
-    'handwork':       'EMBROIDERER',
-    'cutting':        'CUTTER',
-    'stitching':      'TAILOR',
-    'trial':          'SUPERVISOR',
-    'qc':             'MANAGER',
-    'readytodeliver': 'DISPATCHER',
-    'ready':          'DISPATCHER'
-  };
 
   STAGES.forEach(st => {
-    const targetRole = roleMap[st.id];
-    const match = employees.find(e => String(e.role || '').toUpperCase() === targetRole);
-    if (match) {
-      STAGE_LEADS[st.id] = `${match.name} (${match.role})`;
+    // Tier 1: User-assigned pinned specialist from stage definitions management
+    if (st.pinnedEmployees && st.pinnedEmployees.length > 0) {
+      const p = st.pinnedEmployees[0];
+      STAGE_LEADS[st.id] = `${p.name} (${p.role || st.requiredRole || 'Specialist'})`;
+      return;
+    }
+
+    // Tier 2: Match active employee whose role matches user-configured requiredRole
+    const targetRole = st.requiredRole ? String(st.requiredRole).toUpperCase().trim() : null;
+    if (targetRole) {
+      const match = employees.find(e => String(e.role || '').toUpperCase().trim() === targetRole);
+      if (match) {
+        STAGE_LEADS[st.id] = `${match.name} (${match.role})`;
+        return;
+      }
+    }
+
+    // Tier 3: User-defined department label, or fallback to unassigned
+    if (st.deptLabel && st.deptLabel.trim()) {
+      STAGE_LEADS[st.id] = st.deptLabel.trim();
     } else {
-      STAGE_LEADS[st.id] = 'Specialist Team';
+      STAGE_LEADS[st.id] = 'Unassigned';
     }
   });
 
   // Update in-memory orders if team was unassigned
-  productionOrders.forEach(o => {
-    if (!o.team || o.team === 'Boutique Specialists' || o.team === 'General Team') {
-      o.team = STAGE_LEADS[o.stage] || 'Boutique Specialists';
-    }
-  });
+  if (Array.isArray(productionOrders)) {
+    productionOrders.forEach(o => {
+      if (!o.team || o.team === 'Unassigned') {
+        o.team = STAGE_LEADS[o.stage] || 'Unassigned';
+      }
+    });
+  }
 }
 
 // Production Orders Store
@@ -277,16 +312,17 @@ document.addEventListener('DOMContentLoaded', () => {
       // 0. Load stage definitions first (so STAGES is dynamic before orders render)
       await loadStageDefinitions(api);
 
-      // 1. Fetch Orders from Database
+      // 1. Fetch Orders from Database (include cancelled orders to display as frozen at their current stage)
       const res = await api.orders.list({ page: 0, size: 100 });
-      const items = Array.isArray(res) ? res : (res?.content || []);
+      const items = (Array.isArray(res) ? res : (res?.content || []));
       if (items.length > 0) {
         const todayIso = new Date().toISOString().split('T')[0];
 
         productionOrders = items.map(o => {
+          const isCancelled = String(o.status || '').toUpperCase() === 'CANCELLED';
           const stage = mapCurrentStageToKanban(o.currentStage, o.status);
           const dueDateStr = o.dueDate ? String(o.dueDate) : (o.expectedDeliveryDate ? String(o.expectedDeliveryDate) : todayIso);
-          const isDelayed = dueDateStr < todayIso && !isFinalStage(stage);
+          const isDelayed = !isCancelled && dueDateStr < todayIso && !isFinalStage(stage);
 
           return {
             id: o.orderCode || ('ORD-' + o.id),
@@ -295,12 +331,14 @@ document.addEventListener('DOMContentLoaded', () => {
             garment: o.garmentType || 'Bespoke Garment',
             category: o.garmentType || 'Blouse',
             stage: stage,
+            status: o.status || 'IN_PROGRESS',
+            isCancelled: isCancelled,
             priority: o.priority || (stage === 'handwork' || stage === 'stitching' ? 'High' : 'Normal'),
-            team: STAGE_LEADS[stage] || 'Boutique Specialists',
+            team: STAGE_LEADS[stage] || 'Unassigned',
             fabric: o.collection || 'Pure Silk',
             notes: o.productionNotes || o.notes || 'Custom specifications applied.',
             dueDate: dueDateStr,
-            dueLabel: isFinalStage(stage) ? 'Completed' : (isDelayed ? `Overdue (${dueDateStr})` : `Due: ${dueDateStr}`),
+            dueLabel: isCancelled ? 'Frozen (Cancelled)' : (isFinalStage(stage) ? 'Completed' : (isDelayed ? `Overdue (${dueDateStr})` : `Due: ${dueDateStr}`)),
             delayed: isDelayed,
             qcReworkCount: Number(o.qcReworkCount) || 0,
             image: GARMENT_IMAGES[o.garmentType] || GARMENT_IMAGES.default
@@ -372,7 +410,7 @@ function initClock() {
     const now = new Date();
     const dateOpts = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
     const dateStr = now.toLocaleDateString('en-GB', dateOpts);
-    
+
     let hours = now.getHours();
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -423,7 +461,7 @@ function renderKanban(filteredList = null) {
     if (!zone) return;
 
     const stageOrders = listToRender.filter(o => o.stage === stage.id);
-    
+
     if (countBadge) {
       countBadge.textContent = stageOrders.length;
     }
@@ -446,6 +484,12 @@ function renderKanban(filteredList = null) {
 
   // Dynamically compute and refresh all analytics
   updateAnalytics();
+  if (typeof _renderStageSummaryStrip === 'function') {
+    const sec = document.querySelector('.workflow-section');
+    if (sec && sec.classList.contains('section-collapsed')) {
+      _renderStageSummaryStrip();
+    }
+  }
 }
 
 /**
@@ -453,8 +497,11 @@ function renderKanban(filteredList = null) {
  */
 function createOrderCardElement(order) {
   const card = document.createElement('div');
-  card.className = 'kanban-card' + (order.qcReworkCount > 0 ? ' qc-rework-card' : '');
-  card.setAttribute('draggable', 'true');
+  let cardClass = 'kanban-card';
+  if (order.isCancelled) cardClass += ' card-cancelled-frozen';
+  else if (order.qcReworkCount > 0) cardClass += ' qc-rework-card';
+  card.className = cardClass;
+  card.setAttribute('draggable', order.isCancelled ? 'false' : 'true');
   card.setAttribute('data-order-id', order.id);
 
   card.addEventListener('dragstart', (e) => handleDragStart(e, order.id));
@@ -466,8 +513,8 @@ function createOrderCardElement(order) {
   });
 
   const prioClass = order.priority ? order.priority.toLowerCase() : 'normal';
-  const statusClass = order.stage === 'ready' ? 'ontrack' : (order.delayed ? 'delayed' : 'ontrack');
-  const statusText = order.stage === 'ready' ? 'Completed' : (order.delayed ? 'Delayed' : 'On Track');
+  const statusClass = order.isCancelled ? 'cancelled' : (order.stage === 'ready' ? 'ontrack' : (order.delayed ? 'delayed' : 'ontrack'));
+  const statusText = order.isCancelled ? 'Frozen (Cancelled)' : (order.stage === 'ready' ? 'Completed' : (order.delayed ? 'Delayed' : 'On Track'));
 
   const stageObj = STAGES.find(s => s.id === order.stage);
 
@@ -486,7 +533,8 @@ function createOrderCardElement(order) {
       <div class="kc-info">
         <div class="kc-title-row">
           <span class="kc-garment" title="${order.garment}">${order.garment}</span>
-          <div style="display:flex;align-items:center;gap:4px;">
+          <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+            ${order.isCancelled ? `<span class="kc-cancelled-badge" title="Production workflow halted and frozen">✕ FROZEN</span>` : ''}
             ${order.qcReworkCount > 0 ? `<span class="qc-rework-pill" title="Sent for QC rework ${order.qcReworkCount} time(s)">⚠ QC Rework${order.qcReworkCount > 1 ? ` ×${order.qcReworkCount}` : ''}</span>` : ''}
             <span class="kc-prio-badge ${prioClass}">${order.priority}</span>
           </div>
@@ -508,8 +556,8 @@ function createOrderCardElement(order) {
     </div>
 
     <div class="kc-footer">
-      <div class="kc-due-badge ${order.delayed ? 'delayed' : ''}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div class="kc-due-badge ${order.isCancelled ? 'cancelled' : (order.delayed ? 'delayed' : '')}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
         <span>${order.dueLabel || order.dueDate}</span>
       </div>
       <span class="kc-status-pill ${statusClass}">${statusText}</span>
@@ -523,6 +571,12 @@ function createOrderCardElement(order) {
  * HTML5 Drag and Drop Handlers
  */
 function handleDragStart(e, orderId) {
+  const order = productionOrders.find(o => o.id === orderId);
+  if (order && order.isCancelled) {
+    e.preventDefault();
+    showToast('Cannot move a cancelled order. Production is frozen at this stage.', 'warn');
+    return;
+  }
   draggedOrderId = orderId;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', orderId);
@@ -570,16 +624,16 @@ function handleDrop(e, targetStage) {
  * Mapping of boutique production stages to department specializations & roles
  */
 const STAGE_DEPARTMENT_MAP = {
-  'ordertaken':     { roles: ['STYLIST', 'DESIGNER', 'MANAGER'], label: 'Order Intake & Reception' },
-  'designing':      { roles: ['DESIGNER'], label: 'Design Studio' },
-  'lining':         { roles: ['FINISHER'], label: 'Finishing & Lining' },
-  'handwork':       { roles: ['EMBROIDERER'], label: 'Embroidery & Maggam' },
-  'cutting':        { roles: ['CUTTER'], label: 'Master Cutting' },
-  'stitching':      { roles: ['TAILOR'], label: 'Tailoring & Stitching' },
-  'trial':          { roles: ['SUPERVISOR', 'TAILOR'], label: 'Fitting & Trial' },
-  'qc':             { roles: ['MANAGER', 'SUPERVISOR'], label: 'Quality Control' },
+  'ordertaken': { roles: ['STYLIST', 'DESIGNER', 'MANAGER'], label: 'Order Intake & Reception' },
+  'designing': { roles: ['DESIGNER'], label: 'Design Studio' },
+  'lining': { roles: ['FINISHER'], label: 'Finishing & Lining' },
+  'handwork': { roles: ['EMBROIDERER'], label: 'Embroidery & Maggam' },
+  'cutting': { roles: ['CUTTER'], label: 'Master Cutting' },
+  'stitching': { roles: ['TAILOR'], label: 'Tailoring & Stitching' },
+  'trial': { roles: ['SUPERVISOR', 'TAILOR'], label: 'Fitting & Trial' },
+  'qc': { roles: ['MANAGER', 'SUPERVISOR'], label: 'Quality Control' },
   'readytodeliver': { roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' },
-  'ready':          { roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' }
+  'ready': { roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' }
 };
 
 /**
@@ -623,7 +677,7 @@ function openStageTransitionModal(order, targetStage) {
 
   if (employeeSelect) {
     if (cachedEmployees.length === 0) {
-      employeeSelect.innerHTML = '<option value="">Loading specialists from database...</option>';
+      employeeSelect.innerHTML = '<option value="">-- None / Unassigned (Optional) --</option>';
     } else {
       const targetRoles = (recDept.roles || (recDept.role ? [recDept.role] : [])).map(r => String(r || '').toUpperCase());
 
@@ -634,7 +688,7 @@ function openStageTransitionModal(order, targetStage) {
         return targetRoles.some(r => empRole.includes(r));
       });
 
-      let html = '<option value="">-- Select Specialist to Assign (Required) * --</option>';
+      let html = '<option value="">-- None / Unassigned (Optional) --</option>';
 
       if (categoryEmployees.length > 0) {
         html += `<optgroup label="${recDept.label} Specialists (${categoryEmployees.length} Available)">`;
@@ -645,15 +699,17 @@ function openStageTransitionModal(order, targetStage) {
         });
         html += '</optgroup>';
       } else {
-        html += '<option value="" disabled>No specialists found for this stage category</option>';
+        html += `<optgroup label="All Available Specialists (${cachedEmployees.length} Available)">`;
+        cachedEmployees.forEach(e => {
+          const code = e.employeeCode ? `[${e.employeeCode}] ` : '';
+          const spec = e.specialization ? ` — ${e.specialization}` : '';
+          html += `<option value="${e.id || e.name}" data-name="${e.name}" data-role="${e.role || 'Specialist'}">${code}${e.name} (${e.role || 'Specialist'}${spec})</option>`;
+        });
+        html += '</optgroup>';
       }
 
       employeeSelect.innerHTML = html;
-
-      // Auto pre-select primary specialist in this category for seamless 1-click handover
-      if (categoryEmployees.length > 0) {
-        employeeSelect.value = categoryEmployees[0].id || categoryEmployees[0].name;
-      }
+      employeeSelect.value = '';
     }
   }
 
@@ -661,7 +717,7 @@ function openStageTransitionModal(order, targetStage) {
 }
 
 /**
- * Confirm Stage Transition with Assigned Specialist
+ * Confirm Stage Transition with Assigned Specialist (Optional)
  */
 function confirmStageTransition(e) {
   if (e && e.preventDefault) e.preventDefault();
@@ -675,17 +731,19 @@ function confirmStageTransition(e) {
   const errorMsg = document.getElementById('transErrorMsg');
   const selectedVal = employeeSelect ? employeeSelect.value.trim() : '';
 
-  if (!selectedVal) {
-    if (errorMsg) errorMsg.style.display = 'block';
-    if (employeeSelect) employeeSelect.focus();
-    return;
-  }
   if (errorMsg) errorMsg.style.display = 'none';
 
-  const selectedOpt = employeeSelect.options[employeeSelect.selectedIndex];
-  const empId = selectedVal;
-  const empName = selectedOpt.getAttribute('data-name') || selectedOpt.text;
-  const empRole = selectedOpt.getAttribute('data-role') || 'Specialist';
+  let empId = null;
+  let empName = 'Unassigned';
+  let empRole = 'General Atelier';
+
+  if (selectedVal && employeeSelect && employeeSelect.selectedIndex >= 0) {
+    const selectedOpt = employeeSelect.options[employeeSelect.selectedIndex];
+    empId = selectedVal;
+    empName = selectedOpt.getAttribute('data-name') || selectedOpt.text;
+    empRole = selectedOpt.getAttribute('data-role') || 'Specialist';
+  }
+
   const notes = document.getElementById('transNotesInput')?.value?.trim() || '';
 
   const { order, targetStage } = pendingTransition;
@@ -694,7 +752,7 @@ function confirmStageTransition(e) {
 
   // 1. Update order in local store
   order.stage = targetStage;
-  order.team = `${empName} (${empRole})`;
+  order.team = empId ? `${empName} (${empRole})` : 'Unassigned';
   if (notes) {
     order.notes = notes;
   }
@@ -716,7 +774,11 @@ function confirmStageTransition(e) {
   closeModal('stageTransitionModal');
   closeModal('orderDetailsModal');
 
-  showToast(`Assigned ${empName} & moved ${order.id} to ${targetStageName}!`);
+  if (empId) {
+    showToast(`Assigned ${empName} & moved ${order.id} to ${targetStageName}!`);
+  } else {
+    showToast(`Moved ${order.id} to ${targetStageName}!`);
+  }
 
   // 3. Persist transition to PostgreSQL backend
   const backendStage = mapKanbanToBackendStage(targetStage);
@@ -863,10 +925,10 @@ function updateAnalytics() {
   nextWeek.setDate(nextWeek.getDate() + 7);
   const nextWeekStr = nextWeek.toISOString().split('T')[0];
 
-  const dueThisWeek = productionOrders.filter(o => 
-    !isFinalStage(o.stage) && 
-    o.dueDate && 
-    o.dueDate >= todayStr && 
+  const dueThisWeek = productionOrders.filter(o =>
+    !isFinalStage(o.stage) &&
+    o.dueDate &&
+    o.dueDate >= todayStr &&
     o.dueDate <= nextWeekStr
   ).length;
 
@@ -905,11 +967,11 @@ function updateAnalytics() {
 
   const lenComp = total > 0 ? (completed / total) * C_COMP : 0;
   const lenProg = total > 0 ? (onTrack / total) * C_COMP : 0;
-  const lenDel  = total > 0 ? (delayed / total) * C_COMP : 0;
+  const lenDel = total > 0 ? (delayed / total) * C_COMP : 0;
 
   const segComp = document.getElementById('donutSegCompleted');
   const segProg = document.getElementById('donutSegProgress');
-  const segDel  = document.getElementById('donutSegDelayed');
+  const segDel = document.getElementById('donutSegDelayed');
 
   if (segComp) {
     segComp.setAttribute('stroke-dasharray', `${lenComp.toFixed(1)} ${C_COMP.toFixed(1)}`);
@@ -926,10 +988,10 @@ function updateAnalytics() {
 
   const legComp = document.getElementById('kpiLegendCompleted');
   const legProg = document.getElementById('kpiLegendProgress');
-  const legDel  = document.getElementById('kpiLegendDelayed');
+  const legDel = document.getElementById('kpiLegendDelayed');
   if (legComp) legComp.textContent = completed;
   if (legProg) legProg.textContent = inProduction;
-  if (legDel)  legDel.textContent  = delayed;
+  if (legDel) legDel.textContent = delayed;
 
   // 3. On-Time vs Delayed Donut (r = 44, perimeter = 2 * PI * 44 ≈ 276.46)
   const C_OT = 276.46;
@@ -1006,8 +1068,8 @@ function updateAvgTimeChart() {
   const stageGroups = [
     { label: 'Intake & Design', stages: ['ordertaken', 'designing'], bar: 'bar-emerald' },
     { label: 'Prep & Cutting', stages: ['lining', 'cutting'], bar: 'bar-yellow' },
-    { label: 'Embroidery & Stitching', stages: ['handwork', 'stitching'], bar: 'bar-green' },
-    { label: 'QC & Delivery', stages: ['trial', 'qc', 'readytodeliver', 'ready'], bar: 'bar-silver' }
+    { label: 'Embroidery & Stitching', stages: ['handwork', 'stitching', 'embroidery'], bar: 'bar-green' },
+    { label: 'QC & Delivery', stages: ['trial', 'qc', 'finishing', 'readytodeliver', 'ready'], bar: 'bar-silver' }
   ];
 
   const times = stageGroups.map(grp => {
@@ -1178,7 +1240,7 @@ function openNewOrderModal(preferredStage = 'designing') {
   if (stageSelect) {
     stageSelect.value = preferredStage;
   }
-  
+
   const dueInput = document.getElementById('moDueDate');
   if (dueInput && !dueInput.value) {
     const d = new Date();
@@ -1229,7 +1291,7 @@ async function handleCreateOrderSubmit(e) {
 
   const todayIso = new Date().toISOString().split('T')[0];
   const isDelayed = dueDate < todayIso && !isFinalStage(stage);
-  const assignedTeam = team || STAGE_LEADS[stage] || 'Boutique Specialists';
+  const assignedTeam = team || STAGE_LEADS[stage] || 'Unassigned';
 
   const newOrder = {
     id: createdOrder?.orderCode || `ORD-${Date.now().toString().slice(-4)}`,
@@ -1275,17 +1337,37 @@ function openOrderDetails(orderId) {
   // Configure advance button in modal
   const advanceBtn = document.getElementById('btnAdvanceFromDetails');
   if (advanceBtn) {
-    const curIdx = STAGES.findIndex(s => s.id === order.stage);
-    if (curIdx >= 0 && curIdx < STAGES.length - 1) {
-      const nextStage = STAGES[curIdx + 1];
+    if (order.isCancelled) {
       advanceBtn.style.display = 'inline-flex';
-      advanceBtn.innerHTML = `Advance to ${nextStage.name} & Assign Specialist ➔`;
+      advanceBtn.disabled = true;
+      advanceBtn.innerHTML = `Production Frozen (cancaled at ${stageName})`;
+      advanceBtn.style.background = '#dc2626';
+      advanceBtn.style.cursor = 'not-allowed';
+      advanceBtn.style.opacity = '0.75';
     } else {
-      advanceBtn.style.display = 'none';
+      advanceBtn.disabled = false;
+      advanceBtn.style.background = '';
+      advanceBtn.style.cursor = 'pointer';
+      advanceBtn.style.opacity = '1';
+      const curIdx = STAGES.findIndex(s => s.id === order.stage);
+      if (curIdx >= 0 && curIdx < STAGES.length - 1) {
+        const nextStage = STAGES[curIdx + 1];
+        advanceBtn.style.display = 'inline-flex';
+        advanceBtn.innerHTML = `Advance to ${nextStage.name} & Assign Specialist ➔`;
+      } else {
+        advanceBtn.style.display = 'none';
+      }
     }
   }
 
+  const cancelledBannerHtml = order.isCancelled ? `
+    <div style="background:rgba(239,68,68,0.16);border:1px solid rgba(239,68,68,0.55);color:#fca5a5;padding:8px 14px;border-radius:8px;margin-bottom:14px;font-size:12.5px;font-weight:700;">
+      cancaled at ${stageName}
+    </div>
+  ` : '';
+
   bodyEl.innerHTML = `
+    ${cancelledBannerHtml}
     <div class="od-hero">
       <img 
         src="${order.image || GARMENT_IMAGES.default}" 
@@ -1297,10 +1379,11 @@ function openOrderDetails(orderId) {
         <h4 class="od-name">${order.garment}</h4>
         <span class="od-customer">Client: <strong>${order.customer}</strong></span>
         <div class="od-badge-row">
+          ${order.isCancelled ? `<span class="kc-cancelled-badge" style="font-size:10px;padding:2px 8px;">✕ FROZEN (CANCELLED)</span>` : ''}
           ${order.qcReworkCount > 0 ? `<span class="qc-rework-pill" style="font-size:10px;padding:2px 8px;">⚠ QC Rework ×${order.qcReworkCount}</span>` : ''}
           <span class="kc-prio-badge ${order.priority.toLowerCase()}">${order.priority} Priority</span>
-          <span class="kc-status-pill ${isFinalStage(order.stage) ? 'ontrack' : (order.delayed ? 'delayed' : 'ontrack')}">
-            ${isFinalStage(order.stage) ? 'Completed' : (order.delayed ? 'Delayed' : 'On Track')}
+          <span class="kc-status-pill ${order.isCancelled ? 'cancelled' : (isFinalStage(order.stage) ? 'ontrack' : (order.delayed ? 'delayed' : 'ontrack'))}">
+            ${order.isCancelled ? 'Frozen (Cancelled)' : (isFinalStage(order.stage) ? 'Completed' : (order.delayed ? 'Delayed' : 'On Track'))}
           </span>
         </div>
       </div>
@@ -1316,7 +1399,7 @@ function openOrderDetails(orderId) {
       </div>
       <div class="od-item">
         <span class="od-item-label">Assigned Team / Lead</span>
-        <span class="od-item-value">${order.team || 'General Team'}</span>
+        <span class="od-item-value">${order.team || 'Unassigned'}</span>
       </div>
       <div class="od-item">
         <span class="od-item-label">Target Due Date</span>
@@ -1496,3 +1579,206 @@ window.filterByStage = filterByStage;
 window.applyWorkflowFilters = applyWorkflowFilters;
 window.resetWorkflowFilters = resetWorkflowFilters;
 window.showToast = showToast;
+
+// ==========================================================
+// LEVEL 1 — PER-COLUMN HORIZONTAL COLLAPSE  (‹ / ›)
+// ==========================================================
+
+function _colGetSaved() {
+  try { return JSON.parse(localStorage.getItem(_COL_STORAGE_KEY) || '{}'); }
+  catch (_) { return {}; }
+}
+
+function _colSave(state) {
+  localStorage.setItem(_COL_STORAGE_KEY, JSON.stringify(state));
+}
+
+/**
+ * Toggle a Kanban column open/closed (horizontally to 38px strip).
+ * Exposed on window so HTML onclick="toggleCollapseCol(...)" works.
+ */
+function toggleCollapseCol(e, stageId) {
+  if (e) e.stopPropagation();
+  const col = document.querySelector(`.kanban-col[data-stage-id="${stageId}"]`);
+  if (!col) return;
+  const nowCollapsed = col.classList.toggle('col-collapsed');
+  const s = _colGetSaved();
+  s[stageId] = nowCollapsed;
+  _colSave(s);
+  col.querySelectorAll('.k-col-collapse-btn').forEach(btn => {
+    btn.title = nowCollapsed ? 'Expand column' : 'Collapse column';
+  });
+}
+window.toggleCollapseCol = toggleCollapseCol;
+
+/**
+ * Restore each column's open/closed state from localStorage.
+ * Called on page load and after renderKanbanColumns() rebuilds the DOM.
+ */
+function restoreCollapsedCols() {
+  const s = _colGetSaved();
+  document.querySelectorAll('.kanban-col').forEach(col => {
+    const id = col.dataset.stageId;
+    if (!id) return;
+    if (s[id]) {
+      col.classList.add('col-collapsed');
+    } else {
+      col.classList.remove('col-collapsed');
+    }
+    // Allow clicking the whole collapsed column body to expand it
+    if (!col._collapseListenerBound) {
+      col._collapseListenerBound = true;
+      col.addEventListener('click', ev => {
+        if (!col.classList.contains('col-collapsed')) return;
+        if (ev.target.closest('.k-col-collapse-btn')) return;
+        toggleCollapseCol(null, col.dataset.stageId);
+      });
+    }
+  });
+}
+window.restoreCollapsedCols = restoreCollapsedCols;
+
+// Auto-expand a collapsed column when a card is dropped onto it
+const _colOrigDrop = window.handleDrop;
+window.handleDrop = function (e, stageId) {
+  const col = document.querySelector(`.kanban-col[data-stage-id="${stageId}"]`);
+  if (col && col.classList.contains('col-collapsed')) {
+    col.classList.remove('col-collapsed');
+    const s = _colGetSaved();
+    delete s[stageId];
+    _colSave(s);
+  }
+  if (typeof _colOrigDrop === 'function') _colOrigDrop(e, stageId);
+};
+
+// ==========================================================
+// LEVEL 2 — SECTION COLLAPSE  (‹ on section header)
+// ==========================================================
+
+function toggleWorkflowSection(e) {
+  if (e) e.stopPropagation();
+  const section = document.querySelector('.workflow-section');
+  if (!section) return;
+  const nowCollapsed = section.classList.toggle('section-collapsed');
+  localStorage.setItem(_SEC_KEY, nowCollapsed ? '1' : '0');
+  const btn = document.getElementById('wfSectionCollapseBtn');
+  if (btn) btn.title = nowCollapsed ? 'Expand board' : 'Collapse board';
+  if (nowCollapsed) _renderStageSummaryStrip();
+}
+window.toggleWorkflowSection = toggleWorkflowSection;
+
+function _renderStageSummaryStrip() {
+  const strip = document.getElementById('wfStageSummaryStrip');
+  if (!strip) return;
+  const orders = (typeof productionOrders !== 'undefined' && Array.isArray(productionOrders)) ? productionOrders : [];
+  strip.innerHTML = STAGES.map(stage => {
+    const count = orders.filter(o => o.stage === stage.id).length;
+    const img = stage.imageUrl
+      ? `<img src="${formatStageImgUrl(stage.imageUrl)}" class="pill-thumb" alt="" onerror="this.style.display='none'">`
+      : `<span class="stage-dot ${stage.dot}" style="flex-shrink:0;width:10px;height:10px;"></span>`;
+    return `<div class="wf-stage-pill"
+                 onclick="expandSectionTo('${stage.id}')"
+                 title="Expand and go to ${stage.name}">
+      ${img}
+      <span>${stage.name}</span>
+      <span class="pill-count">${count}</span>
+    </div>`;
+  }).join('');
+}
+window._renderStageSummaryStrip = _renderStageSummaryStrip;
+
+function expandSectionTo(stageId) {
+  const section = document.querySelector('.workflow-section');
+  if (section && section.classList.contains('section-collapsed')) {
+    section.classList.remove('section-collapsed');
+    localStorage.setItem(_SEC_KEY, '0');
+    const btn = document.getElementById('wfSectionCollapseBtn');
+    if (btn) btn.title = 'Collapse board section';
+  }
+  setTimeout(() => {
+    const col = document.querySelector(`.kanban-col[data-stage-id="${stageId}"]`);
+    if (col) {
+      if (col.classList.contains('col-collapsed')) {
+        toggleCollapseCol(null, stageId);
+      }
+      col.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    }
+  }, 400);
+}
+window.expandSectionTo = expandSectionTo;
+
+function _restoreSectionState() {
+  if (localStorage.getItem(_SEC_KEY) === '1') {
+    const section = document.querySelector('.workflow-section');
+    if (section) {
+      section.classList.add('section-collapsed');
+      const btn = document.getElementById('wfSectionCollapseBtn');
+      if (btn) btn.title = 'Expand board';
+      _renderStageSummaryStrip();
+    }
+  }
+}
+
+// ==========================================================
+// LEVEL 3 — COLLAPSE-ALL  (‹ All button)
+// ==========================================================
+
+function toggleCollapseAll(e) {
+  if (e) e.stopPropagation();
+  _allCollapsed = !_allCollapsed;
+  localStorage.setItem(_ALL_KEY, _allCollapsed ? '1' : '0');
+  const board = document.getElementById('kanbanBoard');
+  const btn = document.getElementById('btnCollapseAll');
+  if (board) board.classList.toggle('board-all-collapsed', _allCollapsed);
+  if (btn) btn.classList.toggle('all-collapsed', _allCollapsed);
+  const label = document.querySelector('.collapse-all-label');
+  if (label) label.textContent = _allCollapsed ? 'Expand' : 'All';
+  if (btn) btn.title = _allCollapsed ? 'Expand all columns' : 'Collapse all columns';
+
+  const s = _colGetSaved();
+  document.querySelectorAll('.kanban-col').forEach(col => {
+    const id = col.dataset.stageId;
+    if (!id) return;
+    col.classList.toggle('col-collapsed', _allCollapsed);
+    s[id] = _allCollapsed;
+    col.querySelectorAll('.k-col-collapse-btn').forEach(b => {
+      b.title = _allCollapsed ? 'Expand column' : 'Collapse column';
+    });
+  });
+  _colSave(s);
+}
+window.toggleCollapseAll = toggleCollapseAll;
+
+function _restoreCollapseAllState() {
+  if (localStorage.getItem(_ALL_KEY) === '1') {
+    _allCollapsed = true;
+    document.getElementById('kanbanBoard')?.classList.add('board-all-collapsed');
+    const btn = document.getElementById('btnCollapseAll');
+    if (btn) {
+      btn.classList.add('all-collapsed');
+      btn.title = 'Expand all columns';
+    }
+    const label = document.querySelector('.collapse-all-label');
+    if (label) label.textContent = 'Expand';
+    document.querySelectorAll('.kanban-col').forEach(col => {
+      col.classList.add('col-collapsed');
+      col.querySelectorAll('.k-col-collapse-btn').forEach(b => {
+        b.title = 'Expand column';
+      });
+    });
+  }
+}
+
+// Restore all states on page load
+function _restoreAllCollapseStates() {
+  restoreCollapsedCols();
+  _restoreSectionState();
+  _restoreCollapseAllState();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _restoreAllCollapseStates);
+} else {
+  _restoreAllCollapseStates();
+}
+

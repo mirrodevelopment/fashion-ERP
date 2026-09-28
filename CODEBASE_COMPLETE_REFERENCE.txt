@@ -1,0 +1,539 @@
+================================================================================
+                    HAULO BOUTIQUE FASHION ERP (VERSION 1.0)
+                   COMPLETE MASTER CODEBASE & SYSTEM REFERENCE
+================================================================================
+Generated Date : 2026-09-23
+Industry Domain: Bespoke Couture, Tailoring & Garment Manufacturing Enterprise
+Backend        : Spring Boot 4.1.1 / Java 17 / PostgreSQL / Hibernate / Flyway / JJWT
+Frontend       : Pure Vanilla ES6+ JavaScript / CSS3 Tokens / HTML5
+Primary Port   : 8080 (REST Base: /api/v1, Web Root: /front end/login/login.html)
+File Path      : d:\fashion ERP\FASHION-ERP\CODEBASE_COMPLETE_REFERENCE.txt
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+[1] SYSTEM ARCHITECTURAL BLUEPRINT & RUNTIME FLOW
+    1.1 Architecture & Design Decisions
+    1.2 ASCII System Runtime Architecture Diagram
+    1.3 Authentication, Security & Hot Frontend Reloading
+
+[2] COMPLETE DATABASE RELATIONAL SCHEMA (26 TABLES)
+    2.1 Relational Tables Inventory & Primary Keys
+    2.2 Relational Entity Relationship & Foreign Key Network
+    2.3 Complete Table-by-Table Schema Specification
+
+[3] BACKEND SOURCE CODE CATALOG (101 JAVA FILES IN 17 PACKAGES)
+    3.1 System Root & Cross-Cutting Configuration (com.fashionerp, config, common)
+    3.2 Authentication & Security (com.fashionerp.auth)
+    3.3 Customer CRM & Precision 34-Point Measurements (com.fashionerp.customer)
+    3.4 Order Ledger & Milestone Lifecycle (com.fashionerp.order)
+    3.5 Production Kanban & Dynamic Stage Blueprints (com.fashionerp.production)
+    3.6 Quality Control & Defect Rewind Engine (com.fashionerp.production / qc)
+    3.7 Trial Fittings, Fit Statuses & Alteration Punches (com.fashionerp.trial)
+    3.8 Inventory, Fabrics, Trims & Stock Ledger Movements (com.fashionerp.inventory)
+    3.9 Procurement, Purchase Orders & Supplier Directory (com.fashionerp.purchase)
+    3.10 Payments, Billing & Financial Transactions (com.fashionerp.payment)
+    3.11 Measurement Profiles & Garment Categories (com.fashionerp.measurement)
+    3.12 Workforce, Tailor Capacity & Skills Matrix (com.fashionerp.workforce)
+    3.13 Design Studio, Sketches & Moodboards (com.fashionerp.design)
+    3.14 Enquiries & Sales CRM Pipeline (com.fashionerp.enquiry)
+    3.15 Appointments & Booking Calendar (com.fashionerp.appointment)
+    3.16 Executive Dashboard & Business Health (com.fashionerp.dashboard)
+
+[4] DATABASE MIGRATIONS & SEED SCRIPTS (27 SQL FILES)
+    4.1 Flyway Migrations (V1 through V18)
+    4.2 Administrative & Seeding Utility Scripts
+
+[5] FRONTEND USER INTERFACE DIRECTORY (83 FILES ACROSS 17 MODULES)
+    5.1 Centralized API Client (front end/api.js)
+    5.2 Fragments Loader & Shell Components (fragments/)
+    5.3 Global Design Token & Theme System (theme.css)
+    5.4 Complete Module Inventory (HTML, CSS, JS)
+
+[6] BUILD CONFIGURATION, LAUNCHERS & SCRIPTS
+    6.1 pom.xml & application.yaml
+    6.2 start.bat Launcher
+    6.3 scratch/ Validation Scripts
+
+[7] COMPLETE BUSINESS LIFECYCLE WORKFLOWS
+    7.1 Scenario A: Bespoke Bridal Order (Lead to Dispatch)
+    7.2 Scenario B: Fitting Trial Defect & Multi-Stage QC Rework Rewind
+
+================================================================================
+[1] SYSTEM ARCHITECTURAL BLUEPRINT & RUNTIME FLOW
+================================================================================
+
+1.1 ARCHITECTURE & DESIGN DECISIONS
+--------------------------------------------------------------------------------
+1. Framework & Stack:
+   - Backend : Spring Boot 4.1.1 on Java 17 with Spring Data JPA & Hibernate 6.
+   - Database: PostgreSQL (fashion_erp) with Flyway database migration versioning.
+   - Security: Spring Security 6 with stateless HMAC-SHA256 JWT tokens (24h TTL).
+   - Frontend: 100% Pure Vanilla ES6+ JavaScript, CSS3 custom properties (:root),
+               and semantic HTML5. No npm, Webpack, Vite, or Node build step.
+
+2. Zero-Recompile Frontend Live Development:
+   - WebMvcConfig.java implements addResourceHandlers mapping "/front end/**"
+     directly to the file system path: Paths.get("front end").toAbsolutePath().
+   - Modifying any HTML, CSS, or JS file in "front end/" immediately reflects on
+     browser refresh without rebuilding the Spring Boot JAR or Maven compile.
+
+3. Aesthetics & Luxury Atelier Design System:
+   - Theme defined in "front end/fragments/theme/theme.css" (1,725 lines).
+   - Palette: Warm Dark luxury charcoal/espresso (#242522, #1F211F, #3A3732),
+     accented by Haute Couture Neon-Lime (#B8FF3D) and emerald/amber/rose statuses.
+   - Glassmorphism: Semi-transparent backdrop-filtered cards with subtle borders.
+
+1.2 ASCII SYSTEM RUNTIME ARCHITECTURE DIAGRAM
+--------------------------------------------------------------------------------
++------------------------------------------------------------------------------+
+| CLIENT BROWSER (Chrome, Edge, Firefox)                                       |
+|                                                                              |
+|  [17 UI Modules: Dashboard, Orders, Production, Trials, Delivery, CRM]       |
+|        |                                                                     |
+|        +---> Fragments Loader (fragments.js -> sidebar, navbar, footer)      |
+|        |                                                                     |
+|        +---> Unified API Client (api.js with JWT token auto-attachment)      |
++--------------------------------------|---------------------------------------+
+                                       | HTTP REST Requests (/api/v1/*)
+                                       v
++------------------------------------------------------------------------------+
+| SPRING BOUTIQUE BACKEND SERVER (Port 8080)                                   |
+|                                                                              |
+|  [WebMvcConfig] ----> Maps /front end/** directly to workspace disk path     |
+|                                                                              |
+|  [SecurityConfig] & [JwtAuthFilter]                                          |
+|        |                                                                     |
+|        +---> Validates Bearer JWT Token                                      |
+|        +---> Sets Spring SecurityContextHolder                               |
+|                                                                              |
+|  [REST API Controllers (17 Domain Controllers)]                              |
+|        |                                                                     |
+|  [Service & Business Logic Layer]                                            |
+|        |  * OrderService (Auto-generates ORD-codes & seeds Kanban stages)    |
+|        |  * ProductionController (Stage transitions & dynamic next stage)    |
+|        |  * QcController (Pass QC auto-advance & rework rewind engine)       |
+|        |  * TrialService (Fitting trials, retrial attempts & advance to QC)  |
+|        |  * CustomerService (34-point measurement versioning & C360 dossier) |
+|        |  * InventoryService (Stock adjustments with immutable movements)    |
+|        |                                                                     |
+|  [Spring Data JPA Repositories (24 Interfaces with Custom JPQL / Native)]    |
++--------------------------------------|---------------------------------------+
+                                       | JDBC Connections (HikariCP Pool)
+                                       v
++------------------------------------------------------------------------------+
+| POSTGRESQL DATABASE (fashion_erp on port 5432)                               |
+|  26 Relational Tables, Schema Enforced by Flyway Migrations (V1 to V18)       |
++------------------------------------------------------------------------------+
+
+================================================================================
+[2] COMPLETE DATABASE RELATIONAL SCHEMA (26 TABLES)
+================================================================================
+
+2.1 RELATIONAL TABLES INVENTORY
+--------------------------------------------------------------------------------
+No.  Table Name                  Primary Key       Foreign Keys / Key Relations
+---  --------------------------  ----------------  -----------------------------
+01.  customers                   mobile_number     Root customer identity
+02.  customer_notes              id (UUID)         customer_mobile -> customers
+03.  customer_body_measurements  id (UUID)         customer_mobile -> customers
+04.  customer_measurements       id (UUID)         customer_mobile -> customers
+05.  measurement_profiles       id (UUID)         customer_mobile -> customers
+06.  measurement_points          id (UUID)         profile_id -> measurement_profiles
+07.  orders                      id (UUID)         customer_mobile -> customers
+08.  order_progress_stages       id (UUID)         order_id -> orders
+09.  production_stages           id (UUID)         order_id -> orders, assigned_to -> employees
+10.  stage_definitions           id (UUID)         stage_key (UNIQUE)
+11.  stage_definition_employees  id (UUID)         stage_def_id, employee_id
+12.  qc_checklists               id (UUID)         order_id -> orders, checked_by -> employees
+13.  trials                      id (UUID)         customer_mobile -> customers, order_id -> orders
+14.  trial_alterations           id (UUID)         trial_id -> trials
+15.  inventory_items             id (UUID)         item_code (UNIQUE)
+16.  stock_movements             id (UUID)         item_id -> inventory_items
+17.  suppliers                   id (UUID)         supplier_code (UNIQUE)
+18.  purchase_orders             id (UUID)         supplier_id -> suppliers
+19.  purchase_order_items        id (UUID)         po_id -> purchase_orders, item_id -> inventory_items
+20.  payments                    id (UUID)         order_id -> orders, customer_mobile -> customers
+21.  payment_transactions        id (UUID)         payment_id -> payments
+22.  appointments                id (UUID)         customer_mobile -> customers, order_id -> orders
+23.  enquiries                   id (UUID)         converted_order_id -> orders
+24.  designs                     id (UUID)         customer_mobile -> customers, order_id -> orders
+25.  employees                   id (UUID)         employee_code (UNIQUE)
+26.  app_users                   id (UUID)         username (UNIQUE)
+
+2.2 TABLE SPECIFICATIONS SUMMARY
+--------------------------------------------------------------------------------
+01. customers:
+    - Master client identity using mobile_number (VARCHAR 30) as natural PK.
+    - Fields: name, first_name, last_name, salutation, gender, email, alt_phone,
+      instagram_handle, preferred_channel, dob, anniversary, location, street_address,
+      city, state, pincode, landmark, avatar_url, tier (REGULAR/SILVER/GOLD/VIP),
+      total_spend, balance, credit_limit, favorite_garment, fit_preference,
+      fabric_allergies, measurements_on_file, notes, created_at, updated_at.
+
+02. customer_notes:
+    - Timestamped CRM diary entries tied to customer_mobile.
+    - Fields: id, customer_mobile (FK), author, note_text, created_at.
+
+03. customer_body_measurements:
+    - 34 Anatomical Tailoring Measurement Points with garment versioning.
+    - Fields: id, customer_mobile (FK), customer_name, garment_type, measurement_type,
+      is_current, version, unit ('in'/'cm'), shoulder, bust, under_bust, waist, hip,
+      blouse_length, top_length, full_length, skirt_length, pant_length, armhole,
+      upper_arm, sleeve_length, sleeve_round, elbow_round, wrist_round,
+      front_neck_depth, back_neck_depth, bust_point, apex_to_apex, cross_front,
+      cross_back, crotch_depth, thigh_round, knee_round, calf_round, ankle_round,
+      notes, created_at, updated_at.
+
+04. customer_measurements:
+    - Legacy key-value unstructured measurements: id, customer_mobile, garment_type,
+      measurement_data, created_at.
+
+05. measurement_profiles & 06. measurement_points:
+    - Reusable named measurement profiles (e.g. "Bridal 2026") containing discrete
+      measurement points (name, numeric value, unit).
+  
+07. orders:
+    - Core garment production order ledger: id, order_code (ORD-YYYY-XXXX),
+      customer_mobile (FK), customer_name, garment_type, garment_desc, collection,
+      order_date, expected_delivery_date, delivered_date, advance_paid, total_amount,
+      balance_amount, amount, status (PENDING, IN_PROGRESS, READY, DELIVERED, CANCELLED),
+      current_stage, due_date, notes, production_notes, reference_images (Array/CSV),
+      qc_rework_count, created_at, updated_at.
+
+08. order_progress_stages:
+    - Milestone timestamps: id, order_id (FK), stage, completed_at, completed_by, notes.
+
+09. production_stages:
+    - Real-time per-order Kanban pipeline stages: id, order_id (FK), stage_name,
+      sort_order, status (NOT_STARTED, IN_PROGRESS, COMPLETED), assigned_to (FK),
+      started_at, completed_at, notes, created_at.
+
+10. stage_definitions & 11. stage_definition_employees:
+    - Dynamic customizable stage blueprints: id, stage_key (UNIQUE), display_name,
+      sort_order, sla_hours, default_role, image_url, active. Maps specialist
+      employees to specific stage definitions.
+
+12. qc_checklists:
+    - Quality assurance inspection line items: id, order_id (FK), check_point,
+      sort_order, result (PENDING, PASS, FAIL, REWORK), remarks, checked_by (FK),
+      checked_at.
+
+13. trials & 14. trial_alterations:
+    - Client fitting sessions: id, trial_code (TRL-TIMESTAMP), order_id (FK),
+      order_code, customer_mobile (FK), customer_name, garment_type, collection,
+      trial_date, trial_time, stage, status (TODAY, UPCOMING, COMPLETED,
+      RETRIAL_SCHEDULED), fit_status (PENDING, PERFECT, MINOR_ALTERATIONS,
+      MAJOR_ALTERATIONS), trial_attempt, alteration_count, customer_feedback,
+      customer_rating, fit_preference, designer_name, delivery_date, specs, notes.
+    - Alterations sub-items: id, trial_id (FK), area, instruction, completed flag.
+
+15. inventory_items & 16. stock_movements:
+    - Fabric rolls, trims, threads: id, item_code (ITEM-XXXX), name, category,
+      variant, unit, stock_qty, reserved_qty, reorder_level, purchase_price,
+      selling_price, status, composition, weave, width, gsm, hsn_code, origin,
+      location, lead_time, supplier_name, supplier_contact, image_url, notes.
+    - Immutable audit ledger: id, item_id (FK), movement_type (RECEIPT, ISSUE,
+      ADJUSTMENT), quantity, reference, notes, moved_by, created_at.
+
+17. suppliers:
+    - Textile mills & trim vendors: id, supplier_code, name, contact_person,
+      phone, email, address, category, payment_terms, gstin, rating, notes.
+
+18. purchase_orders & 19. purchase_order_items:
+    - Procurement orders: id, po_number (PO-XXXX), supplier_id (FK), order_date,
+      expected_delivery_date, total_amount, status (DRAFT, ORDERED, RECEIVED,
+      CANCELLED). Line items link to inventory_items with quantities & unit costs.
+
+20. payments & 21. payment_transactions:
+    - Financial settlement: id, order_id (FK), customer_mobile (FK), total_amount,
+      advance_paid, balance_amount, status (PENDING, PARTIAL, PAID, REFUNDED),
+      invoice_number. Transaction logs record payment_method (CASH, CARD, UPI,
+      NET_BANKING), transaction_ref, recorded_by, created_at.
+
+22. appointments:
+    - Calendar bookings: id, customer_mobile (FK), customer_name, order_id (FK),
+      appointment_type (CONSULTATION, MEASUREMENT, TRIAL, DELIVERY), appointment_date,
+      time_slot, status (CONFIRMED, COMPLETED, CANCELLED, NO_SHOW), stylist_notes.
+
+23. enquiries:
+    - Sales CRM leads: id, customer_name, phone, email, garment_type, status (NEW,
+      IN_DISCUSSION, QUOTATION_SENT, CONVERTED, CLOSED), source (Instagram, WhatsApp,
+      Walk-in, Referral), fabric_brought, budget, follow_up_date, notes,
+      converted_order_id (FK).
+
+24. designs:
+    - Atelier design lookbook: id, title, design_code, category, description,
+      fabric_recommendations, estimated_price, tags, front_image_url, back_image_url,
+      customer_mobile (FK), order_id (FK).
+
+25. employees:
+    - Master artisan & staff directory: id, employee_code, name, role, department
+      (Cutting, Embroidery, Stitching, Finishing, Quality Control), phone, email,
+      hourly_rate, daily_capacity_hours, status (ACTIVE, ON_LEAVE, INACTIVE),
+      avatar_url.
+
+26. app_users:
+    - System operators: id, username (UNIQUE), password_hash (BCrypt 12), full_name,
+      email, role (ADMIN, MANAGER, TAILOR, CASHIER), active flag.
+
+================================================================================
+[3] BACKEND SOURCE CODE CATALOG (101 JAVA FILES IN 17 PACKAGES)
+================================================================================
+
+3.1 ROOT & CROSS-CUTTING CONFIGURATION
+- FashionErpApplication.java : Spring Boot main entry point (@SpringBootApplication).
+- config/WebMvcConfig.java   : Routes root URLs (/, /login, /dashboard) and binds
+                               "/front end/**" dynamically to local disk path.
+- config/SecurityConfig.java : Configures Spring Security filter chain, stateless JWT
+                               session policy, public routes, and CORS configuration.
+- common/GlobalExceptionHandler.java: Converts IllegalArgumentException (400) and
+                               general Exception (500) into clean JSON responses.
+
+3.2 AUTHENTICATION & SECURITY (com.fashionerp.auth)
+- AppUser.java               : User entity (username, passwordHash, role, active).
+- AppUserRepository.java     : JpaRepository with findByUsername(String username).
+- UserRole.java              : Role enumeration (ADMIN, MANAGER, TAILOR, CASHIER).
+- AuthDto.java               : Request/Response records for credentials and tokens.
+- AuthService.java           : Validates credentials, calls JwtUtil to issue tokens.
+- JwtUtil.java               : Signs HMAC-SHA256 tokens, extracts claims, validates exp.
+- JwtAuthFilter.java         : Intercepts HTTP Authorization Bearer headers.
+- AuthController.java        : Endpoints /api/v1/auth/login and /api/v1/auth/me.
+
+3.3 CUSTOMER CRM & MEASUREMENTS (com.fashionerp.customer)
+- Customer.java              : Root entity with phone number as PK.
+- CustomerTier.java          : Tier enum (REGULAR, SILVER, GOLD, VIP).
+- CustomerNote.java          : Journal diary record attached to customer mobile.
+- CustomerNoteRepository.java: Fetches notes ordered by date descending.
+- CustomerBodyMeasurement.java: 34-point precision anatomical measurement entity.
+- CustomerBodyMeasurementRepository.java: Queries current & versioned measurements.
+- CustomerMeasurement.java   : Key-value legacy measurement record.
+- CustomerMeasurementRepository.java: JpaRepository for legacy measurements.
+- CustomerRepository.java    : Full-text search and findByFlexibleMobile (+91 phone).
+- CustomerDto.java           : Customer request, response, and 360 dossier DTOs.
+- CustomerService.java       : Customer lifecycle, avatar upload, 360 aggregation.
+- CustomerController.java    : Endpoints for customer CRUD, notes, and avatar uploads.
+
+3.4 ORDER MANAGEMENT (com.fashionerp.order)
+- Order.java                 : Core order entity with garment specs, amounts, stages.
+- OrderStatus.java           : Status enum (PENDING, IN_PROGRESS, READY, DELIVERED, CANCELLED).
+- ProgressStage.java         : Milestone checkpoints enum.
+- OrderProgressStage.java    : Historical progression log entity.
+- OrderProgressStageRepository.java: Stage history by order ID.
+- OrderRepository.java       : Search, code lookup, status KPI aggregations.
+- OrderDto.java              : Payload request and response DTOs.
+- OrderService.java          : Order creation, code generation (ORD-YYYY-XXXX),
+                               and AUTOMATIC SEEDING of active ProductionStages.
+- OrderController.java       : Endpoints for orders, progress, KPIs, reference images.
+
+3.5 PRODUCTION KANBAN & WORKFLOW (com.fashionerp.production)
+- ProductionStage.java       : Order Kanban card step (NOT_STARTED, IN_PROGRESS, COMPLETED).
+- ProductionStageRepository.java: Queries stages by order sorted by sortOrder asc.
+- StageDefinition.java       : Master workflow blueprint (stageKey, slaHours, sortOrder).
+- StageDefinitionDto.java    : DTOs for stage definitions.
+- StageDefinitionEmployee.java: Artisan specialist pinned to stage blueprint.
+- StageDefinitionEmployeeRepository.java: Repository for assigned stage personnel.
+- StageDefinitionRepository.java: Fetches active stage blueprints ordered by sortOrder.
+- StageDefinitionService.java: Dynamic stage creation, drag-and-drop reordering, artwork.
+- ProductionController.java  : Endpoints for Kanban stages, /api/v1/production/transition.
+- QcChecklist.java           : QC inspection criteria checklist item.
+- QcChecklistRepository.java : Queries checklists by order and counts awaiting QC.
+- QcController.java          : QC endpoints, KPIs, /api/v1/qc/pass, and /api/v1/qc/rework.
+
+3.6 TRIAL FITTINGS & ALTERATIONS (com.fashionerp.trial)
+- Trial.java                 : Fitting trial entity (attempt count, fitStatus, feedback).
+- TrialAlteration.java       : Line item alteration punch list (area, instruction, done).
+- TrialRepository.java       : Search trials by status, date, order, or mobile.
+- TrialDto.java              : DTO representations for trials and alteration checklists.
+- TrialService.java          : Fitting lifecycle, scheduleRetrial, completeAndAdvance.
+- TrialController.java       : Endpoints for trials, alterations, fit updates, retrials.
+
+3.7 INVENTORY & FABRICS (com.fashionerp.inventory)
+- InventoryItem.java         : Fabric/trim entity (GSM, width, weave, stock balances).
+- InventoryStatus.java       : Status enum (IN_STOCK, LOW_STOCK, OUT_OF_STOCK).
+- MovementType.java          : Enum (RECEIPT, ISSUE, ADJUSTMENT).
+- StockMovement.java         : Immutable stock movement ledger entry.
+- StockMovementRepository.java: Paginated movement history queries.
+- StockMovementDto.java      : Movement request/response DTOs.
+- InventoryRepository.java   : Search, category filtering, low-stock counters.
+- InventoryDto.java          : DTO models for stock items and adjustments.
+- InventoryService.java      : Stock adjustments with automated movement ledger entries.
+- InventoryController.java   : Endpoints for inventory CRUD, adjustments, ledger logs.
+
+3.8 PROCUREMENT & SUPPLIERS (com.fashionerp.purchase)
+- Supplier.java              : Vendor profile (code, name, contact, category, terms).
+- SupplierRepository.java    : Supplier search and retrieval.
+- PurchaseOrder.java         : PO master (PO-XXXX, supplier, delivery date, amounts).
+- PurchaseOrderItem.java     : Line item linking to InventoryItem with quantities.
+- PurchaseOrderRepository.java: PO search and filtering.
+- PurchaseController.java    : Endpoints for POs, supplier directory, procurement KPIs.
+
+3.9 PAYMENTS & BILLING (com.fashionerp.payment)
+- Payment.java               : Billing header for order (total, advance, balance).
+- PaymentTransaction.java    : Transaction receipt (amount, method, reference).
+- PaymentMethod.java         : Enum (CASH, CARD, UPI, NET_BANKING).
+- PaymentStatus.java         : Enum (PENDING, PARTIAL, PAID, REFUNDED).
+- PaymentRepository.java     : Calculates revenue sums and transaction queries.
+- PaymentDto.java            : DTO models for payments and transactions.
+- PaymentService.java        : Payment processing and balance recalculations.
+- PaymentController.java     : Endpoints for payments, transactions, revenue KPIs.
+
+3.10 MEASUREMENTS (com.fashionerp.measurement)
+- MeasurementProfile.java    : Reusable customer measurement container.
+- MeasurementPoint.java      : Named point (shoulder, bust) with numeric value.
+- MeasurementProfileRepository.java: Profile queries by customer mobile.
+- MeasurementDto.java        : Measurement DTOs.
+- MeasurementService.java    : Profile logic.
+- MeasurementController.java : Measurement endpoints and garment category breakdown KPIs.
+
+3.11 WORKFORCE (com.fashionerp.workforce)
+- Employee.java              : Artisan profile (role, department, capacity, hourly rate).
+- EmployeeRepository.java    : Staff queries and role filtering.
+- EmployeeDto.java           : DTO definitions.
+- EmployeeService.java       : Staff management and avatar handling.
+- EmployeeController.java    : Staff directory, capacity tracking, avatar uploads.
+
+3.12 DESIGN STUDIO (com.fashionerp.design)
+- Design.java                : Design catalog item (sketches, front/back photos, tags).
+- DesignRepository.java      : Design search by category or title.
+- DesignController.java      : Design studio CRUD, image uploading, portfolio KPIs.
+
+3.13 ENQUIRIES & LEADS (com.fashionerp.enquiry)
+- Enquiry.java               : Sales lead (source, budget, fabric brought, follow-up).
+- EnquiryRepository.java     : Lead status counts and queries.
+- EnquiryController.java     : Pipeline transitions, conversion to order, lead KPIs.
+
+3.14 APPOINTMENTS (com.fashionerp.appointment)
+- Appointment.java           : Scheduled booking (type, date, slot, stylist notes).
+- AppointmentType.java       : Enum (CONSULTATION, MEASUREMENT, TRIAL, DELIVERY).
+- AppointmentStatus.java     : Enum (CONFIRMED, COMPLETED, CANCELLED, NO_SHOW).
+- AppointmentRepository.java : Date range and today's appointment queries.
+- AppointmentDto.java        : Booking DTOs.
+- AppointmentService.java    : Booking slot validation and conflict checking.
+- AppointmentController.java : Calendar queries, today's appointments, scheduling.
+
+3.15 EXECUTIVE DASHBOARD (com.fashionerp.dashboard)
+- DashboardController.java   : Aggregates real-time metrics across orders, payments,
+                               inventory, and production stages. Provides monthly
+                               revenue trends, donut breakdown, and pipeline pulse.
+
+================================================================================
+[4] DATABASE MIGRATIONS & SEED SCRIPTS (27 SQL FILES)
+================================================================================
+
+4.1 FLYWAY MIGRATIONS (src/main/resources/db/migration/)
+- V1__init_schema.sql        : Creates all 26 core tables, primary/foreign keys, indexes.
+- V2__seed_data.sql          : Seeds foundational customers, orders, and products.
+- V3__extend_designs_table.sql: Adds category, tags, fabric recommendations to designs.
+- V4__seed_designs.sql       : Seeds curated luxury bespoke designs and sketches.
+- V5__add_order_meta_columns.sql: Adds extra metadata columns to orders table.
+- V6__sync_order_production_stages.sql: Synchronizes production stages across orders.
+- V7__stage_definitions.sql  : Introduces dynamic stage blueprints and SLA durations.
+- V8__stage_definition_image.sql: Adds artwork image URL column to stage blueprints.
+- V9__update_stage_circular_images.sql: Updates stage definition icon artwork.
+- V10__seed_18_employees.sql : Seeds 18 specialized artisans across departments.
+- V11__seed_inventory_suppliers_payments_trials.sql: Seeds fabric inventory & suppliers.
+- V12__workflow_order_taken_and_ready_to_deliver.sql: Standardizes initial & final stages.
+- V13__add_qc_rework_count.sql: Adds qc_rework_count tracking column to orders.
+- V14__add_trial_feedback_and_fit_fields.sql: Adds fit status and retrial date fields.
+- V15__extend_and_seed_enquiries.sql: Extends enquiry pipeline attributes and seeds leads.
+- V16__customer_preferences_and_notes.sql: Adds styling preferences and notes journal.
+- V17__extend_inventory_items_specs.sql: Adds GSM, width, weave, roll specifications.
+- V18__refresh_purchase_orders_data.sql: Refreshes POs with realistic fabric orders.
+
+4.2 ADMINISTRATIVE SCRIPTS (scripts/)
+- clear_all_data.sql         : Safely wipes transactional data for testing.
+- seed_30_appointments.sql   : Seeds realistic appointment calendar bookings.
+- seed_customers_orders_enquiries.sql: Seeds high-value clients, orders, and leads.
+- seed_customer_body_measurements.sql: Seeds 34-point measurements across garments.
+- seed_employees.sql         : Master staff seeding script.
+- seed_inventory_payments_suppliers_trials.sql: Seeds fabrics, payments, and trials.
+- update_local_images.sql    : Links local photo assets to database records.
+
+================================================================================
+[5] FRONTEND USER INTERFACE DIRECTORY (83 FILES ACROSS 17 MODULES)
+================================================================================
+
+5.1 CENTRALIZED API CLIENT (front end/api.js)
+- Unified client with JWT token management (sessionStorage/localStorage).
+- Automatic detection of backend port 8080 and automatic redirect on 401/403.
+- Multipart form-data file upload helper (uploadFile).
+- Exposes namespaces: auth, dashboard, customers, orders, measurements, inventory,
+  payments, appointments, employees, enquiries, designs, purchases, suppliers,
+  production, qc, trials.
+
+5.2 GLOBAL FRAGMENT ENGINE & DESIGN SYSTEM
+- front end/fragments/fragments.js: Injects sidebar, navbar, and footer into slots.
+- front end/fragments/nav.js & nav.css: Sidebar collapse, mobile menu, active badges.
+- front end/fragments/theme/theme.css: 1,725-line CSS token master file with colors,
+  surfaces, glassmorphism, buttons, badges, tables, and typography (Inter).
+- front end/fragments/sidebar.html, navbar.html, footer.html: Reusable HTML shells.
+
+5.3 UI MODULE DIRECTORY BREAKDOWN
+Module Directory                     Files
+-----------------------------------  -------------------------------------------
+front end/login/                     login.html, login.css, login.js
+front end/dashboard/                 dashboard.html, dashboard.css, dashboard.js
+front end/customer/customer-overview customer-overview.html, .css, .js
+front end/customer/Customer360       customer360.html, .css, .js
+front end/customer/new-customer      new-customer.html, .css, .js
+front end/orders/order-overview      order-over.html, order-over.css, order-over.js
+front end/orders/new-order           new-order.html, new-order.css, new-order.js
+front end/orders/view-order          view-order.html, view-order.css, view-order.js
+front end/production/                production.html, production.css, production.js
+front end/production/stages          stages.html, stages.css, stages.js
+front end/quality-control/           quality-control.html, .css, .js
+front end/trials-alterations/        trials-alterations.html, .css, .js
+front end/delivery/                  delivery.html, delivery.css, delivery.js
+front end/inventory/                 inventory.html, inventory.css, inventory.js
+front end/fabrics-materials/         fabrics-materials.html, .css, .js
+front end/purchases/                 purchases.html, purchases.css, purchases.js
+front end/payments/                  payments.html, payments.css, payments.js
+front end/Measurements/measurement-overview measurement-overview.html, .css, .js
+front end/Measurements/measurement360 measurement360.html, .css, .js
+front end/DesignStudio/              design-studio.html, .css, .js
+front end/appointments/              appointments.html, .css, .js
+front end/enquiries/                 enquiries.html, enquiries.css, enquiries.js
+front end/WorkforceManagement/       workforce.html, workforce.css, workforce.js
+src/main/resources/static/           index.html, index.css, index.js
+
+================================================================================
+[6] BUILD CONFIGURATION, LAUNCHERS & SCRIPTS
+================================================================================
+
+- pom.xml          : Maven POM specifying Spring Boot 4.1.1, Java 17, Lombok,
+                     PostgreSQL driver, Flyway, JJWT (0.12.6), and compiler options.
+- application.yaml : Configures JDBC connection to PostgreSQL on port 5432,
+                     HikariCP connection pool, Flyway baseline settings, port 8080.
+- start.bat        : System launcher. Runs Maven spring-boot:run, asynchronously
+                     polls /actuator/health, and opens Google Chrome to login desk.
+- scratch/*.ps1    : 59 PowerShell test and verification scripts used during
+                     development for auditing schema, CSS tokens, and endpoints.
+
+================================================================================
+[7] COMPLETE BUSINESS LIFECYCLE WORKFLOWS
+================================================================================
+
+7.1 SCENARIO A: BESPOKE BRIDAL ORDER (LEAD TO DISPATCH)
+1. Lead Intake: Client inquires via Instagram -> EnquiryController records lead.
+2. Conversion : Lead converts to Customer -> phone number stored as primary key.
+3. Measurement: Master tailor records 34 anatomical points in body measurements.
+4. Booking    : Order created in new-order -> OrderService auto-seeds ProductionStages.
+5. Production : Order progresses through Cutting, Embroidery, Stitching on Kanban.
+6. Fitting    : Trial session conducted -> fit marked PERFECT -> advances to QC.
+7. Inspection : QC Lead approves checklist -> order moves to READY_TO_DELIVER.
+8. Dispatch   : Delivery Command Centre verifies zero balance and dispatches garment.
+
+7.2 SCENARIO B: FITTING TRIAL DEFECT & QC REWORK REWIND
+1. Trial Fitting: Client notes waist is tight -> Alteration punch list logged.
+2. Retrial      : TrialService increments trial_attempt and schedules Retrial #2.
+3. Tailor Fix   : Tailor adjusts seam -> Retrial confirms PERFECT fit -> moves to QC.
+4. QC Inspection: QC audit detects loose embroidery -> Inspector triggers Rework.
+5. Rewind       : QcController increments qc_rework_count and rewinds order stage to
+                  EMBROIDERY with inspector defect notes.
+6. Re-inspection: Artisan fixes embroidery -> QC re-audits and passes order.
+7. Completion   : Order advances to READY_TO_DELIVER with clean audit history.
+
+================================================================================
+END OF MASTER REFERENCE DOCUMENT
+================================================================================

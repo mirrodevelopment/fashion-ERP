@@ -2,10 +2,15 @@ package com.fashionerp.order;
 
 import com.fashionerp.customer.Customer;
 import com.fashionerp.customer.CustomerRepository;
+import com.fashionerp.payment.Payment;
+import com.fashionerp.payment.PaymentMethod;
+import com.fashionerp.payment.PaymentRepository;
+import com.fashionerp.payment.PaymentTransaction;
 import com.fashionerp.production.ProductionStage;
 import com.fashionerp.production.ProductionStageRepository;
 import com.fashionerp.production.StageDefinition;
 import com.fashionerp.production.StageDefinitionRepository;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -29,6 +35,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
+    private final PaymentRepository paymentRepository;
     private final StageDefinitionRepository stageDefinitionRepository;
     private final ProductionStageRepository productionStageRepository;
 
@@ -130,6 +137,55 @@ public class OrderService {
             productionStageRepository.saveAll(stagesToSeed);
         }
 
+        // ── Auto-create Payment record + advance transaction (if any) ──
+        // Payment starts with paidAmount = 0; each payment event is a separate PaymentTransaction.
+        Payment autoPayment = Payment.builder()
+                .order(saved)
+                .customer(customer)
+                .totalAmount(total)
+                .dueDate(expDeliv)
+                .notes("Auto-created from order " + saved.getOrderCode())
+                .build();
+        // paidAmount starts at 0 — will be accumulated from transactions below
+        autoPayment.computeStatus();
+        Payment savedPayment = paymentRepository.save(autoPayment);
+
+        // If an advance was paid at order creation, record it as the first transaction
+        if (advance.compareTo(BigDecimal.ZERO) > 0) {
+            PaymentMethod method = PaymentMethod.CASH;
+            if (req.getPaymentMethod() != null && !req.getPaymentMethod().isBlank()) {
+                try {
+                    String norm = req.getPaymentMethod().trim().toUpperCase().replace(" ", "_").replace("-", "_");
+                    method = PaymentMethod.valueOf(norm);
+                } catch (IllegalArgumentException ignored) {
+                    method = PaymentMethod.CASH;
+                }
+            }
+            PaymentTransaction advanceTxn = PaymentTransaction.builder()
+                    .payment(savedPayment)
+                    .amount(advance)
+                    .method(method)
+                    .receivedBy("Staff")
+                    .notes("Advance payment collected at order creation — " + saved.getOrderCode())
+                    .build();
+            savedPayment.getTransactions().add(advanceTxn);
+            savedPayment.setPaidAmount(advance);
+            savedPayment.computeStatus();
+            paymentRepository.save(savedPayment);
+            log.info("[OrderService] Advance txn of {} ({}) recorded for order {}", advance, method, saved.getOrderCode());
+        }
+        log.info("[OrderService] Payment record created for order {}", saved.getOrderCode());
+
+        // Synchronize customer pending balance (receivable) and lifetime spend
+        if (customer != null) {
+            BigDecimal pendingBal = total.subtract(advance).max(BigDecimal.ZERO);
+            BigDecimal currentBal = customer.getBalance() != null ? customer.getBalance() : BigDecimal.ZERO;
+            customer.setBalance(currentBal.add(pendingBal));
+            BigDecimal currentSpend = customer.getTotalSpend() != null ? customer.getTotalSpend() : BigDecimal.ZERO;
+            customer.setTotalSpend(currentSpend.add(advance));
+            customerRepository.save(customer);
+        }
+
         return OrderDto.Response.from(saved);
     }
 
@@ -166,8 +222,9 @@ public class OrderService {
             String stage = req.getCurrentStage();
             order.setCurrentStage(stage);
             if (req.getStatus() == null) {
-                String st = stage.toUpperCase();
-                if (st.equals("READY") || st.equals("QC_PASSED") || st.equals("QUALITY")) {
+                // BUG-P1-02 FIX: Standardized stage-to-status mapping including READY_TO_DELIVER and QC
+                String st = stage.toUpperCase().replace('-', '_').replace(' ', '_');
+                if (st.equals("READY") || st.equals("READY_TO_DELIVER") || st.equals("QC_PASSED") || st.equals("QUALITY") || st.equals("QC")) {
                     order.setStatus(OrderStatus.READY);
                 } else if (st.equals("DELIVERED") || st.equals("DELIVERY")) {
                     order.setStatus(OrderStatus.DELIVERED);
@@ -213,10 +270,16 @@ public class OrderService {
         return OrderDto.Response.from(orderRepository.save(order));
     }
 
-    private String generateCode() {
-        long count = orderRepository.count() + 1;
+    // BUG-P0-07 FIX: Prevent collision on concurrent order creation
+    private synchronized String generateCode() {
         int year = java.time.LocalDate.now().getYear();
-        return "ORD-" + year + "-" + String.format("%04d", count);
+        long count = orderRepository.count() + 1;
+        String code = "ORD-" + year + "-" + String.format("%04d", count);
+        while (orderRepository.existsByOrderCode(code)) {
+            count++;
+            code = "ORD-" + year + "-" + String.format("%04d", count);
+        }
+        return code;
     }
 
     // ── Reference Image Upload ────────────────────────────────────────────────
@@ -240,9 +303,14 @@ public class OrderService {
 
         try {
             String originalFilename = file.getOriginalFilename();
-            String ext = (originalFilename != null && originalFilename.contains("."))
-                    ? originalFilename.substring(originalFilename.lastIndexOf('.'))
-                    : ".jpg";
+            String ext = ".jpg";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                ext = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase();
+            }
+            // BUG-P2-07 & SEC-02: Whitelist file extensions
+            if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext)) {
+                throw new IllegalArgumentException("Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
+            }
             // e.g. ORD-2026-0001-ref2.jpg
             String filename = order.getOrderCode() + "-ref" + slot + ext;
 
@@ -284,7 +352,9 @@ public class OrderService {
                     Path filePath = Paths.get(path.replaceFirst("^/", "")).toAbsolutePath();
                     Files.deleteIfExists(filePath);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                log.warn("Could not delete physical reference image file: {}", e.getMessage());
+            }
             imgs.remove(slot - 1);
         }
         order.setReferenceImageList(imgs);

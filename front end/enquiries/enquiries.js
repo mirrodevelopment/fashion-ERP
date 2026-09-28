@@ -218,23 +218,31 @@ function getAvatarInfo(name, avatarUrl) {
     'avatar-sv': '../assets/employees/anitha-r.jpg'
   };
 
+  let validPhoto = null;
   if (avatarUrl && photoMap[avatarUrl]) {
-    return { photo: photoMap[avatarUrl] };
-  }
-  if (avatarUrl && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/') || avatarUrl.startsWith('../'))) {
-    return { photo: avatarUrl };
+    validPhoto = photoMap[avatarUrl];
+  } else if (avatarUrl && !avatarUrl.includes('user_avatar.jpg') && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/') || avatarUrl.startsWith('../'))) {
+    validPhoto = avatarUrl;
   }
 
-  const parts = name.trim().split(/\s+/);
-  const initials = parts.length > 1
-    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    : (parts[0].slice(0, 2)).toUpperCase();
+  const initials = typeof window.getPatronInitials === 'function'
+    ? window.getPatronInitials(name)
+    : (() => {
+        if (!name) return 'CU';
+        const p = name.trim().split(/\s+/).filter(Boolean);
+        if (p.length === 0) return 'CU';
+        if (p.length === 1) {
+          const s = p[0].replace(/[^a-zA-Z0-9]/g, '');
+          return s.length >= 2 ? s.substring(0, 2).toUpperCase() : s.toUpperCase();
+        }
+        return (p[0][0] + p[1][0]).toUpperCase();
+      })();
 
   const colorClasses = ['avatar-lm', 'avatar-sr', 'avatar-ar', 'avatar-dk', 'avatar-ni', 'avatar-ap'];
-  const hash = Math.abs(name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
+  const hash = Math.abs((name || 'Customer').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
   const avatarClass = colorClasses[hash % colorClasses.length];
 
-  return { initials, avatarClass };
+  return { photo: validPhoto, initials, avatarClass };
 }
 
 function formatStatus(s) {
@@ -362,9 +370,11 @@ function renderEnquiriesTable() {
     const sourceClass = getSourceClass(item.source);
     const statusClass = getStatusClass(item.status);
 
-    const avatarHtml = item.photo
-      ? `<img src="${item.photo}" class="avatar-img" alt="${escapeHtml(item.customer)}" onerror="this.outerHTML='<div class=\\'avatar-circle ${item.avatarClass || 'avatar-kn'}\\'>${item.initials}</div>';" />`
-      : `<div class="avatar-circle ${item.avatarClass || 'avatar-kn'}">${item.initials}</div>`;
+    const avatarHtml = typeof window.renderPatronAvatarHtml === 'function'
+      ? window.renderPatronAvatarHtml(item.customer, item.photo, 'haulo-avatar-sm', 'width:32px;height:32px;border-radius:8px;')
+      : (item.photo
+        ? `<img src="${item.photo}" class="avatar-img" alt="${escapeHtml(item.customer)}" onerror="this.outerHTML='<div class=\\'avatar-circle ${item.avatarClass || 'avatar-kn'}\\'>${item.initials}</div>';" />`
+        : `<div class="avatar-circle ${item.avatarClass || 'avatar-kn'}">${item.initials}</div>`);
 
     const isConverted = item.status.toLowerCase() === 'converted';
     const actionHtml = isConverted

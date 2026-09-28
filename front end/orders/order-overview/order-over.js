@@ -31,7 +31,7 @@ function apiToLocal(o) {
     rawId: o.id,
     customer: o.customerName || 'Client',
     customerMobile: o.customerMobile || o.customerId || '',
-    avatar: o.customerAvatar || '../../assets/user_avatar.jpg',
+    avatar: (o.customerAvatar && !o.customerAvatar.includes('user_avatar.jpg')) ? o.customerAvatar : '',
     garment: o.garmentDesc || o.garmentType || 'Bespoke Garment',
     garmentType: o.garmentType || 'Blouse',
     orderDate: o.orderDate ? String(o.orderDate) : '',
@@ -43,8 +43,8 @@ function apiToLocal(o) {
     balanceAmount: bal,
     amount: tot,
     status: mapStatus(o.status),
-    currentStage: o.currentStage || 'ORDER',
-    progress: (o.progressStages && o.progressStages.length > 0) ? o.progressStages : ['order']
+    currentStage: o.currentStage || '',
+    progress: (o.progressStages && o.progressStages.length > 0) ? o.progressStages : []
   };
 }
 
@@ -59,66 +59,22 @@ function formatStageImgUrl(url) {
 }
 
 let liveStageDefinitions = [];
-const liveStageArtMap = {};
 
 async function loadLiveStageDefinitions() {
   try {
     if (api?.production?.stageDefinitions?.list) {
-      const list = await api.production.stageDefinitions.list();
+      const list = await api.production.stageDefinitions.list({ activeOnly: true });
       if (Array.isArray(list) && list.length > 0) {
-        liveStageDefinitions = list;
-        list.forEach(s => {
-          if (s.imageUrl) {
-            const formatted = formatStageImgUrl(s.imageUrl);
-            if (s.stageKey) liveStageArtMap[s.stageKey.toUpperCase().trim()] = formatted;
-            if (s.displayName) liveStageArtMap[s.displayName.toUpperCase().trim()] = formatted;
-          }
-        });
+        liveStageDefinitions = list
+          .filter(s => s.active !== false)
+          .slice()
+          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
       }
     }
   } catch (e) {
     console.warn('[OrderOverview] Live stage definitions load error:', e.message);
   }
 }
-
-const STAGE_LOOKUP = {
-  'ORDER': { label: 'Order Registered', step: 1, key: 'DESIGNING' },
-  'DESIGN': { label: 'Design & Consultation', step: 1, key: 'DESIGNING' },
-  'DESIGNING': { label: 'Design & Consultation', step: 1, key: 'DESIGNING' },
-  'FABRIC_PREP': { label: 'Fabric Prep & Sourcing', step: 2, key: 'FABRIC' },
-  'LINING': { label: 'Fabric Prep & Lining', step: 2, key: 'LINING' },
-  'CUTTING': { label: 'Pattern Cutting', step: 3, key: 'CUTTING' },
-  'PATTERN_CUTTING': { label: 'Pattern Cutting', step: 3, key: 'CUTTING' },
-  'MEASUREMENT': { label: 'Measurements Taken', step: 2, key: 'DESIGNING' },
-  'HAND_WORK': { label: 'Aari & Hand Embroidery', step: 4, key: 'HAND_WORK' },
-  'HANDWORK': { label: 'Aari & Hand Embroidery', step: 4, key: 'HAND_WORK' },
-  'EMBROIDERY': { label: 'Aari & Hand Embroidery', step: 4, key: 'HAND_WORK' },
-  'STITCHING': { label: 'Machine Stitching', step: 5, key: 'STITCHING' },
-  'SEWING': { label: 'Machine Stitching', step: 5, key: 'STITCHING' },
-  'HEMMING': { label: 'Hemming & Finishing', step: 6, key: 'DRAPING' },
-  'FINISHING': { label: 'Hemming & Finishing', step: 6, key: 'DRAPING' },
-  'TRIAL': { label: 'Client Fitting & Trial', step: 7, key: 'TRIAL' },
-  'FITTING': { label: 'Client Fitting & Trial', step: 7, key: 'TRIAL' },
-  'QC': { label: 'Quality Control Audit', step: 8, key: 'QC' },
-  'QC_AUDIT': { label: 'Quality Control Audit', step: 8, key: 'QC' },
-  'QUALITY': { label: 'Quality Control Audit', step: 8, key: 'QC' },
-  'READY': { label: 'Ready for Pickup', step: 9, key: 'READY' },
-  'DELIVERED': { label: 'Delivered to Client', step: 10, key: 'READY' },
-  'DELIVERY': { label: 'Delivered to Client', step: 10, key: 'READY' }
-};
-
-const WORKFLOW_STEPS = [
-  { key: 'DESIGNING', label: 'Design & Consultation', step: 1 },
-  { key: 'LINING', label: 'Fabric Prep & Lining', step: 2 },
-  { key: 'CUTTING', label: 'Pattern Cutting', step: 3 },
-  { key: 'HAND_WORK', label: 'Aari & Hand Embroidery', step: 4 },
-  { key: 'STITCHING', label: 'Machine Tailoring', step: 5 },
-  { key: 'HEMMING', label: 'Hemming & Finishing', step: 6 },
-  { key: 'TRIAL', label: 'Client Trial & Fitting', step: 7 },
-  { key: 'QC', label: 'Quality Control Audit', step: 8 },
-  { key: 'READY', label: 'Ready for Handover', step: 9 },
-  { key: 'DELIVERED', label: 'Delivered to Client', step: 10 },
-];
 
 const PAGE_SIZE = 9;
 
@@ -167,6 +123,7 @@ function cacheDom() {
   els.drawerBody = $('drawerBody');
   els.drawerViewFull = $('drawerViewFull');
   els.btnDrawerView = $('btnDrawerView');
+  els.btnDrawerCancel = $('btnDrawerCancel');
   els.drawerClose = $('drawerClose');
 }
 
@@ -184,8 +141,18 @@ function fmtAmt(n) {
 }
 
 function initials(name) {
-  if (!name) return '??';
-  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  if (typeof window.getPatronInitials === 'function') {
+    return window.getPatronInitials(name);
+  }
+  if (!name || typeof name !== 'string') return 'CU';
+  const clean = name.trim();
+  const tokens = clean.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return 'CU';
+  if (tokens.length === 1) {
+    const s = tokens[0].replace(/[^a-zA-Z0-9]/g, '');
+    return s.length >= 2 ? s.substring(0, 2).toUpperCase() : (s || tokens[0].substring(0, 2)).toUpperCase();
+  }
+  return (tokens[0][0] + tokens[1][0]).toUpperCase();
 }
 
 function avatarBg(name) {
@@ -227,33 +194,88 @@ function statusBadgeHTML(s) {
 }
 
 function getCurrentStage(order) {
+  const totalStages = liveStageDefinitions.length > 0 ? liveStageDefinitions.length : 1;
+  const firstStage = liveStageDefinitions.length > 0 ? liveStageDefinitions[0] : null;
+  const lastStage = liveStageDefinitions.length > 0 ? liveStageDefinitions[liveStageDefinitions.length - 1] : null;
+
   if (order.status === 'cancelled') {
-    return { label: 'Order Cancelled', countText: 'Cancelled', isCancelled: true, step: 0, imageUrl: '' };
+    let stepNum = 1;
+    if (order.currentStage && liveStageDefinitions.length > 0) {
+      const currentKey = String(order.currentStage || '').toUpperCase().trim();
+      const idx = liveStageDefinitions.findIndex(s =>
+        String(s.stageKey || '').toUpperCase().trim() === currentKey ||
+        String(s.displayName || '').toUpperCase().trim() === currentKey
+      );
+      if (idx >= 0) stepNum = idx + 1;
+    }
+    const haltedStage = liveStageDefinitions[stepNum - 1];
+    const stageName = haltedStage?.displayName || haltedStage?.stageKey || 'Stage ' + stepNum;
+    return {
+      label: `cancaled at ${stageName}`,
+      countText: `cancaled at ${stageName}`,
+      isCancelled: true,
+      step: stepNum,
+      total: totalStages,
+      imageUrl: haltedStage?.imageUrl ? formatStageImgUrl(haltedStage.imageUrl) : ''
+    };
   }
   if (order.status === 'delivered') {
-    const readyImg = liveStageArtMap['READY'] || liveStageArtMap['DELIVERED'] || '';
-    return { label: 'Delivered to Client', countText: 'Delivered', isComplete: true, step: 10, imageUrl: readyImg };
-  }
-
-  const rawStage = String(order.currentStage || '').toUpperCase().trim();
-  const info = STAGE_LOOKUP[rawStage];
-  if (info) {
-    const stageArt = liveStageArtMap[rawStage] || (info.key ? liveStageArtMap[info.key] : '') || '';
+    const readyImg = lastStage && lastStage.imageUrl ? formatStageImgUrl(lastStage.imageUrl) : '';
     return {
-      label: info.label,
-      countText: `Stage ${info.step} of 10`,
-      step: info.step,
-      imageUrl: stageArt
+      label: 'Delivered to Client',
+      countText: 'Delivered',
+      isComplete: true,
+      step: totalStages,
+      total: totalStages,
+      imageUrl: readyImg
     };
   }
 
-  if (order.status === 'ready') {
-    return { label: 'Ready for Pickup', countText: 'Stage 9 of 10', step: 9, imageUrl: liveStageArtMap['READY'] || '' };
+  const currentKey = String(order.currentStage || '').toUpperCase().trim();
+  const stageIdx = liveStageDefinitions.findIndex(s =>
+    String(s.stageKey || '').toUpperCase().trim() === currentKey ||
+    String(s.displayName || '').toUpperCase().trim() === currentKey
+  );
+
+  if (stageIdx >= 0) {
+    const s = liveStageDefinitions[stageIdx];
+    const step = stageIdx + 1;
+    return {
+      label: s.displayName || s.stageKey,
+      countText: `Stage ${step} of ${totalStages}`,
+      step: step,
+      total: totalStages,
+      imageUrl: s.imageUrl ? formatStageImgUrl(s.imageUrl) : ''
+    };
   }
-  if (order.status === 'in-progress') {
-    return { label: 'In Production', countText: 'Stage 5 of 10', step: 5, imageUrl: liveStageArtMap['STITCHING'] || '' };
+
+  if (order.status === 'ready' && lastStage) {
+    return {
+      label: lastStage.displayName || lastStage.stageKey,
+      countText: `Stage ${totalStages} of ${totalStages}`,
+      step: totalStages,
+      total: totalStages,
+      imageUrl: lastStage.imageUrl ? formatStageImgUrl(lastStage.imageUrl) : ''
+    };
   }
-  return { label: 'Order Registered', countText: 'Stage 1 of 10', step: 1, imageUrl: liveStageArtMap['DESIGNING'] || '' };
+
+  if (firstStage) {
+    return {
+      label: firstStage.displayName || firstStage.stageKey,
+      countText: `Stage 1 of ${totalStages}`,
+      step: 1,
+      total: totalStages,
+      imageUrl: firstStage.imageUrl ? formatStageImgUrl(firstStage.imageUrl) : ''
+    };
+  }
+
+  return {
+    label: order.currentStage || 'Order Registered',
+    countText: `Stage 1 of ${totalStages}`,
+    step: 1,
+    total: totalStages,
+    imageUrl: ''
+  };
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -379,10 +401,12 @@ function renderCard(order) {
   div.dataset.id = order.id;
 
   const stage = getCurrentStage(order);
-  const totalSteps = 7;
-  const activePip = order.status === 'delivered' ? 7 : Math.min(totalSteps, Math.max(1, Math.round(((stage.step || 1) / 10) * totalSteps)));
+  const totalSteps = stage.total;
+  const activePip = order.status === 'delivered'
+    ? totalSteps
+    : Math.min(totalSteps, Math.max(1, stage.step || 1));
 
-  // 7-Step pip track reflecting real production progress
+  // Exactly N pips corresponding 1:1 with user's active stages
   let pipsHtml = '';
   for (let i = 0; i < totalSteps; i++) {
     let pipClass = 'card-pip';
@@ -393,7 +417,9 @@ function renderCard(order) {
     } else if (i === activePip - 1) {
       pipClass += order.status === 'delivered' ? ' done' : ' active';
     }
-    pipsHtml += `<span class="${pipClass}"></span>`;
+    const stepObj = liveStageDefinitions[i];
+    const stepTitle = stepObj ? (stepObj.displayName || stepObj.stageKey) : `Stage ${i + 1}`;
+    pipsHtml += `<span class="${pipClass}" title="${stepTitle} (${i + 1}/${totalSteps})"></span>`;
   }
 
   const viewUrl = `../view-order/view-order.html?id=${encodeURIComponent(order.id)}`;
@@ -401,9 +427,10 @@ function renderCard(order) {
   div.innerHTML = `
     <!-- Header: Customer Avatar + Name + Order ID + Status -->
     <div class="card-header">
-      <div class="card-avatar" style="background: ${avatarBg(order.customer)};">
-        ${order.avatar ? `<img src="${order.avatar}" alt="${order.customer}" class="card-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />` : ''}
-        <span class="card-avatar-initials" style="${order.avatar ? 'display:none;' : ''}">${initials(order.customer)}</span>
+      <div class="card-avatar" style="overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:none;">
+        ${typeof window.renderPatronAvatarHtml === 'function'
+          ? window.renderPatronAvatarHtml(order.customer, order.avatar, 'haulo-avatar-md')
+          : `<div class="haulo-patron-avatar-initials haulo-avatar-md" style="background:${avatarBg(order.customer)};color:#fff;">${initials(order.customer)}</div>`}
       </div>
       <div class="card-customer-info">
         <h3 class="card-customer-name" title="${order.customer}">${order.customer}</h3>
@@ -572,27 +599,93 @@ function openDrawer(order) {
   if (els.drawerViewFull) els.drawerViewFull.href = viewUrl;
   if (els.btnDrawerView) els.btnDrawerView.href = viewUrl;
 
+  // Drawer Cancel Order button
+  if (els.btnDrawerCancel) {
+    if (order.status === 'cancelled') {
+      els.btnDrawerCancel.style.display = 'none';
+    } else {
+      els.btnDrawerCancel.style.display = 'inline-flex';
+      els.btnDrawerCancel.onclick = async () => {
+        if (!confirm(`Are you sure you want to cancel order ${order.id}?`)) return;
+        try {
+          els.btnDrawerCancel.disabled = true;
+          els.btnDrawerCancel.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;"></i> Cancelling...`;
+          if (api && api.orders && api.orders.update) {
+            await api.orders.update(order.rawId || order.id, {
+              status: 'CANCELLED',
+              totalAmount: order.totalAmount,
+              advancePaid: order.advancePaid,
+              balanceAmount: order.balanceAmount
+            });
+          }
+          order.status = 'cancelled';
+          const found = state.orders.find(o => (o.rawId === order.rawId || o.id === order.id));
+          if (found) found.status = 'cancelled';
+
+          await updateKPIs();
+          applyFilters();
+          openDrawer(order);
+        } catch (err) {
+          console.error('[OrderOverview] Failed to cancel order:', err);
+          alert('Failed to cancel order: ' + (err.message || 'Server error'));
+        } finally {
+          if (els.btnDrawerCancel) {
+            els.btnDrawerCancel.disabled = false;
+            els.btnDrawerCancel.innerHTML = `<i data-lucide="x-circle" style="width:14px;height:14px;"></i> Cancel Order`;
+            if (window.lucide) lucide.createIcons();
+          }
+        }
+      };
+    }
+  }
+
   const overdue = isOverdue(order.dueDate, order.status);
   const stage = getCurrentStage(order);
   const currentStepNum = stage.step || 1;
 
-  // Production workflow steps connected to order currentStage
-  const progressHTML = WORKFLOW_STEPS.map((step, idx) => {
-    const isDone = (idx + 1) < currentStepNum || order.status === 'delivered';
-    const isActive = (idx + 1) === currentStepNum && order.status !== 'delivered' && order.status !== 'cancelled';
-    const statusClass = isDone ? 'done' : (isActive ? 'active' : 'pending');
-    const stepArt = liveStageArtMap[step.key] || liveStageArtMap[step.label.toUpperCase()] || '';
-    const circleContent = stepArt
-      ? `<img src="${stepArt}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" alt="${step.label}" onerror="this.remove()" />`
-      : `<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);">${idx + 1}</span>`;
+  // Dynamic workflow steps generated directly from user's live stage definitions
+  const isCancelled = order.status === 'cancelled';
+  const progressHTML = liveStageDefinitions.map((stepObj, idx) => {
+    let statusClass = 'pending';
+    let circleContent = '';
+    const stepArt = stepObj.imageUrl ? formatStageImgUrl(stepObj.imageUrl) : '';
+
+    if (isCancelled) {
+      if (idx + 1 < currentStepNum) {
+        statusClass = 'done past-cancelled';
+        circleContent = stepArt
+          ? `<img src="${stepArt}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;opacity:0.6;" alt="${stepObj.displayName || stepObj.stageKey}" onerror="this.remove()" />`
+          : `<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);">${idx + 1}</span>`;
+        circleContent += '<span style="position:absolute;inset:0;background:rgba(34,197,94,0.4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;">✓</span>';
+      } else if (idx + 1 === currentStepNum) {
+        statusClass = 'active-frozen-cancelled';
+        circleContent = '<span style="position:absolute;inset:0;background:rgba(239,68,68,0.92);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;box-shadow:0 0 12px rgba(239,68,68,0.8);">✕</span>';
+      } else {
+        statusClass = 'pending locked-cancelled';
+        circleContent = '<span style="width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.25);display:block;margin:auto;"></span>';
+      }
+    } else {
+      const isDone = (idx + 1) < currentStepNum || order.status === 'delivered';
+      const isActive = (idx + 1) === currentStepNum && order.status !== 'delivered';
+      statusClass = isDone ? 'done' : (isActive ? 'active' : 'pending');
+      circleContent = stepArt
+        ? `<img src="${stepArt}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" alt="${stepObj.displayName || stepObj.stageKey}" onerror="this.remove()" />`
+        : `<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);">${idx + 1}</span>`;
+      if (isDone) {
+        circleContent += '<span style="position:absolute;inset:0;background:rgba(34,197,94,0.85);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#0b1406;">✓</span>';
+      }
+    }
+
+    const labelExtra = (isCancelled && idx + 1 === currentStepNum)
+      ? ' <span style="font-size:8.5px;color:#fca5a5;background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.5);padding:1px 5px;border-radius:4px;margin-left:6px;font-weight:800;">cancaled here</span>'
+      : '';
 
     return `
       <div class="drawer-progress-step ${statusClass}">
-        <div class="drawer-step-num" style="position:relative;overflow:hidden;padding:0;border:1.5px solid rgba(212,175,55,0.7);">
+        <div class="drawer-step-num" style="position:relative;overflow:hidden;padding:0;border:1.5px solid ${isCancelled && idx + 1 === currentStepNum ? '#ef4444' : 'rgba(212,175,55,0.7)'};">
           ${circleContent}
-          ${isDone ? '<span style="position:absolute;inset:0;background:rgba(34,197,94,0.85);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#0b1406;">✓</span>' : ''}
         </div>
-        <span class="drawer-step-label">${step.label}</span>
+        <span class="drawer-step-label">${stepObj.displayName || stepObj.stageKey}${labelExtra}</span>
       </div>
     `;
   }).join('');
@@ -755,7 +848,7 @@ function bindEvents() {
   if (btnExport) {
     btnExport.addEventListener('click', () => {
       const rows = [
-        ['Order ID', 'Customer', 'Garment', 'Order Date', 'Due Date', 'Amount (GHS)', 'Status', 'Completed Steps'],
+        ['Order ID', 'Customer', 'Garment', 'Order Date', 'Due Date', 'Amount (₹)', 'Status', 'Production Stage'],
         ...state.filtered.map(o => [
           o.id,
           o.customer,
@@ -764,7 +857,7 @@ function bindEvents() {
           o.dueDate,
           o.amount,
           statusLabel(o.status),
-          (o.progress || []).length + '/7'
+          getCurrentStage(o).countText
         ])
       ];
       const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');

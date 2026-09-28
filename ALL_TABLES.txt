@@ -1,0 +1,965 @@
+================================================================================
+                       HAULO BOUTIQUE FASHION ERP
+                   COMPLETE MASTER TABLES REFERENCE
+================================================================================
+Generated Date: 2026-09-23
+System: Fashion ERP (Spring Boot 3.3.4 + Pure Vanilla Frontend)
+Encoding: UTF-8 Plain Text (.txt)
+Location: d:\fashion ERP\FASHION-ERP\ALL_TABLES.txt
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+  [1] SYSTEM OVERVIEW & TABLE DIRECTORY
+      1.1 Database Relational Tables Summary (26 Tables)
+      1.2 Frontend UI Data Tables Summary (13 Application Tables)
+
+  [2] PART I: COMPLETE DATABASE SCHEMA TABLES (DDL & FIELD SPECS)
+      2.1  customers
+      2.2  customer_notes
+      2.3  customer_body_measurements
+      2.4  customer_measurements
+      2.5  measurement_profiles
+      2.6  measurement_points
+      2.7  orders
+      2.8  order_progress_stages
+      2.9  production_stages
+      2.10 stage_definitions
+      2.11 stage_definition_employees
+      2.12 qc_checklists
+      2.13 trials
+      2.14 trial_alterations
+      2.15 inventory_items
+      2.16 stock_movements
+      2.17 suppliers
+      2.18 purchase_orders
+      2.19 purchase_order_items
+      2.20 payments
+      2.21 payment_transactions
+      2.22 appointments
+      2.23 enquiries
+      2.24 designs
+      2.25 employees
+      2.26 app_users
+
+  [3] PART II: FRONTEND UI DATA TABLES (MODULES, COLUMNS & SPECS)
+      3.1  Delivery Command Centre Table (front end/delivery/delivery.html)
+      3.2  Customer Overview Table (front end/customer/customer-overview/)
+      3.3  Orders Overview Table (front end/orders/order-overview/)
+      3.4  Fabrics & Materials / Inventory Table (front end/fabrics-materials/)
+      3.5  Production Stages / Kanban Table (front end/production/)
+      3.6  Quality Control Table (front end/quality-control/)
+      3.7  Purchases & PO Table (front end/purchases/)
+      3.8  Suppliers Directory Table (front end/purchases/)
+      3.9  Workforce & Tailor Roster Table (front end/WorkforceManagement/)
+      3.10 Appointments Table (front end/appointments/)
+      3.11 Enquiries & Leads Table (front end/enquiries/)
+      3.12 Trials & Alterations Table (front end/trials-alterations/)
+      3.13 Measurements 360 Table (front end/Measurements/measurement360/)
+
+  [4] PART III: FOREIGN KEY RELATIONSHIP MATRIX
+
+
+================================================================================
+[1] SYSTEM OVERVIEW & TABLE DIRECTORY
+================================================================================
+
+1.1 DATABASE RELATIONAL TABLES (26 TABLES)
+--------------------------------------------------------------------------------
+No.  Table Name                  Primary Key       Foreign Keys / Key Relations
+---  --------------------------  ----------------  -----------------------------
+01.  customers                   mobile_number     Root customer identity
+02.  customer_notes              id (UUID)         customer_mobile -> customers
+03.  customer_body_measurements  id (UUID)         customer_mobile -> customers
+04.  customer_measurements       id (UUID)         customer_mobile -> customers
+05.  measurement_profiles       id (UUID)         customer_mobile -> customers
+06.  measurement_points          id (UUID)         profile_id -> measurement_profiles
+07.  orders                      id (UUID)         customer_mobile -> customers
+08.  order_progress_stages       id (UUID)         order_id -> orders
+09.  production_stages           id (UUID)         order_id -> orders, assigned_to -> employees
+10.  stage_definitions           id (UUID)         stage_key (UNIQUE)
+11.  stage_definition_employees  id (UUID)         stage_def_id, employee_id
+12.  qc_checklists               id (UUID)         order_id -> orders, checked_by -> employees
+13.  trials                      id (UUID)         customer_mobile -> customers, order_id -> orders
+14.  trial_alterations           id (UUID)         trial_id -> trials
+15.  inventory_items             id (UUID)         item_code (UNIQUE)
+16.  stock_movements             id (UUID)         item_id -> inventory_items
+17.  suppliers                   id (UUID)         supplier_code (UNIQUE)
+18.  purchase_orders             id (UUID)         supplier_id -> suppliers
+19.  purchase_order_items        id (UUID)         po_id -> purchase_orders, item_id -> inventory_items
+20.  payments                    id (UUID)         order_id -> orders, customer_mobile -> customers
+21.  payment_transactions        id (UUID)         payment_id -> payments
+22.  appointments                id (UUID)         customer_mobile -> customers, order_id -> orders
+23.  enquiries                   id (UUID)         converted_order_id -> orders
+24.  designs                     id (UUID)         customer_mobile -> customers, order_id -> orders
+25.  employees                   id (UUID)         employee_code (UNIQUE)
+26.  app_users                   id (UUID)         username (UNIQUE)
+
+1.2 FRONTEND UI DATA TABLES (13 TABLES)
+--------------------------------------------------------------------------------
+No.  UI Module                  File Location                                Table ID / Selector
+---  -------------------------  -------------------------------------------  ---------------------------
+01.  Delivery Command Centre    front end/delivery/delivery.html             #deliveryOrderTable
+02.  Customer Overview          front end/customer/customer-overview/        #customerTable
+03.  Order Overview             front end/orders/order-overview/             #orderOverviewTable
+04.  Fabrics & Materials        front end/fabrics-materials/                 #fabricInventoryTable
+05.  Production Kanban/Stages   front end/production/production.html         #productionTable / Kanban
+06.  Quality Control (QC)       front end/quality-control/                   #qcTable
+07.  Purchases & PO             front end/purchases/purchases.html           #poTable
+08.  Suppliers Directory        front end/purchases/purchases.html           #suppliersTable
+09.  Workforce Management       front end/WorkforceManagement/workforce.html #workforceTable
+10.  Appointments Schedule     front end/appointments/appointments.html     #appointmentsTable
+11.  Enquiries & Leads          front end/enquiries/enquiries.html           #enquiriesTable
+12.  Trials & Alterations       front end/trials-alterations/                #trialsTable
+13.  Measurement Profiles       front end/Measurements/measurement360/       #measurementGridTable
+
+
+================================================================================
+[2] PART I: COMPLETE DATABASE SCHEMA TABLES (DDL & FIELD SPECS)
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 TABLE: customers
+--------------------------------------------------------------------------------
+Description: Master customer entity. Uses mobile_number as natural primary key.
+Columns:
+  * mobile_number        VARCHAR(30)     PRIMARY KEY
+    name                 VARCHAR(150)    NOT NULL
+    first_name           VARCHAR(75)
+    last_name            VARCHAR(75)
+    salutation           VARCHAR(20)
+    gender               VARCHAR(20)     DEFAULT 'Female'
+    email                VARCHAR(150)
+    alt_phone            VARCHAR(30)
+    instagram_handle     VARCHAR(100)
+    preferred_channel    VARCHAR(30)     DEFAULT 'WhatsApp'
+    dob                  DATE
+    anniversary          DATE
+    location             VARCHAR(250)
+    street_address       TEXT
+    city                 VARCHAR(100)
+    state                VARCHAR(100)
+    pincode              VARCHAR(20)
+    landmark             VARCHAR(250)
+    avatar_url           TEXT
+    tier                 VARCHAR(30)     NOT NULL DEFAULT 'REGULAR' (REGULAR, SILVER, GOLD, VIP)
+    total_spend          NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    balance              NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    credit_limit         NUMERIC(12, 2)  DEFAULT 0.00
+    favorite_garment     VARCHAR(200)
+    fit_preference       VARCHAR(50)
+    fabric_allergies     TEXT
+    measurements_on_file BOOLEAN         NOT NULL DEFAULT FALSE
+    notes                TEXT
+    preferred_neck       VARCHAR(100)    (Added V16)
+    preferred_sleeve     VARCHAR(100)    (Added V16)
+    preferred_occasions  VARCHAR(200)    (Added V16)
+    delivery_preference  VARCHAR(100)    (Added V16)
+    created_at           TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at           TIMESTAMP       NOT NULL DEFAULT now()
+
+Indexes:
+  - idx_customers_tier ON customers (tier)
+  - idx_customers_name ON customers (name)
+
+--------------------------------------------------------------------------------
+2.2 TABLE: customer_notes
+--------------------------------------------------------------------------------
+Description: Multi-author timestamped CRM notes for customer profile history.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # customer_mobile     VARCHAR(30)     NOT NULL REFERENCES customers(mobile_number) ON DELETE CASCADE
+    note_text           TEXT            NOT NULL
+    author_name         VARCHAR(100)    NOT NULL DEFAULT 'Atelier Staff'
+    author_badge        VARCHAR(10)     NOT NULL DEFAULT 'AS'
+    category            VARCHAR(50)     DEFAULT 'GENERAL' (GENERAL, STYLE, FEEDBACK, MEASUREMENT)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+Indexes:
+  - idx_cust_notes_mobile ON customer_notes (customer_mobile)
+  - idx_cust_notes_date   ON customer_notes (created_at DESC)
+
+--------------------------------------------------------------------------------
+2.3 TABLE: customer_body_measurements
+--------------------------------------------------------------------------------
+Description: Precision tailored body measurement table supporting 34 points and versioning.
+Columns:
+  * id                       UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # customer_mobile          VARCHAR(30)     NOT NULL REFERENCES customers(mobile_number) ON DELETE CASCADE
+    customer_name            VARCHAR(150)    NOT NULL
+    garment_type             VARCHAR(50)     NOT NULL (Blouse, Kurti, Lehenga, Gown, Salwar, Saree Blouse)
+    measurement_type         VARCHAR(20)     NOT NULL DEFAULT 'CURRENT'
+    is_current               BOOLEAN         NOT NULL DEFAULT TRUE
+    version                  INT             NOT NULL DEFAULT 1
+    unit                     VARCHAR(10)     NOT NULL DEFAULT 'in'
+    -- Upper Body:
+    shoulder                 NUMERIC(6, 2)
+    bust                     NUMERIC(6, 2)
+    under_bust               NUMERIC(6, 2)
+    waist                    NUMERIC(6, 2)
+    hip                      NUMERIC(6, 2)
+    -- Lengths:
+    blouse_length            NUMERIC(6, 2)
+    top_length               NUMERIC(6, 2)
+    full_length              NUMERIC(6, 2)
+    skirt_length             NUMERIC(6, 2)
+    pant_length              NUMERIC(6, 2)
+    -- Arms & Sleeves:
+    armhole                  NUMERIC(6, 2)
+    upper_arm                NUMERIC(6, 2)
+    sleeve_length            NUMERIC(6, 2)
+    sleeve_round             NUMERIC(6, 2)
+    elbow_round              NUMERIC(6, 2)
+    wrist_round              NUMERIC(6, 2)
+    -- Necks:
+    front_neck_depth         NUMERIC(6, 2)
+    back_neck_depth          NUMERIC(6, 2)
+    -- Bust Points:
+    bust_point               NUMERIC(6, 2)
+    bust_point_to_bust_point NUMERIC(6, 2)
+    shoulder_to_bust         NUMERIC(6, 2)
+    shoulder_to_waist        NUMERIC(6, 2)
+    -- Widths:
+    front_width              NUMERIC(6, 2)
+    back_width               NUMERIC(6, 2)
+    -- Lower Body & Pants:
+    pant_waist               NUMERIC(6, 2)
+    pant_hip                 NUMERIC(6, 2)
+    thigh_round              NUMERIC(6, 2)
+    knee_round               NUMERIC(6, 2)
+    calf_round               NUMERIC(6, 2)
+    ankle_round              NUMERIC(6, 2)
+    crotch_length            NUMERIC(6, 2)
+    bottom_opening           NUMERIC(6, 2)
+    -- Flares:
+    waist_to_hip             NUMERIC(6, 2)
+    flare                    NUMERIC(6, 2)
+    -- Fitting & Notes:
+    posture_notes            TEXT
+    shape_notes              TEXT
+    notes                    TEXT
+    recorded_by              VARCHAR(100)    DEFAULT 'Master Tailor'
+    recorded_at              TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at              TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.4 TABLE: customer_measurements
+--------------------------------------------------------------------------------
+Description: Active measurement profile entity support.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # customer_mobile     VARCHAR(30)     NOT NULL REFERENCES customers(mobile_number) ON DELETE CASCADE
+    garment_type        VARCHAR(50)     NOT NULL DEFAULT 'General'
+    bust                NUMERIC(6, 2)
+    upper_bust          NUMERIC(6, 2)
+    under_bust          NUMERIC(6, 2)
+    waist               NUMERIC(6, 2)
+    high_hip            NUMERIC(6, 2)
+    full_hip            NUMERIC(6, 2)
+    shoulder            NUMERIC(6, 2)
+    cross_front         NUMERIC(6, 2)
+    cross_back          NUMERIC(6, 2)
+    armhole             NUMERIC(6, 2)
+    sleeve_length       NUMERIC(6, 2)
+    bicep               NUMERIC(6, 2)
+    wrist               NUMERIC(6, 2)
+    front_neck          NUMERIC(6, 2)
+    back_neck           NUMERIC(6, 2)
+    apex_point          NUMERIC(6, 2)
+    garment_length      NUMERIC(6, 2)
+    posture_notes       TEXT
+    shape_notes         TEXT
+    recorded_by         VARCHAR(100)
+    is_active_profile   BOOLEAN         NOT NULL DEFAULT TRUE
+    recorded_at         TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.5 TABLE: measurement_profiles
+--------------------------------------------------------------------------------
+Description: Container profile grouping custom measurement points per garment.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # customer_mobile     VARCHAR(30)     NOT NULL REFERENCES customers(mobile_number) ON DELETE CASCADE
+    garment_type        VARCHAR(100)    NOT NULL
+    recorded_by         VARCHAR(100)
+    notes               TEXT
+    recorded_at         TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.6 TABLE: measurement_points
+--------------------------------------------------------------------------------
+Description: Individual data points linked to a measurement profile.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # profile_id          UUID            NOT NULL REFERENCES measurement_profiles(id) ON DELETE CASCADE
+    point_name          VARCHAR(100)    NOT NULL
+    value               NUMERIC(8, 2)   NOT NULL
+    unit                VARCHAR(10)     NOT NULL DEFAULT '"'
+    marker_index        INT
+    sort_order          INT             NOT NULL DEFAULT 0
+
+--------------------------------------------------------------------------------
+2.7 TABLE: orders
+--------------------------------------------------------------------------------
+Description: Core bespoke production orders table.
+Columns:
+  * id                      UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U order_code              VARCHAR(30)     UNIQUE NOT NULL (e.g. ORD-2026-0001)
+  # customer_mobile         VARCHAR(30)     NOT NULL REFERENCES customers(mobile_number) ON DELETE RESTRICT
+    customer_name           VARCHAR(150)
+    garment_type            VARCHAR(100)    NOT NULL
+    garment_desc            TEXT
+    collection              VARCHAR(150)
+    order_date              DATE            NOT NULL DEFAULT CURRENT_DATE
+    expected_delivery_date  DATE
+    delivered_date          DATE
+    advance_paid            NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    total_amount            NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    balance_amount          NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    amount                  NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    status                  VARCHAR(30)     NOT NULL DEFAULT 'PENDING'
+    due_date                DATE
+    notes                   TEXT
+    current_stage           VARCHAR(30)     DEFAULT 'ORDER' (Added V5)
+    reference_images        TEXT            DEFAULT '[]' (Added V5)
+    production_notes        TEXT            (Added V5)
+    qc_rework_count         INT             NOT NULL DEFAULT 0 (Added V13)
+    created_at              TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at              TIMESTAMP       NOT NULL DEFAULT now()
+
+Indexes:
+  - idx_orders_code            ON orders (order_code)
+  - idx_orders_customer_mobile ON orders (customer_mobile)
+  - idx_orders_status          ON orders (status)
+
+--------------------------------------------------------------------------------
+2.8 TABLE: order_progress_stages
+--------------------------------------------------------------------------------
+Description: Stage transition audit trail for orders.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # order_id            UUID            NOT NULL REFERENCES orders(id) ON DELETE CASCADE
+    stage               VARCHAR(30)     NOT NULL
+    completed_at        TIMESTAMP
+    completed_by        VARCHAR(100)
+    notes               TEXT
+
+--------------------------------------------------------------------------------
+2.9 TABLE: production_stages
+--------------------------------------------------------------------------------
+Description: Active production pipeline tracking per order item.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # order_id            UUID            NOT NULL REFERENCES orders(id) ON DELETE CASCADE
+    stage_name          VARCHAR(100)    NOT NULL
+  # assigned_to         UUID            REFERENCES employees(id) ON DELETE SET NULL
+    status              VARCHAR(30)     NOT NULL DEFAULT 'NOT_STARTED'
+    started_at          TIMESTAMP
+    completed_at        TIMESTAMP
+    notes               TEXT
+    sort_order          INT             NOT NULL DEFAULT 0
+
+--------------------------------------------------------------------------------
+2.10 TABLE: stage_definitions
+--------------------------------------------------------------------------------
+Description: Master blueprint definition for boutique production stages.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U stage_key           VARCHAR(50)     UNIQUE NOT NULL (DESIGNING, CUTTING, STITCHING, etc.)
+    display_name        VARCHAR(100)    NOT NULL
+    description         TEXT
+    required_role       VARCHAR(50)     (DESIGNER, CUTTER, TAILOR, FINISHER, MANAGER)
+    dept_label          VARCHAR(100)
+    color_class         VARCHAR(50)
+    sort_order          INT             NOT NULL DEFAULT 0
+    active              BOOLEAN         NOT NULL DEFAULT TRUE
+    image_url           TEXT            (Added V8)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.11 TABLE: stage_definition_employees
+--------------------------------------------------------------------------------
+Description: Junction table assigning specific qualified employees to stages.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # stage_def_id        UUID            NOT NULL REFERENCES stage_definitions(id) ON DELETE CASCADE
+  # employee_id         UUID            NOT NULL REFERENCES employees(id) ON DELETE CASCADE
+    assignment_type     VARCHAR(30)     NOT NULL DEFAULT 'AVAILABLE' (AVAILABLE, DEFAULT)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    UNIQUE(stage_def_id, employee_id)
+
+--------------------------------------------------------------------------------
+2.12 TABLE: qc_checklists
+--------------------------------------------------------------------------------
+Description: Quality control inspection points per order before delivery clearance.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # order_id            UUID            NOT NULL REFERENCES orders(id) ON DELETE CASCADE
+    check_point         VARCHAR(200)    NOT NULL
+    result              VARCHAR(30)     NOT NULL DEFAULT 'PENDING' (PASS, FAIL, PENDING)
+  # checked_by          UUID            REFERENCES employees(id) ON DELETE SET NULL
+    checked_at          TIMESTAMP
+    remarks             TEXT
+    sort_order          INT             NOT NULL DEFAULT 0
+
+--------------------------------------------------------------------------------
+2.13 TABLE: trials
+--------------------------------------------------------------------------------
+Description: Fitting sessions and trial appointments for bespoke garments.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U trial_code          VARCHAR(30)     UNIQUE NOT NULL (e.g. TRL-2026-001)
+  # order_id            UUID            REFERENCES orders(id) ON DELETE SET NULL
+    order_code          VARCHAR(30)
+  # customer_mobile     VARCHAR(30)     REFERENCES customers(mobile_number) ON DELETE CASCADE
+    customer_name       VARCHAR(150)
+    garment_type        VARCHAR(100)    NOT NULL
+    collection          VARCHAR(150)
+    trial_date          DATE            NOT NULL DEFAULT CURRENT_DATE
+    trial_time          VARCHAR(20)     DEFAULT '11:00 AM'
+    stage               VARCHAR(50)     DEFAULT 'First Trial'
+    status              VARCHAR(30)     NOT NULL DEFAULT 'TODAY' (TODAY, UPCOMING, COMPLETED, DELAYED)
+    fit_status          VARCHAR(30)     NOT NULL DEFAULT 'PENDING' (PERFECT, MINOR_ALTERATION, MAJOR_ALTERATION)
+    designer_name       VARCHAR(100)
+    delivery_date       DATE
+    neck_style          VARCHAR(100)
+    sleeve_style        VARCHAR(100)
+    lining              VARCHAR(100)
+    embroidery          VARCHAR(100)
+    fabric              VARCHAR(150)
+    spec_notes          TEXT
+    notes               TEXT
+    trial_attempt       INT             NOT NULL DEFAULT 1 (Added V14)
+    alteration_count    INT             NOT NULL DEFAULT 0 (Added V14)
+    customer_feedback   TEXT            (Added V14)
+    customer_rating     INT             DEFAULT 5 (Added V14)
+    fit_preference      VARCHAR(50)     DEFAULT 'Comfort / Regular Fit' (Added V14)
+    fit_checkpoints     TEXT            (Added V14)
+    fit_notes           TEXT            (Added V14)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.14 TABLE: trial_alterations
+--------------------------------------------------------------------------------
+Description: Specific alteration line items identified during a customer trial.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # trial_id            UUID            NOT NULL REFERENCES trials(id) ON DELETE CASCADE
+    description         VARCHAR(255)    NOT NULL
+    category            VARCHAR(50)     NOT NULL DEFAULT 'Fit' (Fit, Length, Neck, Sleeve, Styling)
+    completed           BOOLEAN         NOT NULL DEFAULT false
+    assigned_tailor     VARCHAR(100)    (Added V14)
+    priority            VARCHAR(20)     DEFAULT 'Normal' (Added V14)
+    target_date         DATE            (Added V14)
+    tailor_notes        TEXT            (Added V14)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.15 TABLE: inventory_items
+--------------------------------------------------------------------------------
+Description: Fabrics, silks, trims, linings, packaging, and atelier materials.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U item_code           VARCHAR(30)     UNIQUE NOT NULL (e.g. FAB-001, TRM-002)
+    name                VARCHAR(200)    NOT NULL
+    category            VARCHAR(100)    NOT NULL (Fabric, Trims, Accessories, Packaging)
+    variant             VARCHAR(100)
+    unit                VARCHAR(30)     NOT NULL DEFAULT 'Meter'
+    stock_qty           NUMERIC(10, 2)  NOT NULL DEFAULT 0.00
+    reserved_qty        NUMERIC(10, 2)  NOT NULL DEFAULT 0.00
+    available_qty       NUMERIC(10, 2)  GENERATED ALWAYS AS (stock_qty - reserved_qty) STORED
+    reorder_level       NUMERIC(10, 2)  NOT NULL DEFAULT 0.00
+    purchase_price      NUMERIC(10, 2)  NOT NULL DEFAULT 0.00
+    supplier_name       VARCHAR(200)
+    image_url           TEXT
+    status              VARCHAR(30)     NOT NULL DEFAULT 'IN_STOCK' (IN_STOCK, LOW_STOCK, OUT_OF_STOCK)
+    composition         VARCHAR(150)    (Added V17)
+    weave               VARCHAR(100)    (Added V17)
+    width               VARCHAR(50)     (Added V17)
+    gsm                 VARCHAR(50)     (Added V17)
+    hsn_code            VARCHAR(30)     (Added V17)
+    origin              VARCHAR(100)    (Added V17)
+    selling_price       NUMERIC(10, 2)  DEFAULT 0.00 (Added V17)
+    location            VARCHAR(100)    (Added V17)
+    lead_time           VARCHAR(50)     (Added V17)
+    supplier_contact    VARCHAR(100)    (Added V17)
+    notes               TEXT            (Added V17)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.16 TABLE: stock_movements
+--------------------------------------------------------------------------------
+Description: Ledger of inventory stock receipts, allocations, issuances, and returns.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # item_id             UUID            NOT NULL REFERENCES inventory_items(id) ON DELETE RESTRICT
+    movement_type       VARCHAR(30)     NOT NULL (RECEIPT, ISSUE, ADJUSTMENT, RETURN)
+    quantity            NUMERIC(10, 2)  NOT NULL
+    reference           VARCHAR(100)
+    notes               TEXT
+    moved_by            VARCHAR(100)
+    moved_at            TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.17 TABLE: suppliers
+--------------------------------------------------------------------------------
+Description: Fabric weavers, trim distributors, and material vendors.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U supplier_code       VARCHAR(20)     UNIQUE NOT NULL (e.g. SUP-001)
+    name                VARCHAR(200)    NOT NULL
+    contact_person      VARCHAR(150)
+    phone               VARCHAR(30)
+    email               VARCHAR(150)
+    address             TEXT
+    specialization      VARCHAR(200)    (Raw Silk, Zari, Handloom, Button & Laces)
+    notes               TEXT
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.18 TABLE: purchase_orders
+--------------------------------------------------------------------------------
+Description: Commercial purchase orders issued to raw material vendors.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U po_code             VARCHAR(30)     UNIQUE NOT NULL (e.g. PO-2026-001)
+  # supplier_id         UUID            NOT NULL REFERENCES suppliers(id) ON DELETE RESTRICT
+    status              VARCHAR(30)     NOT NULL DEFAULT 'DRAFT' (DRAFT, ORDERED, RECEIVED, CANCELLED)
+    total_amount        NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    order_date          DATE            NOT NULL DEFAULT CURRENT_DATE
+    expected_date       DATE
+    received_date       DATE
+    notes               TEXT
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.19 TABLE: purchase_order_items
+--------------------------------------------------------------------------------
+Description: Line items on a purchase order.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # po_id               UUID            NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE
+  # item_id             UUID            REFERENCES inventory_items(id) ON DELETE SET NULL
+    item_name           VARCHAR(200)    NOT NULL
+    quantity            NUMERIC(10, 2)  NOT NULL
+    unit                VARCHAR(30)     NOT NULL
+    unit_price          NUMERIC(10, 2)  NOT NULL
+    total_price         NUMERIC(12, 2)  GENERATED ALWAYS AS (quantity * unit_price) STORED
+    received_qty        NUMERIC(10, 2)  NOT NULL DEFAULT 0.00
+
+--------------------------------------------------------------------------------
+2.20 TABLE: payments
+--------------------------------------------------------------------------------
+Description: Financial ledger linking orders, customers, and settlement status.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # order_id            UUID            NOT NULL REFERENCES orders(id) ON DELETE RESTRICT
+  # customer_mobile     VARCHAR(30)     NOT NULL REFERENCES customers(mobile_number) ON DELETE RESTRICT
+    total_amount        NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    paid_amount         NUMERIC(12, 2)  NOT NULL DEFAULT 0.00
+    balance             NUMERIC(12, 2)  GENERATED ALWAYS AS (total_amount - paid_amount) STORED
+    status              VARCHAR(30)     NOT NULL DEFAULT 'PENDING' (PAID, PARTIAL, PENDING)
+    due_date            DATE
+    notes               TEXT
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.21 TABLE: payment_transactions
+--------------------------------------------------------------------------------
+Description: Individual cash/UPI/card payment transactions against an invoice.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # payment_id          UUID            NOT NULL REFERENCES payments(id) ON DELETE CASCADE
+    amount              NUMERIC(12, 2)  NOT NULL
+    method              VARCHAR(30)     NOT NULL DEFAULT 'CASH' (CASH, UPI, CARD, NET_BANKING)
+    received_by         VARCHAR(100)
+    reference_no        VARCHAR(100)
+    transaction_date    TIMESTAMP       NOT NULL DEFAULT now()
+    notes               TEXT
+
+--------------------------------------------------------------------------------
+2.22 TABLE: appointments
+--------------------------------------------------------------------------------
+Description: Consultations, fittings, and styling sessions in the boutique.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  # customer_mobile     VARCHAR(30)     NOT NULL REFERENCES customers(mobile_number) ON DELETE CASCADE
+  # order_id            UUID            REFERENCES orders(id) ON DELETE SET NULL
+    appt_type           VARCHAR(30)     NOT NULL DEFAULT 'CONSULTATION' (CONSULTATION, MEASUREMENT, FITTING, DELIVERY)
+    scheduled_at        TIMESTAMP       NOT NULL
+    duration_minutes    INT             NOT NULL DEFAULT 60
+    status              VARCHAR(30)     NOT NULL DEFAULT 'SCHEDULED' (SCHEDULED, COMPLETED, CANCELLED, NO_SHOW)
+    staff_assigned      VARCHAR(100)
+    notes               TEXT
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.23 TABLE: enquiries
+--------------------------------------------------------------------------------
+Description: Client inquiries, leads, and bridal walk-ins.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U enquiry_code        VARCHAR(20)     UNIQUE NOT NULL (e.g. ENQ-001)
+    customer_name       VARCHAR(150)    NOT NULL
+    phone               VARCHAR(30)
+    email               VARCHAR(150)
+    garment_type        VARCHAR(100)
+    notes               TEXT
+    status              VARCHAR(30)     NOT NULL DEFAULT 'PENDING' (PENDING, CONVERTED, CLOSED)
+    assigned_to         VARCHAR(100)
+    follow_up_date      DATE
+  # converted_order_id  UUID            REFERENCES orders(id) ON DELETE SET NULL
+    source              VARCHAR(50)     DEFAULT 'WALK_IN' (WALK_IN, INSTAGRAM, REFERRAL, PHONE)
+    occasion            VARCHAR(100)    (Added V15)
+    preferred_date      DATE            (Added V15)
+    estimated_budget    NUMERIC(12, 2)  (Added V15)
+    next_action         VARCHAR(150)    (Added V15)
+    fabric_brought      BOOLEAN         DEFAULT FALSE (Added V15)
+    avatar_url          VARCHAR(255)    (Added V15)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.24 TABLE: designs
+--------------------------------------------------------------------------------
+Description: Design studio portfolio, garment illustrations, and collection concepts.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U design_code         VARCHAR(20)     UNIQUE NOT NULL (e.g. DSN-001)
+    title               VARCHAR(200)    NOT NULL
+    garment_type        VARCHAR(100)    NOT NULL
+  # customer_mobile     VARCHAR(30)     REFERENCES customers(mobile_number) ON DELETE SET NULL
+  # order_id            UUID            REFERENCES orders(id) ON DELETE SET NULL
+    status              VARCHAR(30)     NOT NULL DEFAULT 'DRAFT' (DRAFT, IN_REVIEW, APPROVED, ARCHIVED)
+    style_notes         TEXT
+    designer            VARCHAR(100)
+    thumbnail_url       TEXT
+    sub_category        VARCHAR(100)    (Added V3)
+    style               VARCHAR(100)    (Added V3)
+    occasion            VARCHAR(100)    (Added V3)
+    collection          VARCHAR(150)    (Added V3)
+    primary_fabric      VARCHAR(200)    (Added V3)
+    colour_options      TEXT            (Added V3)
+    sizes               VARCHAR(200)    (Added V3)
+    construction        TEXT            (Added V3)
+    embroidery          TEXT            (Added V3)
+    estimated_cost      NUMERIC(12, 2)  DEFAULT 0.00 (Added V3)
+    suggested_price     NUMERIC(12, 2)  DEFAULT 0.00 (Added V3)
+    estimated_labour    VARCHAR(50)     (Added V3)
+    production_status   VARCHAR(30)     DEFAULT 'Active' (Added V3)
+    times_used          INT             NOT NULL DEFAULT 0 (Added V3)
+    last_used_date      DATE            (Added V3)
+    tags                TEXT            (Added V3)
+    image_urls          TEXT            (Added V3)
+    swatches            TEXT            (Added V3)
+    notes               TEXT            (Added V3)
+    created_by          VARCHAR(100)    (Added V3)
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.25 TABLE: employees
+--------------------------------------------------------------------------------
+Description: Atelier workforce roster (master tailors, embroiderers, cutters, stylists).
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U employee_code       VARCHAR(20)     UNIQUE NOT NULL (e.g. EMP-001)
+    name                VARCHAR(150)    NOT NULL
+    phone               VARCHAR(30)
+    email               VARCHAR(150)
+    role                VARCHAR(30)     NOT NULL DEFAULT 'TAILOR' (MASTER_TAILOR, DESIGNER, CUTTER, EMBROIDERER, FINISHER, SUPERVISOR, MANAGER)
+    status              VARCHAR(30)     NOT NULL DEFAULT 'ACTIVE' (ACTIVE, ON_LEAVE, INACTIVE)
+    joined_date         DATE
+    avatar_url          TEXT
+    specialization      VARCHAR(200)
+    notes               TEXT
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+--------------------------------------------------------------------------------
+2.26 TABLE: app_users
+--------------------------------------------------------------------------------
+Description: System security authentication and user accounts.
+Columns:
+  * id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid()
+  U username            VARCHAR(100)    UNIQUE NOT NULL
+    password_hash       VARCHAR(255)    NOT NULL
+    full_name           VARCHAR(150)    NOT NULL
+    role                VARCHAR(30)     NOT NULL DEFAULT 'STAFF' (ADMIN, MANAGER, STAFF)
+    active              BOOLEAN         NOT NULL DEFAULT TRUE
+    last_login          TIMESTAMP
+    created_at          TIMESTAMP       NOT NULL DEFAULT now()
+    updated_at          TIMESTAMP       NOT NULL DEFAULT now()
+
+
+================================================================================
+[3] PART II: FRONTEND UI DATA TABLES (MODULES, COLUMNS & SPECS)
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 DELIVERY COMMAND CENTRE TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/delivery/delivery.html
+Script Path: front end/delivery/delivery.js
+CSS Path:    front end/delivery/delivery.css
+Table ID:    #deliveryOrderTable
+Status:      ACTIVE (Checkbox column removed; 7 core functional columns)
+
+Columns & Structure:
+  Col 1 (26%): ORDER / CUSTOMER
+               - Customer Avatar (40x40 circle with fallback)
+               - Order Code (e.g. ORD-2026-0001)
+               - Customer Full Name
+  Col 2 (18%): GARMENT & FABRIC
+               - Garment Type (e.g. Silk Zari Saree Blouse)
+               - Collection / Fabric (e.g. Muhurtham Collection - Mulberry Silk)
+  Col 3 (10%): ORDER DATE
+               - Order placement date (e.g. 18 Sep 2026)
+  Col 4 (10%): READY DATE
+               - Date garment finished production (e.g. 21 Sep 2026)
+  Col 5 (11%): EXPECTED / DUE
+               - Target handover date (e.g. 23 Sep 2026)
+               - Overdue alert tag if past due
+  Col 6 (14%): DELIVERY METHOD & DESTINATION
+               - Method Badge (Pickup, Courier, Local Delivery, Third Party)
+               - Short address or AWB / Tracking Code
+  Col 7 (11%): PAYMENT STATUS
+               - Paid Badge (Paid, Partial, Pending)
+               - Outstanding balance amount (e.g. Bal: ₹1,500)
+  Col 8  (6%): STATUS & ACTIONS
+               - Delivery Status Pill (Ready, Out for Delivery, Delivered, Overdue)
+               - Row Context Action Button (Kebab menu or Quick Delivery Action)
+
+Table Features:
+  - Real-time search filter across Order ID, Customer Name, and Garment
+  - Quick status tabs (All, Ready, Overdue, Out for Delivery, Delivered)
+  - Interactive row selection syncing with right-hand Delivery Details Panel
+  - Modal workflows: Mark Delivered, Print Delivery Slip, Add Tracking, Send WhatsApp
+  - Zero horizontal overflow; balanced 2-column bottom analytical cards
+
+--------------------------------------------------------------------------------
+3.2 CUSTOMER OVERVIEW TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/customer/customer-overview/customer-overview.html
+Table ID:    #customerTable
+Columns:
+  1. Customer Info (Avatar, Name, Mobile Number)
+  2. Tier (VIP, Regular, Premium)
+  3. Total Orders Count
+  4. Total Lifetime Spend (₹)
+  5. Outstanding Balance (₹)
+  6. Preferred Channel (WhatsApp, Phone)
+  7. Actions (View 360, Edit, New Order)
+
+--------------------------------------------------------------------------------
+3.3 ORDERS OVERVIEW TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/orders/order-overview/order-over.html
+Table ID:    #orderOverviewTable
+Columns:
+  1. Order ID & Thumbnail
+  2. Customer Name & Phone
+  3. Garment Type & Collection
+  4. Order Date
+  5. Delivery Due Date
+  6. Financials (Total, Advance, Balance)
+  7. Current Production Stage
+  8. Order Status (Confirmed, In Progress, Ready, Delivered)
+  9. Row Actions (View Order, Update Stage, Print Job Card)
+
+--------------------------------------------------------------------------------
+3.4 FABRICS & MATERIALS / INVENTORY TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/fabrics-materials/fabrics-materials.html
+Table ID:    #fabricInventoryTable
+Columns:
+  1. Item Code & Fabric Swatch / Image
+  2. Fabric Name & Weave
+  3. Category (Silks, Cotton, Organza, Velvet, Trims)
+  4. Current Stock (Meters / Pcs)
+  5. Reserved Stock (Allocated to active orders)
+  6. Available Stock
+  7. Unit Price & Reorder Threshold
+  8. Stock Status (In Stock, Low Stock, Reorder Needed)
+  9. Actions (Adjust Stock, Reorder, View Specifications)
+
+--------------------------------------------------------------------------------
+3.5 PRODUCTION WORKFLOW / STAGES TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/production/production.html
+Table ID:    #productionTable & Stage Kanban Columns
+Columns:
+  1. Order Code & Garment Preview
+  2. Customer Name
+  3. Assigned Artisan / Tailor
+  4. Current Active Stage (Designing, Lining, Hand Work, Cutting, Stitching, Trial, QC, Ready)
+  5. Elapsed Days / Due In
+  6. Production Priority (High, Urgent, Normal)
+  7. Stage Actions (Advance Stage, Log QC Rework, View Job Sheet)
+
+--------------------------------------------------------------------------------
+3.6 QUALITY CONTROL (QC) INSPECTIONS TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/quality-control/quality-control.html
+Table ID:    #qcTable
+Columns:
+  1. Inspection ID
+  2. Order ID & Garment Type
+  3. Checkpoint (Stitching finish, Seam allowance, Lining drape, Embroidery, Measurements)
+  4. Checked By (QC Manager)
+  5. Status (Passed, Rework Required, Pending)
+  6. Rework Counter
+  7. Inspection Date
+  8. Actions (Approve, Send Back to Stage, Add Remarks)
+
+--------------------------------------------------------------------------------
+3.7 PURCHASES & PURCHASE ORDERS TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/purchases/purchases.html
+Table ID:    #poTable
+Columns:
+  1. PO Code (e.g. PO-2026-001)
+  2. Supplier Name & Contact
+  3. Order Date & Expected Arrival
+  4. Line Items Count
+  5. PO Amount (₹)
+  6. PO Status (Draft, Placed, Partial Received, Received, Cancelled)
+  7. Actions (Receive Goods, View PDF, Download Slip)
+
+--------------------------------------------------------------------------------
+3.8 SUPPLIERS DIRECTORY TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/purchases/purchases.html
+Table ID:    #suppliersTable
+Columns:
+  1. Supplier Code & Logo
+  2. Company / Vendor Name
+  3. Contact Person & Phone
+  4. Material Specialization (Raw Silk, Zari, Laces, Linings)
+  5. Active POs
+  6. Actions (Create PO, View History, Edit Supplier)
+
+--------------------------------------------------------------------------------
+3.9 WORKFORCE & ATELIER EMPLOYEES TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/WorkforceManagement/workforce.html
+Table ID:    #workforceTable
+Columns:
+  1. Employee Code & Profile Photo
+  2. Employee Name
+  3. Role & Specialization (Master Tailor, Maggam Artisan, Cutter, Stylist)
+  4. Phone & Email
+  5. Assigned Workload (Active Garments)
+  6. Availability Status (Active, On Leave, Busy)
+  7. Actions (Assign Order, View Profile, Edit Role)
+
+--------------------------------------------------------------------------------
+3.10 APPOINTMENTS & FITTINGS SCHEDULE TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/appointments/appointments.html
+Table ID:    #appointmentsTable
+Columns:
+  1. Appointment Time & Date
+  2. Customer Name & Mobile
+  3. Appointment Type (Consultation, Fitting, Trial, Delivery Pickup)
+  4. Assigned Stylist / Master
+  5. Associated Order Code
+  6. Status (Scheduled, In Progress, Completed, Rescheduled)
+  7. Actions (Check-In, Reschedule, Mark Complete)
+
+--------------------------------------------------------------------------------
+3.11 ENQUIRIES & LEADS TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/enquiries/enquiries.html
+Table ID:    #enquiriesTable
+Columns:
+  1. Enquiry Code
+  2. Lead Name & Contact
+  3. Garment Interest & Occasion
+  4. Channel Source (Instagram, Walk-In, Referral)
+  5. Estimated Budget
+  6. Assigned Consultant
+  7. Status (New, Follow-Up, Converted to Order, Closed)
+  8. Actions (Convert to Order, Log Call, Update Status)
+
+--------------------------------------------------------------------------------
+3.12 TRIALS & ALTERATIONS TRACKING TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/trials-alterations/trials-alterations.html
+Table ID:    #trialsTable
+Columns:
+  1. Trial Code & Time
+  2. Order Code
+  3. Customer Name & Phone
+  4. Garment Type
+  5. Trial Attempt (1st Trial, 2nd Trial, Final Trial)
+  6. Fit Outcome (Perfect Fit, Minor Alteration, Major Alteration)
+  7. Alterations Pending Count
+  8. Assigned Tailor
+  9. Delivery Due Date
+  10. Actions (Log Fitting Feedback, Add Alteration, Clear for Delivery)
+
+--------------------------------------------------------------------------------
+3.13 MEASUREMENTS 360 PROFILES TABLE
+--------------------------------------------------------------------------------
+Page Path:   front end/Measurements/measurement-overview/
+Table ID:    #measurementGridTable
+Columns:
+  1. Profile ID & Version
+  2. Customer Mobile & Name
+  3. Garment Pattern (Blouse, Kurti, Lehenga, Gown)
+  4. Key Points (Bust, Waist, Hip, Armhole, Shoulders, Length)
+  5. Date Recorded
+  6. Master Tailor / Recorded By
+  7. Actions (View 3D Avatar, Edit Measurements, Export Spec Sheet)
+
+
+================================================================================
+[4] PART III: FOREIGN KEY RELATIONSHIP MATRIX
+================================================================================
+
++----------------------------+-----------------------+-----------------------------+--------------------+
+| Child Table                | Foreign Key Column    | Parent Table (Referenced)   | On Delete Action   |
++----------------------------+-----------------------+-----------------------------+--------------------+
+| customer_notes             | customer_mobile       | customers (mobile_number)   | CASCADE            |
+| customer_body_measurements | customer_mobile       | customers (mobile_number)   | CASCADE            |
+| customer_measurements      | customer_mobile       | customers (mobile_number)   | CASCADE            |
+| measurement_profiles       | customer_mobile       | customers (mobile_number)   | CASCADE            |
+| measurement_points         | profile_id            | measurement_profiles (id)   | CASCADE            |
+| orders                     | customer_mobile       | customers (mobile_number)   | RESTRICT           |
+| order_progress_stages      | order_id              | orders (id)                 | CASCADE            |
+| production_stages          | order_id              | orders (id)                 | CASCADE            |
+| production_stages          | assigned_to           | employees (id)              | SET NULL           |
+| stage_definition_employees | stage_def_id          | stage_definitions (id)      | CASCADE            |
+| stage_definition_employees | employee_id           | employees (id)              | CASCADE            |
+| qc_checklists              | order_id              | orders (id)                 | CASCADE            |
+| qc_checklists              | checked_by            | employees (id)              | SET NULL           |
+| trials                     | customer_mobile       | customers (mobile_number)   | CASCADE            |
+| trials                     | order_id              | orders (id)                 | SET NULL           |
+| trial_alterations          | trial_id              | trials (id)                 | CASCADE            |
+| stock_movements            | item_id               | inventory_items (id)        | RESTRICT           |
+| purchase_orders            | supplier_id           | suppliers (id)              | RESTRICT           |
+| purchase_order_items       | po_id                 | purchase_orders (id)        | CASCADE            |
+| purchase_order_items       | item_id               | inventory_items (id)        | SET NULL           |
+| payments                   | order_id              | orders (id)                 | RESTRICT           |
+| payments                   | customer_mobile       | customers (mobile_number)   | RESTRICT           |
+| payment_transactions       | payment_id            | payments (id)               | CASCADE            |
+| appointments               | customer_mobile       | customers (mobile_number)   | CASCADE            |
+| appointments               | order_id              | orders (id)                 | SET NULL           |
+| enquiries                  | converted_order_id    | orders (id)                 | SET NULL           |
+| designs                    | customer_mobile       | customers (mobile_number)   | SET NULL           |
+| designs                    | order_id              | orders (id)                 | SET NULL           |
++----------------------------+-----------------------+-----------------------------+--------------------+
+
+================================================================================
+END OF FILE: ALL_TABLES.txt
+================================================================================

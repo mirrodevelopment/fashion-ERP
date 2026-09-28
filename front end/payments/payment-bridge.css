@@ -1,0 +1,357 @@
+/* ===================================================================
+   HAULO BOUTIQUE ERP — Payment Bridge Shared Modal Stylesheet
+   File: front end/payments/payment-bridge.css
+   Depends on: fragments.css → theme.css (all --var tokens)
+   Used by: payment-bridge.js (imported dynamically by any module)
+   =================================================================== */
+
+/* ── Backdrop Overlay ── */
+.pb-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: pb-fade-in 0.2s ease forwards;
+}
+
+.pb-backdrop.open {
+  display: flex;
+}
+
+@keyframes pb-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal Window ── */
+.pb-window {
+  background: var(--bg-body-alt);
+  border: 1px solid var(--border-card-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pb-slide-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pb-slide-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Header ── */
+.pb-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 18px 14px 18px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.pb-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pb-label-overline {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pb-order-code {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.pb-customer-name {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.pb-close-btn {
+  background: var(--glass-inner);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pb-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-color: var(--border-card-hover);
+}
+
+.pb-close-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Balance Highlight Band ── */
+.pb-balance-highlight {
+  margin: 14px 18px 0 18px;
+  background: var(--lime-bg);
+  border: 1px solid var(--lime-dim);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.pb-balance-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--lime);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+
+.pb-balance-amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--lime);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* ── Body / Form Fields ── */
+.pb-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.pb-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pb-form-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.pb-form-input,
+.pb-form-select {
+  background: var(--glass-inner);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pb-form-input:focus,
+.pb-form-select:focus {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 2px var(--lime-dim);
+}
+
+.pb-form-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.pb-form-select option {
+  background: var(--bg-body);
+  color: var(--text-primary);
+}
+
+/* ── Error message ── */
+.pb-error-msg {
+  font-size: 11.5px;
+  color: var(--red);
+  font-weight: 600;
+  display: none;
+}
+
+.pb-error-msg.visible {
+  display: block;
+}
+
+/* ── Footer ── */
+.pb-footer {
+  display: flex;
+  gap: 9px;
+  padding: 12px 18px 16px 18px;
+  border-top: 1px solid var(--border-card);
+  background: var(--bg-card);
+}
+
+/* Cancel — ghost style, matches .btn-secondary-receipt pattern */
+.pb-cancel-btn {
+  flex: 1;
+  background: var(--glass-inner);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: all 0.2s ease;
+}
+
+.pb-cancel-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-card-hover);
+}
+
+/* Submit — lime primary, matches .btn-primary-record */
+.pb-submit-btn {
+  flex: 2;
+  background: var(--lime);
+  color: var(--lime-dark);
+  border: 1px solid transparent;
+  border-radius: var(--radius-btn);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 12px var(--lime-glow);
+  transition: all 0.2s ease;
+}
+
+.pb-submit-btn:hover:not(:disabled) {
+  background: var(--lime-bright);
+  box-shadow: 0 5px 22px var(--lime-glow);
+  transform: translateY(-1px);
+}
+
+.pb-submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pb-submit-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Inline "Record Payment" trigger button for panels (view-order, delivery) ── */
+.pb-inline-record-btn {
+  width: 100%;
+  margin-top: 10px;
+  background: var(--lime-bg);
+  border: 1px solid var(--lime-dim);
+  color: var(--lime);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.pb-inline-record-btn:hover {
+  background: var(--lime-soft);
+  border-color: var(--lime);
+  box-shadow: 0 2px 12px var(--lime-glow);
+}
+
+.pb-inline-record-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── "Collect Balance" button for delivery detail panel ── */
+.pb-collect-balance-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 14px;
+  background: var(--lime-bg);
+  border: 1px solid var(--lime-dim);
+  color: var(--lime);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: all 0.2s ease;
+}
+
+.pb-collect-balance-btn.visible {
+  display: inline-flex;
+}
+
+.pb-collect-balance-btn:hover {
+  background: var(--lime-soft);
+  border-color: var(--lime);
+  box-shadow: 0 2px 10px var(--lime-glow);
+}
+
+.pb-collect-balance-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Receipt layout reuses existing .receipt-paper, .receipt-header classes ── */
+
+/* ── Print ── */
+@media print {
+  .pb-backdrop {
+    display: flex !important;
+    position: static;
+    background: none;
+    backdrop-filter: none;
+    padding: 0;
+  }
+
+  .pb-window {
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+    animation: none;
+  }
+}

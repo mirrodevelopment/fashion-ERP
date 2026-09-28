@@ -24,4 +24,13 @@ public interface CustomerBodyMeasurementRepository extends JpaRepository<Custome
     List<CustomerBodyMeasurement> findByCustomerMobileOrderByGarmentTypeAscVersionDesc(String customerMobile);
 
     void deleteByCustomerMobile(String customerMobile);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT m.customerMobile) FROM CustomerBodyMeasurement m WHERE m.isCurrent = true")
+    long countDistinctCustomerByIsCurrentTrue();
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT m.customerMobile) FROM CustomerBodyMeasurement m WHERE m.version > 1")
+    long countDistinctCustomerWithVersionGreaterThanOne();
+
+    @org.springframework.data.jpa.repository.Query("SELECT LOWER(m.garmentType), COUNT(m) FROM CustomerBodyMeasurement m WHERE m.isCurrent = true GROUP BY LOWER(m.garmentType)")
+    List<Object[]> countCurrentByGarmentType();
 }

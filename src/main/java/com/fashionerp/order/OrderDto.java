@@ -30,6 +30,7 @@ public class OrderDto {
         private String currentStage;
         private List<String> referenceImages;
         private String productionNotes;
+        private String paymentMethod;
 
         public String getEffectiveMobile() {
             if (customerMobile != null && !customerMobile.isBlank()) return customerMobile;
@@ -37,9 +38,9 @@ public class OrderDto {
         }
 
         public BigDecimal getEffectiveTotalAmount() {
-            if (totalAmount != null && totalAmount.compareTo(BigDecimal.ZERO) > 0) return totalAmount;
+            if (totalAmount != null) return totalAmount;
             if (amount != null) return amount;
-            return BigDecimal.ZERO;
+            return null;
         }
 
         public LocalDate getEffectiveExpectedDeliveryDate() {

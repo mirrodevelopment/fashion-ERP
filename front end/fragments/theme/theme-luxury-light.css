@@ -1,0 +1,490 @@
+/* ================================================================
+   HAULO BOUTIQUE ERP — Theme 3: Haulo Atelier Light
+   Path: front end/fragments/theme/theme-luxury-light.css
+
+   High-end haute couture daylight theme featuring:
+   • Soft Italian alabaster & warm ivory daylight canvas (#F8F7F4)
+   • Pure porcelain milk glass card surfaces (#FFFFFF)
+   • Deep espresso charcoal typography (#1C1917)
+   • Couture olive-lime brand accents (#65A30D / #84CC16)
+   • Editorial contrast with inverted obsidian active pills (#1C1917)
+   ================================================================ */
+
+[data-theme="haulo-light"] {
+
+  /* ── theme meta ── */
+  --theme-name:                   "haulo-light";
+
+  /* ── Backgrounds & Surfaces ── */
+  --bg-body:                      #F8F7F4;
+  --bg-body-alt:                  #F4F2EC;
+  --bg-main:                      #F8F7F4;
+  --bg-card:                      rgba(255, 255, 255, 0.94);
+  --bg-card-hover:                #FFFFFF;
+  --bg-card-strong:               #FFFFFF;
+  --bg-card-subtle:               #F5F2EA;
+  --bg-sidebar:                   #F5F2EA;
+  --bg-header:                    #FAF7F0;
+  --bg-input:                     #FFFFFF;
+  --bg-warm-deep:                 #ECE7DD;
+  --bg-overlay:                   rgba(28, 25, 23, 0.45);
+  --bg-dark:                      #ECE7DD;
+  --bg-darkest:                   #E4DED2;
+  --bg-app:                       #F8F7F4;
+  --bg-surface-1:                 #FFFFFF;
+  --bg-surface-2:                 #F7F5EE;
+  --bg-surface-3:                 #EFEBE0;
+  --bg-table-header:              #F3EFE8;
+
+  /* ── Atmospheric Glow Layers & Gradients ── */
+  --bg-glow-lime:                 rgba(132, 204, 22, 0.05);
+  --bg-glow-warm:                 rgba(212, 175, 55, 0.09);
+  --bg-glow-soft:                 rgba(250, 248, 242, 0.90);
+  --bg-body-gradient:
+    linear-gradient(
+      135deg,
+      #FDFCF9 0%,
+      #F8F6F0 28%,
+      #F2EFE8 55%,
+      #ECE7DD 80%,
+      #E6E0D3 100%
+    );
+
+  --bg-gradient-start:            #FDFCF9;
+  --bg-gradient-warm:             #F8F6F0;
+  --bg-gradient-mid:              #F2EFE8;
+  --bg-gradient-end:              #ECE7DD;
+  --bg-gradient-dark:             #E6E0D3;
+  --bg-gradient-deep:             #DFD8CA;
+
+  /* ── Light Card Surface Aliases ── */
+  --card-light-bg:                #FFFFFF;
+  --card-light-border:            rgba(40, 32, 24, 0.10);
+  --card-light-text:              #1C1917;
+  --card-light-muted:             #78716C;
+  --card-light-text-muted:        rgba(28, 25, 23, 0.60);
+
+  /* ── Borders & Dividers ── */
+  --border-card:                  rgba(40, 32, 24, 0.09);
+  --border-card-hover:            rgba(40, 32, 24, 0.18);
+  --border-card-focus:            rgba(101, 163, 13, 0.45);
+  --border-sidebar:               rgba(40, 32, 24, 0.08);
+  --border-input:                 rgba(40, 32, 24, 0.14);
+  --border-strong:                rgba(40, 32, 24, 0.22);
+  --border-subtle:                rgba(40, 32, 24, 0.08);
+  --border-hover:                 rgba(40, 32, 24, 0.16);
+  --border-medium:                rgba(40, 32, 24, 0.14);
+  --border:                       rgba(40, 32, 24, 0.10);
+  --border-lime:                  rgba(101, 163, 13, 0.35);
+  --divider:                      rgba(40, 32, 24, 0.09);
+  --table-border:                 rgba(40, 32, 24, 0.08);
+  --row-divider:                  rgba(40, 32, 24, 0.06);
+
+  /* ── Shadows ── */
+  --shadow-card:                  0 8px 30px rgba(45, 35, 20, 0.06), 0 2px 6px rgba(45, 35, 20, 0.03);
+  --shadow-sidebar:               4px 0 24px rgba(45, 35, 20, 0.05);
+  --shadow-modal:                 0 24px 64px rgba(45, 35, 20, 0.16);
+  --shadow-sm:                    0 2px 8px rgba(45, 35, 20, 0.04);
+  --shadow-lg:                    0 12px 40px rgba(45, 35, 20, 0.08);
+  --shadow-popup:                 0 12px 40px rgba(45, 35, 20, 0.10);
+  --shadow-hover:                 0 12px 35px rgba(45, 35, 20, 0.09);
+  --shadow-dropdown:              0 10px 25px rgba(45, 35, 20, 0.10);
+
+  /* ── Glass Surface Aliases ── */
+  --glass-border:                 rgba(40, 32, 24, 0.09);
+  --glass-border-light:           rgba(40, 32, 24, 0.12);
+  --glass-card:                   rgba(255, 255, 255, 0.92);
+  --glass-inner:                  #FFFFFF;
+  --glass-panel:                  rgba(255, 255, 255, 0.94);
+  --glass-panel-hover:            #FFFFFF;
+  --glass-panel-strong:           #FFFFFF;
+  --glass-shadow:                 0 8px 30px rgba(45, 35, 20, 0.06);
+  --glass-blur:                   blur(20px);
+  --glass-input:                  #FFFFFF;
+  --glass-input-border:           rgba(40, 32, 24, 0.14);
+  --glass-input-focus:            rgba(101, 163, 13, 0.40);
+  --glass-card-border:            rgba(40, 32, 24, 0.09);
+  --glass-card-shadow:            0 8px 30px rgba(45, 35, 20, 0.06);
+  --surface:                      rgba(255, 255, 255, 0.92);
+  --surface-3:                    #EFEBE0;
+  --c-glass-bg:                   rgba(255, 255, 255, 0.92);
+  --c-glass-border:               rgba(40, 32, 24, 0.09);
+  --c-glass-border-bright:        rgba(40, 32, 24, 0.16);
+  --c-glass-card:                 rgba(255, 255, 255, 0.94);
+
+  /* ── Brand Accent: Couture Olive-Lime (High-Legibility Light Mode) ── */
+  --lime:                         #65A30D;
+  --lime-accent:                  #65A30D;
+  --lime-pill:                    #84CC16;
+  --lime-dark:                    #3F6212;
+  --lime-bright:                  #84CC16;
+  --lime-hover:                   #4D7C0F;
+  --lime-soft:                    rgba(101, 163, 13, 0.12);
+  --lime-pale:                    #D9F99D;
+  --lime-glow:                    rgba(101, 163, 13, 0.20);
+  --lime-dim:                     rgba(101, 163, 13, 0.08);
+  --lime-bg:                      rgba(101, 163, 13, 0.10);
+  --lime-subtle:                  rgba(101, 163, 13, 0.08);
+  --lime-border:                  rgba(101, 163, 13, 0.35);
+  --lime-row-select:              rgba(101, 163, 13, 0.06);
+  --lime-text-on:                 #FFFFFF;
+  --primary-lime:                 #65A30D;
+  --primary-lime-hover:           #4D7C0F;
+  --primary-lime-glow:            rgba(101, 163, 13, 0.20);
+  --accent-lime:                  #65A30D;
+  --accent-lime-dim:              rgba(101, 163, 13, 0.10);
+  --accent-lime-glow:             rgba(101, 163, 13, 0.20);
+  --clr-accent:                   #65A30D;
+  --nav-lime:                     #65A30D;
+  --nav-lime-dark:                #F5F2EA;
+  --nav-lime-pill:                rgba(101, 163, 13, 0.12);
+  --c-lime:                       #65A30D;
+  --c-lime-border:                rgba(101, 163, 13, 0.35);
+  --c-lime-glow:                  rgba(101, 163, 13, 0.20);
+  --c-lime-subtle:                rgba(101, 163, 13, 0.08);
+  --c-secondary-lime:             #84CC16;
+  --c-lime-hover:                 #4D7C0F;
+  --c-lime-dark:                  #F5F2EA;
+  --accent-login-lime:            #65A30D;
+  --shadow-btn-lime:              0 2px 8px rgba(101, 163, 13, 0.25);
+  --shadow-btn-lime-cta:          0 2px 10px rgba(101, 163, 13, 0.25);
+  --kpi-green-bg:                 rgba(101, 163, 13, 0.10);
+  --kpi-green:                    #65A30D;
+
+  /* ── Typography (Deep Espresso & Warm Charcoal) ── */
+  --text-primary:                 #1C1917;
+  --text-secondary:               #44403C;
+  --text-muted:                   #78716C;
+  --text-dim:                     #A8A29E;
+  --text-disabled:                #D6D3D1;
+  --text-light:                   rgba(28, 25, 23, 0.40);
+  --text-white:                   #1C1917;
+  --text-subtle:                  #78716C;
+  --text-on-white:                #1C1917;
+  --text-1:                       #1C1917;
+  --text-2:                       #44403C;
+  --text-3:                       #78716C;
+  --c-text-pri:                   #1C1917;
+  --c-text-sec:                   #44403C;
+  --c-text-muted:                 #78716C;
+  --c-text-faint:                 #A8A29E;
+  --table-text-primary:           #1C1917;
+  --table-text-secondary:         #44403C;
+  --table-text-muted:             #78716C;
+  --clr-text:                     #1C1917;
+  --clr-muted:                    #78716C;
+
+  /* ── Accent Colors (Optimized for Light Backgrounds) ── */
+  --green:                        #16A34A;
+  --green-bright:                 #15803D;
+  --green-dark:                   #166534;
+  --green-bg:                     rgba(22, 163, 74, 0.10);
+  --green-border:                 rgba(22, 163, 74, 0.25);
+  --green-accent:                 #16A34A;
+  --delta-up:                     #16A34A;
+  --kpi-emerald-bg:               rgba(22, 163, 74, 0.10);
+  --kpi-emerald:                  #16A34A;
+  --dot-green:                    #16A34A;
+  --dot-emerald:                  #16A34A;
+
+  --red:                          #DC2626;
+  --danger:                       #DC2626;
+  --danger-bg:                    rgba(220, 38, 38, 0.10);
+  --danger-border:                rgba(220, 38, 38, 0.25);
+  --delta-down:                   #DC2626;
+
+  --amber:                        #D97706;
+  --amber-dark:                   #B45309;
+  --amber-bg:                     rgba(217, 119, 6, 0.10);
+  --amber-border:                 rgba(217, 119, 6, 0.25);
+  --kpi-amber-bg:                 rgba(217, 119, 6, 0.10);
+  --kpi-amber:                    #D97706;
+
+  --gold:                         #C5A059;
+  --gold-bg:                      rgba(197, 160, 89, 0.12);
+  --gold-border:                  rgba(197, 160, 89, 0.30);
+
+  --blue:                         #0284C7;
+  --blue-bg:                      rgba(2, 132, 199, 0.10);
+  --blue-border:                  rgba(2, 132, 199, 0.25);
+  --kpi-blue-bg:                  rgba(2, 132, 199, 0.10);
+  --kpi-blue:                     #0284C7;
+  --kpi-cyan-bg:                  rgba(13, 148, 136, 0.10);
+  --kpi-cyan:                     #0D9488;
+
+  --purple:                       #7C3AED;
+  --purple-bg:                    rgba(124, 58, 237, 0.10);
+  --purple-border:                rgba(124, 58, 237, 0.25);
+
+  --pink:                         #DB2777;
+  --pink-bg:                      rgba(219, 39, 119, 0.10);
+  --pink-border:                  rgba(219, 39, 119, 0.25);
+
+  /* ── Filter Stage Pills (Editorial High-Contrast) ── */
+  --pill-bg:                      #FFFFFF;
+  --pill-text:                    #44403C;
+  --pill-border:                  rgba(40, 32, 24, 0.12);
+  --pill-badge-bg:                rgba(40, 32, 24, 0.06);
+  --pill-active-bg:               #1C1917;
+  --pill-active-text:             #FAF8F5;
+  --pill-active-border:           #1C1917;
+  --pill-active-shadow:           0 2px 10px rgba(0, 0, 0, 0.15);
+  --pill-active-badge-bg:         rgba(255, 255, 255, 0.20);
+
+  --haulo-pill-bg:                #FFFFFF;
+  --haulo-pill-text:              #44403C;
+  --haulo-pill-border:            rgba(40, 32, 24, 0.12);
+  --haulo-pill-badge-bg:          rgba(40, 32, 24, 0.06);
+  --haulo-pill-active-bg:         #1C1917;
+  --haulo-pill-active-text:       #FAF8F5;
+  --haulo-pill-active-border:     #1C1917;
+  --haulo-pill-active-shadow:     0 2px 10px rgba(0, 0, 0, 0.15);
+  --haulo-pill-active-badge-bg:   rgba(255, 255, 255, 0.20);
+
+  /* ── Navigation & Shared Header ── */
+  --nav-glass-border:             rgba(40, 32, 24, 0.08);
+  --nav-glass-md:                 rgba(40, 32, 24, 0.08);
+  --nav-sidebar-bg:               #F5F2EA;
+  --nav-topbar-bg:                #FAF7F0;
+  --table-card-bg:                #FFFFFF;
+  --table-card-border:            rgba(40, 32, 24, 0.08);
+
+  --haulo-bg-placeholder:         #EDE8DC;
+  --haulo-bg-hero-placeholder:    #E4DEC8;
+  --haulo-bg-dropdown:            #FFFFFF;
+  --haulo-bg-table-header:        #F3EFE8;
+
+  /* ── Stage Badges ── */
+  --haulo-stage-stitching-bg:     rgba(124, 58, 237, 0.10);
+  --haulo-stage-stitching:        #7C3AED;
+  --haulo-stage-stitching-border: rgba(124, 58, 237, 0.25);
+
+  --haulo-stage-designing-bg:     rgba(2, 132, 199, 0.10);
+  --haulo-stage-designing:        #0284C7;
+  --haulo-stage-designing-border: rgba(2, 132, 199, 0.25);
+
+  --haulo-stage-cutting-bg:       rgba(219, 39, 119, 0.10);
+  --haulo-stage-cutting:          #DB2777;
+  --haulo-stage-cutting-border:   rgba(219, 39, 119, 0.25);
+
+  --haulo-stage-trial-bg:         rgba(217, 119, 6, 0.10);
+  --haulo-stage-trial:            #D97706;
+  --haulo-stage-trial-border:     rgba(217, 119, 6, 0.25);
+
+  --haulo-stage-qc-bg:            rgba(13, 148, 136, 0.10);
+  --haulo-stage-qc:               #0D9488;
+  --haulo-stage-qc-border:        rgba(13, 148, 136, 0.25);
+
+  --haulo-stage-ready-bg:         rgba(22, 163, 74, 0.10);
+  --haulo-stage-ready:            #16A34A;
+  --haulo-stage-ready-border:     rgba(22, 163, 74, 0.25);
+
+  --haulo-stage-delivered-bg:     rgba(79, 70, 229, 0.10);
+  --haulo-stage-delivered:        #4F46E5;
+  --haulo-stage-delivered-border: rgba(79, 70, 229, 0.25);
+
+  --haulo-stage-onhold-bg:        rgba(120, 113, 108, 0.12);
+  --haulo-stage-onhold:           #78716C;
+  --haulo-stage-onhold-border:    rgba(120, 113, 108, 0.25);
+
+  /* ── Status Capsules ── */
+  --haulo-status-inprod-bg:       rgba(2, 132, 199, 0.10);
+  --haulo-status-inprod:          #0284C7;
+  --haulo-status-inprod-border:   rgba(2, 132, 199, 0.25);
+
+  --haulo-status-trial-bg:        rgba(217, 119, 6, 0.10);
+  --haulo-status-trial:           #D97706;
+  --haulo-status-trial-border:    rgba(217, 119, 6, 0.25);
+
+  --haulo-status-awqc-bg:         rgba(13, 148, 136, 0.10);
+  --haulo-status-awqc:            #0D9488;
+  --haulo-status-awqc-border:     rgba(13, 148, 136, 0.25);
+
+  --haulo-status-ready-bg:        rgba(22, 163, 74, 0.10);
+  --haulo-status-ready:           #16A34A;
+  --haulo-status-ready-border:    rgba(22, 163, 74, 0.25);
+
+  --haulo-status-delivered-bg:    rgba(79, 70, 229, 0.10);
+  --haulo-status-delivered:       #4F46E5;
+  --haulo-status-delivered-border: rgba(79, 70, 229, 0.25);
+
+  --haulo-status-onhold-bg:       rgba(120, 113, 108, 0.12);
+  --haulo-status-onhold:          #78716C;
+  --haulo-status-onhold-border:   rgba(120, 113, 108, 0.25);
+
+  /* ── Priority Badges ── */
+  --haulo-priority-urgent-bg:     rgba(220, 38, 38, 0.12);
+  --haulo-priority-urgent:        #DC2626;
+  --haulo-priority-urgent-border: rgba(220, 38, 38, 0.30);
+
+  --haulo-priority-high-bg:       rgba(234, 88, 12, 0.12);
+  --haulo-priority-high:          #EA580C;
+  --haulo-priority-high-border:   rgba(234, 88, 12, 0.30);
+
+  --haulo-priority-normal-bg:     rgba(87, 83, 78, 0.08);
+  --haulo-priority-normal:        #57534E;
+  --haulo-priority-normal-border: rgba(87, 83, 78, 0.20);
+
+  /* ── Payment Badges ── */
+  --haulo-payment-paid-bg:        rgba(22, 163, 74, 0.12);
+  --haulo-payment-paid:           #16A34A;
+  --haulo-payment-paid-border:    rgba(22, 163, 74, 0.25);
+
+  --haulo-payment-partial-bg:     rgba(217, 119, 6, 0.12);
+  --haulo-payment-partial:        #D97706;
+  --haulo-payment-partial-border: rgba(217, 119, 6, 0.25);
+
+  --haulo-payment-pending-bg:     rgba(220, 38, 38, 0.12);
+  --haulo-payment-pending:        #DC2626;
+  --haulo-payment-pending-border: rgba(220, 38, 38, 0.25);
+
+  /* ── Dot Indicators ── */
+  --haulo-dot-ready:              #16A34A;
+  --haulo-dot-partial:            #D97706;
+  --haulo-dot-awaiting:           #DC2626;
+  --haulo-days-ok:                #16A34A;
+  --haulo-days-overdue:           #DC2626;
+}
+
+/* ── Navigation Components in Haulo Atelier Light ── */
+[data-theme="haulo-light"] .brand-name {
+  color: #1C1917 !important;
+}
+
+[data-theme="haulo-light"] .brand-sub {
+  color: #78716C !important;
+}
+
+[data-theme="haulo-light"] .sidebar-logo,
+[data-theme="haulo-light"] .sidebar-brand {
+  border-bottom-color: rgba(40, 32, 24, 0.08) !important;
+}
+
+[data-theme="haulo-light"] .sidebar-toggle,
+[data-theme="haulo-light"] .sidebar-toggle-btn {
+  background: #FFFFFF !important;
+  border-color: rgba(40, 32, 24, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(45, 35, 20, 0.08) !important;
+}
+
+[data-theme="haulo-light"] .sidebar-toggle svg,
+[data-theme="haulo-light"] .sidebar-toggle-btn svg,
+[data-theme="haulo-light"] .sidebar-toggle-btn .toggle-icon {
+  color: #44403C !important;
+}
+
+[data-theme="haulo-light"] .nav-section-label {
+  color: #A8A29E !important;
+}
+
+[data-theme="haulo-light"] .nav-item {
+  color: #44403C !important;
+}
+
+[data-theme="haulo-light"] .nav-item:hover {
+  background: rgba(40, 32, 24, 0.06) !important;
+  color: #1C1917 !important;
+}
+
+[data-theme="haulo-light"] .nav-item:hover svg,
+[data-theme="haulo-light"] .nav-item:hover .ni {
+  color: #1C1917 !important;
+}
+
+[data-theme="haulo-light"] .nav-item.active {
+  background: #1C1917 !important;
+  color: #FAF8F5 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="haulo-light"] .nav-item.active svg,
+[data-theme="haulo-light"] .nav-item.active .ni,
+[data-theme="haulo-light"] .nav-item.active span {
+  color: #FAF8F5 !important;
+  stroke: #FAF8F5 !important;
+}
+
+[data-theme="haulo-light"] .top-bar {
+  background: #FAF7F0 !important;
+  border-color: rgba(40, 32, 24, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(45, 35, 20, 0.05) !important;
+}
+
+[data-theme="haulo-light"] .search-bar {
+  background: #FFFFFF !important;
+  border-color: rgba(40, 32, 24, 0.12) !important;
+}
+
+[data-theme="haulo-light"] .search-bar:focus-within,
+[data-theme="haulo-light"] .search-bar:hover {
+  border-color: #65A30D !important;
+  background: #FFFFFF !important;
+}
+
+[data-theme="haulo-light"] .search-icon {
+  color: #78716C !important;
+}
+
+[data-theme="haulo-light"] .search-ph {
+  color: #A8A29E !important;
+}
+
+[data-theme="haulo-light"] .icon-btn {
+  background: #FFFFFF !important;
+  border-color: rgba(40, 32, 24, 0.12) !important;
+  color: #44403C !important;
+}
+
+[data-theme="haulo-light"] .icon-btn:hover {
+  background: #F5F2EA !important;
+  color: #1C1917 !important;
+  border-color: rgba(40, 32, 24, 0.20) !important;
+}
+
+[data-theme="haulo-light"] .user-btn {
+  background: #FFFFFF !important;
+  border-color: rgba(40, 32, 24, 0.12) !important;
+}
+
+[data-theme="haulo-light"] .user-btn:hover {
+  background: #F5F2EA !important;
+}
+
+[data-theme="haulo-light"] .u-name {
+  color: #1C1917 !important;
+}
+
+[data-theme="haulo-light"] .u-role {
+  color: #78716C !important;
+}
+
+[data-theme="haulo-light"] .dd-panel {
+  background: #FFFFFF !important;
+  border-color: rgba(40, 32, 24, 0.10) !important;
+  box-shadow: 0 12px 35px rgba(45, 35, 20, 0.12) !important;
+}
+
+[data-theme="haulo-light"] .dd-panel-header {
+  color: #1C1917 !important;
+  border-bottom-color: rgba(40, 32, 24, 0.08) !important;
+}
+
+[data-theme="haulo-light"] .dd-item,
+[data-theme="haulo-light"] .dd-item-row {
+  color: #44403C !important;
+}
+
+[data-theme="haulo-light"] .dd-item:hover,
+[data-theme="haulo-light"] .dd-item-row:hover {
+  background: #F5F2EA !important;
+  color: #1C1917 !important;
+}
+
+[data-theme="haulo-light"] .ddt {
+  color: #1C1917 !important;
+}
+
+[data-theme="haulo-light"] .dds {
+  color: #78716C !important;
+}
+

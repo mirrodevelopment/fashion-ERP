@@ -16,7 +16,8 @@
   <!-- Base ERP Stylesheets -->
   <link rel="stylesheet" href="../../fragments/fragments.css" />
   <link rel="stylesheet" href="../../fragments/nav.css" />
-  <link rel="stylesheet" href="view-order.css?v=2.5" />
+  <link rel="stylesheet" href="view-order.css?v=3.7" />
+  <link rel="stylesheet" href="../../payments/payment-bridge.css" />
 
   <!-- Navigation & Fragment Base Configuration (2 levels deep) -->
   <script>window.FRAGMENT_BASE = '../../fragments/';</script>
@@ -66,7 +67,7 @@
                 <div class="dd-item" onclick="window.print()"><i data-lucide="download" style="width:13px;height:13px;margin-right:8px;"></i>Download PDF</div>
                 <div class="dd-item" onclick="openPrintJobCardModal()"><i data-lucide="printer" style="width:13px;height:13px;margin-right:8px;"></i>Print Order</div>
                 <div class="dd-divider"></div>
-                <div class="dd-item" style="color:#ef4444;" onclick="handleCancelOrder()"><i data-lucide="x-circle" style="width:13px;height:13px;margin-right:8px;"></i>Cancel Order</div>
+                <div class="dd-item" id="menuCancelOrder" style="color:#ef4444;" onclick="handleCancelOrder()"><i data-lucide="x-circle" style="width:13px;height:13px;margin-right:8px;"></i>Cancel Order</div>
                 <div class="dd-item" style="color:var(--text-muted);" onclick="handleArchiveOrder()"><i data-lucide="archive" style="width:13px;height:13px;margin-right:8px;"></i>Archive Order</div>
               </div>
             </div>
@@ -88,8 +89,12 @@
 
           <!-- Customer Compact Information Card -->
           <div class="customer-compact-card" id="customerCompactCard">
-            <div class="cc-avatar-box">
-              <img src="../../assets/user_avatar.jpg" alt="Customer Avatar" class="cc-avatar-img" id="ccAvatarImg" onerror="this.src='../../assets/user_avatar.jpg';" />
+            <div class="cc-avatar-box" id="ccAvatarBox">
+              <img src="" alt="Customer Avatar" class="cc-avatar-img" id="ccAvatarImg" style="display:none;" />
+              <div class="cc-avatar-placeholder" id="ccAvatarPlaceholder">
+                <i data-lucide="user" class="cc-user-icon"></i>
+                <span class="cc-avatar-initials" id="ccAvatarInitials" style="display:none;"></span>
+              </div>
             </div>
             <div class="cc-meta-box">
               <div class="cc-name-row">
@@ -113,12 +118,12 @@
               </div>
               <div class="cc-stat">
                 <span class="cc-stat-lbl">Priority</span>
-                <span class="priority-pill red" id="ccPriority">Normal</span>
+                <span class="priority-pill" id="ccPriority">—</span>
               </div>
               <div class="cc-stat">
                 <span class="cc-stat-lbl">Order Value</span>
                 <span class="cc-stat-val" id="ccOrderValue">₹0</span>
-                <span class="cc-stat-sub green" id="ccPaymentBadge">Advance Paid</span>
+                <span class="cc-stat-sub" id="ccPaymentBadge">—</span>
               </div>
             </div>
             <button type="button" class="btn-icon-dot" id="btnCustomerQuickOptions" title="Customer options">⋮</button>
@@ -127,6 +132,9 @@
 
         <!-- ─── 10-Stage Horizontal Production Progress Tracker ─── -->
         <div class="production-progress-tracker-wrap">
+          <div id="orderCancelledBanner" class="order-cancelled-banner" style="display:none;">
+            <span>cancaled at</span>
+          </div>
           <div class="production-stepper-row" id="productionStepper">
             <!-- Rendered dynamically by JS -->
           </div>
@@ -145,27 +153,49 @@
                 </div>
                 <button type="button" class="btn-card-link" onclick="openAllDesignReferences()" title="View all">→</button>
               </div>
-              <div class="design-photos-grid">
-                <div class="dp-large" onclick="openLightbox(0)">
-                  <img id="drLargeImg" src="../../assets/designs/zari-bloom-back.jpg" alt="Design Reference" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+              <div class="design-photos-grid" id="designPhotosGrid">
+                <div class="dp-large" id="drLargeSlot">
+                  <div class="dp-large dr-empty-frame dr-large-empty" onclick="triggerRefUpload(1)" title="Upload customer reference image 1">
+                    <div class="dr-empty-content">
+                      <i data-lucide="image" class="dr-empty-icon-lg"></i>
+                      <span class="dr-empty-badge">Empty Frame</span>
+                      <span class="dr-empty-text">No Customer Image</span>
+                      <small class="dr-empty-hint">+ Click to Upload</small>
+                    </div>
+                  </div>
                 </div>
-                <!-- Thumbnails: JS rewrites drThumbsContainer on load -->
+                <!-- Thumbnails: JS populates drThumbsContainer on load -->
                 <div id="drThumbsContainer" style="display:contents;">
                   <div class="dp-middle-col">
-                    <div class="dp-thumb" onclick="openLightbox(1)">
-                      <img id="drThumb1Img" src="../../assets/designs/zari-bloom-front.jpg" alt="Front Neck" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                    <div class="dp-thumb dr-thumb-wrap dr-empty-frame dr-thumb-empty" onclick="triggerRefUpload(2)" title="Empty frame • Click to upload">
+                      <div class="dr-upload-placeholder">
+                        <i data-lucide="plus" class="dr-empty-icon-sm"></i>
+                        <span class="dr-empty-frame-tag">Empty Frame</span>
+                        <small class="dr-empty-sub-tag">Upload</small>
+                      </div>
                     </div>
-                    <div class="dp-thumb" onclick="openLightbox(2)">
-                      <img id="drThumb2Img" src="../../assets/designs/zari-bloom-detail.jpg" alt="Embroidery Detail" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                    <div class="dp-thumb dr-thumb-wrap dr-empty-frame dr-thumb-empty" onclick="triggerRefUpload(3)" title="Empty frame • Click to upload">
+                      <div class="dr-upload-placeholder">
+                        <i data-lucide="plus" class="dr-empty-icon-sm"></i>
+                        <span class="dr-empty-frame-tag">Empty Frame</span>
+                        <small class="dr-empty-sub-tag">Upload</small>
+                      </div>
                     </div>
                   </div>
                   <div class="dp-right-col">
-                    <div class="dp-thumb" onclick="openLightbox(3)">
-                      <img id="drThumb3Img" src="../../assets/pink_silk.jpg" alt="Fabric Swatch" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                    <div class="dp-thumb dr-thumb-wrap dr-empty-frame dr-thumb-empty" onclick="triggerRefUpload(4)" title="Empty frame • Click to upload">
+                      <div class="dr-upload-placeholder">
+                        <i data-lucide="plus" class="dr-empty-icon-sm"></i>
+                        <span class="dr-empty-frame-tag">Empty Frame</span>
+                        <small class="dr-empty-sub-tag">Upload</small>
+                      </div>
                     </div>
-                    <div class="dp-more-tile" id="drMoreTile" onclick="triggerRefUpload(5)">
-                      <span class="more-num" id="drMoreCount">+</span>
-                      <span class="more-lbl">Upload</span>
+                    <div class="dp-thumb dr-thumb-wrap dr-empty-frame dr-thumb-empty" onclick="triggerRefUpload(5)" title="Empty frame • Click to upload">
+                      <div class="dr-upload-placeholder">
+                        <i data-lucide="plus" class="dr-empty-icon-sm"></i>
+                        <span class="dr-empty-frame-tag">Empty Frame</span>
+                        <small class="dr-empty-sub-tag">Upload</small>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -204,14 +234,18 @@
                 <button type="button" class="btn-card-link" onclick="openFabricDetailsModal()" title="View fabric info">→</button>
               </div>
               <div class="fabric-summary-box">
-                <div class="fab-thumb">
-                  <img id="fabThumbImg" src="../../assets/pink_silk.jpg" alt="Fabric" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                <div class="fab-thumb" id="fabThumbBox">
+                  <img id="fabThumbImg" src="" alt="Fabric" style="display:none;" />
+                  <div class="fab-thumb-empty" id="fabThumbEmpty">
+                    <i data-lucide="layers" style="width:18px;height:18px;opacity:0.6;"></i>
+                    <span class="fab-empty-tag">Empty Frame</span>
+                  </div>
                 </div>
                 <div class="fab-info">
-                  <div class="fab-badge" id="fabBadge">Customer Supplied</div>
-                  <div class="fab-name" id="fabName">Silk</div>
-                  <div class="fab-color" id="fabColor">Dusty Pink</div>
-                  <div class="fab-qty" id="fabQty">2.5 m</div>
+                  <div class="fab-badge" id="fabBadge" style="display:none;"></div>
+                  <div class="fab-name" id="fabName">—</div>
+                  <div class="fab-color" id="fabColor" style="display:none;"></div>
+                  <div class="fab-qty" id="fabQty" style="display:none;"></div>
                 </div>
               </div>
               <div class="additional-mats-wrap">
@@ -229,7 +263,7 @@
                   <div class="icon-sq purple"><i data-lucide="users" style="width:13px;height:13px;"></i></div>
                   <h2 class="section-heading">Production Team</h2>
                 </div>
-                <button type="button" class="btn-card-link" onclick="openTeamModal()" title="View team">→</button>
+                <button type="button" class="btn-card-link" onclick="openAssignTeamModal()" title="Assign craftsman">+</button>
               </div>
               <div class="team-members-list" id="teamMembersList">
                 <div class="empty-state-notice" style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">Loading assigned artisans...</div>
@@ -422,7 +456,7 @@
                 <div class="icon-sq lime"><i data-lucide="check-circle" style="width:14px;height:14px;"></i></div>
                 <div class="na-meta">
                   <span class="na-label">Next Action</span>
-                  <span class="na-action-title" id="nextActionTitle">Production Planning</span>
+                  <span class="na-action-title" id="nextActionTitle">—</span>
                   <span class="na-assignee" id="nextActionAssignee">—</span>
                 </div>
               </div>
@@ -663,6 +697,83 @@
     </div>
   </div>
 
+  <!-- =====================================================
+       MODAL: ASSIGN PRODUCTION TEAM MEMBER
+       ===================================================== -->
+  <div class="modal-backdrop" id="assignTeamModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="user-plus" style="width:18px;height:18px;color:var(--lime);"></i>
+          <h3 class="modal-title">Assign Craftsman to Order</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeAssignTeamModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="assignTeamForm" onsubmit="event.preventDefault(); submitAssignTeam();" style="display:flex;flex-direction:column;gap:16px;">
+          <div class="form-group">
+            <label class="form-label" for="assignStageSelect" style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Production Stage</label>
+            <select id="assignStageSelect" class="form-select" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:8px;color:#fff;font-size:13px;">
+              <!-- Dynamically populated from order's live stages -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="assignEmployeeSelect" style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Artisan / Specialist</label>
+            <select id="assignEmployeeSelect" class="form-select" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:8px;color:#fff;font-size:13px;">
+              <!-- Populated from active employees -->
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeAssignTeamModal()">Cancel</button>
+        <button type="button" class="btn-primary-action" id="btnSubmitAssignTeam" onclick="submitAssignTeam()">Assign to Order</button>
+      </div>
+    </div>
+  </div>
+  <!-- =====================================================
+       MODAL: CONFIRM ORDER CANCELLATION
+       ===================================================== -->
+  <div class="modal-backdrop" id="cancelOrderModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;">
+    <div class="modal-card" style="background:#13151b;border:1px solid rgba(239,68,68,0.3);box-shadow:0 20px 45px rgba(0,0,0,0.6),0 0 25px rgba(239,68,68,0.15);border-radius:16px;max-width:440px;width:90%;overflow:hidden;">
+      <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.08);">
+        <div class="modal-title-wrap" style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:10px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;">
+            <i data-lucide="alert-octagon" style="width:18px;height:18px;color:#ef4444;"></i>
+          </div>
+          <h3 class="modal-title" style="margin:0;font-size:16px;font-weight:700;color:#f87171;">Cancel Order</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeCancelOrderModal()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-size:13.5px;line-height:1.5;color:#e2e8f0;">
+          Are you sure you want to cancel order <span id="cancelModalOrderCode" style="background:rgba(239,68,68,0.15);color:#fca5a5;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:700;font-size:13px;border:1px solid rgba(239,68,68,0.3);">—</span>?
+        </div>
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);border-radius:10px;padding:12px 14px;font-size:12px;color:#fca5a5;line-height:1.5;">
+          <strong>Production Warning:</strong> This action will halt all production workflow, lock stage progression, and persist the <strong>CANCELLED</strong> status to PostgreSQL.
+        </div>
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11.5px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Cancellation Reason</label>
+          <select id="cancelReasonSelect" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;font-size:13px;outline:none;">
+            <option value="Client Cancellation Request" style="background:#1a1d24;color:#fff;">Client Cancellation Request</option>
+            <option value="Change of Design / Specifications" style="background:#1a1d24;color:#fff;">Change of Design / Specifications</option>
+            <option value="Fabric / Trims Out of Stock" style="background:#1a1d24;color:#fff;">Fabric / Trims Out of Stock</option>
+            <option value="Measurement Revision Needed" style="background:#1a1d24;color:#fff;">Measurement Revision Needed</option>
+            <option value="Delivery Timeline Conflict" style="background:#1a1d24;color:#fff;">Delivery Timeline Conflict</option>
+            <option value="Duplicate Order Entry" style="background:#1a1d24;color:#fff;">Duplicate Order Entry</option>
+            <option value="Other / Boutique Discretion" style="background:#1a1d24;color:#fff;">Other / Boutique Discretion</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.2);">
+        <button type="button" class="btn-ghost" onclick="closeCancelOrderModal()" style="padding:9px 16px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;font-size:13px;font-weight:600;cursor:pointer;">Keep Order</button>
+        <button type="button" class="btn-primary-action" id="btnConfirmCancelOrder" onclick="submitConfirmCancelOrder()" style="padding:9px 18px;border-radius:8px;background:#ef4444;border:1px solid #dc2626;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(239,68,68,0.35);">
+          <i data-lucide="x-circle" style="width:14px;height:14px;"></i>Confirm Cancellation
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -670,7 +781,7 @@
   <script type="module" src="../../api.js"></script>
 
   <!-- Page Logic Script -->
-  <script src="view-order.js?v=2.5"></script>
+  <script src="view-order.js?v=3.7"></script>
 
   <!-- Fragments Initialization -->
   <script src="../../fragments/fragments-inline.js"></script>

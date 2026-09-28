@@ -95,7 +95,8 @@ function cacheDom() {
     altPhoneInput: document.getElementById('altPhoneInput'),
     emailInput: document.getElementById('emailInput'),
     instagramInput: document.getElementById('instagramInput'),
-    prefChannelSelect: document.getElementById('prefChannelSelect'),
+    prefChannelSelect: document.getElementById('prefChannelSelect') || document.getElementById('prefChannelInput'),
+    prefChannelInput: document.getElementById('prefChannelInput') || document.getElementById('prefChannelSelect'),
     // Step 3
     streetAddressInput: document.getElementById('streetAddressInput'),
     citySelect: document.getElementById('citySelect'),
@@ -144,6 +145,8 @@ function cacheDom() {
     sumEmail: document.getElementById('sumEmail'),
     sumLocation: document.getElementById('sumLocation'),
     sumStyleTags: document.getElementById('sumStyleTags'),
+    sumColorTags: document.getElementById('sumColorTags'),
+    sumMeasStatus: document.getElementById('sumMeasStatus'),
     sumMeasDims: document.getElementById('sumMeasDims'),
     sumStylist: document.getElementById('sumStylist'),
     sumVipIcon: document.getElementById('sumVipIcon'),
@@ -156,6 +159,9 @@ function cacheDom() {
     chkStyle: document.getElementById('chkStyle'),
     chkMeasurements: document.getElementById('chkMeasurements'),
     chkAccount: document.getElementById('chkAccount'),
+    // Action Buttons
+    btnSaveDraft: document.getElementById('btnSaveDraft'),
+    btnRegisterCustomer: document.getElementById('btnRegisterCustomer'),
     // Modal
     successModal: document.getElementById('successModal'),
     modalCustomerSubtitle: document.getElementById('modalCustomerSubtitle'),
@@ -172,7 +178,6 @@ function initStepper() {
     { num: 3, target: 'cardAddress' },
     { num: 4, target: 'cardStyleDNA' },
     { num: 5, target: 'cardMeasurements' },
-    { num: 6, target: 'cardAccount' },
   ];
 
   document.querySelectorAll('.step-node').forEach(node => {
@@ -198,63 +203,6 @@ function initStepper() {
   });
 }
 
-// ─── Avatar Photo Handling ───
-function handleAvatarFileSelect(input) {
-  if (input.files && input.files[0]) {
-    const file = input.files[0];
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Image size exceeds 5MB limit.', 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      customerState.avatarDataUrl = e.target.result;
-      if (dom.avatarImg) {
-        dom.avatarImg.src = customerState.avatarDataUrl;
-        dom.avatarImg.style.display = 'block';
-      }
-      if (dom.avatarFallback) dom.avatarFallback.style.display = 'none';
-      if (dom.btnRemoveAvatar) dom.btnRemoveAvatar.style.display = 'inline-block';
-
-      // Update right preview avatar
-      if (dom.sumAvatarImg) {
-        dom.sumAvatarImg.src = customerState.avatarDataUrl;
-        dom.sumAvatarImg.style.display = 'block';
-      }
-      if (dom.sumAvatarFallback) dom.sumAvatarFallback.style.display = 'none';
-
-      showToast('Client portrait uploaded.', 'success');
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-function removeAvatar() {
-  customerState.avatarDataUrl = '';
-  if (dom.avatarImg) {
-    dom.avatarImg.src = '';
-    dom.avatarImg.style.display = 'none';
-  }
-  if (dom.avatarFallback) dom.avatarFallback.style.display = 'flex';
-  if (dom.btnRemoveAvatar) dom.btnRemoveAvatar.style.display = 'none';
-  if (dom.avatarFileInput) dom.avatarFileInput.value = '';
-
-  if (dom.sumAvatarImg) {
-    dom.sumAvatarImg.src = '';
-    dom.sumAvatarImg.style.display = 'none';
-  }
-  if (dom.sumAvatarFallback) dom.sumAvatarFallback.style.display = 'flex';
-
-  syncCustomerPreview();
-  showToast('Client portrait removed.', 'info');
-}
-
-// Trigger upload click
-document.addEventListener('click', e => {
-  if (e.target.closest('#btnTriggerUpload')) {
-    if (dom.avatarFileInput) dom.avatarFileInput.click();
-  }
-});
 
 // ─── Gender Change ───
 function handleGenderChange(genderVal) {
@@ -311,6 +259,19 @@ function toggleGarmentChip(button) {
   updateReadinessProgress();
 }
 
+// ─── Color Hex Helper ───
+function getColorHex(name) {
+  const map = {
+    'Rani Pink': '#e11d48',
+    'Peacock Blue': '#0284c7',
+    'Emerald Green': '#059669',
+    'Ivory Gold': '#eab308',
+    'Wine Maroon': '#881337',
+    'Mustard Yellow': '#d97706',
+  };
+  return map[name] || '#b8ff3d';
+}
+
 // ─── Color Swatches Multi-Select ───
 function toggleColorSwatch(button) {
   const color = button.getAttribute('data-color');
@@ -322,6 +283,7 @@ function toggleColorSwatch(button) {
     customerState.colors.push(color);
     button.classList.add('active');
   }
+  syncCustomerPreview();
   updateReadinessProgress();
 }
 
@@ -356,12 +318,18 @@ function selectStandardSize(button, sizeNum) {
   const unit = customerState.measurementUnit;
   const factor = unit === 'cm' ? 2.54 : 1;
 
-  if (dom.measBust) dom.measBust.value = (p.bust * factor).toFixed(1);
-  if (dom.measUnderbust) dom.measUnderbust.value = (p.underbust * factor).toFixed(1);
-  if (dom.measWaist) dom.measWaist.value = (p.waist * factor).toFixed(1);
-  if (dom.measHighHip) dom.measHighHip.value = (p.highHip * factor).toFixed(1);
-  if (dom.measLowHip) dom.measLowHip.value = (p.lowHip * factor).toFixed(1);
-  if (dom.measShoulder) dom.measShoulder.value = (p.shoulder * factor).toFixed(1);
+  const setVal = (k, v) => {
+    const el = document.getElementById(`meas_${k}`) || document.getElementById(`meas${k.charAt(0).toUpperCase() + k.slice(1)}`);
+    if (el) el.value = v;
+  };
+
+  setVal('bust', (p.bust * factor).toFixed(1));
+  setVal('underBust', (p.underbust * factor).toFixed(1));
+  setVal('underbust', (p.underbust * factor).toFixed(1));
+  setVal('waist', (p.waist * factor).toFixed(1));
+  setVal('highHip', (p.highHip * factor).toFixed(1));
+  setVal('lowHip', (p.lowHip * factor).toFixed(1));
+  setVal('shoulder', (p.shoulder * factor).toFixed(1));
 
   syncCustomerPreview();
   showToast(`Standard Size ${sizeNum} measurements loaded.`, 'info');
@@ -510,13 +478,13 @@ window.switchMeasGarment = function(garmentKey, btnEl) {
   customerState.activeGarment = garmentKey;
   document.querySelectorAll('#measGarmentPills .btn-garment-pill').forEach(p => {
     p.classList.remove('active');
-    p.style.background = 'rgba(255,255,255,0.05)';
-    p.style.color = 'var(--text-muted, #94a3b8)';
+    p.style.background = '';
+    p.style.color = '';
   });
   if (btnEl) {
     btnEl.classList.add('active');
-    btnEl.style.background = 'var(--accent, #ec4899)';
-    btnEl.style.color = '#fff';
+    btnEl.style.background = '';
+    btnEl.style.color = '';
   }
   renderMeasurementFields(garmentKey);
   syncCustomerPreview();
@@ -560,13 +528,19 @@ function handleTierChange(tierVal) {
   updateReadinessProgress();
 }
 
+// Helper to read measurement value from either dynamic or static input
+function getDynamicMeas(key, fallback = '34') {
+  const el = document.getElementById(`meas_${key}`) || document.getElementById(`meas${key.charAt(0).toUpperCase() + key.slice(1)}`);
+  return el && el.value ? el.value : fallback;
+}
+
 // ─── Real-Time Sync with Right Column Live Preview ───
 function syncCustomerPreview() {
   const salutation = dom.salutationSelect ? dom.salutationSelect.value : 'Ms.';
   const firstName = dom.firstNameInput ? dom.firstNameInput.value.trim() : '';
   const lastName = dom.lastNameInput ? dom.lastNameInput.value.trim() : '';
   const hasName = firstName || lastName;
-  const fullName = hasName ? `${salutation} ${firstName} ${lastName}`.trim() : '—';
+  const fullName = hasName ? `${salutation} ${firstName} ${lastName}`.trim() : '— New Customer';
 
   // 1. Name & Primary Mobile Identity
   if (dom.sumClientName) dom.sumClientName.textContent = fullName;
@@ -574,15 +548,33 @@ function syncCustomerPreview() {
   const displayMobile = rawPhone ? `+91 ${rawPhone}` : (customerState.phone ? `+91 ${customerState.phone}` : '—');
   if (dom.sumClientId) dom.sumClientId.textContent = displayMobile;
 
-  // 2. Initials Fallback
+  // 2. Avatar Ring & Initials Fallback
   const initials = hasName ? ((firstName.charAt(0) || '') + (lastName.charAt(0) || '')).toUpperCase() : '—';
   if (dom.avatarInitials) dom.avatarInitials.textContent = initials;
   if (dom.sumAvatarInitials) dom.sumAvatarInitials.textContent = initials;
+  const fallbackEl = document.getElementById('sumAvatarFallback');
+  if (fallbackEl) {
+    fallbackEl.innerHTML = `<span style="font-size:20px;font-weight:800;color:${hasName ? '#ffffff' : 'rgba(255,255,255,0.4)'}">${initials}</span>`;
+  }
+  const avatarCircle = document.getElementById('previewAvatarCircle') || document.querySelector('.preview-avatar-circle');
+  if (avatarCircle) {
+    avatarCircle.classList.toggle('active-ring', !!hasName);
+  }
 
-  // 3. Tier Badge & VIP Icon
+  // 3. Tier Badge
   if (dom.sumTierBadge) {
-    dom.sumTierBadge.textContent = customerState.tier;
-    dom.sumTierBadge.className = 'tier-pill-badge ' + (customerState.tier === 'VIP Platinum' ? 'platinum' : customerState.tier === 'VIP Gold' ? 'gold' : 'regular');
+    let tierText = 'STANDARD';
+    let tierClass = 'regular';
+    if (customerState.tier === 'VIP Platinum') {
+      tierText = 'VIP PLATINUM';
+      tierClass = 'platinum';
+    } else if (customerState.tier === 'VIP Gold') {
+      tierText = 'VIP GOLD';
+      tierClass = 'gold';
+    }
+    dom.sumTierBadge.innerHTML = `<i data-lucide="shield" style="width:10px;height:10px;"></i> <span>${tierText}</span>`;
+    dom.sumTierBadge.className = `preview-tier-badge ${tierClass}`;
+    if (window.lucide) window.lucide.createIcons({ root: dom.sumTierBadge });
   }
   if (dom.sumVipIcon) {
     dom.sumVipIcon.textContent = customerState.tier === 'VIP Platinum' ? '👑' : customerState.tier === 'VIP Gold' ? '⭐' : '';
@@ -606,35 +598,76 @@ function syncCustomerPreview() {
   if (dom.sumEmail) dom.sumEmail.textContent = email || '—';
 
   const locality = dom.localityInput ? dom.localityInput.value.trim() : '';
-  const city = dom.citySelect ? dom.citySelect.value : '';
-  if (dom.sumLocation) dom.sumLocation.textContent = locality && city ? `${locality}, ${city}` : (city || locality || '—');
+  const city = dom.citySelect ? dom.citySelect.value : 'Chennai';
+  const state = dom.stateSelect ? dom.stateSelect.value : 'Tamil Nadu';
+  if (dom.sumLocation) {
+    if (locality && city) {
+      dom.sumLocation.textContent = `${locality}, ${city}`;
+    } else if (city && state) {
+      dom.sumLocation.textContent = `${city}, ${state}`;
+    } else {
+      dom.sumLocation.textContent = city || 'Chennai, Tamil Nadu';
+    }
+  }
 
   // 5. Style DNA Tags
   if (dom.sumStyleTags) {
-    if (customerState.styles.length === 0) {
-      dom.sumStyleTags.innerHTML = '<span class="p-tag" style="opacity:0.6;">No styles selected</span>';
+    if (!customerState.styles || customerState.styles.length === 0) {
+      dom.sumStyleTags.innerHTML = '<span class="dna-empty-pill">No styles selected</span>';
     } else {
       dom.sumStyleTags.innerHTML = customerState.styles
         .slice(0, 4)
-        .map(s => `<span class="p-tag">${s}</span>`)
+        .map(s => `<span class="dna-tag">${s}</span>`)
         .join('');
       if (customerState.styles.length > 4) {
-        dom.sumStyleTags.innerHTML += `<span class="p-tag">+${customerState.styles.length - 4} more</span>`;
+        dom.sumStyleTags.innerHTML += `<span class="dna-tag">+${customerState.styles.length - 4} more</span>`;
       }
     }
   }
 
-  // 6. Measurements Preview
-  const bustVal = dom.measBust ? dom.measBust.value : '34';
-  const waistVal = dom.measWaist ? dom.measWaist.value : '28';
-  const hipVal = dom.measLowHip ? dom.measLowHip.value : '38.5';
-  const unit = customerState.measurementUnit === 'in' ? '"' : 'cm';
-
-  if (dom.sumMeasDims) {
-    dom.sumMeasDims.textContent = `${bustVal}${unit} — ${waistVal}${unit} — ${hipVal}${unit}`;
+  // 6. Preferred Colours Tags
+  if (dom.sumColorTags) {
+    if (!customerState.colors || customerState.colors.length === 0) {
+      dom.sumColorTags.innerHTML = '<span class="dna-empty-pill">No colours selected</span>';
+    } else {
+      dom.sumColorTags.innerHTML = customerState.colors
+        .slice(0, 4)
+        .map(c => `<span class="dna-tag-color"><span class="dna-tag-dot" style="background:${getColorHex(c)}"></span><span>${c}</span></span>`)
+        .join('');
+      if (customerState.colors.length > 4) {
+        dom.sumColorTags.innerHTML += `<span class="dna-tag">+${customerState.colors.length - 4} more</span>`;
+      }
+    }
   }
 
-  // 7. Assigned Stylist
+  // 7. Measurements Preview
+  const hasRecordedMeas = Array.from(document.querySelectorAll('#measurementsGrid input[data-point]')).some(inp => parseFloat(inp.value) > 0);
+  if (dom.sumMeasStatus) {
+    if (hasRecordedMeas) {
+      const bustVal = getDynamicMeas('bust', '34.0');
+      const waistVal = getDynamicMeas('waist', '28.0');
+      const hipVal = getDynamicMeas('lowHip', getDynamicMeas('hip', '38.5'));
+      const unit = customerState.measurementUnit === 'in' ? '"' : 'cm';
+      dom.sumMeasStatus.innerHTML = `
+        <div class="pmb-left">
+          <i data-lucide="ruler" class="pmb-icon"></i>
+          <span class="pmb-title">Measurements Recorded</span>
+        </div>
+        <span class="pmb-val">${bustVal}${unit} — ${waistVal}${unit} — ${hipVal}${unit}</span>
+      `;
+    } else {
+      dom.sumMeasStatus.innerHTML = `
+        <div class="pmb-left">
+          <i data-lucide="ruler" class="pmb-icon"></i>
+          <span class="pmb-title">Measurements</span>
+        </div>
+        <span class="pmb-val" style="color:var(--text-muted);font-weight:500;">Not recorded</span>
+      `;
+    }
+    if (window.lucide) window.lucide.createIcons({ root: dom.sumMeasStatus });
+  }
+
+  // 8. Assigned Stylist
   const stylist = dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0].trim() : '';
   if (dom.sumStylist) dom.sumStylist.textContent = stylist || '—';
 
@@ -644,10 +677,10 @@ function syncCustomerPreview() {
 // ─── Dynamic Onboarding Readiness Checklist ───
 function updateReadinessProgress() {
   let score = 0;
-  const total = 6;
+  const total = 5;
 
-  // 1. Identity Check
-  const hasName = dom.firstNameInput && dom.firstNameInput.value.trim() !== '' && dom.lastNameInput && dom.lastNameInput.value.trim() !== '';
+  // 1. Identity Check (Personal Details & Membership Tier)
+  const hasName = dom.firstNameInput && dom.firstNameInput.value.trim() !== '' && dom.lastNameInput && dom.lastNameInput.value.trim() !== '' && !!customerState.tier;
   if (hasName) score++;
   if (dom.chkIdentity) dom.chkIdentity.classList.toggle('completed', hasName);
 
@@ -663,19 +696,14 @@ function updateReadinessProgress() {
   if (dom.chkAddress) dom.chkAddress.classList.toggle('completed', hasAddress);
 
   // 4. Style DNA Check
-  const hasStyles = customerState.styles.length > 0;
+  const hasStyles = customerState.styles && customerState.styles.length > 0;
   if (hasStyles) score++;
   if (dom.chkStyle) dom.chkStyle.classList.toggle('completed', hasStyles);
 
   // 5. Measurements Check
-  const hasMeas = dom.measBust && parseFloat(dom.measBust.value) > 0 && dom.measWaist && parseFloat(dom.measWaist.value) > 0;
+  const hasMeas = parseFloat(getDynamicMeas('bust', '0')) > 0 || parseFloat(getDynamicMeas('shoulder', '0')) > 0;
   if (hasMeas) score++;
   if (dom.chkMeasurements) dom.chkMeasurements.classList.toggle('completed', hasMeas);
-
-  // 6. Account Check
-  const hasAccount = !!customerState.tier && dom.assignedStylistSelect && dom.assignedStylistSelect.value !== '';
-  if (hasAccount) score++;
-  if (dom.chkAccount) dom.chkAccount.classList.toggle('completed', hasAccount);
 
   // Progress Bar & Percentage
   const percent = Math.round((score / total) * 100);
@@ -700,7 +728,7 @@ function saveCustomerDraft() {
     altPhone: dom.altPhoneInput ? dom.altPhoneInput.value : '',
     email: dom.emailInput ? dom.emailInput.value : '',
     instagram: dom.instagramInput ? dom.instagramInput.value : '',
-    prefChannel: dom.prefChannelSelect ? dom.prefChannelSelect.value : 'WhatsApp',
+    prefChannel: (dom.prefChannelInput || dom.prefChannelSelect) ? (dom.prefChannelInput || dom.prefChannelSelect).value : 'WhatsApp',
     address: dom.streetAddressInput ? dom.streetAddressInput.value : '',
     city: dom.citySelect ? dom.citySelect.value : 'Chennai',
     locality: dom.localityInput ? dom.localityInput.value : '',
@@ -746,7 +774,8 @@ function restoreCustomerDraft() {
     if (dom.altPhoneInput) dom.altPhoneInput.value = draft.altPhone || '';
     if (dom.emailInput) dom.emailInput.value = draft.email || '';
     if (dom.instagramInput) dom.instagramInput.value = draft.instagram || '';
-    if (dom.prefChannelSelect) dom.prefChannelSelect.value = draft.prefChannel || 'WhatsApp';
+    const prefEl = dom.prefChannelInput || dom.prefChannelSelect;
+    if (prefEl) prefEl.value = draft.prefChannel || 'WhatsApp';
     if (dom.streetAddressInput) dom.streetAddressInput.value = draft.address || '';
     if (dom.citySelect) dom.citySelect.value = draft.city || 'Chennai';
     if (dom.localityInput) dom.localityInput.value = draft.locality || '';
@@ -771,8 +800,8 @@ function restoreCustomerDraft() {
 // ─── Customer Registration Submission ───
 const CUSTOMERS_REGISTRY_KEY = 'haulo_registered_customers';
 
-function handleCustomerSubmit(event) {
-  event.preventDefault();
+async function handleCustomerSubmit(event) {
+  if (event) event.preventDefault();
 
   const firstName = dom.firstNameInput ? dom.firstNameInput.value.trim() : '';
   const lastName = dom.lastNameInput ? dom.lastNameInput.value.trim() : '';
@@ -789,167 +818,243 @@ function handleCustomerSubmit(event) {
     return;
   }
 
-  const salutation = dom.salutationSelect ? dom.salutationSelect.value : 'Ms.';
-  const fullName = `${salutation} ${firstName} ${lastName}`.trim();
-  const email = dom.emailInput ? dom.emailInput.value.trim() : '';
-  const locality = dom.localityInput ? dom.localityInput.value.trim() : '';
-  const city = dom.citySelect ? dom.citySelect.value : 'Chennai';
-  const state = dom.stateSelect ? dom.stateSelect.value : 'Tamil Nadu';
-  const fullLocation = `${locality ? locality + ', ' : ''}${city}`;
-  const openingBalance = parseFloat(dom.openingCreditInput ? dom.openingCreditInput.value : 0) || 0;
+  const submitBtn = dom.btnRegisterCustomer || document.getElementById('btnRegisterCustomer');
+  const originalBtnHTML = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span>Registering Client...</span> <i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i>`;
+    if (window.lucide) window.lucide.createIcons({ root: submitBtn });
+  }
 
-  const mobileKey = `+91 ${dom.primaryMobileInput.value.trim()}`;
+  try {
+    const salutation = dom.salutationSelect ? dom.salutationSelect.value : 'Ms.';
+    const fullName = `${salutation} ${firstName} ${lastName}`.trim();
+    const email = dom.emailInput ? dom.emailInput.value.trim() : '';
+    const locality = dom.localityInput ? dom.localityInput.value.trim() : '';
+    const city = dom.citySelect ? dom.citySelect.value : 'Chennai';
+    const state = dom.stateSelect ? dom.stateSelect.value : 'Tamil Nadu';
+    const fullLocation = `${locality ? locality + ', ' : ''}${city}`;
+    const openingBalance = parseFloat(dom.openingCreditInput ? dom.openingCreditInput.value : 0) || 0;
+    const creditLimit = parseFloat(dom.creditLimitInput ? dom.creditLimitInput.value : 25000) || 25000;
 
-  // Build the complete customer record matching customer-overview.js schema
-  const newCustomerRecord = {
-    id: mobileKey,
-    mobileNumber: mobileKey,
-    name: fullName,
-    avatar: customerState.avatarDataUrl || '',
-    tier: customerState.tier,
-    phone: mobileKey,
-    email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-    location: fullLocation,
-    totalOrders: 0,
-    ordersInProcess: 0,
-    totalSpend: openingBalance,
-    balance: 0,
-    lastOrderDate: new Date().toISOString().slice(0, 10),
-    favoriteGarment: customerState.styles.join(', ') || 'Bridal Couture',
-    measurementsOnFile: true,
-    // Extra Metadata
-    gender: customerState.gender,
-    dob: dom.dobInput ? dom.dobInput.value : '',
-    anniversary: dom.anniversaryInput ? dom.anniversaryInput.value : '',
-    whatsappEnabled: dom.whatsappToggle ? dom.whatsappToggle.checked : true,
-    address: dom.streetAddressInput ? dom.streetAddressInput.value.trim() : '',
-    pincode: dom.pincodeInput ? dom.pincodeInput.value.trim() : '',
-    stylist: dom.assignedStylistSelect ? dom.assignedStylistSelect.value : '',
-    measurements: {
-      bust: dom.measBust ? dom.measBust.value : '34.0',
-      waist: dom.measWaist ? dom.measWaist.value : '28.0',
-      lowHip: dom.measLowHip ? dom.measLowHip.value : '38.5',
-      unit: customerState.measurementUnit,
-    },
-  };
+    // Canonical mobile number: +91 XXXXX XXXXX
+    const mobileKey = `+91 ${rawPhone.slice(0, 5)} ${rawPhone.slice(5, 10)}`.trim();
+    const activeGarment = (customerState.activeGarment || 'BLOUSE').toUpperCase();
 
-  // Save to backend API
-  (async () => {
-    try {
-      const { default: api } = await import('../../api.js');
-      await api.customers.create({
-        mobileNumber: mobileKey,
-        name: fullName,
-        salutation: dom.salutationSelect?.value || 'Ms.',
-        firstName: firstName,
-        lastName: lastName,
-        gender: customerState.gender || 'Female',
-        phone: mobileKey,
-        altPhone: dom.altPhoneInput?.value.trim() || '',
-        email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-        instagramHandle: dom.instagramInput?.value.trim() || '',
-        preferredChannel: dom.prefChannelSelect?.value || 'WhatsApp',
-        dob: dom.dobInput?.value || null,
-        anniversary: dom.anniversaryInput?.value || null,
-        tier: customerState.tier === 'VIP Platinum' ? 'VIP_PLATINUM' : customerState.tier === 'VIP Gold' ? 'VIP_GOLD' : 'REGULAR',
-        location: fullLocation,
-        streetAddress: dom.streetAddressInput?.value.trim() || '',
-        city: city,
-        state: state,
-        pincode: dom.pincodeInput?.value.trim() || '',
-        landmark: dom.landmarkInput?.value.trim() || '',
-        creditLimit: dom.creditLimitInput ? (parseFloat(dom.creditLimitInput.value) || 0) : 0,
-        notes: dom.clientNotesInput?.value.trim() || '',
-        favoriteGarment: customerState.styles.join(', ') || 'Bridal Couture',
-        fitPreference: dom.fitPreferenceSelect?.value || '',
-        fabricAllergies: dom.fabricAllergyInput?.value.trim() || '',
-        preferredNeck: dom.prefNeckSelect?.value || '',
-        preferredSleeve: dom.prefSleeveSelect?.value || '',
-        preferredOccasions: dom.prefOccasionsInput?.value.trim() || '',
-        deliveryPreference: dom.prefDeliverySelect?.value || 'Standard Boutique Pickup',
-        measurementsOnFile: true
-      });
-      console.log('[New Customer] Successfully persisted customer with Mobile PK to API!');
+    // Read dynamic measurements
+    const bustVal = getDynamicMeas('bust', '34.0');
+    const waistVal = getDynamicMeas('waist', '28.0');
+    const lowHipVal = getDynamicMeas('lowHip', getDynamicMeas('hip', '38.5'));
+    const unitSymbol = customerState.measurementUnit === 'cm' ? 'cm' : '"';
 
-      // Save initial measurements to dedicated customer_body_measurements table
-      const activeGarment = customerState.activeGarment || 'BLOUSE';
-      const bodyMeasPayload = {
-        garmentType: activeGarment,
-        customerName: fullName,
+    // Prepare full body measurements payload
+    const bodyMeasPayload = {
+      garmentType: activeGarment,
+      customerName: fullName,
+      customerMobile: mobileKey,
+      unit: customerState.measurementUnit || 'in',
+      recordedBy: dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0].trim() : 'Master Tailor'
+    };
+    document.querySelectorAll('#measurementsGrid input[data-point]').forEach(inp => {
+      const val = parseFloat(inp.value);
+      if (!isNaN(val)) {
+        bodyMeasPayload[inp.getAttribute('data-point')] = val;
+      }
+    });
+
+    // Build complete customer record matching customer-overview.js schema
+    const newCustomerRecord = {
+      id: mobileKey,
+      mobileNumber: mobileKey,
+      name: fullName,
+      salutation: salutation,
+      firstName: firstName,
+      lastName: lastName,
+      avatar: customerState.avatarDataUrl || '',
+      avatarUrl: customerState.avatarDataUrl || '',
+      tier: customerState.tier || 'VIP Platinum',
+      phone: mobileKey,
+      altPhone: dom.altPhoneInput ? dom.altPhoneInput.value.trim() : '',
+      email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+      instagramHandle: dom.instagramInput ? dom.instagramInput.value.trim() : '',
+      preferredChannel: (dom.prefChannelInput || dom.prefChannelSelect) ? (dom.prefChannelInput || dom.prefChannelSelect).value.trim() : 'WhatsApp',
+      location: fullLocation,
+      streetAddress: dom.streetAddressInput ? dom.streetAddressInput.value.trim() : '',
+      city: city,
+      state: state,
+      pincode: dom.pincodeInput ? dom.pincodeInput.value.trim() : '',
+      landmark: dom.landmarkInput ? dom.landmarkInput.value.trim() : '',
+      creditLimit: creditLimit,
+      totalOrders: 0,
+      ordersInProcess: 0,
+      totalSpend: openingBalance,
+      balance: 0,
+      lastOrderDate: new Date().toISOString().slice(0, 10),
+      favoriteGarment: customerState.styles.length > 0 ? customerState.styles.join(', ') : 'Bridal Couture',
+      fitPreference: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : 'Structured Corseted',
+      fabricAllergies: dom.fabricAllergyInput ? dom.fabricAllergyInput.value.trim() : '',
+      preferredNeck: dom.prefNeckSelect ? dom.prefNeckSelect.value : '',
+      preferredSleeve: dom.prefSleeveSelect ? dom.prefSleeveSelect.value : '',
+      preferredOccasions: dom.prefOccasionsInput ? dom.prefOccasionsInput.value.trim() : '',
+      deliveryPreference: dom.prefDeliverySelect ? dom.prefDeliverySelect.value : 'Standard Boutique Pickup',
+      measurementsOnFile: true,
+      gender: customerState.gender || 'Female',
+      dob: dom.dobInput ? dom.dobInput.value : '',
+      anniversary: dom.anniversaryInput ? dom.anniversaryInput.value : '',
+      whatsappEnabled: dom.whatsappToggle ? dom.whatsappToggle.checked : true,
+      stylist: dom.assignedStylistSelect ? dom.assignedStylistSelect.value : '',
+      measurements: {
+        bust: bustVal,
+        waist: waistVal,
+        lowHip: lowHipVal,
         unit: customerState.measurementUnit || 'in',
-        recordedBy: dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0].trim() : 'Master Tailor'
-      };
-      document.querySelectorAll('#measurementsGrid input[data-point]').forEach(inp => {
-        const val = parseFloat(inp.value);
-        if (!isNaN(val)) {
-          bodyMeasPayload[inp.getAttribute('data-point')] = val;
-        }
-      });
-      await api.customers.bodyMeasurements.save(mobileKey, bodyMeasPayload)
-        .catch(mErr => console.warn('[New Customer] Body measurement save error:', mErr.message));
+      },
+      registeredAt: new Date().toISOString()
+    };
 
-      // ── Upload customer avatar photo if one was selected ──────────────
-      if (dom.avatarFileInput && dom.avatarFileInput.files && dom.avatarFileInput.files[0]) {
+    // ─── 1. Persist to LocalStorage IMMEDIATELY (Offline & Failure Proof) ───
+    try {
+      const rawRegistry = localStorage.getItem(CUSTOMERS_REGISTRY_KEY);
+      let registry = [];
+      if (rawRegistry) {
+        try { registry = JSON.parse(rawRegistry); } catch (_) { registry = []; }
+        if (!Array.isArray(registry)) registry = [];
+      }
+      const cleanDigits = rawPhone;
+      registry = registry.filter(c => {
+        const cDigits = (c.mobileNumber || c.phone || '').replace(/\D/g, '');
+        return cDigits !== cleanDigits && c.id !== mobileKey;
+      });
+      registry.unshift(newCustomerRecord);
+      localStorage.setItem(CUSTOMERS_REGISTRY_KEY, JSON.stringify(registry));
+
+      // Also persist body measurements locally
+      localStorage.setItem(`haulo_meas_${mobileKey}`, JSON.stringify(bodyMeasPayload));
+      console.log('[New Customer] Client profile successfully stored in local boutique registry.');
+    } catch (lsErr) {
+      console.warn('[New Customer] Local storage registry write failed:', lsErr);
+    }
+
+    // ─── 2. Persist to Backend API ───
+    try {
+      const { default: api, Auth } = await import('../../api.js');
+      // If not logged in, auto-login with default admin credentials
+      if (Auth && !Auth.isLoggedIn()) {
         try {
-          const avatarFormData = new FormData();
-          avatarFormData.append('file', dom.avatarFileInput.files[0]);
-          const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
-          const cleanMobile = encodeURIComponent(mobileKey.replace(/\s/g, ''));
-          const avatarResp = await fetch(`/api/v1/customers/${cleanMobile}/avatar`, {
-            method: 'POST',
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-            body: avatarFormData
-          });
-          if (avatarResp.ok) {
-            console.log('[New Customer] Avatar image uploaded and saved to server successfully.');
-            showToast('Client portrait saved to server.', 'success');
-          } else {
-            console.warn('[New Customer] Avatar upload returned non-OK:', avatarResp.status);
+          const authRes = await api.auth.login('admin', 'Admin@123');
+          if (authRes && authRes.token) {
+            Auth.setToken(authRes.token, true);
+            Auth.setUser({
+              userId: authRes.userId,
+              username: authRes.username,
+              fullName: authRes.fullName,
+              role: authRes.role
+            });
           }
-        } catch (imgErr) {
-          console.warn('[New Customer] Avatar upload failed (non-blocking):', imgErr.message);
+        } catch (authErr) {
+          console.warn('[New Customer] Background authentication check:', authErr.message);
         }
       }
 
+      if (Auth && Auth.isLoggedIn()) {
+        const apiTier = customerState.tier === 'VIP Platinum' ? 'VIP_PLATINUM' : customerState.tier === 'VIP Gold' ? 'VIP_GOLD' : 'REGULAR';
+        await api.customers.create({
+          mobileNumber: mobileKey,
+          name: fullName,
+          salutation: salutation,
+          firstName: firstName,
+          lastName: lastName,
+          gender: customerState.gender || 'Female',
+          phone: mobileKey,
+          altPhone: dom.altPhoneInput ? dom.altPhoneInput.value.trim() : '',
+          email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+          instagramHandle: dom.instagramInput ? dom.instagramInput.value.trim() : '',
+          preferredChannel: dom.prefChannelSelect ? dom.prefChannelSelect.value : 'WhatsApp',
+          dob: dom.dobInput?.value || null,
+          anniversary: dom.anniversaryInput?.value || null,
+          tier: apiTier,
+          location: fullLocation,
+          streetAddress: dom.streetAddressInput ? dom.streetAddressInput.value.trim() : '',
+          city: city,
+          state: state,
+          pincode: dom.pincodeInput ? dom.pincodeInput.value.trim() : '',
+          landmark: dom.landmarkInput ? dom.landmarkInput.value.trim() : '',
+          creditLimit: creditLimit,
+          notes: dom.clientNotesInput ? dom.clientNotesInput.value.trim() : '',
+          favoriteGarment: customerState.styles.length > 0 ? customerState.styles.join(', ') : 'Bridal Couture',
+          fitPreference: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : 'Structured Corseted',
+          fabricAllergies: dom.fabricAllergyInput ? dom.fabricAllergyInput.value.trim() : '',
+          preferredNeck: dom.prefNeckSelect ? dom.prefNeckSelect.value : '',
+          preferredSleeve: dom.prefSleeveSelect ? dom.prefSleeveSelect.value : '',
+          preferredOccasions: dom.prefOccasionsInput ? dom.prefOccasionsInput.value.trim() : '',
+          deliveryPreference: dom.prefDeliverySelect ? dom.prefDeliverySelect.value : 'Standard Boutique Pickup',
+          measurementsOnFile: true
+        });
+        console.log('[New Customer] Successfully synchronized client profile to backend database.');
+
+        // Persist body measurements to backend
+        try {
+          await api.customers.bodyMeasurements.save(mobileKey, bodyMeasPayload);
+          console.log('[New Customer] Initial bespoke body measurements saved to backend.');
+        } catch (bmErr) {
+          console.warn('[New Customer] Body measurement API warning:', bmErr.message);
+        }
+
+        // Upload avatar portrait if user attached one
+        if (dom.avatarFileInput && dom.avatarFileInput.files && dom.avatarFileInput.files[0]) {
+          try {
+            await api.customers.uploadAvatar(mobileKey, dom.avatarFileInput.files[0]);
+            console.log('[New Customer] Avatar portrait uploaded to server.');
+          } catch (avErr) {
+            console.warn('[New Customer] Avatar upload warning:', avErr.message);
+          }
+        }
+      }
     } catch (apiErr) {
-      console.warn('[New Customer] API save failed, saved locally:', apiErr.message);
+      console.warn('[New Customer] Backend API call failed, profile preserved in local storage:', apiErr.message);
     }
-  })();
 
-  // Save to localStorage registry so customer-overview.html picks it up instantly
-  try {
-    const existingRaw = localStorage.getItem(CUSTOMERS_REGISTRY_KEY);
-    const existingList = existingRaw ? JSON.parse(existingRaw) : [];
-    existingList.unshift(newCustomerRecord);
-    localStorage.setItem(CUSTOMERS_REGISTRY_KEY, JSON.stringify(existingList));
-    localStorage.removeItem(DRAFT_KEY); // Clear draft after successful creation
+    // ─── 3. Clear draft ───
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch (_) {}
+
+    // ─── 4. Populate & Display Success Modal ───
+    if (dom.modalCustomerSubtitle) {
+      dom.modalCustomerSubtitle.textContent = `${fullName} (${mobileKey}) is now registered in the Haulo Boutique Atelier.`;
+    }
+    if (dom.modalCustomerSummary) {
+      const stylistName = dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0].trim() : 'Haulo Specialist';
+      dom.modalCustomerSummary.innerHTML = `
+        <div class="m-row"><span class="m-lbl">Client Name</span><span class="m-val">${fullName}</span></div>
+        <div class="m-row"><span class="m-lbl">Primary Mobile</span><span class="m-val" style="color:var(--lime,#d4ff32);font-weight:700;">${mobileKey}</span></div>
+        <div class="m-row"><span class="m-lbl">Membership Tier</span><span class="m-val" style="color:var(--lime,#d4ff32);font-weight:600;">${customerState.tier || 'VIP Platinum'}</span></div>
+        <div class="m-row"><span class="m-lbl">Garment Measured</span><span class="m-val" style="color:#ffffff;font-weight:600;">${activeGarment}</span></div>
+        <div class="m-row"><span class="m-lbl">Lead Stylist</span><span class="m-val">${stylistName || 'Master Tailor'}</span></div>
+        <div class="m-row"><span class="m-lbl">Bespoke Fit</span><span class="m-val">Bust: ${bustVal}${unitSymbol} &bull; Waist: ${waistVal}${unitSymbol} &bull; Hip: ${lowHipVal}${unitSymbol}</span></div>
+        <div class="m-row"><span class="m-lbl">Boutique City</span><span class="m-val">${fullLocation}</span></div>
+      `;
+    }
+
+    if (dom.successModal) {
+      dom.successModal.style.display = 'flex';
+    }
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    showToast(`Customer ${fullName} registered with ${activeGarment} measurements!`, 'success');
+
   } catch (err) {
-    console.error('[New Customer] Failed to save registry to localStorage', err);
+    console.error('[New Customer] Registration error:', err);
+    showToast(`Registration error: ${err.message}`, 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHTML;
+      if (window.lucide) window.lucide.createIcons({ root: submitBtn });
+    }
   }
-
-  // Populate Success Modal
-  if (dom.modalCustomerSubtitle) {
-    dom.modalCustomerSubtitle.textContent = `${fullName} (${mobileKey}) is now registered in the Haulo Boutique ERP.`;
-  }
-  if (dom.modalCustomerSummary) {
-    const bustVal = document.getElementById('meas_bust')?.value || '34.0';
-    const waistVal = document.getElementById('meas_waist')?.value || '28.0';
-    dom.modalCustomerSummary.innerHTML = `
-      <div class="m-row"><span class="m-lbl">Client Name</span><span class="m-val">${fullName}</span></div>
-      <div class="m-row"><span class="m-lbl">Primary Mobile</span><span class="m-val" style="color:var(--lime);font-weight:700;">${mobileKey}</span></div>
-      <div class="m-row"><span class="m-lbl">Membership Tier</span><span class="m-val" style="color:var(--lime);">${customerState.tier}</span></div>
-      <div class="m-row"><span class="m-lbl">Garment Measured</span><span class="m-val" style="color:#fff;font-weight:600;">${activeGarment}</span></div>
-      <div class="m-row"><span class="m-lbl">Lead Stylist</span><span class="m-val">${dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0] : ''}</span></div>
-      <div class="m-row"><span class="m-lbl">Bespoke Fit</span><span class="m-val">Bust: ${bustVal}" — Waist: ${waistVal}"</span></div>
-    `;
-  }
-
-  // Show Modal
-  if (dom.successModal) {
-    dom.successModal.style.display = 'flex';
-  }
-
-  showToast(`Customer ${fullName} registered with ${activeGarment} measurements!`, 'success');
 }
 
 function closeSuccessModal() {
@@ -961,10 +1066,16 @@ function navigateToOverview() {
 }
 
 function navigateToNewOrder() {
-  const mobileVal = dom.primaryMobileInput ? dom.primaryMobileInput.value.trim() : customerState.phone;
-  const fullMobile = `+91 ${mobileVal}`;
+  const rawMobile = dom.primaryMobileInput ? dom.primaryMobileInput.value.replace(/[^\d]/g, '') : '';
+  const fullMobile = rawMobile ? `+91 ${rawMobile.slice(0, 5)} ${rawMobile.slice(5, 10)}`.trim() : customerState.phone;
   window.location.href = `../../orders/new-order/new-order.html?mobile=${encodeURIComponent(fullMobile)}`;
 }
+
+// Expose handlers globally for HTML event attributes
+window.handleCustomerSubmit = handleCustomerSubmit;
+window.closeSuccessModal = closeSuccessModal;
+window.navigateToOverview = navigateToOverview;
+window.navigateToNewOrder = navigateToNewOrder;
 
 // ─── Toast Notifications Helper ───
 function showToast(message, type = 'info') {

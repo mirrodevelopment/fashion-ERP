@@ -17,8 +17,8 @@
   <link rel="stylesheet" href="../fragments/fragments.css" />
   <link rel="stylesheet" href="../fragments/nav.css" />
   <link rel="stylesheet" href="inventory.css" />
-  <script src="../fragments/nav.js"></script>
   <script>window.FRAGMENT_BASE = '../fragments/';</script>
+  <script src="../fragments/nav.js"></script>
 </head>
 <body data-module="stock">
 
@@ -355,7 +355,7 @@
               <div class="toolbar-right-tools">
                 <div class="inventory-search-box">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                  <input type="text" id="inventorySearchInput" placeholder="Search by item name, code or supplier..." oninput="handleInventorySearch()" />
+                  <input type="text" id="inventorySearchInput" placeholder="Search by name, code..." oninput="handleInventorySearch()" />
                 </div>
                 <button class="btn-filter-glass" onclick="openFilterModal()">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
@@ -370,9 +370,6 @@
                 <table class="inventory-table" id="inventoryTable">
                   <thead>
                     <tr>
-                      <th style="width: 28px;">
-                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" />
-                      </th>
                       <th>Item Code</th>
                       <th>Item Name</th>
                       <th>Category</th>

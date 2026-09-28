@@ -290,7 +290,7 @@ function renderInventoryTable() {
   if (pageItems.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="13" style="text-align: center; padding: 24px; color: rgba(255,255,255,0.45);">
+        <td colspan="12" style="text-align: center; padding: 24px; color: rgba(255,255,255,0.45);">
           No matching inventory items found.
         </td>
       </tr>
@@ -300,14 +300,10 @@ function renderInventoryTable() {
   }
 
   tbody.innerHTML = pageItems.map(item => {
-    const isChecked = selectedItemCodes.has(item.code);
     const statusClass = item.status.toLowerCase().replace(/\s+/g, '-');
 
     return `
       <tr onclick="handleRowSelect(event, '${item.code}')">
-        <td onclick="event.stopPropagation()">
-          <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItemSelect('${item.code}', this.checked)" />
-        </td>
         <td class="item-code-cell">${item.code}</td>
         <td>
           <div class="item-thumb-row">
@@ -381,24 +377,6 @@ function changePage(delta) {
 function goToPage(p) {
   currentPage = p;
   renderInventoryTable();
-}
-
-function toggleSelectAll(masterCheckbox) {
-  const filtered = getFilteredItems();
-  if (masterCheckbox.checked) {
-    filtered.forEach(item => selectedItemCodes.add(item.code));
-  } else {
-    selectedItemCodes.clear();
-  }
-  renderInventoryTable();
-}
-
-function toggleItemSelect(code, checked) {
-  if (checked) {
-    selectedItemCodes.add(code);
-  } else {
-    selectedItemCodes.delete(code);
-  }
 }
 
 function setInventoryTab(tab, btn) {

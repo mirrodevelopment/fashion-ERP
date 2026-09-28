@@ -30,7 +30,7 @@
       const slashes = (partsAfterPages.match(/\//g) || []).length;
       return slashes >= 2 ? '../../../' : '../../';
     }
-    if (path.includes('/payments') || path.includes('/delivery') || path.includes('/trials-alterations') || path.includes('/measurements') || path.includes('/enquiries') || path.includes('/orders') || path.includes('/operations') || path.includes('/production') || path.includes('/desks/') || path.includes('/designstudio') || path.includes('/design-studio') || path.includes('/workforcemanagement') || path.includes('/workforce-management') || path.includes('/workforce') || path.includes('/dashboard') || path.includes('/quality-control') || path.includes('/inventory') || path.includes('/fabrics-materials') || path.includes('/fabrics') || path.includes('/purchases') || path.includes('/appointments')) {
+    if (path.includes('/garments') || path.includes('/payments') || path.includes('/delivery') || path.includes('/trials-alterations') || path.includes('/measurements') || path.includes('/enquiries') || path.includes('/orders') || path.includes('/operations') || path.includes('/production') || path.includes('/desks/') || path.includes('/designstudio') || path.includes('/design-studio') || path.includes('/collections') || path.includes('/workforcemanagement') || path.includes('/workforce-management') || path.includes('/workforce') || path.includes('/dashboard') || path.includes('/quality-control') || path.includes('/inventory') || path.includes('/fabrics-materials') || path.includes('/fabrics') || path.includes('/purchases') || path.includes('/appointments')) {
       return '../';
     }
     return '';
@@ -39,7 +39,7 @@
   const rootPrefix = calculatePrefix();
   const basePath = `${rootPrefix}fragments/`;
 
-  // 1. Automatically ensure nav.css is loaded
+  // 1. Automatically ensure nav.css, theme-switch.js, and notifications are loaded
   function ensureNavCss() {
     const existing = document.querySelector('link[href*="nav.css"]');
     if (!existing) {
@@ -47,6 +47,23 @@
       link.rel = 'stylesheet';
       link.href = `${basePath}nav.css`;
       document.head.appendChild(link);
+    }
+    const notifCss = document.querySelector('link[href*="notifications.css"]');
+    if (!notifCss) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `${basePath}notifications/notifications.css`;
+      document.head.appendChild(link);
+    }
+    if (!window.HauloTheme && !document.querySelector('script[src*="theme-switch.js"]')) {
+      const script = document.createElement('script');
+      script.src = `${basePath}theme/theme-switch.js`;
+      document.head.appendChild(script);
+    }
+    if (!window.HauloNotifications && !document.querySelector('script[src*="notifications.js"]')) {
+      const script = document.createElement('script');
+      script.src = `${basePath}notifications/notifications.js`;
+      document.head.appendChild(script);
     }
   }
 
@@ -111,7 +128,7 @@
     <!-- Fashion -->
     <div class="nav-section">
       <span class="nav-section-label">Fashion</span>
-      <a href="#" class="nav-item uncompleted" id="nav-garments" data-tooltip="Garments (In Progress)" data-module="garments" onclick="navNavigate('garments',event)">
+      <a href="${rootPrefix}garments/garments.html" class="nav-item" id="nav-garments" data-tooltip="Garments" data-module="garments" onclick="navNavigate('garments',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <span>Garments</span>
       </a>
@@ -127,7 +144,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
         <span>Fabrics &amp; Materials</span>
       </a>
-      <a href="../DesignStudio/design-studio.html" class="nav-item" id="nav-collections" data-tooltip="Collections" data-module="collections" onclick="navNavigate('collections',event)">
+      <a href="${rootPrefix}collections/collections.html" class="nav-item" id="nav-collections" data-tooltip="Collections" data-module="collections" onclick="navNavigate('collections',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         <span>Collections</span>
       </a>
@@ -265,51 +282,19 @@
       </div>
     </div>
 
+    <!-- Theme Toggle (Classic & Haulo Dark) -->
+    <button class="icon-btn haulo-theme-btn" id="hauloThemeToggleBtn" data-haulo-theme-btn aria-label="Switch Theme" title="Switch Theme" onclick="if(window.HauloTheme)window.HauloTheme.toggle();" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);cursor:pointer;color:var(--text-secondary);transition:all 0.18s ease;flex-shrink:0;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
     <!-- Notifications -->
     <div class="notif-wrap" id="notifWrap">
       <button class="icon-btn" id="notifBtn" aria-label="Notifications" title="Notifications" aria-haspopup="true">
         <i data-lucide="bell" style="width:15px;height:15px;"></i>
-        <span class="badge" id="notifBadge">3</span>
+        <span class="badge" id="notifBadge" style="display:none;">0</span>
       </button>
       <div class="notif-panel dd-panel" id="notifPanel">
-        <div class="dd-panel-header notif-panel-header">
-          <span>Notifications</span>
-          <button type="button" class="notif-clear-btn" id="notifClearBtn" title="Mark all as read">Mark all read</button>
-        </div>
-        <div class="notif-list" id="notifListContainer">
-          <div class="notif-item unread" onclick="navNavigate('purchases',event)">
-            <div class="notif-dot info"></div>
-            <div class="notif-content">
-              <div class="notif-title">PO-2026-008 Goods Received</div>
-              <div class="notif-sub">Zari World consignment verified by store</div>
-              <span class="notif-time">10 mins ago</span>
-            </div>
-          </div>
-          <div class="notif-item unread" onclick="navNavigate('trials-alterations',event)">
-            <div class="notif-dot warn"></div>
-            <div class="notif-content">
-              <div class="notif-title">Trial Scheduled: Priya Sharma</div>
-              <div class="notif-sub">Bridal Lehenga final fitting at 4:30 PM</div>
-              <span class="notif-time">25 mins ago</span>
-            </div>
-          </div>
-          <div class="notif-item unread" onclick="navNavigate('fabrics',event)">
-            <div class="notif-dot danger"></div>
-            <div class="notif-content">
-              <div class="notif-title">Low Stock Alert</div>
-              <div class="notif-sub">Banarasi Brocade Gold below reorder level (4.2m)</div>
-              <span class="notif-time">1 hour ago</span>
-            </div>
-          </div>
-          <div class="notif-item read" onclick="navNavigate('orders',event)">
-            <div class="notif-dot success"></div>
-            <div class="notif-content">
-              <div class="notif-title">Order ORD-2026-089 Ready</div>
-              <div class="notif-sub">Completed QC check and ready for dispatch</div>
-              <span class="notif-time">3 hours ago</span>
-            </div>
-          </div>
-        </div>
+        <!-- Dynamically rendered by NotificationCenter -->
       </div>
     </div>
 
@@ -459,7 +444,12 @@
 
       if (elements.length > 0) {
         const fragmentElement = elements[0];
-        container.replaceWith(fragmentElement);
+        if (container.id === 'sidebarSlot' || container.classList.contains('sidebar-slot')) {
+          container.innerHTML = '';
+          container.appendChild(fragmentElement);
+        } else {
+          container.replaceWith(fragmentElement);
+        }
 
         // Attach any extra root elements (such as search overlay) to body
         for (let i = 1; i < elements.length; i++) {
@@ -528,6 +518,10 @@
       if (designsLink) {
         designsLink.setAttribute('href', `${prefix}DesignStudio/design-studio.html`);
       }
+      const collectionsLink = element.querySelector('a[title="Collections"], #nav-collections, [data-module="collections"]');
+      if (collectionsLink) {
+        collectionsLink.setAttribute('href', `${prefix}collections/collections.html`);
+      }
       const fabricsLink = element.querySelector('a[title="Fabrics & Materials"], #nav-fabrics');
       if (fabricsLink) {
         fabricsLink.setAttribute('href', `${prefix}fabrics-materials/fabrics-materials.html`);
@@ -547,6 +541,11 @@
       let delLink = element.querySelector('a[title="Dispatch / Delivery"], a[title="Dispatch"], a[title="Delivery"], #nav-packages, [data-module="delivery"], [data-module="packages"]');
       if (delLink) {
         delLink.setAttribute('href', `${prefix}delivery/delivery.html`);
+      }
+      const garmentsLink = element.querySelector('a[title="Garments"], #nav-garments, [data-module="garments"]');
+      if (garmentsLink) {
+        garmentsLink.setAttribute('href', `${prefix}garments/garments.html`);
+        garmentsLink.classList.remove('uncompleted');
       }
       const paymentsLink = element.querySelector('a[title="Payments"], #nav-payments, [data-module="payments"]');
       if (paymentsLink) {
@@ -580,7 +579,7 @@
       }
 
       // Tag all uncompleted / WIP items
-      const uncompletedMods = ['garments', 'job-cards', 'suppliers', 'reports', 'expenses', 'profitability', 'whatsapp', 'campaigns', 'branches', 'users-roles', 'settings'];
+      const uncompletedMods = ['job-cards', 'suppliers', 'reports', 'expenses', 'profitability', 'whatsapp', 'campaigns', 'branches', 'users-roles', 'settings'];
       element.querySelectorAll('.nav-item').forEach(item => {
         const href = item.getAttribute('href');
         const mod = item.getAttribute('data-module');
@@ -596,62 +595,90 @@
     },
 
     /**
-     * Highlights active navigation item based on route
+     * Highlights active navigation item based on route and data-module
      */
     highlightActiveRoute(element) {
+      if (!element) return;
       const path = window.location.pathname.toLowerCase().replace(/\\/g, '/');
-      const isMeasurements = path.includes('/measurements') || path.includes('/measurement360');
-      const isCustomer360 = path.includes('/customer');
-      const isOrders = path.includes('order');
-      const isTrials = path.includes('trial');
-      const isQc = path.includes('quality') || path.includes('qc');
-      const isDelivery = path.includes('delivery') || path.includes('dispatch');
-      const isFinance = path.includes('finance') || path.includes('payment') || path.includes('receivable');
-      const isAppointments = path.includes('/appointments') || path.includes('/calendar');
-      const isPurchases = path.includes('purchase');
-      const isProcurement = path.includes('procurement') || path.includes('supplier');
-      const isInventory = path.includes('inventory') || path.includes('stock');
-      const isFabrics = path.includes('fabric');
-      const isProduction = path.includes('production');
-      const isDesigns = path.includes('designstudio') || path.includes('design-studio') || (path.includes('design') && !path.includes('order'));
-      const isWorkforce = path.includes('workforce') || path.includes('employee');
+
+      // 1. Determine active module name from body[data-module] or URL path
+      let currentModule = (document.body && (document.body.dataset.module || document.body.getAttribute('data-module'))) || '';
+
+      if (!currentModule) {
+        if (path.includes('/dashboard')) currentModule = 'dashboard';
+        else if (path.includes('/garments')) currentModule = 'garments';
+        else if (path.includes('/enquiries')) currentModule = 'enquiries';
+        else if (path.includes('/appointments') || path.includes('/calendar')) currentModule = 'appointments';
+        else if (path.includes('/customer')) currentModule = 'customers';
+        else if (path.includes('/orders/') || path.includes('order-over') || path.includes('new-order') || path.includes('view-order')) currentModule = 'orders';
+        else if (path.includes('/payments') || path.includes('/finance')) currentModule = 'payments';
+        else if (path.includes('/designstudio') || path.includes('/design-studio')) currentModule = 'designs';
+        else if (path.includes('/collections')) currentModule = 'collections';
+        else if (path.includes('/measurements') || path.includes('/measurement360') || path.includes('/measurement-overview')) currentModule = 'measurements';
+        else if (path.includes('/fabrics-materials') || path.includes('/fabrics')) currentModule = 'fabrics';
+        else if (path.includes('/production')) currentModule = 'production-room';
+        else if (path.includes('/trials-alterations') || path.includes('/trial')) currentModule = 'trials-alterations';
+        else if (path.includes('/quality-control') || path.includes('/qc')) currentModule = 'quality-control';
+        else if (path.includes('/inventory') || path.includes('/stock')) currentModule = 'stock';
+        else if (path.includes('/purchases')) currentModule = 'purchases';
+        else if (path.includes('/delivery') || path.includes('/dispatch')) currentModule = 'delivery';
+        else if (path.includes('/workforcemanagement') || path.includes('/workforce') || path.includes('/employee')) currentModule = 'employees';
+        else if (path.includes('order')) currentModule = 'orders';
+        else currentModule = 'dashboard';
+      }
+
+      // 2. Canonicalize module aliases
+      function canonicalize(m) {
+        const s = (m || '').toLowerCase().trim();
+        if (s === 'production-floor' || s === 'production' || s === 'production-room') return 'production-room';
+        if (s === 'design-studio' || s === 'designs') return 'designs';
+        if (s === 'collections') return 'collections';
+        if (s === 'garment' || s === 'garments') return 'garments';
+        if (s === 'workforce' || s === 'employees') return 'employees';
+        if (s === 'inventory' || s === 'stock') return 'stock';
+        if (s === 'packages' || s === 'dispatch' || s === 'delivery') return 'delivery';
+        if (s === 'finance' || s === 'payments') return 'payments';
+        if (s === 'customer' || s === 'customers') return 'customers';
+        if (s === 'order' || s === 'orders') return 'orders';
+        if (s === 'measurement' || s === 'measurements' || s === 'measurement360' || s === 'measurement-overview') return 'measurements';
+        if (s === 'trial' || s === 'trials' || s === 'alterations' || s === 'trials-alterations') return 'trials-alterations';
+        if (s === 'qc' || s === 'quality' || s === 'quality-control') return 'quality-control';
+        if (s === 'procurement' || s === 'purchases' || s === 'purchase') return 'purchases';
+        return s;
+      }
+
+      const activeMod = canonicalize(currentModule);
       const links = element.querySelectorAll('.nav-item');
 
       links.forEach(link => {
-        const title = link.getAttribute('title');
-        if (isAppointments) {
-          link.classList.toggle('active', title === 'Appointments' || link.id === 'nav-appointments' || link.getAttribute('data-module') === 'appointments');
-        } else if (isPurchases) {
-          link.classList.toggle('active', title === 'Purchases' || link.id === 'nav-purchases' || link.getAttribute('data-module') === 'purchases');
-        } else if (isFabrics) {
-          link.classList.toggle('active', title === 'Fabrics & Materials' || link.id === 'nav-fabrics' || link.getAttribute('data-module') === 'fabrics');
-        } else if (isWorkforce) {
-          link.classList.toggle('active', title === 'Employees');
-        } else if (isProcurement) {
-          link.classList.toggle('active', title === 'Purchases');
-        } else if (isInventory) {
-          link.classList.toggle('active', title === 'Inventory' || title === 'Stock & Materials');
-        } else if (isFinance) {
-          link.classList.toggle('active', title === 'Payments' || link.id === 'nav-payments' || link.getAttribute('data-module') === 'payments');
-        } else if (isDelivery) {
-          link.classList.toggle('active', title === 'Dispatch / Delivery' || title === 'Dispatch' || title === 'Delivery' || title === 'Packages' || link.id === 'nav-packages' || link.id === 'nav-delivery' || link.getAttribute('data-module') === 'delivery' || link.getAttribute('data-module') === 'packages');
-        } else if (isQc) {
-          link.classList.toggle('active', title === 'Quality Control');
-        } else if (isTrials) {
-          link.classList.toggle('active', title === 'Trials & Alterations' || link.id === 'nav-trials-alterations' || link.getAttribute('data-module') === 'trials-alterations');
-        } else if (isProduction) {
-          link.classList.toggle('active', title === 'Production Floor' || title === 'Production');
-        } else if (isDesigns) {
-          link.classList.toggle('active', title === 'Designs');
-        } else if (isOrders) {
-          link.classList.toggle('active', title === 'Orders' || link.id === 'nav-orders' || link.getAttribute('data-module') === 'orders');
-        } else if (isCustomer360) {
-          link.classList.toggle('active', title === 'Customers' || link.id === 'nav-customers' || link.getAttribute('data-module') === 'customers');
-        } else if (isMeasurements) {
-          link.classList.toggle('active', title === 'Measurements' || link.id === 'nav-measurements' || link.getAttribute('data-module') === 'measurements');
-        } else {
-          link.classList.toggle('active', title === 'Dashboard');
-        }
+        const itemMod = canonicalize(link.getAttribute('data-module') || '');
+        const itemId = (link.id || '').toLowerCase().trim();
+        const tooltip = (link.getAttribute('data-tooltip') || '').toLowerCase().trim();
+        const title = (link.getAttribute('title') || '').toLowerCase().trim();
+
+        const isMatch = (
+          (itemMod && itemMod === activeMod) ||
+          (itemId && itemId === `nav-${activeMod}`) ||
+          (activeMod === 'garments' && (itemId === 'nav-garments' || itemMod === 'garments' || tooltip.includes('garment') || title.includes('garment'))) ||
+          (activeMod === 'production-room' && (itemId === 'nav-production-room' || itemMod === 'production-room' || tooltip.includes('production') || title.includes('production'))) ||
+          (activeMod === 'designs' && (itemId === 'nav-designs' || itemMod === 'designs' || tooltip.includes('design') || title.includes('design'))) ||
+          (activeMod === 'measurements' && (itemId === 'nav-measurements' || itemMod === 'measurements' || tooltip.includes('measurement') || title.includes('measurement'))) ||
+          (activeMod === 'orders' && (itemId === 'nav-orders' || itemMod === 'orders' || tooltip === 'orders' || title === 'orders')) ||
+          (activeMod === 'customers' && (itemId === 'nav-customers' || itemMod === 'customers' || tooltip === 'customers' || title === 'customers')) ||
+          (activeMod === 'dashboard' && (itemId === 'nav-dashboard' || itemMod === 'dashboard' || tooltip === 'dashboard' || title === 'dashboard')) ||
+          (activeMod === 'appointments' && (itemId === 'nav-appointments' || itemMod === 'appointments' || tooltip.includes('appointment') || title.includes('appointment'))) ||
+          (activeMod === 'enquiries' && (itemId === 'nav-enquiries' || itemMod === 'enquiries' || tooltip.includes('enquir') || title.includes('enquir'))) ||
+          (activeMod === 'payments' && (itemId === 'nav-payments' || itemMod === 'payments' || tooltip.includes('payment') || title.includes('payment'))) ||
+          (activeMod === 'fabrics' && (itemId === 'nav-fabrics' || itemMod === 'fabrics' || tooltip.includes('fabric') || title.includes('fabric'))) ||
+          (activeMod === 'trials-alterations' && (itemId === 'nav-trials-alterations' || itemMod === 'trials-alterations' || tooltip.includes('trial') || title.includes('trial'))) ||
+          (activeMod === 'quality-control' && (itemId === 'nav-quality-control' || itemMod === 'quality-control' || tooltip.includes('quality') || title.includes('quality'))) ||
+          (activeMod === 'stock' && (itemId === 'nav-stock' || itemMod === 'stock' || tooltip.includes('stock') || tooltip.includes('inventory'))) ||
+          (activeMod === 'purchases' && (itemId === 'nav-purchases' || itemMod === 'purchases' || tooltip.includes('purchase') || title.includes('purchase'))) ||
+          (activeMod === 'delivery' && (itemId === 'nav-packages' || itemId === 'nav-delivery' || itemMod === 'delivery' || tooltip.includes('delivery'))) ||
+          (activeMod === 'employees' && (itemId === 'nav-employees' || itemId === 'nav-workforce' || itemMod === 'employees' || tooltip.includes('employee')))
+        );
+
+        link.classList.toggle('active', Boolean(isMatch));
       });
     },
 
@@ -936,27 +963,12 @@
         });
       }
 
-      // Notification Dropdown & Clear All Read
+      // Notification Dropdown Integration with NotificationCenter
       const notifBtn = navbar.querySelector('#notifBtn');
       const notifPanel = navbar.querySelector('#notifPanel');
-      const notifClearBtn = navbar.querySelector('#notifClearBtn');
-      const notifBadge = navbar.querySelector('#notifBadge');
 
-      if (localStorage.getItem('haulo_notifs_read') === 'true' && notifBadge) {
-        notifBadge.style.display = 'none';
-        navbar.querySelectorAll('.notif-item').forEach(item => item.classList.remove('unread'));
-      }
-
-      if (notifClearBtn) {
-        notifClearBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (notifBadge) {
-            notifBadge.textContent = '0';
-            notifBadge.style.display = 'none';
-          }
-          navbar.querySelectorAll('.notif-item').forEach(item => item.classList.remove('unread'));
-          try { localStorage.setItem('haulo_notifs_read', 'true'); } catch (_) {}
-        });
+      if (window.NotificationCenter && typeof window.NotificationCenter.refresh === 'function') {
+        window.NotificationCenter.refresh();
       }
 
       if (notifBtn && notifPanel) {
@@ -964,7 +976,12 @@
           e.stopPropagation();
           const isOpen = notifPanel.classList.contains('open');
           closeAllDropdowns();
-          if (!isOpen) notifPanel.classList.add('open');
+          if (!isOpen) {
+            notifPanel.classList.add('open');
+            if (window.NotificationCenter && typeof window.NotificationCenter.refresh === 'function') {
+              window.NotificationCenter.refresh();
+            }
+          }
         });
       }
 
@@ -1035,29 +1052,14 @@
       }
 
 
-      // Theme Toggle
-      const themeToggleBtn = navbar.querySelector('#themeToggleBtn');
-      const themeIcon = navbar.querySelector('#themeIcon');
-      if (themeToggleBtn) {
-        function applyTheme(isDark) {
-          document.body.classList.toggle('dark-theme', isDark);
-          localStorage.setItem('fashion_erp_theme', isDark ? 'dark' : 'light');
-          if (themeIcon) {
-            themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-            if (window.lucide) lucide.createIcons({ root: themeToggleBtn });
-          }
-          document.dispatchEvent(new CustomEvent('fashion:themeChanged', { detail: { isDark } }));
+      // Theme Switch Controller (Classic & Haulo Dark)
+      if (window.HauloTheme && typeof window.HauloTheme.injectButton === 'function') {
+        const topbarRight = navbar.querySelector('.topbar-right');
+        if (topbarRight && !document.getElementById('hauloThemeToggleBtn')) {
+          window.HauloTheme.injectButton(topbarRight, { insertBefore: '#notifWrap' });
         }
-
-        if (localStorage.getItem('fashion_erp_theme') === 'dark') {
-          applyTheme(true);
-        }
-
-        themeToggleBtn.addEventListener('click', () => {
-          const isDark = document.body.classList.contains('dark-theme');
-          applyTheme(!isDark);
-        });
       }
+      window.dispatchEvent(new CustomEvent('haulo-nav-ready'));
 
       document.addEventListener('click', (e) => {
         if (!e.target.closest('#branchSel') &&
@@ -1138,14 +1140,14 @@
       'customers':          `${prefix}customer/customer-overview/customer-overview.html`,
       'orders':             `${prefix}orders/order-overview/order-over.html`,
       'payments':           `${prefix}payments/payments.html`,
-      'garments':           null,
+      'garments':           `${prefix}garments/garments.html`,
       'designs':            `${prefix}DesignStudio/design-studio.html`,
       'design-studio':      `${prefix}DesignStudio/design-studio.html`,
       'measurements':          `${prefix}Measurements/measurement-overview/measurement-overview.html`,
       'measurement-overview':  `${prefix}Measurements/measurement-overview/measurement-overview.html`,
       'measurement360':        `${prefix}Measurements/measurement360/measurement360.html`,
       'fabrics':            `${prefix}fabrics-materials/fabrics-materials.html`,
-      'collections':        `${prefix}DesignStudio/design-studio.html`,
+      'collections':        `${prefix}collections/collections.html`,
       'production-room':    `${prefix}production/production.html`,
       'production-floor':   `${prefix}production/production.html`,
       'job-cards':          null,

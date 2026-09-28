@@ -92,14 +92,14 @@
       ]);
 
       const elToday = document.getElementById('kpiTodayCount');
-      const elEnq   = document.getElementById('kpiEnquiryCount');
-      const elMeas  = document.getElementById('kpiMeasurementCount');
+      const elEnq = document.getElementById('kpiEnquiryCount');
+      const elMeas = document.getElementById('kpiMeasurementCount');
       const elTrial = document.getElementById('kpiTrialCount');
       const elDeliv = document.getElementById('kpiDeliveryCount');
 
       const trendToday = document.getElementById('kpiTodayTrend');
-      const trendEnq   = document.getElementById('kpiEnquiryTrend');
-      const trendMeas  = document.getElementById('kpiMeasurementTrend');
+      const trendEnq = document.getElementById('kpiEnquiryTrend');
+      const trendMeas = document.getElementById('kpiMeasurementTrend');
       const trendTrial = document.getElementById('kpiTrialTrend');
       const trendDeliv = document.getElementById('kpiDeliveryTrend');
 
@@ -133,15 +133,15 @@
     } catch (e) {
       console.error('[Appointments] Failed to render live KPI summary:', e.message);
       const elToday = document.getElementById('kpiTodayCount');
-      const elEnq   = document.getElementById('kpiEnquiryCount');
-      const elMeas  = document.getElementById('kpiMeasurementCount');
+      const elEnq = document.getElementById('kpiEnquiryCount');
+      const elMeas = document.getElementById('kpiMeasurementCount');
       const elTrial = document.getElementById('kpiTrialCount');
       const elDeliv = document.getElementById('kpiDeliveryCount');
 
       const todayStr = getTodayIsoString();
       if (elToday) elToday.textContent = APPOINTMENTS.filter(a => a.date === todayStr && a.status !== 'Cancelled').length;
-      if (elEnq)   elEnq.textContent   = 0;
-      if (elMeas)  elMeas.textContent  = APPOINTMENTS.filter(a => (a.type || '').toLowerCase().includes('measur') && a.status !== 'Cancelled').length;
+      if (elEnq) elEnq.textContent = 0;
+      if (elMeas) elMeas.textContent = APPOINTMENTS.filter(a => (a.type || '').toLowerCase().includes('measur') && a.status !== 'Cancelled').length;
       if (elTrial) elTrial.textContent = APPOINTMENTS.filter(a => ((a.type || '').toLowerCase().includes('trial') || (a.type || '').toLowerCase().includes('fitting')) && a.status !== 'Cancelled').length;
       if (elDeliv) elDeliv.textContent = APPOINTMENTS.filter(a => ((a.type || '').toLowerCase().includes('deliv') || (a.type || '').toLowerCase().includes('pickup')) && a.status !== 'Cancelled').length;
     }
@@ -632,13 +632,10 @@
       else if (s === 'Scheduled') statusClass = 'status-scheduled';
       else if (s === 'Rescheduled') statusClass = 'status-rescheduled';
 
-      // Customer Initials & Avatar
-      const initials = a.customer
-        ? a.customer.split(' ').map(n => n[0]).filter(Boolean).join('').slice(0, 2).toUpperCase()
-        : 'CL';
-      const avatarHtml = (a.avatar && !a.avatar.includes('avatar.jpg') && !a.avatar.includes('default'))
-        ? `<img src="${a.avatar}" class="table-cust-avatar" alt="${a.customer}" onerror="this.outerHTML='<div class=\\'table-cust-initials\\'>${initials}</div>'">`
-        : `<div class="table-cust-initials">${initials}</div>`;
+      // Customer Patron Avatar & Initials (Universal Engine)
+      const avatarHtml = typeof window.renderPatronAvatarHtml === 'function'
+        ? window.renderPatronAvatarHtml(a.customer, a.avatar, 'haulo-avatar-sm', 'width:32px;height:32px;border-radius:8px;')
+        : `<div class="table-cust-initials">${typeof window.getPatronInitials === 'function' ? window.getPatronInitials(a.customer) : 'CU'}</div>`;
 
       // Staff Initials
       const staffInitials = a.staff
@@ -739,19 +736,21 @@
     const displayList = todayApts.slice(0, 5);
 
     listEl.innerHTML = displayList.map(apt => {
-      const initials = apt.customer ? apt.customer.split(' ').map(w => w[0]).join('').slice(0, 2) : 'CL';
       const statusLabel = apt.status || 'Confirmed';
       let statusCls = '';
       if (statusLabel === 'Completed') statusCls = 'completed';
       else if (statusLabel === 'Cancelled') statusCls = 'cancelled';
       else if (statusLabel === 'Scheduled') statusCls = 'scheduled';
 
+      const avatarMarkup = typeof window.renderPatronAvatarHtml === 'function'
+        ? window.renderPatronAvatarHtml(apt.customer, apt.avatar, 'haulo-avatar-xs', 'width:28px;height:28px;border-radius:8px;')
+        : `<div class="sched-avatar-fallback">${typeof window.getPatronInitials === 'function' ? window.getPatronInitials(apt.customer) : 'CU'}</div>`;
+
       return `
         <div class="sched-item-row" onclick="window.highlightAndOpenAppointment('${apt.id}')">
           <div class="sched-item-left">
             <span class="sched-time-badge">${formatTimeShort(apt.startTime)}</span>
-            <img src="../assets/user_avatar.jpg" alt="${apt.customer}" class="sched-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-            <div class="sched-avatar-fallback" style="display:none;">${initials}</div>
+            ${avatarMarkup}
             <div class="sched-info">
               <span class="sched-name">${apt.customer}</span>
               <span class="sched-type">${apt.type}</span>
@@ -1005,7 +1004,7 @@
       status,
       staff,
       notes,
-      avatar: '../assets/user_avatar.jpg'
+      avatar: ''
     };
 
     // Asynchronously persist to backend REST API
@@ -1180,7 +1179,7 @@
       status: 'Confirmed',
       staff,
       notes: `Walk-in intake: ${notes}`,
-      avatar: '../assets/user_avatar.jpg'
+      avatar: ''
     });
 
     window.closeModal('walkInModal');
@@ -1373,7 +1372,7 @@
         status: mapApptStatus(a.status),
         staff: a.staffAssigned || 'Staff',
         notes: a.notes || '',
-        avatar: a.customerAvatar || '../assets/user_avatar.jpg'
+        avatar: (a.customerAvatar && !a.customerAvatar.includes('user_avatar.jpg')) ? a.customerAvatar : ''
       }));
       APPOINTMENTS.length = 0;
       APPOINTMENTS.push(...realApts);

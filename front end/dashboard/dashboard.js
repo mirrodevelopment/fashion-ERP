@@ -305,17 +305,23 @@ function renderSchedule() {
     el.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:12.5px;">No appointments scheduled for today.</div>';
     return;
   }
-  el.innerHTML = dashboardData.schedule.map(s => `
-    <div class="schedule-row" onclick="navigate('appointments')" title="Appointment with ${s.name}">
-      <div class="schedule-time">${s.time}</div>
-      <div class="schedule-avatar">${s.initials}</div>
-      <div class="schedule-info">
-        <div class="schedule-name">${s.name}</div>
-        <div class="schedule-type">${s.type}</div>
+  el.innerHTML = dashboardData.schedule.map(s => {
+    const avatarMarkup = typeof window.renderPatronAvatarHtml === 'function'
+      ? window.renderPatronAvatarHtml(s.name, s.avatar, 'haulo-avatar-xs', 'width:30px;height:30px;border-radius:8px;')
+      : `<div class="schedule-avatar">${s.initials}</div>`;
+
+    return `
+      <div class="schedule-row" onclick="navigate('appointments')" title="Appointment with ${s.name}">
+        <div class="schedule-time">${s.time}</div>
+        ${avatarMarkup}
+        <div class="schedule-info">
+          <div class="schedule-name">${s.name}</div>
+          <div class="schedule-type">${s.type}</div>
+        </div>
+        <div class="schedule-tag">${s.loc}</div>
       </div>
-      <div class="schedule-tag">${s.loc}</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // ─────────────────────────────────────────────
@@ -629,8 +635,8 @@ function navigate(module) {
     'profitability':   null,
     'whatsapp':        null,
     'campaigns':       null,
-    'collections':     '../DesignStudio/design-studio.html',
-    'fabrics':         '../DesignStudio/design-studio.html',
+    'collections':     '../collections/collections.html',
+    'fabrics':         '../fabrics-materials/fabrics-materials.html',
     'branches':        null,
     'users-roles':     null,
     'settings':        null,
@@ -897,7 +903,19 @@ async function init() {
         const typeRaw = a.appointmentType || a.apptType || 'CONSULTATION';
         return {
           time:     a.scheduledAt ? new Date(a.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
-          initials: (a.customerName || 'Client').split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'CL',
+          initials: typeof window.getPatronInitials === 'function'
+            ? window.getPatronInitials(a.customerName)
+            : (() => {
+                const cName = a.customerName || 'Client';
+                const parts = cName.trim().split(/\s+/).filter(Boolean);
+                if (parts.length === 0) return 'CL';
+                if (parts.length === 1) {
+                  const s = parts[0].replace(/[^a-zA-Z0-9]/g, '');
+                  return s.length >= 2 ? s.substring(0, 2).toUpperCase() : s.toUpperCase();
+                }
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+              })(),
+          avatar:   a.customerAvatar || '',
           name:     a.customerName || 'Client',
           type:     typeRaw.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + (a.orderCode ? ' — ' + a.orderCode : ''),
           loc:      a.staffAssigned || 'In Store'

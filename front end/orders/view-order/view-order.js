@@ -49,13 +49,17 @@
     stages: [],
     currentStageIndex: 0,
     nextAction: {
-      title: 'Pattern Cutting to begin',
-      assignee: 'Master Pattern Cutter Kavitha M',
+      title: '—',
+      assignee: '—',
       buttonText: 'Mark as Started'
     },
     photos: [],
     activityHistory: [],
-    measurements: []
+    measurements: [],
+    rawCreatedAt: null,
+    deliveredDate: null,
+    paymentTransactions: [],
+    sessionActivities: []
   };
 
   // Holds API reference for use inside card renders (set during load)
@@ -80,6 +84,7 @@
           Auth = window.Auth;
         }
       }
+      _api = api;
 
       const params = new URLSearchParams(window.location.search);
       let orderId = params.get('id') || params.get('orderId') || params.get('orderCode') ||
@@ -143,6 +148,23 @@
         }
       } catch (err) {
         console.warn('[ViewOrder] Could not fetch live order stages:', err.message);
+      }
+
+      orderState.rawCreatedAt = order.createdAt || null;
+      orderState.deliveredDate = order.deliveredDate || null;
+
+      // Fetch live payment transactions for this order if available
+      try {
+        if (api && api.payments && api.payments.list) {
+          const pList = await api.payments.list({ search: orderState.orderId });
+          const orderPayments = Array.isArray(pList) ? pList : (pList?.content || []);
+          const matched = orderPayments.find(p => p.orderCode === orderState.orderId || p.orderId === order.id);
+          if (matched && Array.isArray(matched.transactions)) {
+            orderState.paymentTransactions = matched.transactions;
+          }
+        }
+      } catch (perr) {
+        console.warn('[ViewOrder] Could not fetch live payment transactions:', perr.message);
       }
 
       let tot = Number(order.totalAmount !== undefined ? order.totalAmount : order.amount) || 0;
@@ -242,6 +264,11 @@
 
       refreshLucideIcons();
 
+      // ─── Lock all editing if order is cancelled ───
+      if (orderState.status === 'CANCELLED') {
+        lockCancelledOrderUI();
+      }
+
     } catch (err) {
       console.error('[ViewOrder] Failed to load order from backend:', err);
     }
@@ -268,6 +295,61 @@
     }
   }
 
+  function formatDateTimeParts(isoOrDateStr) {
+    if (!isoOrDateStr) return { date: '—', time: '', rawTime: 0 };
+    try {
+      const d = new Date(isoOrDateStr);
+      if (isNaN(d.getTime())) return { date: String(isoOrDateStr).slice(0, 10), time: '', rawTime: 0 };
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const datePart = `${y}-${m}-${day}`;
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const timePart = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+      return { date: datePart, time: timePart, rawTime: d.getTime() };
+    } catch (_) {
+      return { date: String(isoOrDateStr), time: '', rawTime: 0 };
+    }
+  }
+
+  function getCurrentStaffName() {
+    try {
+      if (window.Auth && window.Auth.getUser) {
+        const u = window.Auth.getUser();
+        if (u && (u.fullName || u.name || u.username)) {
+          return u.fullName || u.name || u.username;
+        }
+      }
+      const rawUser = sessionStorage.getItem('erp_user') || localStorage.getItem('erp_user') ||
+        sessionStorage.getItem('user') || localStorage.getItem('user');
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        if (u && (u.fullName || u.name || u.username)) {
+          return u.fullName || u.name || u.username;
+        }
+      }
+      // Decode JWT token payload as fallback to extract authenticated staff identity
+      const token = (window.Auth && window.Auth.getToken && window.Auth.getToken()) ||
+        sessionStorage.getItem('erp_token') || localStorage.getItem('erp_token');
+      if (token) {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+          if (payload && (payload.fullName || payload.name || payload.sub)) {
+            return payload.fullName || payload.name || payload.sub;
+          }
+        }
+      }
+      return '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   function formatStageImgUrl(url) {
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
@@ -279,7 +361,7 @@
   }
 
   function formatAvatarUrl(url) {
-    if (!url) return '../../assets/user_avatar.jpg';
+    if (!url || url.includes('user_avatar.jpg')) return '';
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
     const clean = url.replace(/^\/?front\s*end\//i, '').replace(/^\/+/, '');
     const origin = (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.protocol === 'https:'))
@@ -309,18 +391,10 @@
     }
   }
 
-  // Fallback blueprint if stage definitions table is not yet reachable
+  // Fallback blueprint if stage definitions table is not yet reachable (strictly 2 fixed stages)
   const DEFAULT_STAGES = [
-    { code: 'DESIGNING', label: 'Design', role: 'DESIGNER', sortOrder: 1 },
-    { code: 'LINING', label: 'Lining', role: 'TAILOR', sortOrder: 2 },
-    { code: 'HAND_WORK', label: 'Hand Work', role: 'EMBROIDERER', sortOrder: 3 },
-    { code: 'CUTTING', label: 'Cutting', role: 'CUTTER', sortOrder: 4 },
-    { code: 'STITCHING', label: 'Stitching', role: 'TAILOR', sortOrder: 5 },
-    { code: 'HEMMING', label: 'Hemming', role: 'FINISHER', sortOrder: 6 },
-    { code: 'TRIAL', label: 'Trial', role: 'TAILOR', sortOrder: 7 },
-    { code: 'QC', label: 'QC', role: 'SUPERVISOR', sortOrder: 8 },
-    { code: 'READY_TO_DELIVER', label: 'Ready', role: 'DISPATCHER', sortOrder: 9 },
-    { code: 'DELIVERED', label: 'Delivered', role: 'DISPATCHER', sortOrder: 10 }
+    { code: 'ORDER_TAKEN',      label: 'Order Taken',      role: 'STYLIST',    sortOrder: 1 },
+    { code: 'READY_TO_DELIVER', label: 'Ready to Deliver', role: 'DISPATCHER', sortOrder: 2 }
   ];
 
   function getEffectiveStageDefs() {
@@ -391,11 +465,23 @@
       colDisplay.textContent = `${orderState.garmentType} • ${orderState.collection}`;
     }
 
-    // Customer Compact Card
-    const ccAvatar = document.getElementById('ccAvatarImg');
-    if (ccAvatar) {
-      ccAvatar.src = orderState.customer.avatar || '../../assets/user_avatar.jpg';
-      ccAvatar.alt = orderState.customer.name;
+    // Customer Compact Card Avatar & Patron Badge
+    const ccBox = document.getElementById('ccAvatarBox');
+    const customerName = (orderState.customer && orderState.customer.name) || 'Customer';
+    const formattedAvatar = formatAvatarUrl(orderState.customer ? orderState.customer.avatar : '');
+
+    if (ccBox) {
+      if (typeof window.applyPatronAvatarElement === 'function') {
+        window.applyPatronAvatarElement(ccBox, customerName, formattedAvatar, 'haulo-avatar-md', 'width:44px;height:44px;border-radius:10px;');
+      } else if (typeof window.renderPatronAvatarHtml === 'function') {
+        ccBox.innerHTML = window.renderPatronAvatarHtml(customerName, formattedAvatar, 'haulo-avatar-md', 'width:44px;height:44px;border-radius:10px;');
+      } else {
+        const inits = typeof window.getPatronInitials === 'function' ? window.getPatronInitials(customerName) : 'CU';
+        ccBox.innerHTML = `<div class="haulo-patron-avatar-initials haulo-avatar-md" style="width:44px;height:44px;border-radius:10px;">${inits}</div>`;
+      }
+    }
+    if (window.lucide) {
+      try { window.lucide.createIcons(); } catch (_) {}
     }
 
     const ccName = document.getElementById('ccName');
@@ -445,10 +531,14 @@
       const bal = orderState.financials.balanceAmount;
       if (bal <= 0 && adv > 0) {
         ccPaymentBadge.textContent = 'Fully Paid';
-      } else {
+        ccPaymentBadge.className = 'cc-stat-sub green';
+      } else if (adv > 0) {
         ccPaymentBadge.textContent = 'Advance Paid';
+        ccPaymentBadge.className = 'cc-stat-sub green';
+      } else {
+        ccPaymentBadge.textContent = 'Unpaid';
+        ccPaymentBadge.className = 'cc-stat-sub red';
       }
-      ccPaymentBadge.className = 'cc-stat-sub green';
     }
 
     const customerBtn = document.getElementById('btnCustomerQuickOptions');
@@ -456,6 +546,26 @@
       customerBtn.onclick = () => {
         window.location.href = `../../customer/Customer360/customer360.html?mobile=${encodeURIComponent(orderState.customer.phone)}`;
       };
+    }
+
+    // Toggle Order Cancelled banner
+    const cancelledBanner = document.getElementById('orderCancelledBanner');
+    if (cancelledBanner) {
+      cancelledBanner.style.display = orderState.status === 'CANCELLED' ? 'flex' : 'none';
+    }
+
+    // Update menu cancel option
+    const menuCancel = document.getElementById('menuCancelOrder');
+    if (menuCancel) {
+      if (orderState.status === 'CANCELLED') {
+        menuCancel.innerHTML = '<i data-lucide="slash" style="width:13px;height:13px;margin-right:8px;"></i>Order Cancelled';
+        menuCancel.style.opacity = '0.5';
+        menuCancel.style.pointerEvents = 'none';
+      } else {
+        menuCancel.innerHTML = '<i data-lucide="x-circle" style="width:13px;height:13px;margin-right:8px;"></i>Cancel Order';
+        menuCancel.style.opacity = '1';
+        menuCancel.style.pointerEvents = 'auto';
+      }
     }
   }
 
@@ -472,7 +582,31 @@
   // ─── Production Stage Stepper Setup (Connected to Live Database) ───
   function setupProductionStages() {
     const defs = getEffectiveStageDefs();
-    const curIdx = findStageIndex(orderState.currentStage || orderState.status);
+    const totalDefs = defs.length;
+    let curIdx = 0;
+
+    if (orderState.status === 'CANCELLED') {
+      // Find the specific stage where production halted
+      if (orderState.currentStage && orderState.currentStage.toUpperCase() !== 'CANCELLED') {
+        curIdx = findStageIndex(orderState.currentStage);
+      } else if (orderState.liveStages && Array.isArray(orderState.liveStages)) {
+        const inProg = orderState.liveStages.find(ls => ls.status === 'IN_PROGRESS');
+        if (inProg) {
+          curIdx = findStageIndex(inProg.stageName);
+        } else {
+          const completedStages = orderState.liveStages.filter(ls => ls.status === 'COMPLETED');
+          if (completedStages.length > 0) {
+            const lastComp = completedStages[completedStages.length - 1];
+            curIdx = findStageIndex(lastComp.stageName);
+          }
+        }
+      }
+      curIdx = Math.max(0, Math.min(curIdx, totalDefs - 1));
+    } else {
+      curIdx = findStageIndex(orderState.currentStage || orderState.status);
+      curIdx = Math.max(0, Math.min(curIdx, totalDefs - 1));
+    }
+
     orderState.currentStageIndex = curIdx;
 
     orderState.stages = defs.map((def, idx) => {
@@ -489,8 +623,11 @@
           return lsUpper === def.code.toUpperCase() || lsUpper === def.label.toUpperCase();
         });
         if (matched) {
-          if (matched.status === 'COMPLETED') st = 'completed';
-          else if (matched.status === 'IN_PROGRESS') st = 'current';
+          // IMPORTANT: If cancelled, do NOT allow liveStages to mark stages after curIdx as completed or in progress!
+          if (orderState.status !== 'CANCELLED') {
+            if (matched.status === 'COMPLETED') st = 'completed';
+            else if (matched.status === 'IN_PROGRESS') st = 'current';
+          }
 
           if (matched.assignedTo && typeof matched.assignedTo === 'object' && matched.assignedTo.name) {
             stageAssignee = matched.assignedTo.name;
@@ -520,25 +657,82 @@
 
     stepperContainer.innerHTML = '';
     const totalStages = orderState.stages.length;
+    const isCancelled = orderState.status === 'CANCELLED';
+
+    // Strictly clamp curIdx to a valid stage in [0, totalStages - 1]
+    let curIdx = orderState.currentStageIndex;
+    if (typeof curIdx !== 'number' || isNaN(curIdx) || curIdx < 0) {
+      curIdx = 0;
+    }
+    if (totalStages > 0 && curIdx >= totalStages) {
+      curIdx = totalStages - 1;
+    }
+    orderState.currentStageIndex = curIdx;
+
+    const trackerWrap = document.querySelector('.production-progress-tracker-wrap');
+    if (trackerWrap) {
+      if (isCancelled) {
+        trackerWrap.classList.add('tracker-cancelled');
+      } else {
+        trackerWrap.classList.remove('tracker-cancelled');
+      }
+    }
+
+    if (isCancelled) {
+      stepperContainer.classList.add('stepper-cancelled');
+      // Update top warning banner with exact halted stage details
+      const cancelledBanner = document.getElementById('orderCancelledBanner');
+      if (cancelledBanner) {
+        const frozenStageName = orderState.stages[curIdx]?.name || 'Current Stage';
+        cancelledBanner.innerHTML = `<span style="font-weight:700;color:#f87171;font-size:12.5px;letter-spacing:0.3px;">cancaled at ${frozenStageName}</span>`;
+        cancelledBanner.style.display = 'flex';
+      }
+    } else {
+      stepperContainer.classList.remove('stepper-cancelled');
+      const cancelledBanner = document.getElementById('orderCancelledBanner');
+      if (cancelledBanner) cancelledBanner.style.display = 'none';
+    }
 
     orderState.stages.forEach((stage, idx) => {
       const node = document.createElement('div');
-      node.className = `step-node ${stage.status}`;
       node.setAttribute('data-stage-idx', idx);
-      node.setAttribute('title', `${stage.name} · Assigned to ${stage.assignee}`);
 
       let circleContent = '';
-      if (stage.status === 'completed') {
-        circleContent = '✓';
-      } else if (stage.status === 'current') {
-        circleContent = '<span class="step-cur-dot"></span>';
+      let stageClass = stage.status;
+      let labelExtra = '';
+
+      if (isCancelled) {
+        if (idx < curIdx) {
+          stageClass = 'completed past-cancelled';
+          circleContent = '✓';
+        } else if (idx === curIdx) {
+          // The current stage where production halted/froze turns RED!
+          stageClass = 'current frozen-cancelled';
+          circleContent = '<span class="step-halt-x">✕</span>';
+          labelExtra = '<span class="step-freeze-tag">cancaled at this stage</span>';
+        } else {
+          stageClass = 'upcoming locked-cancelled';
+          circleContent = '<span class="step-lock-dot"></span>';
+        }
       } else {
-        circleContent = '<span class="step-pending-dot"></span>';
+        if (stage.status === 'completed') {
+          circleContent = '✓';
+        } else if (stage.status === 'current') {
+          circleContent = '<span class="step-cur-dot"></span>';
+        } else {
+          circleContent = '<span class="step-pending-dot"></span>';
+        }
       }
+
+      node.className = `step-node ${stageClass}`;
+      node.setAttribute('title', isCancelled && idx === curIdx
+        ? `Production Frozen at ${stage.name} · Order Cancelled`
+        : `${stage.name} · Assigned to ${stage.assignee}`);
 
       node.innerHTML = `
         <div class="step-circle">${circleContent}</div>
         <span class="step-label">${stage.name}</span>
+        ${labelExtra}
       `;
 
       node.addEventListener('click', () => handleStageClick(idx));
@@ -547,11 +741,25 @@
       if (idx < totalStages - 1) {
         const connector = document.createElement('div');
         connector.className = 'step-connector';
-        if (idx < orderState.currentStageIndex) {
-          connector.classList.add('completed');
-        } else if (idx === orderState.currentStageIndex) {
-          connector.classList.add('active-to-current');
+
+        if (isCancelled) {
+          if (idx < curIdx - 1) {
+            connector.classList.add('completed', 'past-connector');
+          } else if (idx === curIdx - 1) {
+            // Track leading directly into the frozen/cancelled stage turns bold glowing RED!
+            connector.classList.add('connector-cancelled-active');
+          } else {
+            // Track beyond the cancelled stage is dead/frozen
+            connector.classList.add('connector-cancelled-dead');
+          }
+        } else {
+          if (idx < curIdx) {
+            connector.classList.add('completed');
+          } else if (idx === curIdx) {
+            connector.classList.add('active-to-current');
+          }
         }
+
         const pctLeft = ((idx + 0.5) / totalStages) * 100;
         const pctWidth = (1 / totalStages) * 100;
         connector.style.left = `${pctLeft}%`;
@@ -562,6 +770,12 @@
   }
 
   async function handleStageClick(stageIdx) {
+    if (orderState.status === 'CANCELLED') {
+      const curStage = orderState.stages[orderState.currentStageIndex];
+      const stageName = curStage ? curStage.name : 'this stage';
+      showToast(`Production is frozen at "${stageName}". Order has been cancelled.`, 'warn');
+      return;
+    }
     const targetStage = orderState.stages[stageIdx];
     if (!targetStage) return;
 
@@ -574,6 +788,10 @@
   }
 
   async function transitionToStage(stageIdx) {
+    if (orderState.status === 'CANCELLED') {
+      showToast('Cannot progress stages on a cancelled order.', 'warn');
+      return;
+    }
     const targetDef = orderState.stages[stageIdx];
     if (!targetDef) return;
 
@@ -599,11 +817,32 @@
       orderState.dates.totalLeadDays || 14,
       orderState.dates.daysLeft || 10
     );
+    // Record real-time live activity entry
+    const nowParts = formatDateTimeParts(new Date().toISOString());
+    orderState.sessionActivities.push({
+      date: nowParts.date,
+      time: nowParts.time,
+      rawTime: nowParts.rawTime,
+      title: `Stage Advanced: ${targetDef.name}`,
+      user: (targetDef.assignee && targetDef.assignee !== 'Unassigned')
+        ? `Assigned to ${targetDef.assignee} · Live Transition`
+        : 'Live Transition',
+      dot: 'purple',
+      status: 'completed',
+      stage: targetDef.name
+    });
+
+    renderTimelineAndActivityCard();
     refreshLucideIcons();
 
     if (_api && _api.production && _api.production.transition && orderState.rawId) {
       try {
         await _api.production.transition(orderState.rawId, targetDef.code);
+        // Refresh live stages from backend
+        try {
+          orderState.liveStages = await _api.production.getByOrder(orderState.rawId);
+          renderTimelineAndActivityCard();
+        } catch (_) {}
         showToast(`Order progressed to ${targetDef.name}!`, 'success');
       } catch (err) {
         try {
@@ -623,104 +862,82 @@
 
   // ─── Card 1: Design Reference Images ───
   function renderDesignReferenceCard() {
-    const gType = orderState.garmentType.toLowerCase();
-    const uploadedImgs = orderState.referenceImages; // From DB (may be empty)
+    const uploadedImgs = Array.isArray(orderState.referenceImages)
+      ? orderState.referenceImages.filter(Boolean)
+      : [];
 
-    // Fallback static images by garment type
-    let fallbacks = [];
-    if (gType.includes('kurti') || gType.includes('chudi') || gType.includes('salwar')) {
-      fallbacks = [
-        { src: '../../assets/designs/festive-kurti-hero.jpg', title: `${orderState.garmentType} — Mustard Gold Chanderi Silk Silhouette` },
-        { src: '../../assets/designs/festive-kurti-yoke.jpg', title: 'Mandarin Collar & Split-V Antique Zari Yoke Detailing' },
-        { src: '../../assets/fabrics/chanderi.jpg', title: 'Mustard Gold Chanderi Silk Swatch' },
-        { src: '../../assets/fabrics/zari-motif.jpg', title: 'Antique Gold Zari Border Motif' }
-      ];
-    } else if (gType.includes('blouse')) {
-      fallbacks = [
-        { src: '../../assets/designs/zari-bloom-back.jpg', title: 'Deep Back Neck & Dori Latkans' },
-        { src: '../../assets/designs/zari-bloom-front.jpg', title: 'Sweetheart Front Neck Profile' },
-        { src: '../../assets/designs/zari-bloom-detail.jpg', title: 'Aari & Zardosi Needlework Detail' },
-        { src: '../../assets/pink_silk.jpg', title: 'Silk Swatch' }
-      ];
-    } else if (gType.includes('lehenga')) {
-      fallbacks = [
-        { src: '../../assets/designs/lehenga-stage.png', title: 'Bridal Lehenga Kalidar Silhouette' },
-        { src: '../../assets/designs/midnight-grace.jpg', title: 'Zari Border & Flare Detail' },
-        { src: '../../assets/designs/petal-charm.jpg', title: 'Custom Choli Design' },
-        { src: '../../assets/fabrics/silk.jpg', title: 'Brocade Silk Fabric Swatch' }
-      ];
-    } else if (gType.includes('gown') || gType.includes('anarkali')) {
-      fallbacks = [
-        { src: '../../assets/designs/gown-stage.png', title: 'Flared Evening Gown Silhouette' },
-        { src: '../../assets/designs/skyline.jpg', title: 'Sheer Bodice & Yoke Embellishment' },
-        { src: '../../assets/designs/meadow-grace.jpg', title: 'Floor-length Drape Detail' },
-        { src: '../../assets/fabrics/georgette.jpg', title: 'Georgette Silk Swatch' }
-      ];
-    } else {
-      fallbacks = [
-        { src: '../../assets/designs/regal-drape.jpg', title: 'Heritage Silk Drape' },
-        { src: '../../assets/designs/saree-stage.png', title: 'Pleat & Pallu Structure' },
-        { src: '../../assets/fabrics/silk.jpg', title: 'Pure Silk Swatch' },
-        { src: '../../assets/fabrics/zari-motif.jpg', title: 'Korvai Gold Border' }
-      ];
-    }
-
-    // Build effective photos: use uploaded images where available, fall back otherwise
-    const MAX_SLOTS = 5;
-    const photos = [];
-    for (let i = 0; i < MAX_SLOTS; i++) {
-      if (uploadedImgs[i]) {
-        photos.push({ src: uploadedImgs[i], title: `Reference Image ${i + 1}`, uploaded: true, slot: i + 1 });
-      } else if (fallbacks[i]) {
-        photos.push({ src: fallbacks[i].src, title: fallbacks[i].title, uploaded: false, slot: i + 1 });
-      }
-    }
+    // Strictly customer given images — NO mock/static fallback images!
+    const photos = uploadedImgs.map((src, idx) => ({
+      src: src,
+      title: `Customer Reference ${idx + 1}`,
+      uploaded: true,
+      slot: idx + 1
+    }));
     orderState.photos = photos;
 
-    // Set main large image
-    const largeEl = document.getElementById('drLargeImg');
-    if (largeEl && photos.length > 0) largeEl.src = photos[0].src;
-
-    // Build thumbnail strip (slots 2-4 shown + upload button for slot 5 / overflow)
-    const thumbsContainer = document.getElementById('drThumbsContainer');
-    if (thumbsContainer) {
-      // Build thumb items for slots 2, 3, 4
-      const thumbItems = [1, 2, 3].map(idx => {
-        const photo = photos[idx];
-        if (photo) {
+    // Helper to render individual slot HTML
+    function getSlotHtml(slotNum, isLarge = false) {
+      const photo = photos[slotNum - 1];
+      if (photo && photo.src) {
+        if (isLarge) {
           return `
-            <div class="dr-thumb-wrap" data-slot="${photo.slot}" title="${photo.title}">
-              <img id="drThumb${idx}Img" src="${photo.src}" alt="Ref ${photo.slot}" onclick="openLightbox(${idx})" />
-              ${photo.uploaded ? `<button class="dr-thumb-delete" title="Remove image" onclick="deleteRefImage(${photo.slot})">✕</button>` : ''}
+            <div class="dp-large dr-thumb-wrap" onclick="openLightbox(0)" title="${photo.title}">
+              <img id="drLargeImg" src="${photo.src}" alt="Customer Reference 1" />
+              <button class="dr-thumb-delete" title="Remove image" onclick="event.stopPropagation(); deleteRefImage(1)">✕</button>
+            </div>`;
+        } else {
+          const idx = slotNum - 1;
+          return `
+            <div class="dp-thumb dr-thumb-wrap" onclick="openLightbox(${idx})" title="${photo.title}">
+              <img id="drThumb${idx}Img" src="${photo.src}" alt="Customer Reference ${slotNum}" />
+              <button class="dr-thumb-delete" title="Remove image" onclick="event.stopPropagation(); deleteRefImage(${slotNum})">✕</button>
             </div>`;
         }
-        // Empty slot — show upload target
+      }
+
+      // Empty Frame
+      if (isLarge) {
         return `
-          <div class="dr-thumb-wrap dr-thumb-empty" data-slot="${idx + 1}"
-               onclick="triggerRefUpload(${idx + 1})" title="Upload reference image ${idx + 1}">
-            <div class="dr-upload-placeholder"><span>＋</span><small>Upload</small></div>
+          <div class="dp-large dr-empty-frame dr-large-empty" onclick="triggerRefUpload(1)" title="Empty frame • Click to upload customer reference image 1">
+            <div class="dr-empty-content">
+              <i data-lucide="image" class="dr-empty-icon-lg"></i>
+              <span class="dr-empty-badge">Empty Frame</span>
+              <span class="dr-empty-text">No Customer Image</span>
+              <small class="dr-empty-hint">+ Click to Upload</small>
+            </div>
           </div>`;
-      }).join('');
+      } else {
+        return `
+          <div class="dp-thumb dr-thumb-wrap dr-empty-frame dr-thumb-empty" onclick="triggerRefUpload(${slotNum})" title="Empty frame • Click to upload reference image ${slotNum}">
+            <div class="dr-upload-placeholder">
+              <i data-lucide="plus" class="dr-empty-icon-sm"></i>
+              <span class="dr-empty-frame-tag">Empty Frame</span>
+              <small class="dr-empty-sub-tag">Upload</small>
+            </div>
+          </div>`;
+      }
+    }
 
-      const moreCount = Math.max(0, photos.length - 4);
-      const moreEl = moreCount > 0
-        ? `<div class="dr-more-count" onclick="triggerRefUpload(5)" title="Upload ref 5">+${moreCount}</div>`
-        : `<div class="dr-thumb-wrap dr-thumb-empty" data-slot="5"
-               onclick="triggerRefUpload(5)" title="Upload reference image 5">
-             <div class="dr-upload-placeholder"><span>＋</span><small>Upload</small></div>
-           </div>`;
+    const grid = document.getElementById('designPhotosGrid');
+    if (grid) {
+      const moreCount = Math.max(0, photos.length - 5);
+      const slot5Html = moreCount > 0
+        ? `<div class="dp-thumb dr-more-count" onclick="openAllDesignReferences()" title="View all ${photos.length} references">+${moreCount}</div>`
+        : getSlotHtml(5, false);
 
-      thumbsContainer.innerHTML = thumbItems + moreEl;
-    } else {
-      // Fallback: legacy IDs
-      const t1El = document.getElementById('drThumb1Img');
-      const t2El = document.getElementById('drThumb2Img');
-      const t3El = document.getElementById('drThumb3Img');
-      const moreCountEl = document.getElementById('drMoreCount');
-      if (t1El) t1El.src = photos[1]?.src || fallbacks[1]?.src || '';
-      if (t2El) t2El.src = photos[2]?.src || fallbacks[2]?.src || '';
-      if (t3El) t3El.src = photos[3]?.src || fallbacks[3]?.src || '';
-      if (moreCountEl) moreCountEl.textContent = `+${Math.max(1, photos.length - 3)}`;
+      grid.innerHTML = `
+        <div class="dp-large" id="drLargeSlot">
+          ${getSlotHtml(1, true)}
+        </div>
+        <div class="dp-middle-col" id="drMidCol">
+          ${getSlotHtml(2, false)}
+          ${getSlotHtml(3, false)}
+        </div>
+        <div class="dp-right-col" id="drRightCol">
+          ${getSlotHtml(4, false)}
+          ${slot5Html}
+        </div>
+      `;
     }
 
     // ─── Upload reference image input (hidden) ───
@@ -734,45 +951,16 @@
       document.body.appendChild(refInput);
     }
     refInput.onchange = null; // will be set by triggerRefUpload
+
+    if (window.lucide) {
+      try { window.lucide.createIcons(); } catch (_) {}
+    }
   }
 
   // ─── Card 2: Order Details ───
   function renderOrderDetailsCard() {
-    const gType = orderState.garmentType;
-    const gTypeLower = gType.toLowerCase();
-    const gDesc = orderState.garmentDesc;
-
-    let neck = 'Mandarin Zari Collar & Split V';
-    let sleeve = '3/4 Sleeve with Antique Zari Border';
-    let lining = 'Mulmul Cotton Breathable Lining';
-    let embroidery = 'Fine Antique Zari Needlework';
-    let fabric = 'Chanderi Silk (Mustard Gold & Zari)';
-
-    if (gTypeLower.includes('blouse')) {
-      neck = 'Round Neck (Front), Deep U Back with Dori';
-      sleeve = 'Elbow Length Fitted Sleeve';
-      lining = 'Pure Butter Crepe Silk Lining';
-      embroidery = 'Aari Zardosi & Bead Embellishment';
-      fabric = 'Pure Raw Silk / Brocade';
-    } else if (gTypeLower.includes('lehenga')) {
-      neck = 'Sweetheart Choli Neckline';
-      sleeve = 'Half Sleeve with Zari Piping';
-      lining = 'Double Satin & Can-Can Interlining';
-      embroidery = 'Heavy Zardosi Kalidar Work';
-      fabric = 'Brocade Silk & Tissue Organza';
-    } else if (gTypeLower.includes('gown')) {
-      neck = 'Illusion Boat Neck with Sheer Yoke';
-      sleeve = 'Fitted Full Sheer Sleeve';
-      lining = 'Satin Crepe Full Lining';
-      embroidery = 'Sequin Cutwork & Resham Thread Art';
-      fabric = 'Soft Net & Shimmer Georgette';
-    } else if (gTypeLower.includes('saree')) {
-      neck = 'Traditional Drape Silhouette';
-      sleeve = 'Cap Sleeve Maggam Work';
-      lining = 'Cotton Voile Breathable Lining';
-      embroidery = 'Korvai Zari Border & Pallu Resham';
-      fabric = 'Kanchipuram Pure Silk';
-    }
+    const gType = orderState.garmentType || '—';
+    const gDesc = orderState.garmentDesc || '';
 
     const odGarment = document.getElementById('odGarmentType');
     const odCollection = document.getElementById('odCollection');
@@ -785,87 +973,93 @@
     const odNotes = document.getElementById('odSpecialNotes');
 
     if (odGarment) odGarment.textContent = gType;
-    if (odCollection) odCollection.textContent = orderState.collection;
-    if (odCategory) odCategory.textContent = 'Custom Bespoke Design';
-    if (odNeck) odNeck.textContent = neck;
-    if (odSleeve) odSleeve.textContent = sleeve;
-    if (odLining) odLining.textContent = lining;
-    if (odEmb) odEmb.textContent = embroidery;
-    if (odFab) odFab.textContent = gDesc.includes('Silk') ? gDesc : fabric;
-    if (odNotes) odNotes.textContent = orderState.customer.notes || gDesc || 'Handle with boutique atelier care.';
+    if (odCollection) odCollection.textContent = orderState.collection || '—';
+    if (odCategory) odCategory.textContent = orderState.designCategory || (gDesc ? 'Custom Bespoke Design' : '—');
+    if (odNeck) odNeck.textContent = orderState.neckStyle || (orderState.customer?.preferredNeck || '—');
+    if (odSleeve) odSleeve.textContent = orderState.sleeveStyle || (orderState.customer?.preferredSleeve || '—');
+    if (odLining) odLining.textContent = orderState.lining || '—';
+    if (odEmb) odEmb.textContent = orderState.embroidery || '—';
+    if (odFab) odFab.textContent = orderState.fabric || gDesc || '—';
+    if (odNotes) odNotes.textContent = orderState.customer?.notes || orderState.productionNotes || gDesc || '—';
   }
 
   // ─── Card 3: Fabric & Materials ───
   function renderFabricAndMaterialsCard() {
-    const gTypeLower = orderState.garmentType.toLowerCase();
-
-    let thumb = '../../assets/fabrics/chanderi.jpg';
-    let name = 'Chanderi Silk';
-    let color = 'Mustard Gold';
-    let qty = '3.5 m';
-    let mats = [
-      { dot: 'green', name: 'Lining (Mulmul Cotton)', val: '2.5 m' },
-      { dot: 'pink', name: 'Gold Zari Thread', val: 'As required' },
-      { dot: 'purple', name: 'Handmade Potli Buttons', val: '12 pcs' },
-      { dot: 'coral', name: 'Side Concealed Zipper', val: '1 pc (12")' }
-    ];
-
-    if (gTypeLower.includes('blouse')) {
-      thumb = '../../assets/pink_silk.jpg';
-      name = 'Pure Raw Silk';
-      color = 'Dusty Pink / Gold';
-      qty = '1.2 m';
-      mats = [
-        { dot: 'green', name: 'Lining (Silk Crepe)', val: '1.2 m' },
-        { dot: 'pink', name: 'Hooks & Eye Strip', val: '2 sets' },
-        { dot: 'purple', name: 'Handcrafted Dori & Latkans', val: '1 pair' },
-        { dot: 'coral', name: 'Aari Zardosi Thread', val: 'As required' }
-      ];
-    } else if (gTypeLower.includes('lehenga')) {
-      thumb = '../../assets/fabrics/silk.jpg';
-      name = 'Brocade Silk & Organza';
-      color = 'Peach Coral & Gold';
-      qty = '5.5 m';
-      mats = [
-        { dot: 'green', name: 'Can-Can Netting (Structure)', val: '3.0 m' },
-        { dot: 'pink', name: 'Heavy Bridal Latkans', val: '1 pair' },
-        { dot: 'purple', name: 'Satin Silk Lining', val: '4.5 m' },
-        { dot: 'coral', name: 'Waistband Drawstring & Hook', val: '1 set' }
-      ];
-    } else if (gTypeLower.includes('gown')) {
-      thumb = '../../assets/fabrics/georgette.jpg';
-      name = 'Shimmer Georgette';
-      color = 'Midnight Blue / Rose';
-      qty = '6.0 m';
-      mats = [
-        { dot: 'green', name: 'Satin Crepe Underlay', val: '5.0 m' },
-        { dot: 'pink', name: 'Boned Corset Cups', val: '1 pair' },
-        { dot: 'purple', name: 'Invisible Back Zipper', val: '1 pc (22")' },
-        { dot: 'coral', name: 'Micro Sequin Spool', val: 'As required' }
-      ];
-    }
-
     const fabThumb = document.getElementById('fabThumbImg');
+    const fabThumbEmpty = document.getElementById('fabThumbEmpty');
     const fabBadge = document.getElementById('fabBadge');
     const fabName = document.getElementById('fabName');
     const fabColor = document.getElementById('fabColor');
     const fabQty = document.getElementById('fabQty');
     const addMatsList = document.getElementById('fabAdditionalList');
 
-    if (fabThumb) fabThumb.src = thumb;
-    if (fabBadge) fabBadge.textContent = 'Boutique Sourced';
-    if (fabName) fabName.textContent = name;
-    if (fabColor) fabColor.textContent = color;
-    if (fabQty) fabQty.textContent = qty;
+    const customerFabricImg = (orderState.fabricImage && !orderState.fabricImage.includes('pink_silk') && !orderState.fabricImage.includes('chanderi') && !orderState.fabricImage.includes('georgette'))
+      ? orderState.fabricImage
+      : '';
+
+    if (customerFabricImg && fabThumb) {
+      fabThumb.src = customerFabricImg;
+      fabThumb.style.display = 'block';
+      if (fabThumbEmpty) fabThumbEmpty.style.display = 'none';
+      fabThumb.onerror = () => {
+        fabThumb.style.display = 'none';
+        if (fabThumbEmpty) fabThumbEmpty.style.display = 'flex';
+      };
+    } else {
+      if (fabThumb) fabThumb.style.display = 'none';
+      if (fabThumbEmpty) fabThumbEmpty.style.display = 'flex';
+    }
+
+    if (fabBadge) {
+      if (orderState.fabricSource) {
+        fabBadge.textContent = orderState.fabricSource;
+        fabBadge.style.display = 'inline-block';
+      } else {
+        fabBadge.textContent = '';
+        fabBadge.style.display = 'none';
+      }
+    }
+    if (fabName) {
+      const fName = orderState.fabric || orderState.fabricName || orderState.garmentDesc;
+      fabName.textContent = fName || '—';
+    }
+    if (fabColor) {
+      if (orderState.fabricColor) {
+        fabColor.textContent = String(orderState.fabricColor);
+        fabColor.style.display = 'block';
+      } else {
+        fabColor.textContent = '';
+        fabColor.style.display = 'none';
+      }
+    }
+    if (fabQty) {
+      if (orderState.fabricQty) {
+        fabQty.textContent = String(orderState.fabricQty);
+        fabQty.style.display = 'block';
+      } else {
+        fabQty.textContent = '';
+        fabQty.style.display = 'none';
+      }
+    }
 
     if (addMatsList) {
-      addMatsList.innerHTML = mats.map(m => `
-        <div class="mat-item-line">
-          <span class="dot ${m.dot}"></span>
-          <span class="mat-item-name">${m.name}</span>
-          <span class="mat-item-val">${m.val}</span>
-        </div>
-      `).join('');
+      const mats = Array.isArray(orderState.additionalMaterials) ? orderState.additionalMaterials : [];
+      if (mats.length > 0) {
+        addMatsList.innerHTML = mats.map(m => `
+          <div class="mat-item-line">
+            <span class="dot ${m.dot || 'green'}"></span>
+            <span class="mat-item-name">${m.name}</span>
+            <span class="mat-item-val">${m.val || m.quantity || ''}</span>
+          </div>
+        `).join('');
+      } else {
+        addMatsList.innerHTML = `
+          <div style="font-size:11px;color:var(--text-muted);padding:6px 0;">No additional materials recorded.</div>
+        `;
+      }
+    }
+    if (window.lucide) {
+      try { window.lucide.createIcons(); } catch (_) {}
     }
   }
 
@@ -876,74 +1070,82 @@
 
     let employees = [];
 
-    // 1. Gather assigned craftsmen from live stages if available
+    // Gather ONLY real assigned craftsmen from the order's live stages (zero fake/raw mock data)
     if (orderState.liveStages && Array.isArray(orderState.liveStages)) {
       orderState.liveStages.forEach(ls => {
         if (ls.assignedTo && typeof ls.assignedTo === 'object' && ls.assignedTo.name) {
-          if (!employees.some(e => e.name === ls.assignedTo.name)) {
+          const empId = ls.assignedTo.id || ls.assignedTo.name;
+          const stageLabel = ls.stageName ? formatStageLabel(ls.stageName) : (ls.assignedTo.role || '');
+          const existing = employees.find(e => e.id === empId);
+          if (existing) {
+            if (!existing.stages.includes(stageLabel)) {
+              existing.stages.push(stageLabel);
+            }
+          } else {
             employees.push({
+              id: empId,
               name: ls.assignedTo.name,
-              role: ls.stageName ? formatStageLabel(ls.stageName) : (ls.assignedTo.role || 'Craftsman')
+              stages: [stageLabel],
+              role: ls.assignedTo.role || ls.assignedTo.specialization || '',
+              avatar: ls.assignedTo.avatar || ls.assignedTo.imageUrl || ''
             });
           }
         }
       });
     }
 
-    // 2. Query workforce employees from database
-    if (employees.length < 4 && api && api.employees) {
-      try {
-        const empRes = await api.employees.list({ status: 'ACTIVE' });
-        const list = Array.isArray(empRes) ? empRes : (empRes?.content || []);
-        list.forEach(emp => {
-          if (!employees.some(e => e.name === emp.name)) {
-            employees.push({
-              name: emp.name,
-              role: emp.specialization ? emp.specialization.split(',')[0].trim() : (emp.role || 'Artisan')
-            });
-          }
-        });
-      } catch (e) {
-        try {
-          const empRes = await api.employees.list();
-          const list = Array.isArray(empRes) ? empRes : (empRes?.content || []);
-          list.forEach(emp => {
-            if (!employees.some(e => e.name === emp.name)) {
-              employees.push({
-                name: emp.name,
-                role: emp.role || 'Artisan'
-              });
-            }
-          });
-        } catch (_) { }
-      }
-    }
-
     if (employees.length === 0) {
       teamContainer.innerHTML = `
-        <div style="padding:24px 12px;text-align:center;color:var(--text-muted);font-size:11.5px;">
-          No assigned team members yet.
-        </div>
-      `;
-      return;
-    }
-
-    teamContainer.innerHTML = employees.slice(0, 4).map((emp, i) => {
-      const initials = emp.name.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'AT';
-      const colorClass = `color-${i % 4}`;
-      return `
-        <div class="team-member-row">
-          <div class="tm-avatar ${colorClass}">${initials}</div>
-          <div class="tm-meta">
-            <span class="tm-name">${emp.name}</span>
-            <span class="tm-role">${emp.role}</span>
+        <div class="team-empty-state" style="padding:22px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;color:var(--text-muted);">
+            <i data-lucide="users" style="width:18px;height:18px;opacity:0.6;"></i>
           </div>
-          <button type="button" class="tm-chat-btn" onclick="openChatWithStaff('${emp.name.replace(/'/g, "\\'")}')" title="Message ${emp.name}">
-            <i data-lucide="message-square" style="width:14px;height:14px;"></i>
+          <div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--text-secondary);margin-bottom:3px;">No Team Assigned</div>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.4;max-width:220px;margin:0 auto;">Craftsmen and specialists have not been assigned to this order yet.</div>
+          </div>
+          <button type="button" class="btn-ghost" onclick="openAssignTeamModal()" style="font-size:11.5px;padding:6px 14px;border-radius:8px;border:1px solid rgba(212,175,55,0.35);color:var(--lime);display:inline-flex;align-items:center;gap:6px;background:rgba(212,175,55,0.08);cursor:pointer;">
+            <i data-lucide="user-plus" style="width:12px;height:12px;"></i>
+            <span>Assign Craftsman</span>
           </button>
         </div>
       `;
-    }).join('');
+      refreshLucideIcons();
+      return;
+    }
+
+    teamContainer.innerHTML = `
+      ${employees.map((emp, i) => {
+        const initials = emp.name.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'AT';
+        const colorClass = `color-${i % 4}`;
+        const avatarUrl = formatAvatarUrl(emp.avatar);
+        const avatarInner = avatarUrl
+          ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block;" alt="${emp.name}" onerror="this.parentNode.innerHTML='${initials}'" />`
+          : initials;
+        const roleOrStages = emp.stages.join(' • ') || emp.role;
+
+        return `
+          <div class="team-member-row">
+            <div class="tm-avatar ${colorClass}" style="overflow:hidden;padding:0;display:flex;align-items:center;justify-content:center;">
+              ${avatarInner}
+            </div>
+            <div class="tm-meta">
+              <span class="tm-name">${emp.name}</span>
+              <span class="tm-role" title="${roleOrStages}">${roleOrStages}</span>
+            </div>
+            <button type="button" class="tm-chat-btn" onclick="openChatWithStaff('${emp.name.replace(/'/g, "\\'")}')" title="Message ${emp.name}">
+              <i data-lucide="message-square" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        `;
+      }).join('')}
+      <div style="margin-top:10px;text-align:center;">
+        <button type="button" class="btn-ghost" onclick="openAssignTeamModal()" style="font-size:11px;padding:5px 12px;width:100%;border-radius:8px;border:1px dashed rgba(255,255,255,0.15);color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;">
+          <i data-lucide="user-plus" style="width:12px;height:12px;"></i>
+          <span>Assign / Reassign Stage</span>
+        </button>
+      </div>
+    `;
 
     refreshLucideIcons();
   }
@@ -986,64 +1188,56 @@
       }
     }
 
-    // Default values if no profile in DB
-    const p = profile || {
-      shoulder: 14.25,
-      bust: 35.5,
-      waist: 29.0,
-      hip: 38.5,
-      topLength: 41.0,
-      sleeveLength: 17.0,
-      armhole: 16.0,
-      pantLength: 39.0,
-      recordedBy: 'Master Tailor'
-    };
+    // Measurements profile from DB or empty
+    const p = profile || {};
+    orderState.measurementsProfile = p;
+    const fmt = (v) => (v !== undefined && v !== null && v !== '' ? `${v}"` : '—');
 
     // 8 markers on Card
     let cardMarkers = [];
     if (targetProfileType === 'CHUDI') {
       cardMarkers = [
-        { badge: '1', name: 'Shoulder', val: (p.shoulder || 14.25) + '"' },
-        { badge: '2', name: 'Bust', val: (p.bust || 35.5) + '"' },
-        { badge: '3', name: 'Waist', val: (p.waist || 29.0) + '"' },
-        { badge: '4', name: 'Hip', val: (p.hip || 38.5) + '"' },
-        { badge: '5', name: 'Top Length', val: (p.topLength || 41.0) + '"' },
-        { badge: '6', name: 'Sleeve Length', val: (p.sleeveLength || 17.0) + '"' },
-        { badge: '7', name: 'Armhole', val: (p.armhole || 16.0) + '"' },
-        { badge: '8', name: 'Pant Length', val: (p.pantLength || 39.0) + '"' }
+        { badge: '1', name: 'Shoulder', val: fmt(p.shoulder) },
+        { badge: '2', name: 'Bust', val: fmt(p.bust) },
+        { badge: '3', name: 'Waist', val: fmt(p.waist) },
+        { badge: '4', name: 'Hip', val: fmt(p.hip) },
+        { badge: '5', name: 'Top Length', val: fmt(p.topLength) },
+        { badge: '6', name: 'Sleeve Length', val: fmt(p.sleeveLength) },
+        { badge: '7', name: 'Armhole', val: fmt(p.armhole) },
+        { badge: '8', name: 'Pant Length', val: fmt(p.pantLength) }
       ];
     } else if (targetProfileType === 'BLOUSE') {
       cardMarkers = [
-        { badge: '1', name: 'Shoulder', val: (p.shoulder || 14.0) + '"' },
-        { badge: '2', name: 'Bust', val: (p.bust || 34.0) + '"' },
-        { badge: '3', name: 'Under Bust', val: (p.underBust || 30.0) + '"' },
-        { badge: '4', name: 'Waist', val: (p.waist || 28.0) + '"' },
-        { badge: '5', name: 'Blouse Length', val: (p.blouseLength || 14.0) + '"' },
-        { badge: '6', name: 'Back Neck Depth', val: (p.backNeckDepth || 8.0) + '"' },
-        { badge: '7', name: 'Armhole', val: (p.armhole || 16.0) + '"' },
-        { badge: '8', name: 'Sleeve Length', val: (p.sleeveLength || 10.5) + '"' }
+        { badge: '1', name: 'Shoulder', val: fmt(p.shoulder) },
+        { badge: '2', name: 'Bust', val: fmt(p.bust) },
+        { badge: '3', name: 'Under Bust', val: fmt(p.underBust) },
+        { badge: '4', name: 'Waist', val: fmt(p.waist) },
+        { badge: '5', name: 'Blouse Length', val: fmt(p.blouseLength) },
+        { badge: '6', name: 'Back Neck Depth', val: fmt(p.backNeckDepth) },
+        { badge: '7', name: 'Armhole', val: fmt(p.armhole) },
+        { badge: '8', name: 'Sleeve Length', val: fmt(p.sleeveLength) }
       ];
     } else if (targetProfileType === 'LEHENGA') {
       cardMarkers = [
-        { badge: '1', name: 'Waist', val: (p.waist || 28.5) + '"' },
-        { badge: '2', name: 'Hip', val: (p.hip || 38.0) + '"' },
-        { badge: '3', name: 'Skirt Length', val: (p.skirtLength || 42.0) + '"' },
-        { badge: '4', name: 'Flare (Ghera)', val: (p.flare || 140) + '"' },
-        { badge: '5', name: 'Choli Bust', val: (p.bust || 35.0) + '"' },
-        { badge: '6', name: 'Choli Length', val: (p.blouseLength || 14.5) + '"' },
-        { badge: '7', name: 'Armhole', val: (p.armhole || 16.0) + '"' },
-        { badge: '8', name: 'Sleeve', val: (p.sleeveLength || 11.0) + '"' }
+        { badge: '1', name: 'Waist', val: fmt(p.waist) },
+        { badge: '2', name: 'Hip', val: fmt(p.hip) },
+        { badge: '3', name: 'Skirt Length', val: fmt(p.skirtLength) },
+        { badge: '4', name: 'Flare (Ghera)', val: fmt(p.flare) },
+        { badge: '5', name: 'Choli Bust', val: fmt(p.bust) },
+        { badge: '6', name: 'Choli Length', val: fmt(p.blouseLength) },
+        { badge: '7', name: 'Armhole', val: fmt(p.armhole) },
+        { badge: '8', name: 'Sleeve', val: fmt(p.sleeveLength) }
       ];
     } else {
       cardMarkers = [
-        { badge: '1', name: 'Shoulder', val: (p.shoulder || 14.5) + '"' },
-        { badge: '2', name: 'Bust', val: (p.bust || 36.0) + '"' },
-        { badge: '3', name: 'Waist', val: (p.waist || 29.5) + '"' },
-        { badge: '4', name: 'Hip', val: (p.hip || 39.0) + '"' },
-        { badge: '5', name: 'Full Length', val: (p.fullLength || 56.0) + '"' },
-        { badge: '6', name: 'Sleeve Length', val: (p.sleeveLength || 18.0) + '"' },
-        { badge: '7', name: 'Armhole', val: (p.armhole || 16.5) + '"' },
-        { badge: '8', name: 'Neck Depth', val: (p.frontNeckDepth || 7.0) + '"' }
+        { badge: '1', name: 'Shoulder', val: fmt(p.shoulder) },
+        { badge: '2', name: 'Bust', val: fmt(p.bust) },
+        { badge: '3', name: 'Waist', val: fmt(p.waist) },
+        { badge: '4', name: 'Hip', val: fmt(p.hip) },
+        { badge: '5', name: 'Full Length', val: fmt(p.fullLength) },
+        { badge: '6', name: 'Sleeve Length', val: fmt(p.sleeveLength) },
+        { badge: '7', name: 'Armhole', val: fmt(p.armhole) },
+        { badge: '8', name: 'Neck Depth', val: fmt(p.frontNeckDepth) }
       ];
     }
 
@@ -1084,7 +1278,7 @@
             <td>${pt.name}</td>
             <td><strong>${pt.val}"</strong></td>
             <td>Standard Bespoke</td>
-            <td>${p.recordedBy || 'Master Tailor'}</td>
+            <td>${p.recordedBy || '—'}</td>
           </tr>
         `).join('');
       } else {
@@ -1099,98 +1293,232 @@
     if (!checklist) return;
 
     // Use real production notes from DB if available
-    if (orderState.productionNotes && orderState.productionNotes.trim()) {
-      // Split on newlines so tailors can enter multi-line notes
-      const lines = orderState.productionNotes
+    let notes = [];
+    if (Array.isArray(orderState.productionNotes)) {
+      notes = orderState.productionNotes.map(l => String(l).trim()).filter(Boolean);
+    } else if (typeof orderState.productionNotes === 'string' && orderState.productionNotes.trim()) {
+      notes = orderState.productionNotes
         .split(/\n+/)
         .map(l => l.trim())
         .filter(Boolean);
+    }
 
-      checklist.innerHTML = lines.map(n => `
+    if (notes.length > 0) {
+      checklist.innerHTML = notes.map(n => `
         <div class="check-item"><span class="check-icon">✓</span><span>${n}</span></div>
       `).join('');
-      return;
-    }
-
-    // Fallback: garment-type based defaults
-    const gTypeLower = orderState.garmentType.toLowerCase();
-    let notes = [];
-    if (gTypeLower.includes('kurti') || gTypeLower.includes('chudi')) {
-      notes = [
-        'Kalidar cutting aligned with continuous pattern flow.',
-        'Reinforce mandarin collar with lightweight fusible buckram.',
-        'Mulmul lining attached with double overlock seams.',
-        'Keep 1.5" alteration margin on both side seams.',
-        orderState.customer.notes || 'Handle with boutique atelier care.'
-      ];
-    } else if (gTypeLower.includes('blouse')) {
-      notes = [
-        'Use matching pure silk crepe lining.',
-        'Aari Zardosi needlework placed exactly as per reference.',
-        'Ensure snug tailored fit across shoulder and armhole lines.',
-        'Keep 0.5" seam margin for alterations.',
-        orderState.customer.notes || 'Client requested soft removable cups.'
-      ];
-    } else if (gTypeLower.includes('lehenga')) {
-      notes = [
-        'Multi-panel kalidar cut with reinforced can-can flare.',
-        'Zari border finishing stitched along ghera.',
-        'Attach custom latkans and drawstring at waistband.',
-        'Trial fitting required prior to final hem stitching.',
-        orderState.customer.notes || 'Handle with boutique atelier care.'
-      ];
     } else {
-      notes = [
-        'Structured corset boning inserted through bodice.',
-        'Invisible back zipper cleanly concealed.',
-        'Floor length drape pressed with steam iron.',
-        orderState.customer.notes || 'Handle with boutique atelier care.'
-      ];
+      checklist.innerHTML = `
+        <div class="empty-state-notice" style="padding:18px 12px;text-align:center;color:var(--text-muted);font-size:12px;">
+          No production notes recorded yet.
+          <div style="margin-top:8px;">
+            <button type="button" class="btn-card-edit" onclick="openEditNotesModal()" style="display:inline-flex;">+ Add Note</button>
+          </div>
+        </div>
+      `;
     }
-
-    checklist.innerHTML = notes.map(n => `
-      <div class="check-item"><span class="check-icon">✓</span><span>${n}</span></div>
-    `).join('');
   }
 
   // ─── Card 7: Photos & Updates ───
   function renderPhotosAndUpdatesCard() {
-    const gTypeLower = orderState.garmentType.toLowerCase();
-    let p1 = '../../assets/fabrics/chanderi.jpg';
-    let p2 = '../../assets/designs/festive-kurti-yoke.jpg';
-    let p3 = '../../assets/cutting_pattern.jpg';
-    let p4 = '../../assets/designs/festive-kurti-hero.jpg';
-
-    if (gTypeLower.includes('blouse')) {
-      p1 = '../../assets/pink_silk.jpg';
-      p2 = '../../assets/designs/zari-bloom-detail.jpg';
-      p3 = '../../assets/cutting_pattern.jpg';
-      p4 = '../../assets/designs/zari-bloom-back.jpg';
-    } else if (gTypeLower.includes('lehenga')) {
-      p1 = '../../assets/fabrics/silk.jpg';
-      p2 = '../../assets/designs/midnight-grace.jpg';
-      p3 = '../../assets/cutting_pattern.jpg';
-      p4 = '../../assets/designs/lehenga-stage.png';
-    } else if (gTypeLower.includes('gown')) {
-      p1 = '../../assets/fabrics/georgette.jpg';
-      p2 = '../../assets/designs/skyline.jpg';
-      p3 = '../../assets/cutting_pattern.jpg';
-      p4 = '../../assets/designs/gown-stage.png';
-    }
-
     const strip = document.getElementById('productionPhotosStrip');
-    if (strip) {
-      strip.innerHTML = `
-        <div class="prod-thumb" onclick="openLightbox(0)"><img src="${p1}" alt="Fabric" /></div>
-        <div class="prod-thumb" onclick="openLightbox(1)"><img src="${p2}" alt="Embellishment" /></div>
-        <div class="prod-thumb" onclick="openLightbox(2)"><img src="${p3}" alt="Cutting Pattern" /></div>
-        <div class="prod-thumb" onclick="openLightbox(3)"><img src="${p4}" alt="Assembly Stage" /></div>
+    if (!strip) return;
+
+    const prodPhotos = (orderState.productionPhotos && Array.isArray(orderState.productionPhotos))
+      ? orderState.productionPhotos.filter(Boolean)
+      : [];
+
+    if (prodPhotos.length > 0) {
+      strip.innerHTML = prodPhotos.map((p, idx) => `
+        <div class="prod-thumb" onclick="openLightbox(${idx})"><img src="${p}" alt="Stage Photo ${idx + 1}" /></div>
+      `).join('') + `
         <div class="prod-add-tile" onclick="document.getElementById('photoUploadInput').click()">
           <i data-lucide="plus" style="width:13px;height:13px;"></i>
           <span>+ Add</span>
         </div>
       `;
+    } else {
+      strip.innerHTML = `
+        <div class="prod-thumb-empty-frame" onclick="document.getElementById('photoUploadInput').click()" title="Click to add production progress photo">
+          <i data-lucide="camera" style="width:18px;height:18px;opacity:0.6;"></i>
+          <span style="font-size:11px;font-weight:600;color:var(--text-secondary);">Empty Frame</span>
+          <small style="font-size:9.5px;color:var(--lime,#d4ff32);cursor:pointer;">+ Add Photo</small>
+        </div>
+      `;
     }
+    if (window.lucide) {
+      try { window.lucide.createIcons(); } catch (_) {}
+    }
+  }
+
+  // ─── Real-Time Timeline Builder ───
+  function buildRealTimeTimelineItems() {
+    const items = [];
+
+    // 1. Real Order Registration Event (from DB order.createdAt)
+    const createdDt = formatDateTimeParts(orderState.rawCreatedAt || orderState.dates.orderDate);
+    const custName = (orderState.customer && orderState.customer.name && orderState.customer.name !== '—')
+      ? orderState.customer.name
+      : 'Customer';
+    items.push({
+      date: createdDt.date,
+      time: createdDt.time || 'Registered',
+      rawTime: createdDt.rawTime || 1,
+      title: `Order Registered (#${orderState.orderId})`,
+      user: `Atelier Desk · ${custName}`,
+      dot: 'green',
+      status: 'completed',
+      stage: 'Order Taken'
+    });
+
+    // 2. Real Payment Transactions / Advance
+    const adv = Number(orderState.financials.paidAmount) || 0;
+    const pTxs = Array.isArray(orderState.paymentTransactions) ? orderState.paymentTransactions : [];
+    if (pTxs.length > 0) {
+      pTxs.forEach((tx, idx) => {
+        const txDt = formatDateTimeParts(tx.transactionDate || orderState.rawCreatedAt);
+        const methodStr = tx.method ? String(tx.method).toUpperCase() : 'UPI/CASH';
+        const recvStr = tx.receivedBy ? ` · Received by ${tx.receivedBy}` : '';
+        const refStr = tx.referenceNo ? ` · Ref: ${tx.referenceNo}` : '';
+        const amtStr = Number(tx.amount || 0).toLocaleString('en-IN');
+        items.push({
+          date: txDt.date,
+          time: txDt.time || '',
+          rawTime: txDt.rawTime || (createdDt.rawTime ? createdDt.rawTime + (idx + 1) * 60000 : 2),
+          title: `Payment Received (₹${amtStr})`,
+          user: `Method: ${methodStr}${recvStr}${refStr}`,
+          dot: 'green',
+          status: 'completed',
+          stage: 'Payment'
+        });
+      });
+    } else if (adv > 0) {
+      items.push({
+        date: createdDt.date,
+        time: createdDt.time || '',
+        rawTime: createdDt.rawTime ? createdDt.rawTime + 1000 : 2,
+        title: `Advance Payment Confirmed (₹${adv.toLocaleString('en-IN')})`,
+        user: `Advance collected upon booking`,
+        dot: 'green',
+        status: 'completed',
+        stage: 'Payment'
+      });
+    }
+
+    // 3. Live Stages from Database (orderState.liveStages)
+    const liveStages = Array.isArray(orderState.liveStages) ? orderState.liveStages : [];
+    liveStages.forEach((ls, idx) => {
+      const stageLabel = formatStageLabel(ls.stageName);
+      const isInitialOrderTaken = (ls.stageName && (ls.stageName.toUpperCase() === 'ORDER_TAKEN' || ls.stageName.toUpperCase() === 'ORDER')) || ls.sortOrder === 1;
+
+      const empName = (ls.assignedTo && typeof ls.assignedTo === 'object' && ls.assignedTo.name)
+        ? ls.assignedTo.name
+        : (typeof ls.assignedTo === 'string' && ls.assignedTo.trim() ? ls.assignedTo.trim() : '');
+      const empRole = (ls.assignedTo && typeof ls.assignedTo === 'object' && ls.assignedTo.role)
+        ? ` (${ls.assignedTo.role})`
+        : '';
+      const actorLabel = empName ? `by ${empName}${empRole}` : (ls.notes || 'Stage completed');
+
+      if (ls.status === 'COMPLETED') {
+        if (!isInitialOrderTaken) {
+          const compDt = formatDateTimeParts(ls.completedAt || ls.startedAt || orderState.rawCreatedAt);
+          items.push({
+            date: compDt.date,
+            time: compDt.time || '',
+            rawTime: compDt.rawTime || (createdDt.rawTime ? createdDt.rawTime + (idx + 1) * 3600000 : 10),
+            title: `${stageLabel} Passed`,
+            user: actorLabel,
+            dot: 'green',
+            status: 'completed',
+            stage: stageLabel
+          });
+        }
+      } else if (ls.status === 'IN_PROGRESS') {
+        const startDt = formatDateTimeParts(ls.startedAt || new Date().toISOString());
+        items.push({
+          date: startDt.date,
+          time: startDt.time || 'In Progress',
+          rawTime: startDt.rawTime || Date.now(),
+          title: `${stageLabel} in Progress`,
+          user: empName ? `Assigned to ${empName}${empRole}` : 'Stage in progress',
+          dot: 'yellow pulse',
+          status: 'current',
+          stage: stageLabel
+        });
+      } else if (ls.status === 'BLOCKED') {
+        const blkDt = formatDateTimeParts(ls.startedAt || new Date().toISOString());
+        items.push({
+          date: blkDt.date,
+          time: blkDt.time || 'Hold',
+          rawTime: blkDt.rawTime || Date.now(),
+          title: `${stageLabel} Attention Needed`,
+          user: ls.notes ? `Remarks: ${ls.notes}` : 'On hold / rework required',
+          dot: 'red pulse',
+          status: 'current',
+          stage: stageLabel
+        });
+      }
+    });
+
+    // 4. Session Real-Time Activities
+    if (Array.isArray(orderState.sessionActivities)) {
+      orderState.sessionActivities.forEach(act => {
+        items.push({
+          date: act.date,
+          time: act.time,
+          rawTime: act.rawTime || Date.now(),
+          title: act.title,
+          user: act.user,
+          dot: act.dot || 'purple',
+          status: act.status || 'completed',
+          stage: act.stage || 'Update'
+        });
+      });
+    }
+
+    // 5. Scheduled Client Handover or Cancelled
+    if (orderState.status === 'CANCELLED') {
+      const cancelDt = formatDateTimeParts(new Date().toISOString());
+      items.push({
+        date: cancelDt.date,
+        time: cancelDt.time || 'Halted',
+        rawTime: Date.now() + 100000,
+        title: 'Order Cancelled',
+        user: 'Production stopped · Order marked as cancelled',
+        dot: 'red',
+        status: 'completed',
+        stage: 'Cancelled'
+      });
+    } else if (orderState.status === 'DELIVERED') {
+      const delDt = formatDateTimeParts(orderState.deliveredDate || orderState.dates.expectedDelivery);
+      items.push({
+        date: delDt.date,
+        time: delDt.time || 'Completed',
+        rawTime: delDt.rawTime || (Date.now() + 100000),
+        title: 'Order Delivered to Client',
+        user: `Handover verified · Client received order`,
+        dot: 'green',
+        status: 'completed',
+        stage: 'Handover'
+      });
+    } else {
+      const expDate = orderState.dates.expectedDelivery;
+      items.push({
+        date: expDate || 'Scheduled',
+        time: 'Target Handover',
+        rawTime: expDate ? new Date(expDate).getTime() : 9999999999999,
+        title: 'Scheduled Client Handover',
+        user: `Target Delivery Date: ${expDate || 'Pending scheduling'}`,
+        dot: 'gray dim',
+        status: 'upcoming',
+        stage: 'Handover'
+      });
+    }
+
+    // Sort chronologically ascending
+    items.sort((a, b) => (a.rawTime || 0) - (b.rawTime || 0));
+
+    return items;
   }
 
   // ─── Card 8: Timeline & Activity ───
@@ -1198,53 +1526,14 @@
     const list = document.getElementById('activityTimelineList');
     if (!list) return;
 
-    const oDate = orderState.dates.orderDate;
-    const adv = orderState.financials.paidAmount;
-
-    const items = [
-      {
-        date: oDate,
-        time: '10:30 AM',
-        title: 'Order Registered',
-        user: `by Atelier Concierge · ${orderState.customer.name}`,
-        dot: 'green'
-      },
-      {
-        date: oDate,
-        time: '11:15 AM',
-        title: 'Advance Payment Confirmed',
-        user: `₹${adv.toLocaleString('en-IN')} received via UPI/Cash`,
-        dot: 'green'
-      },
-      {
-        date: oDate,
-        time: '02:00 PM',
-        title: 'Fabric Assigned & Inspected',
-        user: 'by Draper Arun Kumar',
-        dot: 'purple'
-      },
-      {
-        date: 'Recent',
-        time: '03:45 PM',
-        title: orderState.status === 'PENDING' ? 'Pattern Drafting & Cutting' : (orderState.status === 'READY' ? 'Quality Audit Passed' : 'Machine Stitching in progress'),
-        user: 'by Master Kavitha M',
-        dot: 'yellow pulse'
-      },
-      {
-        date: orderState.dates.expectedDelivery,
-        time: '05:00 PM',
-        title: 'Scheduled Client Handover',
-        user: 'Final Fitting & Delivery',
-        dot: 'gray dim'
-      }
-    ];
+    const items = buildRealTimeTimelineItems();
 
     orderState.activityHistory = items.map(it => ({
-      dateTime: `${it.date} ${it.time}`,
+      dateTime: `${it.date} ${it.time}`.trim(),
       activity: it.title,
       actor: it.user,
-      stage: orderState.stages[orderState.currentStageIndex]?.name || 'Production',
-      notes: 'Bespoke atelier record'
+      stage: it.stage || 'Production',
+      notes: it.status === 'completed' ? 'Verified record' : (it.status === 'upcoming' ? 'Scheduled milestone' : 'Active milestone')
     }));
 
     list.innerHTML = items.map(it => `
@@ -1303,17 +1592,51 @@
     if (payLbl) payLbl.textContent = `Paid (${pPct}%)`;
     if (payFill) payFill.style.width = `${pPct}%`;
 
+    // ── Record Payment inline button (visible only when balance remains) ──
+    const existingRecordBtn = document.getElementById('btnViewOrderRecordPayment');
+    if (existingRecordBtn) existingRecordBtn.remove();
+
+    if (bal > 0) {
+      const paymentGaugeContainer = payBal ? payBal.closest('.gauge-card, .payment-gauge, .financials-card, [class*="gauge"], [class*="financials"]') : null;
+      const recordBtn = document.createElement('button');
+      recordBtn.id = 'btnViewOrderRecordPayment';
+      recordBtn.className = 'pb-inline-record-btn';
+      recordBtn.innerHTML = '<i data-lucide="plus-circle"></i> Record Payment';
+      recordBtn.addEventListener('click', async () => {
+        const { openPaymentModal } = await import('../../payments/payment-bridge.js');
+        openPaymentModal({
+          orderId:      orderState.rawId,
+          orderCode:    orderState.orderId,
+          customerName: orderState.customer.name,
+          balance:      orderState.financials.balanceAmount,
+          onSuccess:    () => loadOrderFromApi()
+        });
+      });
+      if (paymentGaugeContainer) {
+        paymentGaugeContainer.appendChild(recordBtn);
+      } else if (payBal) {
+        payBal.parentElement.appendChild(recordBtn);
+      }
+      if (window.lucide) window.lucide.createIcons();
+    }
+
     // Card 10: Next Action Area
     const curStage = orderState.stages[orderState.currentStageIndex];
     const nextStage = orderState.stages[orderState.currentStageIndex + 1];
 
     let nextTitle = nextStage ? `${nextStage.name} to begin` : 'Order Fulfilled & Handover Complete';
-    let nextAssignee = nextStage ? nextStage.assignee : (curStage ? curStage.assignee : 'Concierge Desk');
+    let nextAssignee = nextStage?.assignee || curStage?.assignee || 'Unassigned';
     let btnText = nextStage ? 'Mark as Started' : 'Order Delivered ✓';
 
     if (orderState.currentStageIndex >= orderState.stages.length - 1) {
       nextTitle = 'Order Fulfilled & Delivered';
       btnText = 'Delivered ✓';
+    }
+
+    if (orderState.status === 'CANCELLED') {
+      nextTitle = 'Order Cancelled';
+      nextAssignee = 'Production Cancelled';
+      btnText = 'Order Cancelled';
     }
 
     orderState.nextAction = { title: nextTitle, assignee: nextAssignee, buttonText: btnText };
@@ -1323,13 +1646,28 @@
     const btnMarkStarted = document.getElementById('btnMarkStarted');
 
     if (naTitleEl) naTitleEl.textContent = nextTitle;
-    if (naAssigneeEl) naAssigneeEl.textContent = `Assigned to ${nextAssignee}`;
+    if (naAssigneeEl) naAssigneeEl.textContent = (orderState.status === 'CANCELLED')
+      ? 'Production Halted'
+      : ((nextAssignee && nextAssignee !== 'Unassigned') ? `Assigned to ${nextAssignee}` : 'Unassigned');
+
     if (btnMarkStarted) {
-      btnMarkStarted.innerHTML = `<span>${btnText}</span> <span>→</span>`;
+      if (orderState.status === 'CANCELLED') {
+        btnMarkStarted.innerHTML = `<span>Order Cancelled</span> <i data-lucide="x-circle" style="width:14px;height:14px;"></i>`;
+        btnMarkStarted.disabled = true;
+        btnMarkStarted.classList.add('btn-mark-cancelled');
+      } else {
+        btnMarkStarted.innerHTML = `<span>${btnText}</span> <span>→</span>`;
+        btnMarkStarted.disabled = false;
+        btnMarkStarted.classList.remove('btn-mark-cancelled');
+      }
     }
   }
 
   window.advanceNextActionStage = async function () {
+    if (orderState.status === 'CANCELLED') {
+      showToast('This order is cancelled. No further stage actions can be taken.', 'warn');
+      return;
+    }
     if (orderState.currentStageIndex < orderState.stages.length - 1) {
       await transitionToStage(orderState.currentStageIndex + 1);
     } else {
@@ -1356,18 +1694,34 @@
     if (jcNum) jcNum.textContent = orderState.orderId || '—';
     if (jcName) jcName.textContent = orderState.customer.name || '—';
     if (jcPhone) jcPhone.textContent = orderState.customer.phone || '—';
-    if (jcLoc) jcLoc.textContent = orderState.customer.location || 'Chennai, Tamil Nadu';
+    if (jcLoc) jcLoc.textContent = orderState.customer.location || '—';
     if (jcODate) jcODate.textContent = `Order Date: ${orderState.dates.orderDate || '—'}`;
     if (jcDDate) jcDDate.textContent = `Due Date: ${orderState.dates.expectedDelivery || '—'}`;
     if (jcStat) jcStat.textContent = `Status: ${orderState.status || 'PENDING'}`;
-    if (jcGar) jcGar.textContent = `${orderState.garmentType} (${orderState.collection})`;
-    if (jcCat) jcCat.textContent = 'Custom Bespoke Atelier';
+    if (jcGar) jcGar.textContent = `${orderState.garmentType || '—'} (${orderState.collection || '—'})`;
+    if (jcCat) jcCat.textContent = orderState.designCategory || (orderState.garmentDesc ? 'Custom Bespoke Design' : '—');
 
-    const gTypeLower = orderState.garmentType.toLowerCase();
-    if (jcSleeves) jcSleeves.textContent = gTypeLower.includes('blouse') ? 'Elbow Length · Silk Crepe Lining' : '3/4 Sleeve · Mulmul Breathable Lining';
-    if (jcEmb) jcEmb.textContent = gTypeLower.includes('blouse') ? 'Aari Zardosi Needlework' : 'Mandarin Collar Antique Zari Motif';
-    if (jcFab) jcFab.textContent = orderState.garmentDesc || 'Chanderi Silk (Boutique Sourced)';
-    if (jcNotes) jcNotes.textContent = orderState.customer.notes || 'Handle with boutique atelier care.';
+    const sleevesAndLining = [orderState.sleeveStyle, orderState.lining].filter(Boolean).join(' · ');
+    if (jcSleeves) jcSleeves.textContent = sleevesAndLining || '—';
+    if (jcEmb) jcEmb.textContent = orderState.embroidery || '—';
+    const fabInfo = [orderState.fabric, orderState.fabricColor, orderState.fabricQty].filter(Boolean).join(' · ');
+    if (jcFab) jcFab.textContent = fabInfo || orderState.garmentDesc || '—';
+    if (jcNotes) {
+      const specialNote = orderState.customer?.notes || orderState.productionNotes;
+      jcNotes.textContent = specialNote ? (typeof specialNote === 'string' ? specialNote : specialNote.join('\n')) : 'No special instructions recorded.';
+    }
+
+    const jcMeasGrid = document.getElementById('jcMeasGrid');
+    if (jcMeasGrid) {
+      const p = orderState.measurementsProfile || {};
+      const fmt = (v) => (v !== undefined && v !== null && v !== '' ? `${v}"` : '—');
+      jcMeasGrid.innerHTML = `
+        <div>Shoulder: <strong>${fmt(p.shoulder)}</strong></div>
+        <div>Bust: <strong>${fmt(p.bust)}</strong></div>
+        <div>Waist: <strong>${fmt(p.waist)}</strong></div>
+        <div>Length: <strong>${fmt(p.topLength || p.blouseLength || p.fullLength || p.skirtLength)}</strong></div>
+      `;
+    }
   }
 
   // ─── Lifecycle Setup ───
@@ -1377,17 +1731,9 @@
     bindKeyboardShortcuts();
     refreshLucideIcons();
     loadOrderFromApi();
+    // Auto-refresh when any ERP module records a payment via payment-bridge.js
+    window.addEventListener('payment:recorded', () => loadOrderFromApi());
   });
-
-  // ─── "Mark as Started" / Advance Stage Progression ───
-  window.advanceNextActionStage = async function () {
-    const nextIdx = orderState.currentStageIndex + 1;
-    if (nextIdx < STAGE_DEFINITIONS.length) {
-      await transitionToStage(nextIdx);
-    } else {
-      showToast('Order has already reached final delivery stage.', 'info');
-    }
-  };
 
   // ─── Measurement Views Switcher ───
   function bindMeasurementTabs() {
@@ -1450,7 +1796,12 @@
 
   // ─── Lightbox Image Viewer ───
   window.openLightbox = function (index) {
-    currentLightboxIndex = index || 0;
+    if (!orderState.photos || orderState.photos.length === 0) {
+      showToast('No customer design references uploaded yet. Click any frame to upload.', 'info');
+      triggerRefUpload(1);
+      return;
+    }
+    currentLightboxIndex = Math.max(0, Math.min(index || 0, orderState.photos.length - 1));
     updateLightboxContent();
     const modal = document.getElementById('lightboxModal');
     if (modal) modal.style.display = 'flex';
@@ -1481,6 +1832,11 @@
   }
 
   window.openAllDesignReferences = function () {
+    if (!orderState.photos || orderState.photos.length === 0) {
+      showToast('No customer design references uploaded yet. Click any frame to upload.', 'info');
+      triggerRefUpload(1);
+      return;
+    }
     openLightbox(0);
   };
 
@@ -1555,10 +1911,18 @@
   };
 
   window.openEditNotesModal = function () {
+    if (orderState.status === 'CANCELLED') {
+      showToast('Cannot edit notes on a cancelled order.', 'warn');
+      return;
+    }
     const modal = document.getElementById('editNotesModal');
     const textarea = document.getElementById('editNotesTextarea');
     if (textarea) {
-      textarea.value = orderState.productionNotes.join('\n');
+      if (Array.isArray(orderState.productionNotes)) {
+        textarea.value = orderState.productionNotes.join('\n');
+      } else {
+        textarea.value = orderState.productionNotes || '';
+      }
     }
     if (modal) modal.style.display = 'flex';
     refreshLucideIcons();
@@ -1575,12 +1939,31 @@
       const lines = textarea.value.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
       orderState.productionNotes = lines;
 
-      const checklist = document.getElementById('notesChecklist');
-      if (checklist) {
-        checklist.innerHTML = lines.map((l) => `
-          <div class="check-item"><span class="check-icon">✓</span><span>${l}</span></div>
-        `).join('');
+      // Sync to backend if order update API available
+      if (orderState.rawId && _api && _api.orders && _api.orders.update) {
+        try {
+          await _api.orders.update(orderState.rawId, { productionNotes: lines.join('\n') });
+        } catch (e) {
+          console.warn('[ViewOrder] Could not sync production notes to backend:', e.message);
+        }
       }
+
+      // Record real-time live activity entry
+      const nowParts = formatDateTimeParts(new Date().toISOString());
+      const staffName = getCurrentStaffName();
+      orderState.sessionActivities.push({
+        date: nowParts.date,
+        time: nowParts.time,
+        rawTime: nowParts.rawTime,
+        title: 'Production Notes Updated',
+        user: staffName ? `${lines.length} checklist item(s) recorded · ${staffName}` : `${lines.length} checklist item(s) recorded`,
+        dot: 'purple',
+        status: 'completed',
+        stage: 'Production Notes'
+      });
+
+      renderProductionNotesCard();
+      renderTimelineAndActivityCard();
       showToast('Production notes updated!', 'success');
     }
     closeEditNotesModal();
@@ -1617,8 +2000,107 @@
     showToast(`Fabric Details: ${orderState.garmentType} Material Specifications`, 'info');
   };
 
+  window.openAssignTeamModal = async function () {
+    if (orderState.status === 'CANCELLED') {
+      showToast('Cannot reassign team on a cancelled order.', 'warn');
+      return;
+    }
+    const modal = document.getElementById('assignTeamModal');
+    if (!modal) return;
+
+    const stageSelect = document.getElementById('assignStageSelect');
+    const empSelect = document.getElementById('assignEmployeeSelect');
+
+    // Populate stage options dynamically from order's live stages
+    if (stageSelect) {
+      if (orderState.liveStages && Array.isArray(orderState.liveStages) && orderState.liveStages.length > 0) {
+        stageSelect.innerHTML = orderState.liveStages.map(ls => {
+          const assignedText = ls.assignedTo ? ` (Current: ${ls.assignedTo.name})` : ' (Unassigned)';
+          return `<option value="${ls.id}">${formatStageLabel(ls.stageName)}${assignedText}</option>`;
+        }).join('');
+      } else {
+        stageSelect.innerHTML = '<option value="">No stages available</option>';
+      }
+    }
+
+    // Populate employees dynamically from live database
+    if (empSelect) {
+      empSelect.innerHTML = '<option value="">Loading artisans...</option>';
+      try {
+        const client = _api || window.api;
+        const empRes = await (client?.employees ? client.employees.list({ status: 'ACTIVE' }) : Promise.resolve([]));
+        const list = Array.isArray(empRes) ? empRes : (empRes?.content || []);
+        empSelect.innerHTML = `
+          <option value="">-- Select Artisan / Specialist --</option>
+          ${list.map(emp => {
+            const spec = emp.specialization ? ` — ${emp.specialization.split(',')[0].trim()}` : (emp.role ? ` — ${emp.role}` : '');
+            return `<option value="${emp.id}">${emp.name}${spec}</option>`;
+          }).join('')}
+        `;
+      } catch (err) {
+        empSelect.innerHTML = '<option value="">Failed to load employees</option>';
+      }
+    }
+
+    modal.style.display = 'flex';
+    refreshLucideIcons();
+  };
+
+  window.closeAssignTeamModal = function () {
+    const modal = document.getElementById('assignTeamModal');
+    if (modal) modal.style.display = 'none';
+  };
+
   window.openTeamModal = function () {
-    showToast('Production Team: Craftsmen and staff assigned to order', 'info');
+    window.openAssignTeamModal();
+  };
+
+  window.submitAssignTeam = async function () {
+    const stageSelect = document.getElementById('assignStageSelect');
+    const empSelect = document.getElementById('assignEmployeeSelect');
+    const stageId = stageSelect?.value;
+    const empId = empSelect?.value;
+
+    if (!stageId) {
+      showToast('Please select a production stage.', 'warn');
+      return;
+    }
+    if (!empId) {
+      showToast('Please select an artisan or specialist.', 'warn');
+      return;
+    }
+
+    const btn = document.getElementById('btnSubmitAssignTeam');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Assigning...';
+    }
+
+    try {
+      const client = _api || window.api;
+      if (!client || !client.production || !client.production.assignEmployee) {
+        throw new Error('API client not available');
+      }
+
+      await client.production.assignEmployee(stageId, empId);
+      showToast('Craftsman assigned successfully!', 'success');
+      window.closeAssignTeamModal();
+
+      // Refresh live stages from backend
+      if (orderState.rawId) {
+        orderState.liveStages = await client.production.getByOrder(orderState.rawId);
+      }
+      await renderProductionTeamCard(client);
+      renderTimelineAndActivityCard();
+    } catch (err) {
+      console.error('[ViewOrder] Failed to assign employee:', err);
+      showToast(err.message || 'Failed to assign craftsman to stage.', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Assign to Order';
+      }
+    }
   };
 
   window.openChatWithStaff = function (staffName) {
@@ -1626,6 +2108,10 @@
   };
 
   window.handleEditOrder = function () {
+    if (orderState.status === 'CANCELLED') {
+      showToast('Cannot edit a cancelled order.', 'warn');
+      return;
+    }
     showToast('Redirecting to order editor...', 'info');
     setTimeout(() => {
       window.location.href = `../new-order/new-order.html?editId=${encodeURIComponent(orderState.rawId || '')}`;
@@ -1636,19 +2122,123 @@
     showToast(`Order ${orderState.orderId || ''} duplicated as draft!`, 'success');
   };
 
-  window.handleCancelOrder = async function () {
-    if (!orderState.rawId) {
-      showToast('No active order to cancel.', 'warn');
+  window.handleCancelOrder = function () {
+    if (orderState.status === 'CANCELLED') {
+      showToast('Order is already cancelled.', 'info');
       return;
     }
-    if (confirm(`Are you sure you want to cancel order ${orderState.orderId}?`)) {
-      orderState.status = 'CANCELLED';
-      const statusDisplay = document.getElementById('orderStatusDisplay');
-      if (statusDisplay) {
-        statusDisplay.textContent = 'CANCELLED';
-        statusDisplay.className = 'status-pill status-cancelled';
+    if (orderState.status === 'DELIVERED') {
+      showToast('Delivered orders cannot be cancelled.', 'warn');
+      return;
+    }
+
+    const moreMenu = document.getElementById('moreDropdownMenu');
+    if (moreMenu) moreMenu.classList.remove('open');
+
+    const modal = document.getElementById('cancelOrderModal');
+    const codeEl = document.getElementById('cancelModalOrderCode');
+    if (codeEl) codeEl.textContent = orderState.orderId || 'this order';
+    if (modal) modal.style.display = 'flex';
+    if (window.lucide) window.lucide.createIcons();
+  };
+
+  window.closeCancelOrderModal = function () {
+    const modal = document.getElementById('cancelOrderModal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.submitConfirmCancelOrder = async function () {
+    const btn = document.getElementById('btnConfirmCancelOrder');
+    const reasonSelect = document.getElementById('cancelReasonSelect');
+    const reason = reasonSelect ? reasonSelect.value : 'Client Cancellation Request';
+
+    try {
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span> Cancelling...';
       }
-      showToast('Order has been cancelled.', 'info');
+
+      // Ensure API client is available
+      let api = window.api || _api;
+      if (!api || !api.orders) {
+        try {
+          const mod = await import('../../api.js');
+          api = mod.default || mod.api || window.api;
+        } catch (_) { }
+      }
+
+      // Ensure targetId is resolved (UUID or code)
+      let targetId = orderState.rawId;
+      if (!targetId && api && api.orders) {
+        try {
+          const fetched = await api.orders.get(orderState.orderId);
+          if (fetched && fetched.id) {
+            targetId = fetched.id;
+            orderState.rawId = fetched.id;
+          }
+        } catch (_) { }
+      }
+
+      if (!targetId) {
+        throw new Error('Order identifier not found. Please refresh and try again.');
+      }
+
+      // 1. Call Backend REST API to persist CANCELLED status in PostgreSQL
+      if (api && api.orders && api.orders.update) {
+        await api.orders.update(targetId, {
+          status: 'CANCELLED',
+          totalAmount: orderState.financials.orderValue,
+          advancePaid: orderState.financials.paidAmount,
+          balanceAmount: orderState.financials.balanceAmount,
+          notes: (orderState.customer.notes ? orderState.customer.notes + '\n' : '') + `[Cancelled: ${reason}]`
+        });
+      }
+
+      // 2. Update local centralized state
+      orderState.status = 'CANCELLED';
+
+      // 3. Record real-time session activity for the timeline
+      const nowParts = formatDateTimeParts(new Date().toISOString());
+      const staffName = getCurrentStaffName();
+      orderState.sessionActivities.push({
+        date: nowParts.date,
+        time: nowParts.time,
+        rawTime: nowParts.rawTime,
+        title: 'Order Cancelled',
+        user: staffName ? `Cancelled by ${staffName} (${reason})` : `Order cancelled (${reason})`,
+        dot: 'red',
+        status: 'completed',
+        stage: 'Cancelled'
+      });
+
+      // 4. Update Header status pill, collection, and banner
+      renderHeaderAndCustomerCard();
+
+      // 5. Update Gauges & Next Action (locks action button)
+      renderGaugesAndNextAction(
+        orderState.dates.daysLeft ? Math.max(1, 14 - orderState.dates.daysLeft) : 4,
+        orderState.dates.totalLeadDays || 14,
+        orderState.dates.daysLeft || 10
+      );
+
+      // 6. Refresh stepper, timeline, job card modal & icons
+      setupProductionStages();
+      initProductionStepper();
+      renderTimelineAndActivityCard();
+      populateJobCardModal();
+      refreshLucideIcons();
+
+      closeCancelOrderModal();
+      showToast(`Order ${orderState.orderId} cancelled. Production is frozen.`, 'success');
+    } catch (err) {
+      console.error('[ViewOrder] Cancel order failed:', err);
+      showToast('Failed to cancel order: ' + (err.message || 'Server error'), 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="x-circle" style="width:14px;height:14px;"></i>Confirm Cancellation';
+        if (window.lucide) window.lucide.createIcons();
+      }
     }
   };
 
@@ -1673,6 +2263,22 @@
           src: e.target.result,
           title: `Uploaded Photo (${file.name})`
         });
+
+        // Record real-time live activity entry
+        const nowParts = formatDateTimeParts(new Date().toISOString());
+        const staffName = getCurrentStaffName();
+        orderState.sessionActivities.push({
+          date: nowParts.date,
+          time: nowParts.time,
+          rawTime: nowParts.rawTime,
+          title: 'Production Progress Photo Added',
+          user: staffName ? `File: ${file.name} · ${staffName}` : `File: ${file.name}`,
+          dot: 'purple',
+          status: 'completed',
+          stage: 'Photos & Updates'
+        });
+        renderTimelineAndActivityCard();
+
         showToast('Photo uploaded to order timeline!', 'success');
       };
       reader.readAsDataURL(file);
@@ -1684,6 +2290,10 @@
    * On file selected, uploads via API and refreshes the card.
    */
   window.triggerRefUpload = function (slot) {
+    if (orderState.status === 'CANCELLED') {
+      showToast('Cannot upload images on a cancelled order.', 'warn');
+      return;
+    }
     if (!orderState.rawId) { showToast('Order not loaded yet', 'warn'); return; }
     let input = document.getElementById('refImageUploadInput');
     if (!input) {
@@ -1706,6 +2316,22 @@
           ? updated.referenceImages.filter(Boolean)
           : [];
         renderDesignReferenceCard();
+
+        // Record real-time live activity entry
+        const nowParts = formatDateTimeParts(new Date().toISOString());
+        const staffName = getCurrentStaffName();
+        orderState.sessionActivities.push({
+          date: nowParts.date,
+          time: nowParts.time,
+          rawTime: nowParts.rawTime,
+          title: `Customer Design Reference ${slot} Uploaded`,
+          user: staffName ? `File: ${file.name} · ${staffName}` : `File: ${file.name}`,
+          dot: 'purple',
+          status: 'completed',
+          stage: 'Design Reference'
+        });
+        renderTimelineAndActivityCard();
+
         showToast(`Reference image ${slot} uploaded ✓`, 'success');
         if (window.lucide) lucide.createIcons();
       } catch (err) {
@@ -1719,6 +2345,10 @@
    * Deletes a reference image slot from the order.
    */
   window.deleteRefImage = async function (slot) {
+    if (orderState.status === 'CANCELLED') {
+      showToast('Cannot remove images from a cancelled order.', 'warn');
+      return;
+    }
     if (!orderState.rawId) return;
     if (!confirm(`Remove reference image ${slot}?`)) return;
     try {
@@ -1727,12 +2357,90 @@
         ? updated.referenceImages.filter(Boolean)
         : [];
       renderDesignReferenceCard();
+
+      // Record real-time live activity entry
+      const nowParts = formatDateTimeParts(new Date().toISOString());
+      const staffName = getCurrentStaffName();
+      orderState.sessionActivities.push({
+        date: nowParts.date,
+        time: nowParts.time,
+        rawTime: nowParts.rawTime,
+        title: `Design Reference ${slot} Removed`,
+        user: staffName ? `Removed by ${staffName}` : `Slot ${slot} cleared`,
+        dot: 'gray',
+        status: 'completed',
+        stage: 'Design Reference'
+      });
+      renderTimelineAndActivityCard();
+
       showToast(`Reference image ${slot} removed.`, 'info');
     } catch (err) {
       showToast('Delete failed: ' + err.message, 'error');
     }
   };
 
+
+  // ==========================================================================
+  // CANCELLED ORDER UI LOCK
+  // ==========================================================================
+  /**
+   * Called after all cards render when orderState.status === 'CANCELLED'.
+   * Disables all buttons and links that mutate order data.
+   */
+  function lockCancelledOrderUI() {
+    // IDs of buttons/links to disable
+    const buttonIds = [
+      'btnMarkStarted',
+      'btnEditNotes',
+      'btnAssignTeam',
+      'btnEditOrder',
+      'btnAddPhoto',
+      'btnUploadPhoto',
+      'btnAdvanceFromDetails'
+    ];
+    buttonIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.disabled = true;
+        el.style.opacity = '0.45';
+        el.style.cursor = 'not-allowed';
+        el.style.pointerEvents = 'none';
+      }
+    });
+
+    // Disable all buttons with class action-btn or btn-outline-sm inside the more-menu
+    const actionBtns = document.querySelectorAll(
+      '.more-dropdown-menu .dropdown-item, .header-actions .btn-outline-sm, .btn-action-row button, [data-cancel-lock]'
+    );
+    actionBtns.forEach(el => {
+      if (el.id === 'btnCancelOrder' || el.id === 'btnPrintJobCard' || el.id === 'btnShareOrder') return; // keep read-only actions
+      el.disabled = true;
+      el.style.opacity = '0.45';
+      el.style.cursor = 'not-allowed';
+      el.style.pointerEvents = 'none';
+    });
+
+    // Add a body-level CSS class so CSS can target locked elements
+    document.body.classList.add('order-is-cancelled');
+
+    // Hide "Edit Order" in dropdown
+    const editItem = document.querySelector('[onclick="handleEditOrder()"]');
+    if (editItem) {
+      editItem.style.opacity = '0.4';
+      editItem.style.pointerEvents = 'none';
+      editItem.style.cursor = 'not-allowed';
+    }
+
+    // Hide upload/delete buttons inside the design reference card
+    document.querySelectorAll('.dr-thumb-upload, .dr-thumb-delete, .dr-upload-slot').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    // Hide the "Add Photo" button from timeline/photos card
+    document.querySelectorAll('.photo-upload-btn, .btn-add-photo, [onclick="handleProductionPhotoUpload()"]').forEach(el => {
+      el.style.display = 'none';
+    });
+  }
 
   function bindDropdowns() {
     window.toggleMoreMenu = function (e) {

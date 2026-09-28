@@ -6,10 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
+
+    boolean existsByOrderId(UUID orderId);
+
+    @Query("SELECT DISTINCT p FROM Payment p LEFT JOIN FETCH p.transactions JOIN FETCH p.order JOIN FETCH p.customer WHERE p.order.id = :orderId")
+    Optional<Payment> findByOrderId(@Param("orderId") UUID orderId);
 
     @Query("""
         SELECT p FROM Payment p JOIN p.customer c JOIN p.order o

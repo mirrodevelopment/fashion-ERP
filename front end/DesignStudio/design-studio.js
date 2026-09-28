@@ -22,7 +22,7 @@
     activeCategory: "All Designs",
     searchQuery: "",
     selectedDesignId: null,
-    viewMode: localStorage.getItem('haulo_design_view_mode') || 'table', // default to "table"
+    viewMode: localStorage.getItem('haulo_design_view_mode') || 'grid', // default to "grid" matching reference
     tableSortField: null,
     tableSortDir: 'asc',
     sortBy: "newest",
@@ -52,17 +52,14 @@
     }
     // Designs are always loaded from the API — no local cache
     state.designs = [];
+    try {
+      localStorage.removeItem('ritham_custom_designs');
+    } catch (e) { }
   }
 
   function saveFavorites() {
     try {
       localStorage.setItem('ritham_design_favorites', JSON.stringify(state.favorites));
-    } catch (e) { }
-  }
-
-  function saveCustomDesigns(customList) {
-    try {
-      localStorage.setItem('ritham_custom_designs', JSON.stringify(customList));
     } catch (e) { }
   }
 
@@ -195,6 +192,8 @@
     const collEl = document.getElementById('kpiActiveCollectionsVal');
     const uniqueCollections = new Set(state.designs.map(d => d.collection || d.category).filter(Boolean)).size;
     if (collEl) collEl.textContent = (kpis && kpis.activeCollections != null) ? kpis.activeCollections : uniqueCollections;
+    const collSub = document.getElementById('kpiActiveCollectionsSub');
+    if (collSub) collSub.textContent = (kpis && kpis.activeCollections != null) ? `${kpis.activeCollections} curated collection${kpis.activeCollections > 1 ? 's' : ''}` : 'Curated collections';
 
     const prodEl = document.getElementById('kpiDesignsProductionVal');
     const inProd = state.designs.filter(d => {
@@ -210,7 +209,11 @@
     });
     const topFabric = Object.entries(fabricCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
     const fabricEl = document.getElementById('kpiMostUsedFabricVal');
-    if (fabricEl) fabricEl.textContent = (total > 0) ? ((kpis && kpis.mostUsedFabric) || topFabric) : '—';
+    if (fabricEl) fabricEl.textContent = (total > 0) ? ((kpis && kpis.mostUsedFabric && kpis.mostUsedFabric !== 'N/A') ? kpis.mostUsedFabric : topFabric) : '—';
+    const fabricSub = document.getElementById('kpiMostUsedFabricSub');
+    if (fabricSub && kpis && kpis.mostUsedFabricCount) {
+      fabricSub.textContent = `${kpis.mostUsedFabricCount} design${kpis.mostUsedFabricCount > 1 ? 's' : ''}`;
+    }
 
     const catCounts = {};
     state.designs.forEach(d => {
@@ -220,6 +223,10 @@
     const topCat = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
     const catEl = document.getElementById('kpiPopularCategoryVal');
     if (catEl) catEl.textContent = (total > 0 && kpis && kpis.popularCategory && kpis.popularCategory !== 'N/A') ? kpis.popularCategory : (total > 0 ? topCat : '—');
+    const catSub = document.getElementById('kpiPopularCategorySub');
+    if (catSub && kpis && kpis.popularCategoryCount) {
+      catSub.textContent = `${kpis.popularCategoryCount} design${kpis.popularCategoryCount > 1 ? 's' : ''}`;
+    }
 
     const donutTotalEl = document.getElementById('donutTotalCount');
     if (donutTotalEl) donutTotalEl.textContent = (kpis && kpis.totalDesigns != null) ? kpis.totalDesigns : total;
@@ -540,9 +547,6 @@
 
           return `
           <tr class="${isSelected ? 'active-row' : ''}" data-id="${d.id}">
-            <td class="th-checkbox" style="text-align:center;">
-              <input type="checkbox" class="design-checkbox row-select-checkbox" data-id="${d.id}" title="Select ${d.name || d.code}" />
-            </td>
             <td>
               <span class="table-id-pill">${d.code || '—'}</span>
             </td>
@@ -1048,15 +1052,6 @@
             }
           });
         }
-
-        const selectAllCb = document.getElementById('selectAllDesigns');
-        if (selectAllCb) {
-          selectAllCb.addEventListener('change', e => {
-            const isChecked = e.target.checked;
-            const rowCheckboxes = designTable.querySelectorAll('tbody .row-select-checkbox');
-            rowCheckboxes.forEach(cb => { cb.checked = isChecked; });
-          });
-        }
       }
 
       // 5. Selected Design Gallery Thumbnails click
@@ -1356,6 +1351,15 @@
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
           window.lucide.createIcons({ root: grid });
         }
+      }
+
+      // Header More Options
+      const btnMoreHeaderOptions = document.getElementById('btnMoreHeaderOptions');
+      if (btnMoreHeaderOptions) {
+        btnMoreHeaderOptions.addEventListener('click', async () => {
+          showToast('Refreshing designs library...', 'info');
+          await loadLiveDesigns();
+        });
       }
 
       // A. New Design Button
@@ -1681,23 +1685,9 @@
       const modalOrder = document.getElementById('modalUseInOrder');
       const formOrder = document.getElementById('formUseInOrder');
 
-      if (btnUseInOrder && modalOrder) {
+      if (btnUseInOrder) {
         btnUseInOrder.addEventListener('click', () => {
-          const design = state.designs.find(d => d.id === state.selectedDesignId);
-          if (!design) return;
-
-          document.getElementById('orderDesignName').value = design.name || '';
-          document.getElementById('orderDesignCode').value = design.code || '';
-          document.getElementById('orderGarmentType').value = design.category || '';
-          document.getElementById('orderPrice').value = design.suggestedPrice || 0;
-          document.getElementById('orderCustomerName').value = '';
-
-          // Default due date 7 days ahead
-          const due = new Date();
-          due.setDate(due.getDate() + 7);
-          document.getElementById('orderDueDate').value = due.toISOString().split('T')[0];
-
-          modalOrder.style.display = 'flex';
+          openOrderModal(state.selectedDesignId);
         });
       }
 
@@ -1903,6 +1893,35 @@
       renderGallery();
     }
 
+    function openOrderModal(id) {
+      const design = state.designs.find(d => String(d.id) === String(id)) || state.designs.find(d => d.id === state.selectedDesignId);
+      if (!design) return;
+
+      const modalOrder = document.getElementById('modalUseInOrder');
+      if (!modalOrder) return;
+
+      const nameEl = document.getElementById('orderDesignName');
+      const codeEl = document.getElementById('orderDesignCode');
+      const typeEl = document.getElementById('orderGarmentType');
+      const priceEl = document.getElementById('orderPrice');
+      const custEl = document.getElementById('orderCustomerName');
+      const dueEl = document.getElementById('orderDueDate');
+
+      if (nameEl) nameEl.value = design.name || '';
+      if (codeEl) codeEl.value = design.code || '';
+      if (typeEl) typeEl.value = design.category || '';
+      if (priceEl) priceEl.value = design.suggestedPrice || 0;
+      if (custEl) custEl.value = '';
+
+      if (dueEl) {
+        const due = new Date();
+        due.setDate(due.getDate() + 7);
+        dueEl.value = due.toISOString().split('T')[0];
+      }
+
+      modalOrder.style.display = 'flex';
+    }
+
     function toggleFavorite(id) {
       const idx = state.favorites.indexOf(id);
       const design = state.designs.find(d => d.id === id);
@@ -1917,6 +1936,7 @@
       }
       saveFavorites();
       renderGallery();
+      renderSelectedDesign();
     }
 
     function openEditModal(id) {
@@ -2060,7 +2080,7 @@
       }
       const listTbody = document.getElementById('designListTbody');
       if (listTbody) {
-        listTbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:3rem;color:var(--text-muted);"><i data-lucide="loader" class="spin" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:8px;"></i> Loading designs from library…</td></tr>';
+        listTbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:3rem;color:var(--text-muted);"><i data-lucide="loader" class="spin" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:8px;"></i> Loading designs from library…</td></tr>';
       }
 
       try {
@@ -2096,10 +2116,12 @@
       if (kpis) {
         const enriched = {
           totalDesigns: kpis.total != null ? kpis.total : state.designs.length,
-          activeCollections: null,
-          designsToProduction: kpis.approved != null ? kpis.approved : (kpis.designsToProduction || 0),
+          activeCollections: kpis.activeCollections != null ? kpis.activeCollections : null,
+          designsToProduction: kpis.designsToProduction != null ? kpis.designsToProduction : (kpis.approved != null ? kpis.approved : 0),
           popularCategory: kpis.popularCategory || null,
-          mostUsedFabric: null
+          popularCategoryCount: kpis.popularCategoryCount || null,
+          mostUsedFabric: kpis.mostUsedFabric || null,
+          mostUsedFabricCount: kpis.mostUsedFabricCount || null
         };
         updateKpiCards(enriched);
       } else {

@@ -109,9 +109,6 @@
 
       if (items.length === 0) {
         state.employees = [];
-        try { localStorage.removeItem("ritham_workforce_employees"); } catch (_) {}
-      } else {
-        saveEmployees();
       }
 
       renderTable();
@@ -131,22 +128,14 @@
   }
 
   function loadPersistedState() {
+    state.employees = [];
     try {
-      const saved = localStorage.getItem("ritham_workforce_employees");
-      if (saved) {
-        state.employees = JSON.parse(saved);
-      } else {
-        state.employees = [];
-      }
-    } catch (e) {
-      state.employees = [];
-    }
+      localStorage.removeItem("ritham_workforce_employees");
+    } catch (_) {}
   }
 
   function saveEmployees() {
-    try {
-      localStorage.setItem("ritham_workforce_employees", JSON.stringify(state.employees));
-    } catch (e) {}
+    // State is persisted in backend DB via REST API
   }
 
   /* ==========================================================================
@@ -1432,9 +1421,9 @@
         const id = document.getElementById("editEmpId").value;
         const target = state.employees.find((e) => e.id === id);
         if (target && confirm(`Are you sure you want to remove ${target.name} from the workforce?`)) {
+          const targetIdentifier = target.dbId || target.id;
           state.employees = state.employees.filter((e) => e.id !== id);
           state.selectedEmployees.delete(id);
-          saveEmployees();
 
           updateKPIs();
           updateDepartmentTabs();
@@ -1444,6 +1433,17 @@
           document.getElementById("modalEditEmployee").style.display = "none";
           renderTable();
           showToast(`Removed ${target.name}`, "delete");
+
+          (async () => {
+            try {
+              const { default: api } = await import('../api.js');
+              if (targetIdentifier) {
+                await api.employees.delete(targetIdentifier);
+              }
+            } catch (err) {
+              console.warn('[Workforce] Delete API error:', err.message);
+            }
+          })();
         }
       });
     }

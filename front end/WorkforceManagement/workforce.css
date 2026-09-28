@@ -1,5 +1,5 @@
-﻿/* ==========================================================================
-   HAULO BOUTIQUE ERP � WORKFORCE MANAGEMENT STYLES
+/* ==========================================================================
+   HAULO BOUTIQUE ERP ? WORKFORCE MANAGEMENT STYLES
    Visual Language: Luxury Fashion ERP, Glassmorphism, Dark Warm Workspace,
    Contrasting Light Fashion Employee Master Table, Neon Lime Accents
    ========================================================================== */
@@ -159,7 +159,7 @@ body {
   align-items: center;
   gap: 6px;
   background: rgba(18, 16, 14, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--border-card-hover);
   border-radius: var(--radius-pill);
   color: var(--text-primary);
   font-size: 11.5px;
@@ -183,15 +183,15 @@ body {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-input);
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition);
 }
 
 .btn-icon-more:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   color: var(--text-primary);
 }
 
@@ -494,7 +494,7 @@ body {
 }
 
 .dept-tab {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-pill);
   padding: 5px 12px;
@@ -507,7 +507,7 @@ body {
 }
 
 .dept-tab:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   color: var(--text-primary);
 }
 
@@ -525,8 +525,8 @@ body {
 }
 
 .table-search-box {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-sm);
   padding: 5px 9px;
   display: flex;
@@ -538,7 +538,7 @@ body {
 
 .table-search-box:focus-within {
   border-color: var(--accent-lime);
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--bg-input);
 }
 
 .search-icon {
@@ -572,8 +572,8 @@ body {
 }
 
 .btn-toolbar-action {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-inner);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-sm);
   padding: 5px 11px;
   font-size: 11px;
@@ -588,7 +588,7 @@ body {
 }
 
 .btn-toolbar-action:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-input);
   color: var(--text-primary);
 }
 
@@ -1005,7 +1005,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-card);
 }
 
 .leave-meta {
@@ -1065,7 +1065,7 @@ body {
 }
 
 .event-mini-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: var(--radius-sm);
   padding: 6px 7px;
@@ -1080,7 +1080,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-card);
 }
 
 .event-details {
@@ -1133,7 +1133,7 @@ body {
 }
 
 .action-tile {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 7px 3px;
@@ -1148,7 +1148,7 @@ body {
 }
 
 .action-tile:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-card);
   transform: translateY(-2px);
 }
 
@@ -1205,7 +1205,7 @@ body {
 
 .glass-modal-box {
   background: rgba(36, 32, 28, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-shell);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
   width: 100%;
@@ -1288,7 +1288,7 @@ body {
 .form-group input,
 .form-group select,
 .form-group textarea {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--bg-input);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
@@ -1303,7 +1303,7 @@ body {
 .form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--accent-lime);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-card);
 }
 
 .form-group select option {
@@ -1327,8 +1327,8 @@ body {
 }
 
 .btn-file-upload {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-sm);
   padding: 6px 12px;
   font-size: 11.5px;
@@ -1338,7 +1338,7 @@ body {
 }
 
 .btn-file-upload:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--bg-card-hover);
 }
 
 .file-hint {
@@ -1375,9 +1375,9 @@ body {
 }
 
 .btn-modal-secondary {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
   color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-input);
   border-radius: var(--radius-sm);
   padding: 7px 14px;
   font-size: 11.5px;
@@ -1505,7 +1505,7 @@ body {
 }
 
 .profile-stat-box {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: var(--radius-sm);
   padding: 8px;
@@ -1595,7 +1595,7 @@ body {
 }
 
 .report-stat-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-inner);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   padding: 10px;
@@ -1630,7 +1630,7 @@ body {
 
 .glass-toast {
   background: rgba(28, 25, 21, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--border-card-hover);
   border-left: 3px solid var(--accent-lime);
   border-radius: var(--radius-sm);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);

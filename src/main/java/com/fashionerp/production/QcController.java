@@ -20,7 +20,7 @@ public class QcController {
 
     private final QcChecklistRepository qcRepository;
     private final OrderRepository orderRepository;
-    private final ProductionController productionController;
+    private final ProductionService productionService;
 
     @GetMapping("/checklists")
     public List<QcChecklist> listChecklists(@RequestParam(required = false) UUID orderId) {
@@ -56,13 +56,14 @@ public class QcController {
         long pending = qcRepository.countByResult("PENDING");
 
         long awaitingQc = qcRepository.countOrdersAwaitingQc();
-        long inInspection = Math.min(awaitingQc, 8); // active inspection batch
+        // DEAD-P3-04 FIX: Remove arbitrary Math.min(awaitingQc, 8) cap
+        long inInspection = awaitingQc;
         long readyDelivery = orderRepository.countByStatus(OrderStatus.READY);
 
         long totalAudited = passed + rework + fail;
         BigDecimal passRate = totalAudited > 0
                 ? BigDecimal.valueOf(passed * 100.0 / totalAudited).setScale(1, RoundingMode.HALF_UP)
-                : BigDecimal.valueOf(100.0);
+                : BigDecimal.ZERO;
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("awaitingQc", awaitingQc);
@@ -83,10 +84,10 @@ public class QcController {
     public Map<String, Object> passQc(
             @RequestParam UUID orderId,
             @RequestParam(required = false) String notes) {
-        Map<String, Object> nextStage = productionController.getNextStageAfterQc();
+        Map<String, Object> nextStage = productionService.getNextStageAfterQc();
         String targetStage = (String) nextStage.get("stageKey");
         String passNotes = (notes != null && !notes.isBlank()) ? notes : "Passed QC Inspection";
-        return productionController.transitionStage(orderId, targetStage, null, passNotes);
+        return productionService.transitionStage(orderId, targetStage, null, passNotes);
     }
 
     /**
@@ -105,7 +106,7 @@ public class QcController {
         order.setQcReworkCount(currentCount + 1);
         orderRepository.save(order);
 
-        Map<String, Object> result = productionController.transitionStage(orderId, targetStage, assigneeId, notes);
+        Map<String, Object> result = productionService.transitionStage(orderId, targetStage, assigneeId, notes);
         result.put("qcReworkCount", order.getQcReworkCount());
         return result;
     }

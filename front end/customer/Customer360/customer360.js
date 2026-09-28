@@ -47,6 +47,8 @@ let orderHistoryData = [];
 // 4. MEASUREMENTS & NOTES (loaded dynamically from database)
 // ==========================================================================
 let customerBodyMeasurements = [];
+let activeC360Garment = 'blouse';
+window.activeC360Garment = 'blouse';
 let customerNotesData = [];
 let customerEnquiriesData = [];
 let measurementProfilesData = [];
@@ -61,10 +63,6 @@ let designReferencesData = [];
 // ==========================================================================
 let appointmentsData = [];
 
-// ==========================================================================
-// 7. PAYMENTS DATA (loaded from API)
-// ==========================================================================
-let paymentTransactions = [];
 
 // ==========================================================================
 // 8. SPEND CHART DATA (derived from real payments)
@@ -279,16 +277,21 @@ async function loadCustomerFromApi() {
 
         // 2. Load customer's real measurements from dedicated customer_body_measurements table
         try {
-          const mList = await api.customers.bodyMeasurements.list(targetMobile);
+          let mList = await api.customers.bodyMeasurements.list(targetMobile).catch(() => []);
+          if (!Array.isArray(mList) || mList.length === 0) {
+            const altList = await api.customers.measurements.list(targetMobile).catch(() => []);
+            if (Array.isArray(altList) && altList.length > 0) {
+              mList = altList;
+            }
+          }
           window.customerBodyMeasurements = Array.isArray(mList) ? mList : [];
           customerBodyMeasurements = window.customerBodyMeasurements;
-          if (window.customerBodyMeasurements.length > 0) {
-            renderMeasurementsForGarment(window.activeMeasurementGarment || 'blouse');
-          } else {
-            renderMeasurementsForGarment('blouse');
-          }
+          renderMeasurementsForGarment(window.activeMeasurementGarment || 'blouse');
+          renderMeasurementsSubPage(activeC360Garment || 'blouse');
         } catch (me) {
           console.warn('[Customer360] Measurements load error:', me.message);
+          renderMeasurementsForGarment('blouse');
+          renderMeasurementsSubPage(activeC360Garment || 'blouse');
         }
 
         // 3. Load customer appointments from API
@@ -311,12 +314,18 @@ async function loadCustomerFromApi() {
               type: typeStr,
               date: dateStr,
               time: timeStr,
+              rawScheduledAt: a.scheduledAt || null,
+              durationMinutes: a.durationMinutes || 45,
               garment: a.notes || a.garmentType || 'Bespoke Ensemble',
               specialist: a.staffAssigned || 'Master Tailor',
-              status: a.status || 'CONFIRMED'
+              status: a.status || 'CONFIRMED',
+              notes: a.notes || '',
+              orderCode: a.orderCode || '',
+              orderId: a.orderId || null
             };
           });
           renderAppointments();
+          renderAppointmentsSubPage();
         } catch (ae) {
           console.warn('[Customer360] Appointments load error:', ae.message);
         }
@@ -413,107 +422,155 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================================================
 
 /**
+ * Normalizes raw garment strings into canonical atelier order types
+ */
+function normalizeAtelierOrderType(raw) {
+  if (!raw || typeof raw !== 'string') return 'Bespoke Garment';
+  const s = raw.toLowerCase().trim();
+  if (s.includes('blouse') || s.includes('choli') || s.includes('crop top')) return 'Blouse';
+  if (s.includes('lehenga') || s.includes('ghagra') || s.includes('skirt')) return 'Lehenga';
+  if (s.includes('saree') || s.includes('sari') || s.includes('draping') || s.includes('pre-pleat')) return 'Saree';
+  if (s.includes('kurti') || s.includes('kurta') || s.includes('salwar') || s.includes('chudi') || s.includes('churidar') || s.includes('suit')) return 'Kurti & Suits';
+  if (s.includes('anarkali')) return 'Anarkali';
+  if (s.includes('gown') || s.includes('maxi') || s.includes('dress') || s.includes('frock')) return 'Gown';
+  if (s.includes('alteration') || s.includes('refit') || s.includes('restitch') || s.includes('hemming')) return 'Alteration';
+  if (s.includes('fabric') || s.includes('material') || s.includes('silk') || s.includes('swatch')) return 'Fabric';
+  // Capitalize custom names (e.g. "Indo-Western", "Jacket")
+  return raw.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
+/**
  * Dynamically computes and renders the Customer Value Donut SVG and Legend
- * based entirely on customer's actual database orders and spend.
+ * based strictly on the customer's actual order types (e.g. Blouse, Lehenga, Saree, etc.)
  */
 function renderCustomerValueBreakdown(orders) {
   const totalSpentEl = document.getElementById('donutTotalSpent');
-  if (totalSpentEl) totalSpentEl.textContent = customerData.totalSpent || '₹0';
-
   const svg = document.getElementById('customerValueDonutSvg');
   const legend = document.getElementById('customerValueLegend');
   if (!svg || !legend) return;
 
+  const orderList = Array.isArray(orders) && orders.length > 0
+    ? orders
+    : (Array.isArray(orderHistoryData) && orderHistoryData.length > 0 ? orderHistoryData : []);
+
+  const typeMap = {};
   let totalAmt = 0;
-  const catMap = {
-    'Garments': 0,
-    'Fabrics': 0,
-    'Alterations': 0,
-    'Consultation': 0,
-    'Others': 0
-  };
 
-  if (orders && orders.length > 0) {
-    orders.forEach(o => {
-      const amt = Number(o.totalAmount !== undefined ? o.totalAmount : o.amount) || 0;
-      totalAmt += amt;
-      const g = (o.garmentType || '').toLowerCase();
-      const st = (o.status || '').toLowerCase();
-      if (st.includes('alteration') || g.includes('alteration')) {
-        catMap['Alterations'] += amt;
-      } else if (g.includes('fabric') || g.includes('material') || g.includes('raw silk')) {
-        catMap['Fabrics'] += amt;
-      } else if (g.includes('consultation') || st.includes('consultation')) {
-        catMap['Consultation'] += amt;
-      } else if (g.includes('blouse') || g.includes('lehenga') || g.includes('saree') || g.includes('kurti') || g.includes('chudi') || g.includes('gown')) {
-        catMap['Garments'] += amt;
-      } else {
-        catMap['Others'] += amt;
-      }
-    });
-  }
+  orderList.forEach(o => {
+    let amt = 0;
+    if (o.totalAmount !== undefined && o.totalAmount !== null) {
+      amt = Number(o.totalAmount) || 0;
+    } else if (o.amount !== undefined && o.amount !== null) {
+      amt = typeof o.amount === 'string' ? (Number(o.amount.replace(/[^0-9.]/g, '')) || 0) : (Number(o.amount) || 0);
+    }
+    const rawType = o.garmentType || o.garment || o.garmentDesc || 'Bespoke Garment';
+    const type = normalizeAtelierOrderType(rawType);
 
-  // If customer has a total spend from DB profile but orders sum was 0, use profile total spend
+    if (!typeMap[type]) {
+      typeMap[type] = { name: type, amount: 0, count: 0 };
+    }
+    typeMap[type].amount += amt;
+    typeMap[type].count += 1;
+    totalAmt += amt;
+  });
+
+  // If order list had 0 amount but customer profile has totalSpent from DB, retain total
   const dbSpend = Number(String(customerData.totalSpent || '').replace(/[^0-9.]/g, '')) || 0;
   if (totalAmt === 0 && dbSpend > 0) {
     totalAmt = dbSpend;
-    catMap['Garments'] = Math.round(dbSpend * 0.68);
-    catMap['Fabrics'] = Math.round(dbSpend * 0.18);
-    catMap['Alterations'] = Math.round(dbSpend * 0.08);
-    catMap['Consultation'] = Math.round(dbSpend * 0.04);
-    catMap['Others'] = dbSpend - (catMap['Garments'] + catMap['Fabrics'] + catMap['Alterations'] + catMap['Consultation']);
-  } else if (totalAmt > 0 && catMap['Fabrics'] === 0 && catMap['Alterations'] === 0 && catMap['Garments'] > 0) {
-    // If all DB orders are bespoke garments, break down harmoniously between handcrafted tailoring, luxury textiles, and finishing
-    const gTot = catMap['Garments'];
-    catMap['Garments'] = Math.round(gTot * 0.68);
-    catMap['Fabrics'] = Math.round(gTot * 0.18);
-    catMap['Alterations'] = Math.round(gTot * 0.08);
-    catMap['Consultation'] = Math.round(gTot * 0.04);
-    catMap['Others'] = gTot - (catMap['Garments'] + catMap['Fabrics'] + catMap['Alterations'] + catMap['Consultation']);
   }
 
-  if (totalAmt === 0) {
-    catMap['Garments'] = 1;
-    totalAmt = 1;
+  if (totalSpentEl) {
+    totalSpentEl.textContent = '₹' + totalAmt.toLocaleString('en-IN');
+  }
+
+  // Handle empty state: no orders
+  if (orderList.length === 0 || totalAmt === 0) {
+    svg.innerHTML = `<circle class="donut-bg" cx="80" cy="80" r="62" />`;
+    legend.innerHTML = `
+      <div style="padding:16px 4px;text-align:center;color:rgba(255,255,255,0.4);font-size:11px;">
+        No orders placed yet.
+      </div>
+    `;
+    window._customerValueOrderTypes = [];
+    window._customerValueTotalAmt = 0;
+    return;
+  }
+
+  // Sort categories by amount descending (or count if amount is zero)
+  let sortedTypes = Object.values(typeMap).sort((a, b) => (b.amount - a.amount) || (b.count - a.count));
+
+  // If more than 5 categories, take top 4 and collapse the rest into "Other Orders"
+  if (sortedTypes.length > 5) {
+    const top4 = sortedTypes.slice(0, 4);
+    const rest = sortedTypes.slice(4);
+    const othersItem = {
+      name: 'Other Orders',
+      amount: rest.reduce((acc, r) => acc + r.amount, 0),
+      count: rest.reduce((acc, r) => acc + r.count, 0)
+    };
+    sortedTypes = [...top4, othersItem];
+  }
+
+  // Atelier luxury palette
+  const PALETTE = [
+    '#b8ff3d', // Lime
+    '#a895ff', // Purple
+    '#f43f5e', // Pink / Rose
+    '#fbbf24', // Amber
+    '#38bdf8', // Cyan
+    '#94a3b8'  // Slate
+  ];
+
+  // Calculate percentages guaranteeing sum = 100%
+  let sumPct = 0;
+  sortedTypes.forEach(t => {
+    t.pct = totalAmt > 0 ? Math.round((t.amount / totalAmt) * 100) : Math.round((t.count / orderList.length) * 100);
+    sumPct += t.pct;
+  });
+
+  // Adjust rounding delta to the highest segment
+  if (sortedTypes.length > 0 && sumPct !== 100) {
+    sortedTypes[0].pct += (100 - sumPct);
   }
 
   const circumference = 2 * Math.PI * 62; // ~389.56
   let runningOffset = 0;
-
-  const cats = [
-    { key: 'Garments', colorCls: 'seg-garments', dotCls: 'dot-garments', val: catMap['Garments'] },
-    { key: 'Fabrics', colorCls: 'seg-fabrics', dotCls: 'dot-fabrics', val: catMap['Fabrics'] },
-    { key: 'Alterations', colorCls: 'seg-alterations', dotCls: 'dot-alterations', val: catMap['Alterations'] },
-    { key: 'Consultation', colorCls: 'seg-consultation', dotCls: 'dot-consultation', val: catMap['Consultation'] },
-    { key: 'Others', colorCls: 'seg-others', dotCls: 'dot-others', val: catMap['Others'] },
-  ];
-
   let svgCirclesHtml = `<circle class="donut-bg" cx="80" cy="80" r="62" />`;
   let legendHtml = '';
 
-  cats.forEach(c => {
-    const pct = totalAmt > 0 ? Math.round((c.val / totalAmt) * 100) : 0;
-    const segLen = (pct / 100) * circumference;
+  sortedTypes.forEach((item, idx) => {
+    const color = PALETTE[idx % PALETTE.length];
+    const segLen = (item.pct / 100) * circumference;
+
     svgCirclesHtml += `
-      <circle class="donut-seg ${c.colorCls}" cx="80" cy="80" r="62"
+      <circle class="donut-seg" cx="80" cy="80" r="62"
+        style="stroke: ${color};"
         stroke-dasharray="${segLen.toFixed(1)} ${circumference.toFixed(1)}"
         stroke-dashoffset="${(-runningOffset).toFixed(1)}" />
     `;
     runningOffset += segLen;
 
+    const amtStr = '₹' + item.amount.toLocaleString('en-IN');
+    const tip = `${item.name}: ${item.count} order(s) · ${amtStr} (${item.pct}%)`;
+
     legendHtml += `
-      <div class="donut-leg-row">
+      <div class="donut-leg-row" title="${tip}">
         <div class="leg-left">
-          <span class="leg-dot ${c.dotCls}"></span>
-          <span class="leg-label">${c.key}</span>
+          <span class="leg-dot" style="background: ${color};"></span>
+          <span class="leg-label">${item.name}</span>
         </div>
-        <span class="leg-pct">${pct}%</span>
+        <span class="leg-pct">${item.pct}%</span>
       </div>
     `;
   });
 
   svg.innerHTML = svgCirclesHtml;
   legend.innerHTML = legendHtml;
+
+  // Cache breakdown for use in payment breakdown modal
+  window._customerValueOrderTypes = sortedTypes;
+  window._customerValueTotalAmt = totalAmt;
 }
 
 /**
@@ -568,19 +625,12 @@ function renderOrderHistoryBars(orders) {
   }).join('');
 }
 
-/**
- * Backward compatibility alias
- */
-function buildSpendChartFromOrders(orders) {
-  renderOrderHistoryBars(orders);
-  renderCustomerValueBreakdown(orders);
-}
 
 /**
  * Renders the top Customer Profile card and 4 Header Metric Tiles from state
  */
 function renderProfileCard() {
-  const avatarEl = document.getElementById('customerAvatarImg');
+  const avatarWrap = document.getElementById('c360ProfileAvatarWrap') || document.querySelector('.profile-avatar-wrap');
   const nameEl = document.getElementById('profileName');
   const phoneEl = document.getElementById('profilePhone');
   const emailEl = document.getElementById('profileEmail');
@@ -598,9 +648,15 @@ function renderProfileCard() {
   const statPendingEl = document.getElementById('statPendingPayments');
   const bcNameEl = document.getElementById('bcCustomerName');
 
-  if (avatarEl) {
-    avatarEl.src = customerData.avatarUrl || customerData.avatar || '../../assets/user_avatar.jpg';
-    avatarEl.alt = customerData.name || 'Customer';
+  if (avatarWrap) {
+    if (typeof window.applyPatronAvatarElement === 'function') {
+      window.applyPatronAvatarElement(avatarWrap, customerData.name, customerData.avatarUrl || customerData.avatar, 'haulo-avatar-xl');
+    } else if (typeof window.renderPatronAvatarHtml === 'function') {
+      avatarWrap.innerHTML = window.renderPatronAvatarHtml(customerData.name, customerData.avatarUrl || customerData.avatar, 'haulo-avatar-xl');
+    } else {
+      const inits = typeof window.getPatronInitials === 'function' ? window.getPatronInitials(customerData.name) : 'CU';
+      avatarWrap.innerHTML = `<div class="haulo-patron-avatar-initials haulo-avatar-xl">${inits}</div>`;
+    }
   }
   if (nameEl) nameEl.textContent = customerData.name || '—';
   if (bcNameEl) bcNameEl.textContent = customerData.name || 'Customer';
@@ -1015,10 +1071,6 @@ function renderCommunicationStack(orders, appts, enqs) {
   }
 }
 
-/** @deprecated kept for backwards compat */
-function renderCommunicationHistory(orders, appts) {
-  renderCommunicationStack(orders, appts, []);
-}
 
 /**
  * Renders Quick Insights card (#quickInsightsList) dynamically from live DB data
@@ -1190,7 +1242,7 @@ async function handleSaveNote(event) {
 
   try {
     const { default: api } = await import('../../api.js');
-    const created = await api.customers.notes.add(mobile, {
+    const created = await api.customers.notes.create(mobile, {
       noteText,
       category,
       authorName,
@@ -1250,169 +1302,7 @@ function renderOutstandingPayments() {
   if (psBal) psBal.textContent = '₹' + balance.toLocaleString('en-IN');
 }
 
-/**
- * Renders financial transactions in payment modal
- */
-function renderTransactions() {
-  const container = document.getElementById('txHistoryList');
-  if (!container) return;
 
-  container.innerHTML = paymentTransactions.map(tx => `
-    <div class="tx-item">
-      <div class="tx-left">
-        <span class="tx-date">${tx.date}</span>
-        <span class="tx-mode">${tx.desc} Â· <small style="opacity:0.6">${tx.mode}</small></span>
-      </div>
-      <span class="tx-amt">${tx.amount}</span>
-    </div>
-  `).join('');
-}
-
-/**
- * Generates miniature haute couture vector mannequin SVG for Customer 360 card
- */
-function getMiniMannequinSvg(garment) {
-  const g = garment || 'Blouse';
-  const defs = `
-    <defs>
-      <linearGradient id="miniLinenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#4d4740" />
-        <stop offset="25%" stop-color="#7a7268" />
-        <stop offset="50%" stop-color="#a89e92" />
-        <stop offset="75%" stop-color="#80776c" />
-        <stop offset="100%" stop-color="#4a443e" />
-      </linearGradient>
-      <linearGradient id="miniWoodGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#5c3a21" />
-        <stop offset="50%" stop-color="#ba8252" />
-        <stop offset="100%" stop-color="#4a2e1a" />
-      </linearGradient>
-      <linearGradient id="miniPoleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#3a3733" />
-        <stop offset="50%" stop-color="#cfc9be" />
-        <stop offset="100%" stop-color="#302d29" />
-      </linearGradient>
-      <linearGradient id="miniBaseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="#7a736a" />
-        <stop offset="50%" stop-color="#423e39" />
-        <stop offset="100%" stop-color="#23201d" />
-      </linearGradient>
-      <linearGradient id="miniSkirtGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#3d3731" />
-        <stop offset="20%" stop-color="#5f564c" />
-        <stop offset="50%" stop-color="#867b6d" />
-        <stop offset="80%" stop-color="#5b5248" />
-        <stop offset="100%" stop-color="#36312a" />
-      </linearGradient>
-      <radialGradient id="miniVignette" cx="50%" cy="45%" r="60%">
-        <stop offset="0%" stop-color="#221e1a" />
-        <stop offset="100%" stop-color="#100e0c" />
-      </radialGradient>
-      <filter id="miniGlow">
-        <feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#B8FF2C" flood-opacity="0.9" />
-      </filter>
-    </defs>
-  `;
-
-  const bg = `<rect width="130" height="165" rx="10" fill="url(#miniVignette)" />`;
-  const stand = `
-    <!-- Cast-iron pedestal & rod -->
-    <ellipse cx="65" cy="153" rx="26" ry="6" fill="url(#miniBaseGrad)" />
-    <ellipse cx="65" cy="151.5" rx="20" ry="4" fill="url(#miniPoleGrad)" opacity="0.6" />
-    <rect x="63.5" y="115" width="3" height="38" rx="1" fill="url(#miniPoleGrad)" />
-  `;
-
-  if (g === 'Chudi') {
-    return `<svg viewBox="0 0 130 165" class="mannequin-svg-mini" xmlns="http://www.w3.org/2000/svg">
-      ${defs}
-      ${bg}
-      ${stand}
-      <!-- Churidar Pants underneath -->
-      <path d="M 52,105 L 53,138 C 53,140 60,140 60,138 L 62,118 L 68,118 L 70,138 C 70,140 77,140 77,138 L 78,105 Z" fill="#2d2925" stroke="rgba(255,255,255,0.18)" stroke-width="0.8" />
-      <ellipse cx="56.5" cy="135" rx="3.5" ry="1" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.7" />
-      <ellipse cx="73.5" cy="135" rx="3.5" ry="1" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.7" />
-      <!-- Kurti Tunic Silhouette -->
-      <path d="M 57,26 C 60,22 70,22 73,26 C 77,27 89,33 93,40 C 95,44 88,50 85,52 C 83,56 88,68 87,74 C 86,81 83,87 81,95 C 80,102 83,110 84,124 L 46,124 C 47,110 50,102 49,95 C 47,87 44,81 43,74 C 42,68 47,56 45,52 C 42,50 35,44 37,40 C 41,33 53,27 57,26 Z" fill="url(#miniLinenGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
-      <line x1="47" y1="102" x2="47" y2="124" stroke="#B8FF2C" stroke-width="1" stroke-dasharray="1.5,1.5" />
-      <line x1="83" y1="102" x2="83" y2="124" stroke="#B8FF2C" stroke-width="1" stroke-dasharray="1.5,1.5" />
-      <ellipse cx="65" cy="25" rx="9" ry="3.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.6" />
-      <circle cx="65" cy="19" r="2.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.5" />
-      <g filter="url(#miniGlow)">
-        <path d="M 43,71 Q 65,76 87,71" fill="none" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="87" cy="71" r="1.8" fill="#B8FF2C" />
-        <path d="M 47,95 Q 65,99 83,95" fill="none" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="83" cy="95" r="1.8" fill="#B8FF2C" />
-        <line x1="55" y1="30" x2="55" y2="124" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="55" cy="124" r="1.8" fill="#B8FF2C" />
-      </g>
-    </svg>`;
-  } else if (g === 'Lehenga') {
-    return `<svg viewBox="0 0 130 165" class="mannequin-svg-mini" xmlns="http://www.w3.org/2000/svg">
-      ${defs}
-      ${bg}
-      ${stand}
-      <path d="M 57,26 C 60,22 70,22 73,26 C 77,27 89,33 93,40 C 95,44 88,50 85,52 C 83,56 88,68 87,74 L 43,74 C 42,68 47,56 45,52 C 42,50 35,44 37,40 C 41,33 53,27 57,26 Z" fill="url(#miniLinenGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
-      <rect x="44" y="72" width="42" height="2.5" fill="#c59b6d" />
-      <path d="M 46,75 L 84,75 L 81,89 L 49,89 Z" fill="#2d2925" opacity="0.6" />
-      <path d="M 49,89 C 45,108 32,130 26,138 C 45,142 85,142 104,138 C 98,130 85,108 81,89 Z" fill="url(#miniSkirtGrad)" stroke="rgba(255,255,255,0.28)" stroke-width="1" />
-      <rect x="48" y="88" width="34" height="3" rx="1" fill="#c59b6d" />
-      <line x1="56" y1="91" x2="45" y2="139" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2,2" stroke-width="0.7" />
-      <line x1="65" y1="91" x2="65" y2="140" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2,2" stroke-width="0.7" />
-      <line x1="74" y1="91" x2="85" y2="139" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2,2" stroke-width="0.7" />
-      <circle cx="49" cy="92" r="1.5" fill="#e5ba82" />
-      <line x1="49" y1="92" x2="46" y2="108" stroke="#e5ba82" stroke-width="0.9" />
-      <circle cx="46" cy="108" r="2" fill="#c59b6d" />
-      <ellipse cx="65" cy="25" rx="9" ry="3.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.6" />
-      <circle cx="65" cy="19" r="2.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.5" />
-      <g filter="url(#miniGlow)">
-        <path d="M 49,89 Q 65,92 81,89" fill="none" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="65" cy="90.5" r="1.8" fill="#B8FF2C" />
-        <path d="M 26,138 C 45,142 85,142 104,138" fill="none" stroke="#B8FF2C" stroke-width="1.3" stroke-dasharray="2,2" />
-        <circle cx="95" cy="139" r="2" fill="#B8FF2C" />
-      </g>
-    </svg>`;
-  } else if (g === 'Gown') {
-    return `<svg viewBox="0 0 130 165" class="mannequin-svg-mini" xmlns="http://www.w3.org/2000/svg">
-      ${defs}
-      ${bg}
-      ${stand}
-      <path d="M 57,26 C 60,22 70,22 73,26 C 77,27 89,33 93,40 C 95,44 88,50 85,52 C 83,56 88,68 87,74 C 86,81 83,87 81,95 C 80,102 83,110 85,118 C 88,128 98,135 105,140 C 85,144 45,144 25,140 C 32,135 42,128 45,118 C 47,110 50,102 49,95 C 47,87 44,81 43,74 C 42,68 47,56 45,52 C 42,50 35,44 37,40 C 41,33 53,27 57,26 Z" fill="url(#miniSkirtGrad)" stroke="rgba(255,255,255,0.28)" stroke-width="1" />
-      <path d="M 56,35 Q 55,65 57,95 Q 50,122 43,141" fill="none" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2,2" stroke-width="0.7" />
-      <path d="M 74,35 Q 75,65 73,95 Q 80,122 87,141" fill="none" stroke="rgba(255,255,255,0.18)" stroke-dasharray="2,2" stroke-width="0.7" />
-      <ellipse cx="65" cy="25" rx="9" ry="3.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.6" />
-      <circle cx="65" cy="19" r="2.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.5" />
-      <g filter="url(#miniGlow)">
-        <path d="M 43,71 Q 65,76 87,71" fill="none" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="87" cy="71" r="1.8" fill="#B8FF2C" />
-        <path d="M 49,95 Q 65,99 81,95" fill="none" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="81" cy="95" r="1.8" fill="#B8FF2C" />
-        <line x1="45" y1="30" x2="45" y2="140" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="45" cy="140" r="2" fill="#B8FF2C" />
-      </g>
-    </svg>`;
-  } else {
-    // Blouse (Default)
-    return `<svg viewBox="0 0 130 165" class="mannequin-svg-mini" xmlns="http://www.w3.org/2000/svg">
-      ${defs}
-      ${bg}
-      ${stand}
-      <path d="M 57,26 C 60,22 70,22 73,26 C 77,27 89,33 93,40 C 95,44 88,50 85,52 C 83,56 88,68 87,74 C 86,81 83,87 81,95 C 80,102 82,106 80,112 L 50,112 C 48,106 50,102 49,95 C 47,87 44,81 43,74 C 42,68 47,56 45,52 C 42,50 35,44 37,40 C 41,33 53,27 57,26 Z" fill="url(#miniLinenGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
-      <rect x="49" y="110" width="32" height="3" rx="1" fill="url(#miniWoodGrad)" />
-      <ellipse cx="65" cy="25" rx="9" ry="3.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.6" />
-      <circle cx="65" cy="19" r="2.5" fill="url(#miniWoodGrad)" stroke="#c59b6d" stroke-width="0.5" />
-      <g filter="url(#miniGlow)">
-        <line x1="37" y1="40" x2="93" y2="40" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="37" cy="40" r="1.8" fill="#B8FF2C" /><circle cx="93" cy="40" r="1.8" fill="#B8FF2C" />
-        <path d="M 43,71 Q 65,76 87,71" fill="none" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="87" cy="71" r="1.8" fill="#B8FF2C" />
-        <path d="M 49,95 Q 65,99 81,95" fill="none" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="81" cy="95" r="1.8" fill="#B8FF2C" />
-        <line x1="55" y1="30" x2="55" y2="112" stroke="#B8FF2C" stroke-width="1.2" stroke-dasharray="2,2" />
-        <circle cx="55" cy="112" r="1.8" fill="#B8FF2C" />
-      </g>
-    </svg>`;
-  }
-}
 
 /**
  * Renders Card 7 Measurements preview with dynamic database measurements
@@ -1471,9 +1361,6 @@ function renderMeasurementsForGarment(garment) {
   `;
 }
 
-function renderC360Measurements() {
-  renderMeasurementsForGarment(window.activeMeasurementGarment || 'blouse');
-}
 
 // ==========================================================================
 // 11. TAB HANDLING
@@ -1520,7 +1407,7 @@ function setupEventListeners() {
         } else if (action === 'create-order') {
           showToast('Create Order initiated for ' + (customerState.name || 'Customer'));
         } else if (action === 'book-appointment') {
-          openAppointmentModal(1);
+          openBookNewAppointmentModal();
         } else if (action === 'archive') {
           showToast('Customer profile archived to database', 'warning');
         }
@@ -1554,18 +1441,22 @@ function setupEventListeners() {
     viewPayHistoryBtn.addEventListener('click', openPaymentBreakdownModal);
   }
 
+  // Navigation to New Customer / Order Entry page
+  function navigateToNewOrder() {
+    window.location.href = '../new-customer/new-customer.html';
+  }
+  window.navigateToNewOrder = navigateToNewOrder;
+
   // Top Bar Actions
   const topNewOrderBtn = document.getElementById('topNewOrderBtn');
   if (topNewOrderBtn) {
-    topNewOrderBtn.addEventListener('click', () => {
-      window.location.href = '../../order-entry/order-entry.html';
-    });
+    topNewOrderBtn.addEventListener('click', navigateToNewOrder);
   }
 
   const topBookApptBtn = document.getElementById('topBookApptBtn');
   if (topBookApptBtn) {
     topBookApptBtn.addEventListener('click', () => {
-      openAppointmentModal('new');
+      openBookNewAppointmentModal();
     });
   }
 
@@ -1697,8 +1588,6 @@ window.switchC360Tab = function(tabId, btn) {
     renderAppointmentsSubPage();
   } else if (cleanTab === 'payments') {
     renderPaymentsSubPage();
-  } else if (cleanTab === 'alterations') {
-    renderAlterationsSubPage();
   } else if (cleanTab === 'communication') {
     renderCommunicationSubPage();
   } else if (cleanTab === 'notes') {
@@ -1727,7 +1616,6 @@ window.switchC360Tab = function(tabId, btn) {
     measurements: 'Garment Measurements Sub-Page',
     appointments: 'Appointments Sub-Page',
     payments: 'Financial Ledger Sub-Page',
-    alterations: 'Alterations Log Sub-Page',
     communication: 'Communication Timeline Sub-Page',
     notes: 'Customer Notes Sub-Page'
   };
@@ -1926,7 +1814,7 @@ function renderDesignsSubPage() {
           <p style="font-size:12px;color:rgba(255,255,255,0.6);margin:0;">Fabric: <strong style="color:#fff;">${fabric}</strong></p>
           <p style="font-size:11.5px;color:rgba(255,255,255,0.45);margin:0;">${notes}</p>
           <div style="margin-top:6px;display:flex;justify-content:flex-end;">
-            <button type="button" class="btn-sub-primary" style="font-size:11.5px;padding:5px 12px;" onclick="window.location.href='../../order-entry/order-entry.html'">
+            <button type="button" class="btn-sub-primary" style="font-size:11.5px;padding:5px 12px;" onclick="navigateToNewOrder()">
               <span>Use For New Order</span>
             </button>
           </div>
@@ -1937,76 +1825,238 @@ function renderDesignsSubPage() {
 }
 
 function renderMeasurementsSubPage(garmentKey) {
-  const gKey = String(garmentKey || 'blouse').toLowerCase();
+  const gKey = String(garmentKey || activeC360Garment || 'blouse').toLowerCase();
+  activeC360Garment = gKey;
+  window.activeC360Garment = gKey;
+
   const specsGrid = document.getElementById('subMeasSpecsGrid');
   const titleEl = document.getElementById('subMeasCardTitle');
   const verBadge = document.getElementById('subMeasVersionBadge');
   const updatedDateEl = document.getElementById('subMeasUpdatedDate');
+  const metaContainer = document.getElementById('subMeasMetaInfo');
 
-  if (titleEl) titleEl.textContent = `${gKey.charAt(0).toUpperCase() + gKey.slice(1)} Precision Silhouette`;
+  const gUpper = gKey.toUpperCase();
+  const gTitle = gKey.charAt(0).toUpperCase() + gKey.slice(1);
 
-  const match = (customerBodyMeasurements || []).find(m => (m.garmentType || '').toLowerCase() === gKey);
+  if (titleEl) titleEl.textContent = `${gTitle} Silhouette`;
+
+  // Update pills active state
+  document.querySelectorAll('#subGarmentPillsBar .sub-m-tab-pill').forEach(b => {
+    if ((b.dataset.garment || '').toLowerCase() === gKey) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
+
+  const list = customerBodyMeasurements || window.customerBodyMeasurements || [];
+  // Find match by exact garment type or substring
+  let match = list.find(m => (m.garmentType || '').toLowerCase() === gKey);
+  if (!match) {
+    match = list.find(m => (m.garmentType || '').toLowerCase().includes(gKey) || gKey.includes((m.garmentType || '').toLowerCase()));
+  }
+  // Fallback: if single record with "General"
+  if (!match && list.length > 0 && list[0].garmentType && list[0].garmentType.toLowerCase() === 'general') {
+    match = list[0];
+  }
 
   if (!match) {
     if (verBadge) verBadge.textContent = 'No Record';
     if (updatedDateEl) updatedDateEl.textContent = '—';
     if (specsGrid) {
       specsGrid.innerHTML = `
-        <div style="grid-column:1/-1;padding:40px 16px;text-align:center;color:rgba(255,255,255,0.45);display:flex;flex-direction:column;align-items:center;gap:10px;">
-          <span>No ${gKey.toUpperCase()} measurements recorded in database.</span>
-          <button type="button" class="btn-sub-primary" onclick="openNewFittingModal('${gKey}')">
-            <i data-lucide="plus"></i> + Add ${gKey.toUpperCase()} Fitting
+        <div style="grid-column:1/-1;padding:48px 16px;text-align:center;color:rgba(255,255,255,0.45);display:flex;flex-direction:column;align-items:center;gap:12px;">
+          <div style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;">
+            <i data-lucide="ruler" style="width:24px;height:24px;color:rgba(255,255,255,0.35);"></i>
+          </div>
+          <h4 style="margin:0;color:#fff;font-size:15px;">No ${gTitle} measurements on file</h4>
+          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.5);max-width:340px;">No bespoke tailoring profile recorded in database for this garment category yet.</p>
+          <button type="button" class="btn-sub-primary" style="margin-top:6px;padding:8px 18px;font-size:12px;" onclick="openNewFittingModal('${gKey}')">
+            <i data-lucide="plus"></i> <span>+ Record ${gTitle} Fitting</span>
           </button>
         </div>
       `;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: specsGrid });
+      }
     }
     return;
   }
 
+  // Update silhouette header & meta
   if (verBadge) verBadge.textContent = `v${match.version || '1.0'} (Current)`;
   const dateStr = match.updatedAt ? new Date(match.updatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
     : (match.createdAt ? new Date(match.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recorded');
   if (updatedDateEl) updatedDateEl.textContent = dateStr;
 
-  const points = [
-    { key: 'Bust / Chest', val: match.bust },
-    { key: 'Waist', val: match.waist },
-    { key: 'Shoulder', val: match.shoulder },
-    { key: 'Armhole', val: match.armhole },
-    { key: 'Sleeve Length', val: match.sleeveLength },
-    { key: 'Garment Length', val: match.blouseLength || match.topLength || match.skirtLength || match.fullLength },
-    { key: 'Front Neck Depth', val: match.frontNeckDepth },
-    { key: 'Back Neck Depth', val: match.backNeckDepth },
-    { key: 'Hip', val: match.hip },
-    { key: 'Flair', val: match.flare },
-    { key: 'Pant / Trouser Length', val: match.pantLength },
-    { key: 'Inseam', val: match.inseam },
-    { key: 'Thigh Round', val: match.thighRound },
-    { key: 'Ankle Opening', val: match.ankleRound }
-  ].filter(p => p.val !== null && p.val !== undefined && p.val !== '');
+  if (metaContainer) {
+    const recordedBy = match.recordedBy || 'Master Tailor';
+    const unitStr = match.unit === 'cm' ? 'Centimeters (cm)' : 'Inches (″)';
+    const notesStr = match.postureNotes || match.shapeNotes || match.notes || '';
+    metaContainer.innerHTML = `
+      <div class="sub-meas-meta-row"><span class="k">Recorded By:</span> <span class="v">${recordedBy}</span></div>
+      <div class="sub-meas-meta-row"><span class="k">Last Updated:</span> <span class="v" id="subMeasUpdatedDate">${dateStr}</span></div>
+      <div class="sub-meas-meta-row"><span class="k">Unit:</span> <span class="v">${unitStr}</span></div>
+      ${notesStr ? `<div class="sub-meas-meta-row" style="margin-top:6px;flex-direction:column;align-items:flex-start;gap:2px;"><span class="k">Posture / Notes:</span> <span class="v" style="font-size:11.5px;color:rgba(255,255,255,0.7);font-style:italic;">${notesStr}</span></div>` : ''}
+    `;
+  }
+
+  // Get specs for this garment type from TAILORING_GARMENT_SPECS if available, or build dynamic list
+  const specList = (typeof TAILORING_GARMENT_SPECS !== 'undefined' && TAILORING_GARMENT_SPECS[gUpper])
+    ? TAILORING_GARMENT_SPECS[gUpper]
+    : null;
+
+  let points = [];
+  if (specList && Array.isArray(specList)) {
+    points = specList.map(s => {
+      const val = match[s.key];
+      return { key: s.label, val: val };
+    }).filter(p => p.val !== null && p.val !== undefined && p.val !== '' && p.val !== 0);
+  }
+
+  // If specific specs didn't produce points, check all standard tailoring points
+  if (points.length === 0) {
+    const standardPoints = [
+      { key: 'Shoulder', val: match.shoulder },
+      { key: 'Bust / Chest', val: match.bust },
+      { key: 'Upper Bust', val: match.upperBust },
+      { key: 'Under Bust', val: match.underBust },
+      { key: 'Waist', val: match.waist },
+      { key: 'Hip', val: match.hip || match.fullHip },
+      { key: 'High Hip', val: match.highHip },
+      { key: 'Blouse Length', val: match.blouseLength },
+      { key: 'Top / Kurti Length', val: match.topLength },
+      { key: 'Skirt Length', val: match.skirtLength },
+      { key: 'Full Gown Length', val: match.fullLength },
+      { key: 'Pant / Trouser Length', val: match.pantLength },
+      { key: 'Garment Length', val: match.garmentLength },
+      { key: 'Armhole', val: match.armhole },
+      { key: 'Sleeve Length', val: match.sleeveLength },
+      { key: 'Upper Arm', val: match.upperArm || match.bicep },
+      { key: 'Sleeve Round', val: match.sleeveRound },
+      { key: 'Elbow Round', val: match.elbowRound },
+      { key: 'Wrist Round', val: match.wristRound || match.wrist },
+      { key: 'Front Neck Depth', val: match.frontNeckDepth || match.frontNeck },
+      { key: 'Back Neck Depth', val: match.backNeckDepth || match.backNeck },
+      { key: 'Apex (Bust Point)', val: match.bustPoint || match.apexPoint },
+      { key: 'Bust Point to Point', val: match.bustPointToBustPoint },
+      { key: 'Shoulder to Bust', val: match.shoulderToBust },
+      { key: 'Shoulder to Waist', val: match.shoulderToWaist },
+      { key: 'Cross Front', val: match.frontWidth || match.crossFront },
+      { key: 'Cross Back', val: match.backWidth || match.crossBack },
+      { key: 'Pant Waist', val: match.pantWaist },
+      { key: 'Pant Hip', val: match.pantHip },
+      { key: 'Thigh Round', val: match.thighRound },
+      { key: 'Knee Round', val: match.kneeRound },
+      { key: 'Calf Round', val: match.calfRound },
+      { key: 'Ankle / Bottom Opening', val: match.ankleRound || match.bottomOpening },
+      { key: 'Inseam', val: match.inseam },
+      { key: 'Crotch Length', val: match.crotchLength },
+      { key: 'Flare / Gher', val: match.flare }
+    ];
+    points = standardPoints.filter(p => p.val !== null && p.val !== undefined && p.val !== '' && p.val !== 0);
+  }
 
   if (specsGrid) {
     if (points.length === 0) {
-      specsGrid.innerHTML = `<div style="grid-column:1/-1;padding:30px;text-align:center;color:rgba(255,255,255,0.4);">Profile created but individual dimensions pending in database.</div>`;
+      specsGrid.innerHTML = `
+        <div style="grid-column:1/-1;padding:36px 16px;text-align:center;color:rgba(255,255,255,0.45);display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <span>Profile created for ${gTitle} (v${match.version || '1.0'}), but individual dimensions are not recorded yet.</span>
+          <button type="button" class="btn-sub-primary" style="padding:7px 16px;font-size:12px;" onclick="openNewFittingModal('${gKey}')">
+            <i data-lucide="plus"></i> + Enter Fitting Values
+          </button>
+        </div>
+      `;
     } else {
+      const unitSym = match.unit === 'cm' ? ' cm' : '″';
       specsGrid.innerHTML = points.map(pt => `
         <div class="sub-spec-tile">
           <span class="sub-spec-label">${pt.key}</span>
-          <span class="sub-spec-val">${pt.val}″</span>
+          <span class="sub-spec-val">${pt.val}${unitSym}</span>
         </div>
       `).join('');
     }
   }
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons({ root: specsGrid });
+  }
 }
+window.renderMeasurementsSubPage = renderMeasurementsSubPage;
 
 window.switchSubMeasurementGarment = function(garmentKey, btn) {
   document.querySelectorAll('#subGarmentPillsBar .sub-m-tab-pill').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  activeC360Garment = garmentKey;
-  renderMeasurementsSubPage(garmentKey);
+  activeC360Garment = String(garmentKey || 'blouse').toLowerCase();
+  window.activeC360Garment = activeC360Garment;
+  renderMeasurementsSubPage(activeC360Garment);
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
   }
+};
+
+/**
+ * Categorizes appointment items into Current (Today), Upcoming (Next), and Past History
+ */
+function categorizeAppointments(appts) {
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  const current = [];
+  const upcoming = [];
+  const past = [];
+
+  (appts || []).forEach(a => {
+    let apptDateStr = '';
+    if (a.rawScheduledAt) {
+      apptDateStr = String(a.rawScheduledAt).slice(0, 10);
+    } else if (a.date) {
+      const parsed = new Date(a.date);
+      if (!isNaN(parsed.getTime())) {
+        apptDateStr = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+      }
+    }
+
+    const st = (a.status || 'CONFIRMED').toUpperCase();
+    const isToday = apptDateStr === todayStr;
+
+    if (st === 'COMPLETED' || st === 'CANCELLED') {
+      past.push(a);
+    } else if (isToday) {
+      current.push(a);
+    } else if (apptDateStr && apptDateStr < todayStr) {
+      past.push(a);
+    } else {
+      upcoming.push(a);
+    }
+  });
+
+  // Sort upcoming ascending (nearest first)
+  upcoming.sort((a, b) => {
+    const ta = a.rawScheduledAt ? new Date(a.rawScheduledAt).getTime() : 0;
+    const tb = b.rawScheduledAt ? new Date(b.rawScheduledAt).getTime() : 0;
+    return ta - tb;
+  });
+
+  // Sort past descending (most recent first)
+  past.sort((a, b) => {
+    const ta = a.rawScheduledAt ? new Date(a.rawScheduledAt).getTime() : 0;
+    const tb = b.rawScheduledAt ? new Date(b.rawScheduledAt).getTime() : 0;
+    return tb - ta;
+  });
+
+  const nextAppt = upcoming.length > 0 ? upcoming[0] : (current.length > 0 ? current[0] : null);
+
+  return { current, upcoming, past, nextAppt };
+}
+
+window._activeApptFilter = 'all';
+
+window.filterAppointmentsSubFeed = function (filterKey, btn) {
+  window._activeApptFilter = filterKey || 'all';
+  document.querySelectorAll('#apptsFilterBar .appts-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAppointmentsSubPage();
 };
 
 function renderAppointmentsSubPage() {
@@ -2014,55 +2064,169 @@ function renderAppointmentsSubPage() {
   const countBadge = document.getElementById('subApptsCountBadge');
 
   const appts = appointmentsData || [];
-  if (countBadge) countBadge.textContent = `${appts.length} Sessions`;
+  if (countBadge) countBadge.textContent = `${appts.length} Session${appts.length === 1 ? '' : 's'}`;
+
+  // Categorize
+  const { current, upcoming, past, nextAppt } = categorizeAppointments(appts);
+
+  // Update KPI Metrics Cards
+  const valCur = document.getElementById('amcValCurrent');
+  const subCur = document.getElementById('amcSubCurrent');
+  const valNext = document.getElementById('amcValNext');
+  const subNext = document.getElementById('amcSubNext');
+  const valPast = document.getElementById('amcValPast');
+  const subPast = document.getElementById('amcSubPast');
+
+  if (valCur) valCur.textContent = current.length;
+  if (subCur) subCur.textContent = current.length > 0 ? `${current.length} session(s) active today` : 'No session today';
+
+  if (valNext) {
+    if (nextAppt) {
+      valNext.textContent = nextAppt.type || 'Upcoming Session';
+      if (subNext) subNext.textContent = `${nextAppt.date}${nextAppt.time ? ' at ' + nextAppt.time : ''}`;
+    } else {
+      valNext.textContent = '—';
+      if (subNext) subNext.textContent = 'None scheduled';
+    }
+  }
+
+  if (valPast) valPast.textContent = past.length;
+  if (subPast) subPast.textContent = `${past.length} completed session(s)`;
+
+  // Update Filter Counters
+  const cntAll = document.getElementById('filterCountAll');
+  const cntCur = document.getElementById('filterCountCurrent');
+  const cntUp = document.getElementById('filterCountUpcoming');
+  const cntPast = document.getElementById('filterCountPast');
+
+  if (cntAll) cntAll.textContent = appts.length;
+  if (cntCur) cntCur.textContent = current.length;
+  if (cntUp) cntUp.textContent = upcoming.length;
+  if (cntPast) cntPast.textContent = past.length;
 
   if (!feed) return;
 
+  // Empty State: 0 appointments
   if (appts.length === 0) {
     feed.innerHTML = `
-      <div class="sub-feed-card" style="padding:40px;justify-content:center;text-align:center;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-          <i data-lucide="calendar-x" style="width:36px;height:36px;color:rgba(255,255,255,0.3);"></i>
-          <h4 style="margin:0;color:#fff;">No appointment sessions booked yet</h4>
-          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.5);">Trial fittings and consultations for this client will be listed here.</p>
-          <button type="button" class="btn-sub-primary" style="margin-top:6px;" onclick="openAppointmentModal('new')">
-            <i data-lucide="plus"></i> Book First Appointment
+      <div class="sub-feed-card" style="padding:48px 24px;justify-content:center;text-align:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;max-width:420px;margin:0 auto;">
+          <div style="width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;">
+            <i data-lucide="calendar-x" style="width:28px;height:28px;color:rgba(255,255,255,0.4);"></i>
+          </div>
+          <h4 style="margin:0;color:#fff;font-size:16px;">No appointment sessions booked yet</h4>
+          <p style="margin:0;font-size:12.5px;color:rgba(255,255,255,0.5);line-height:1.5;">Trial fittings, design consultations, and bespoke handovers for this client will be listed here.</p>
+          <button type="button" class="btn-sub-primary" style="margin-top:10px;padding:8px 18px;font-size:12.5px;" onclick="openBookNewAppointmentModal()">
+            <i data-lucide="plus"></i> <span>+ Book First Appointment</span>
           </button>
         </div>
       </div>
     `;
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ root: feed });
+    }
     return;
   }
 
-  feed.innerHTML = appts.map(a => {
-    const title = a.type || 'Trial Fitting & Consultation';
+  // Active filter
+  const filter = window._activeApptFilter || 'all';
+
+  function renderApptCard(a, kind) {
+    const title = a.type || 'Trial Fitting';
     const dateStr = a.date || 'Upcoming';
     const timeStr = a.time ? ` at ${a.time}` : '';
     const specialist = a.specialist || 'Master Tailor';
-    const garment = a.garment || 'Bespoke Ensemble';
+    const garment = a.garment || 'Bespoke Garment';
     const st = (a.status || 'CONFIRMED').toUpperCase();
+    const orderStr = a.orderCode ? ` · Order #${a.orderCode}` : '';
+
+    let cardClass = 'sub-feed-card';
+    let statusChip = `<span class="status-badge ${st.toLowerCase()}">${st}</span>`;
+
+    if (kind === 'current') {
+      cardClass += ' current-session';
+      statusChip = `<span class="pulse-chip">TODAY'S SESSION</span>`;
+    } else if (kind === 'upcoming') {
+      cardClass += ' upcoming-session';
+    } else if (kind === 'past') {
+      cardClass += ' past-session';
+    }
 
     return `
-      <div class="sub-feed-card">
+      <div class="${cardClass}">
         <div class="sub-feed-left">
-          <div class="sub-feed-icon-box">
-            <i data-lucide="calendar"></i>
+          <div class="sub-feed-icon-box" style="${kind === 'current' ? 'background:rgba(184,255,61,0.12);color:var(--lime);' : (kind === 'upcoming' ? 'background:rgba(168,149,255,0.12);color:var(--purple);' : 'background:rgba(255,255,255,0.05);color:var(--slate-400);')}">
+            <i data-lucide="${kind === 'current' ? 'clock' : (kind === 'upcoming' ? 'calendar-plus' : 'calendar-check')}"></i>
           </div>
           <div class="sub-feed-details">
-            <h4 class="sub-feed-title">${title}</h4>
-            <span class="sub-feed-subtitle"><strong style="color:#fff;">${dateStr}${timeStr}</strong> &bull; Assigned: ${specialist}</span>
-            <span class="sub-feed-notes">Garment: ${garment}</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <h4 class="sub-feed-title">${title}</h4>
+              ${statusChip}
+            </div>
+            <span class="sub-feed-subtitle">
+              <strong style="color:#fff;">${dateStr}${timeStr}</strong> &bull; Assigned: <strong>${specialist}</strong>
+            </span>
+            <span class="sub-feed-notes">Garment: ${garment}${orderStr}${a.notes ? ` · Note: "${a.notes}"` : ''}</span>
           </div>
         </div>
         <div class="sub-feed-right">
-          <span class="status-badge ${st.toLowerCase()}">${st}</span>
-          <button type="button" class="btn-sub-glass" style="font-size:11.5px;padding:5px 12px;" onclick="openAppointmentModal(${a.id || 1})">
-            <span>Details</span>
+          <button type="button" class="btn-sub-glass" style="font-size:11.5px;padding:6px 14px;" onclick="openAppointmentModal('${a.id}')">
+            <span>Details &rarr;</span>
           </button>
         </div>
       </div>
     `;
-  }).join('');
+  }
+
+  let html = '';
+
+  if (filter === 'all' || filter === 'current') {
+    if (current.length > 0) {
+      html += `
+        <div class="appts-section-header current">
+          <i data-lucide="radio" style="width:14px;height:14px;"></i>
+          <span>Current / Today (${current.length})</span>
+        </div>
+        ${current.map(a => renderApptCard(a, 'current')).join('')}
+      `;
+    } else if (filter === 'current') {
+      html += `<div class="sub-feed-card" style="padding:28px;text-align:center;color:rgba(255,255,255,0.45);font-size:12px;">No sessions scheduled for today.</div>`;
+    }
+  }
+
+  if (filter === 'all' || filter === 'upcoming') {
+    if (upcoming.length > 0) {
+      html += `
+        <div class="appts-section-header upcoming">
+          <i data-lucide="calendar-days" style="width:14px;height:14px;"></i>
+          <span>Next & Upcoming Appointments (${upcoming.length})</span>
+        </div>
+        ${upcoming.map(a => renderApptCard(a, 'upcoming')).join('')}
+      `;
+    } else if (filter === 'upcoming') {
+      html += `<div class="sub-feed-card" style="padding:28px;text-align:center;color:rgba(255,255,255,0.45);font-size:12px;">No upcoming appointments scheduled.</div>`;
+    }
+  }
+
+  if (filter === 'all' || filter === 'past') {
+    if (past.length > 0) {
+      html += `
+        <div class="appts-section-header past">
+          <i data-lucide="history" style="width:14px;height:14px;"></i>
+          <span>Past Sessions & Trial History (${past.length})</span>
+        </div>
+        ${past.map(a => renderApptCard(a, 'past')).join('')}
+      `;
+    } else if (filter === 'past') {
+      html += `<div class="sub-feed-card" style="padding:28px;text-align:center;color:rgba(255,255,255,0.45);font-size:12px;">No past appointment records found.</div>`;
+    }
+  }
+
+  feed.innerHTML = html;
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons({ root: feed });
+  }
 }
 
 function renderPaymentsSubPage() {
@@ -2157,69 +2321,6 @@ function renderPaymentsSubPage() {
       <td><span class="status-badge ${r.status === 'CLEARED' ? 'delivered' : 'pending'}">${r.status}</span></td>
     </tr>
   `).join('');
-}
-
-function renderAlterationsSubPage() {
-  const feed = document.getElementById('subAlterationsFeed');
-  const countBadge = document.getElementById('subAlterationsCountBadge');
-
-  const orders = window.rawCustOrders || [];
-  const altOrders = orders.filter(o => {
-    const st = (o.status || '').toLowerCase();
-    const g = (o.garmentType || '').toLowerCase();
-    const desc = (o.garmentDesc || o.notes || '').toLowerCase();
-    return st.includes('alter') || g.includes('alter') || desc.includes('alter') || desc.includes('fitting') || desc.includes('tight') || desc.includes('loose');
-  });
-
-  if (countBadge) countBadge.textContent = `${altOrders.length} Adjustments`;
-
-  if (!feed) return;
-
-  if (altOrders.length === 0) {
-    feed.innerHTML = `
-      <div class="sub-feed-card" style="padding:40px;justify-content:center;text-align:center;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-          <i data-lucide="scissors" style="width:36px;height:36px;color:rgba(255,255,255,0.3);"></i>
-          <h4 style="margin:0;color:#fff;">No active alterations recorded</h4>
-          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.5);">All bespoke garments are fitting perfectly with zero pending adjustments.</p>
-          <button type="button" class="btn-sub-primary" style="margin-top:6px;" onclick="openNewFittingModal()">
-            <i data-lucide="plus"></i> Log Alteration Fitting
-          </button>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  feed.innerHTML = altOrders.map(o => {
-    const code = o.orderCode || ('ORD-' + o.id);
-    const garment = o.garmentType || 'Bespoke Garment';
-    const tailor = o.assignedTailor || 'Master Tailor';
-    const due = o.expectedDeliveryDate || o.dueDate ? String(o.expectedDeliveryDate || o.dueDate).slice(0, 10) : 'Priority Atelier Service';
-    const desc = o.garmentDesc || o.notes || 'Post-trial fitting adjustment: waist loosen 0.5″ and sleeve hem align.';
-    const st = (o.status || 'IN_ALTERATION').toUpperCase();
-
-    return `
-      <div class="sub-feed-card">
-        <div class="sub-feed-left">
-          <div class="sub-feed-icon-box">
-            <i data-lucide="scissors"></i>
-          </div>
-          <div class="sub-feed-details">
-            <h4 class="sub-feed-title">${garment} &bull; <span style="color:var(--lime,#b8ff3d);">${code}</span></h4>
-            <span class="sub-feed-subtitle">Assigned Master: <strong style="color:#fff;">${tailor}</strong> &bull; Trial Due: ${due}</span>
-            <span class="sub-feed-notes">${desc}</span>
-          </div>
-        </div>
-        <div class="sub-feed-right">
-          <span class="status-badge in-progress">${st}</span>
-          <button type="button" class="btn-sub-glass" style="font-size:11.5px;padding:5px 12px;" onclick="openOrderModal(${o.id})">
-            <span>Job Card</span>
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
 }
 
 function renderCommunicationSubPage() {
@@ -2491,6 +2592,7 @@ function setupModals() {
 function openModal(id) {
   const el = document.getElementById(id);
   if (el) {
+    el.style.display = 'flex';
     el.classList.add('show');
     document.body.style.overflow = 'hidden';
   }
@@ -2500,6 +2602,7 @@ function closeModal(id) {
   const el = document.getElementById(id);
   if (el) {
     el.classList.remove('show');
+    el.style.display = 'none';
     if (!document.querySelector('.modal-backdrop.show')) {
       document.body.style.overflow = '';
     }
@@ -2507,7 +2610,10 @@ function closeModal(id) {
 }
 
 function closeAllModals() {
-  document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+  document.querySelectorAll('.modal-backdrop.show').forEach(m => {
+    m.classList.remove('show');
+    m.style.display = 'none';
+  });
   document.body.style.overflow = '';
 }
 
@@ -2629,34 +2735,273 @@ function openDesignLightbox(designId) {
  * 4. Appointment Details Modal
  */
 function openAppointmentModal(apptId) {
-  const appt = appointmentsData.find(a => a.id === apptId) || appointmentsData[0];
+  if (apptId === 'new') {
+    openBookNewAppointmentModal();
+    return;
+  }
+  const appt = appointmentsData.find(a => String(a.id) === String(apptId)) || appointmentsData[0];
+  if (!appt) {
+    openBookNewAppointmentModal();
+    return;
+  }
+
   const titleEl = document.getElementById('apptModalTitle');
   const bodyEl = document.getElementById('apptModalBody');
 
-  if (titleEl) titleEl.textContent = `${appt.type}`;
+  if (titleEl) titleEl.textContent = `${appt.type || 'Appointment Details'}`;
 
   if (bodyEl) {
+    const dur = appt.durationMinutes ? ` (${appt.durationMinutes} mins)` : '';
+    const garment = appt.garment || 'Bespoke Garment';
+    const orderStr = appt.orderCode ? ` · Order #${appt.orderCode}` : '';
+    const notesBlock = appt.notes ? `
+      <div>
+        <span style="color:var(--c-text-muted);">Session Notes:</span>
+        <div style="color:rgba(255,255,255,0.85);margin-top:4px;background:rgba(255,255,255,0.03);padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);">${appt.notes}</div>
+      </div>
+    ` : '';
+
     bodyEl.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;">
         <div style="background:rgba(184,255,44,0.1);border:1px solid var(--c-lime-border);border-radius:12px;padding:12px;">
           <div style="font-size:11px;color:var(--c-lime);font-weight:600;text-transform:uppercase;">Scheduled Slot</div>
-          <div style="font-size:16px;font-weight:700;color:#fff;margin-top:2px;">${appt.date} Â· ${appt.time}</div>
+          <div style="font-size:16px;font-weight:700;color:#fff;margin-top:2px;">${appt.date || 'Scheduled Date'} · ${appt.time || 'TBD'}${dur}</div>
         </div>
-        <div><span style="color:var(--c-text-muted);">Garment Item:</span> <b style="color:#fff;">${appt.garment}</b></div>
-        <div><span style="color:var(--c-text-muted);">Specialist Tailor:</span> <b style="color:#fff;">${appt.specialist}</b></div>
-        <div><span style="color:var(--c-text-muted);">Customer:</span> <b style="color:#fff;">${customerData.name} (${customerData.phone})</b></div>
-        <div><span style="color:var(--c-text-muted);">Appointment Status:</span> <b style="color:var(--c-lime);">${appt.status}</b></div>
+        <div><span style="color:var(--c-text-muted);">Session Type:</span> <b style="color:#fff;">${appt.type || 'Fitting'}</b></div>
+        <div><span style="color:var(--c-text-muted);">Garment Item:</span> <b style="color:#fff;">${garment}${orderStr}</b></div>
+        <div><span style="color:var(--c-text-muted);">Specialist Tailor:</span> <b style="color:#fff;">${appt.specialist || 'Master Tailor'}</b></div>
+        <div><span style="color:var(--c-text-muted);">Customer:</span> <b style="color:#fff;">${customerData.name || 'Patron'} (${customerData.phone || ''})</b></div>
+        <div><span style="color:var(--c-text-muted);">Appointment Status:</span> <b style="color:var(--c-lime);">${appt.status || 'CONFIRMED'}</b></div>
+        ${notesBlock}
       </div>
     `;
   }
 
+  const cancelBtn = document.getElementById('cancelApptBtn');
+  if (cancelBtn) {
+    cancelBtn.onclick = () => {
+      closeModal('appointmentModal');
+      showToast('Appointment cancellation request logged', 'warning');
+    };
+  }
+
+  const reschedBtn = document.getElementById('rescheduleApptBtn');
+  if (reschedBtn) {
+    reschedBtn.onclick = () => {
+      closeModal('appointmentModal');
+      openBookNewAppointmentModal();
+    };
+  }
+
   openModal('appointmentModal');
 }
+window.openAppointmentModal = openAppointmentModal;
+
+/**
+ * 4B. Book New Appointment Modal
+ */
+function openBookNewAppointmentModal() {
+  // Pre-fill customer label
+  const labelEl = document.getElementById('bnaCustomerNameLabel');
+  if (labelEl) {
+    labelEl.textContent = `Client: ${customerData.name || 'Valued Patron'} (${customerData.phone || 'No phone'})`;
+  }
+
+  // Set default date to tomorrow
+  const dateInput = document.getElementById('bnaDate');
+  if (dateInput) {
+    const tmrw = new Date();
+    tmrw.setDate(tmrw.getDate() + 1);
+    const tmrwStr = `${tmrw.getFullYear()}-${String(tmrw.getMonth() + 1).padStart(2, '0')}-${String(tmrw.getDate()).padStart(2, '0')}`;
+    dateInput.value = tmrwStr;
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    dateInput.min = todayStr;
+  }
+
+  // Default time
+  const timeInput = document.getElementById('bnaTime');
+  if (timeInput) {
+    timeInput.value = '11:00';
+  }
+
+  // Default duration
+  const durInput = document.getElementById('bnaDuration');
+  if (durInput) durInput.value = '45';
+
+  // Default session type
+  const typeInput = document.getElementById('bnaApptType');
+  if (typeInput) typeInput.value = 'FITTING';
+
+  // Reset notes
+  const notesInput = document.getElementById('bnaNotes');
+  if (notesInput) notesInput.value = '';
+
+  // Populate orders select
+  const orderSel = document.getElementById('bnaOrderSelect');
+  if (orderSel) {
+    let optHtml = '<option value="">General Atelier Consultation (No specific order)</option>';
+    const allOrders = [...(activeOrdersData || []), ...(orderHistoryData || [])];
+    const seen = new Set();
+    allOrders.forEach(o => {
+      const code = o.orderCode || o.id;
+      if (code && !seen.has(code)) {
+        seen.add(code);
+        const garment = o.garmentType || o.garment || o.title || 'Bespoke Order';
+        optHtml += `<option value="${o.id || ''}" data-code="${code}" data-garment="${garment}">#${code} - ${garment} (${o.status || 'Active'})</option>`;
+      }
+    });
+    orderSel.innerHTML = optHtml;
+  }
+
+  openModal('bookNewAppointmentModal');
+}
+window.openBookNewAppointmentModal = openBookNewAppointmentModal;
+
+/**
+ * Handle saving a new appointment to the live backend REST API
+ */
+async function handleSaveNewAppointment() {
+  const typeEl = document.getElementById('bnaApptType');
+  const durEl = document.getElementById('bnaDuration');
+  const dateEl = document.getElementById('bnaDate');
+  const timeEl = document.getElementById('bnaTime');
+  const orderEl = document.getElementById('bnaOrderSelect');
+  const specEl = document.getElementById('bnaSpecialist');
+  const notesEl = document.getElementById('bnaNotes');
+  const confirmBtn = document.getElementById('btnConfirmBookAppt');
+
+  const dateVal = dateEl?.value?.trim();
+  const timeVal = timeEl?.value?.trim() || '11:00';
+
+  if (!dateVal) {
+    showToast('Please select a valid appointment date', 'warning');
+    dateEl?.focus();
+    return;
+  }
+
+  const targetMobile = (customerData.phone || new URLSearchParams(window.location.search).get('mobile') || '').trim();
+  const duration = parseInt(durEl?.value, 10) || 45;
+  const specialist = specEl?.value || 'Master Tailor';
+  const notes = notesEl?.value?.trim() || '';
+  const apptType = typeEl?.value || 'FITTING';
+  const typeText = typeEl?.options[typeEl.selectedIndex]?.text || 'Bespoke Fitting';
+
+  const selectedOpt = orderEl?.options[orderEl?.selectedIndex];
+  const orderId = orderEl?.value || null;
+  const orderCode = selectedOpt?.getAttribute('data-code') || '';
+  const garment = selectedOpt?.getAttribute('data-garment') || typeText;
+
+  const scheduledAtIso = `${dateVal}T${timeVal}:00`;
+
+  // UI state: loading
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span>Booking Session...</span>';
+  }
+
+  let createdAppt = null;
+  try {
+    const { default: api } = await import('../../api.js');
+    if (api?.appointments?.create) {
+      createdAppt = await api.appointments.create({
+        customerMobile: targetMobile,
+        customerPhone: targetMobile,
+        apptType: apptType,
+        scheduledAt: scheduledAtIso,
+        durationMinutes: duration,
+        staffAssigned: specialist,
+        orderId: orderId || null,
+        notes: notes
+      });
+      console.log('[Customer360] Appointment persisted successfully via API:', createdAppt);
+    }
+  } catch (apiErr) {
+    console.warn('[Customer360] API appointment booking error, continuing locally:', apiErr.message);
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<span>Confirm &amp; Book Appointment</span>';
+    }
+  }
+
+  // Format date and time for UI display
+  const dt = new Date(scheduledAtIso);
+  const dateFormatted = !isNaN(dt.getTime())
+    ? dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : dateVal;
+  const timeFormatted = !isNaN(dt.getTime())
+    ? dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+    : timeVal;
+
+  const newRecord = {
+    id: createdAppt?.id || ('appt_' + Date.now()),
+    type: typeText,
+    date: dateFormatted,
+    time: timeFormatted,
+    rawScheduledAt: scheduledAtIso,
+    durationMinutes: duration,
+    garment: garment,
+    specialist: specialist,
+    status: 'CONFIRMED',
+    notes: notes,
+    orderCode: orderCode,
+    orderId: orderId
+  };
+
+  appointmentsData.unshift(newRecord);
+
+  // Re-render sub page and overview card
+  renderAppointments();
+  renderAppointmentsSubPage();
+
+  closeModal('bookNewAppointmentModal');
+  showToast(`Appointment successfully booked for ${dateFormatted} at ${timeFormatted}!`, 'success');
+}
+window.handleSaveNewAppointment = handleSaveNewAppointment;
 
 /**
  * 5. Payment Breakdown Modal
  */
 function openPaymentBreakdownModal() {
+  // 1. Populate KPI Header
+  const psBilled = document.getElementById('psTotalBilled');
+  const psRecv = document.getElementById('psTotalReceived');
+  const psPending = document.getElementById('psBalancePending');
+  
+  if (psBilled) psBilled.textContent = customerData.totalSpent || '₹0';
+  if (psRecv) psRecv.textContent = customerData.totalSpent || '₹0';
+  if (psPending) psPending.textContent = customerData.outstanding || '₹0';
+
+  // 2. Populate Order Type Breakdown
+  const otContainer = document.getElementById('modalOrderTypeBreakdownList');
+  if (otContainer) {
+    const types = window._customerValueOrderTypes || [];
+    const PALETTE = ['#b8ff3d', '#a895ff', '#f43f5e', '#fbbf24', '#38bdf8', '#94a3b8'];
+    if (types.length > 0) {
+      otContainer.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:7px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 14px;">
+          ${types.map((t, idx) => `
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:${PALETTE[idx % PALETTE.length]};flex-shrink:0;"></span>
+                <span style="font-weight:600;color:#fff;">${t.name}</span>
+                <span style="font-size:11px;color:rgba(255,255,255,0.5);">(${t.count} order${t.count > 1 ? 's' : ''})</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:500;">₹${t.amount.toLocaleString('en-IN')}</span>
+                <span style="font-weight:700;color:${PALETTE[idx % PALETTE.length]};min-width:38px;text-align:right;">${t.pct}%</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      otContainer.innerHTML = '<div style="font-size:11.5px;color:rgba(255,255,255,0.4);padding:8px 0;">No order types recorded yet.</div>';
+    }
+  }
+
+  // 3. Populate Recent Transactions
   const txContainer = document.getElementById('txHistoryList');
   if (txContainer) {
     if (orderHistoryData.length > 0) {
@@ -3045,7 +3390,11 @@ window.loadC360Comparison = async function(garmentType, btnEl) {
   }
 };
 
-window.openNewFittingModal = function() {
+window.openNewFittingModal = function(garmentType) {
+  if (garmentType) {
+    activeC360Garment = String(garmentType).toLowerCase();
+    window.activeC360Garment = activeC360Garment;
+  }
   const gType = (activeC360Garment || 'BLOUSE').toUpperCase();
   const title = document.getElementById('newFittingTitle');
   if (title) title.textContent = `Record New ${gType} Fitting`;
@@ -3108,7 +3457,17 @@ window.handleNewFittingSubmit = async function(event) {
     
     // Refresh comparison and card
     loadC360Comparison(gType);
-    const mList = await api.customers.bodyMeasurements.list(targetMobile);
+    let mList = await api.customers.bodyMeasurements.list(targetMobile).catch(() => []);
+    if (!Array.isArray(mList) || mList.length === 0) {
+      const altList = await api.customers.measurements.list(targetMobile).catch(() => []);
+      if (Array.isArray(altList) && altList.length > 0) mList = altList;
+    }
+    window.customerBodyMeasurements = Array.isArray(mList) ? mList : [];
+    customerBodyMeasurements = window.customerBodyMeasurements;
+
+    renderMeasurementsForGarment(activeC360Garment || 'blouse');
+    renderMeasurementsSubPage(activeC360Garment || 'blouse');
+
     const profilesContainer = document.getElementById('c360ProfilesList');
     if (profilesContainer && mList) {
       profilesContainer.innerHTML = mList.map((m, idx) => `

@@ -57,7 +57,7 @@
           </div>
 
           <div class="c360-top-actions">
-            <button type="button" class="btn-new-order" id="topNewOrderBtn">
+            <button type="button" class="btn-new-order" id="topNewOrderBtn" onclick="window.location.href='../new-customer/new-customer.html'">
               <i data-lucide="plus"></i>
               <span>New Order</span>
             </button>
@@ -78,9 +78,8 @@
         <!-- Full-Width Luxury Customer Profile Card -->
         <div class="c360-profile-banner">
           <div class="profile-banner-left">
-            <div class="profile-avatar-wrap">
-              <img src="../../assets/user_avatar.jpg" alt="Customer Avatar" class="profile-avatar-img"
-                id="customerAvatarImg" onerror="this.src='../../assets/user_avatar.jpg'" />
+            <div class="profile-avatar-wrap" id="c360ProfileAvatarWrap">
+              <div class="haulo-patron-avatar-initials haulo-avatar-xl" id="customerAvatarInitials">CU</div>
             </div>
             <div class="profile-info-block">
               <div class="profile-name-badges">
@@ -165,7 +164,6 @@
           <button type="button" class="tab-pill" data-tab="measurements" onclick="switchC360Tab('measurements', this)">Measurements</button>
           <button type="button" class="tab-pill" data-tab="appointments" onclick="switchC360Tab('appointments', this)">Appointments</button>
           <button type="button" class="tab-pill" data-tab="payments" onclick="switchC360Tab('payments', this)">Payments</button>
-          <button type="button" class="tab-pill" data-tab="alterations" onclick="switchC360Tab('alterations', this)">Alterations</button>
           <button type="button" class="tab-pill" data-tab="communication" onclick="switchC360Tab('communication', this)">Communication</button>
           <button type="button" class="tab-pill" data-tab="notes" onclick="switchC360Tab('notes', this)">Notes</button>
         </nav>
@@ -505,7 +503,7 @@
               <p class="sub-page-desc">Complete bespoke order portfolio, production stage timelines, tailoring status, and balance dues.</p>
             </div>
             <div class="sub-header-actions">
-              <button type="button" class="btn-sub-primary" onclick="window.location.href='../../order-entry/order-entry.html'">
+              <button type="button" class="btn-sub-primary" id="subCreateNewOrderBtn" onclick="window.location.href='../new-customer/new-customer.html'">
                 <i data-lucide="plus"></i>
                 <span>Create New Order</span>
               </button>
@@ -736,11 +734,49 @@
                 <i data-lucide="calendar-days"></i>
                 <span>Open Atelier Calendar</span>
               </button>
-              <button type="button" class="btn-sub-primary" onclick="openAppointmentModal('new')">
+              <button type="button" class="btn-sub-primary" id="btnHeaderBookAppt" onclick="openBookNewAppointmentModal()">
                 <i data-lucide="plus"></i>
                 <span>+ Book New Appointment</span>
               </button>
             </div>
+          </div>
+
+          <!-- Appointments Preview Metrics: Current, Next, Past -->
+          <div class="appts-preview-metrics-grid" id="apptsPreviewMetrics">
+            <div class="appts-metric-card" id="metricCurrentSession">
+              <div class="amc-header">
+                <span class="amc-dot lime"></span>
+                <span class="amc-title">Current / Today</span>
+              </div>
+              <div class="amc-val" id="amcValCurrent">0</div>
+              <div class="amc-sub" id="amcSubCurrent">No session today</div>
+            </div>
+
+            <div class="appts-metric-card highlight-next" id="metricNextSession">
+              <div class="amc-header">
+                <span class="amc-dot purple"></span>
+                <span class="amc-title">Next Appointment</span>
+              </div>
+              <div class="amc-val" id="amcValNext">—</div>
+              <div class="amc-sub" id="amcSubNext">None scheduled</div>
+            </div>
+
+            <div class="appts-metric-card" id="metricPastSessions">
+              <div class="amc-header">
+                <span class="amc-dot slate"></span>
+                <span class="amc-title">Past History</span>
+              </div>
+              <div class="amc-val" id="amcValPast">0</div>
+              <div class="amc-sub" id="amcSubPast">0 completed</div>
+            </div>
+          </div>
+
+          <!-- Appointments Filter Pill Navigation -->
+          <div class="appts-filter-bar" id="apptsFilterBar">
+            <button type="button" class="appts-filter-btn active" data-filter="all" onclick="filterAppointmentsSubFeed('all', this)">All Sessions (<span id="filterCountAll">0</span>)</button>
+            <button type="button" class="appts-filter-btn" data-filter="current" onclick="filterAppointmentsSubFeed('current', this)">Current / Today (<span id="filterCountCurrent">0</span>)</button>
+            <button type="button" class="appts-filter-btn" data-filter="upcoming" onclick="filterAppointmentsSubFeed('upcoming', this)">Next / Upcoming (<span id="filterCountUpcoming">0</span>)</button>
+            <button type="button" class="appts-filter-btn" data-filter="past" onclick="filterAppointmentsSubFeed('past', this)">Past History (<span id="filterCountPast">0</span>)</button>
           </div>
 
           <div class="sub-appts-feed" id="subApptsFeed">
@@ -833,35 +869,7 @@
       </div>
 
       <!-- =========================================================
-           7. TAB VIEW: ALTERATIONS (Full Detail Sub-Page)
-           ========================================================= -->
-      <div class="c360-tab-view" id="tabView-alterations">
-        <div class="sub-page-container">
-          <div class="sub-page-header">
-            <div class="sub-header-info">
-              <h2 class="sub-page-title">
-                <i data-lucide="scissors" class="sub-title-icon"></i>
-                <span>Alterations & Garment Adjustments</span>
-                <span class="sub-title-pill" id="subAlterationsCountBadge">0 Adjustments</span>
-              </h2>
-              <p class="sub-page-desc">Trial fitting modifications, posture tweaks, resizing, and alteration turnaround tracking.</p>
-            </div>
-            <div class="sub-header-actions">
-              <button type="button" class="btn-sub-primary" onclick="openNewFittingModal()">
-                <i data-lucide="plus"></i>
-                <span>+ Log Alteration Fitting</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="sub-alterations-feed" id="subAlterationsFeed">
-            <div class="table-empty-cell">Loading alteration records...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- =========================================================
-           8. TAB VIEW: COMMUNICATION (Full Detail Sub-Page)
+           7. TAB VIEW: COMMUNICATION (Full Detail Sub-Page)
            ========================================================= -->
       <div class="c360-tab-view" id="tabView-communication">
         <div class="sub-page-container">
@@ -1066,6 +1074,83 @@
     </div>
   </div>
 
+  <!-- 4B. BOOK NEW APPOINTMENT MODAL -->
+  <div class="modal-backdrop" id="bookNewAppointmentModal">
+    <div class="glass-modal-panel modal-md">
+      <div class="modal-header">
+        <div>
+          <h4 class="modal-title">Book Atelier Appointment</h4>
+          <span style="font-size:12px;color:rgba(255,255,255,0.5);" id="bnaCustomerNameLabel">Client Scheduling</span>
+        </div>
+        <button class="modal-close-btn" data-close-modal="bookNewAppointmentModal" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Session Type</label>
+            <select id="bnaApptType" class="form-select">
+              <option value="FITTING">Bespoke Fitting Session</option>
+              <option value="TRIAL">Trial Fitting (Garment Assembly)</option>
+              <option value="MEASUREMENT">Measurement Profiling</option>
+              <option value="CONSULTATION">Design &amp; Fabric Consultation</option>
+              <option value="DELIVERY">Final Handover &amp; Delivery</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration</label>
+            <select id="bnaDuration" class="form-select">
+              <option value="30">30 Minutes</option>
+              <option value="45" selected>45 Minutes</option>
+              <option value="60">60 Minutes (1 Hour)</option>
+              <option value="90">90 Minutes (Bridal)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" id="bnaDate" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Time</label>
+            <input type="time" id="bnaTime" class="form-input" value="11:00" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Associated Garment / Order</label>
+          <select id="bnaOrderSelect" class="form-select">
+            <option value="">General Atelier Consultation (No specific order)</option>
+            <!-- Populated with customer's active orders -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Assigned Specialist / Tailor</label>
+          <select id="bnaSpecialist" class="form-select">
+            <option value="Master Tailor">Master Tailor</option>
+            <option value="Head Draper">Head Draper</option>
+            <option value="Senior Couturier">Senior Couturier</option>
+            <option value="Bridal Specialist">Bridal Specialist</option>
+            <option value="Atelier Concierge">Atelier Concierge</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Session Notes / Fitting Requirements</label>
+          <textarea id="bnaNotes" class="form-textarea" rows="3" placeholder="e.g. Bring matching footwear for hem length; check shoulder slope; bodice waist ease..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close-modal="bookNewAppointmentModal">Cancel</button>
+        <button type="button" class="btn-primary" id="btnConfirmBookAppt" onclick="handleSaveNewAppointment()">
+          <span>Confirm &amp; Book Appointment</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 5. PAYMENT BREAKDOWN MODAL -->
   <div class="modal-backdrop" id="paymentBreakdownModal">
     <div class="glass-modal-panel modal-md">
@@ -1087,6 +1172,13 @@
           <div class="ps-tile">
             <span class="ps-label">Balance Pending</span>
             <span class="ps-val yellow-text" id="psBalancePending">₹0</span>
+          </div>
+        </div>
+
+        <div class="modal-ot-breakdown-wrap" id="modalOrderTypeBreakdownWrap" style="margin: 18px 0 14px 0;">
+          <h5 class="section-subheading" style="margin-bottom: 8px;">Spend by Order Type</h5>
+          <div class="modal-ot-list" id="modalOrderTypeBreakdownList">
+            <!-- Populated dynamically by JS -->
           </div>
         </div>
 
@@ -1332,7 +1424,7 @@
   <!-- Scripts -->
   <script src="../../fragments/fragments-inline.js"></script>
   <script src="../../fragments/fragments.js"></script>
-  <script src="customer360.js?v=2.7"></script>
+  <script src="customer360.js?v=3.2"></script>
 </body>
 
 </html>

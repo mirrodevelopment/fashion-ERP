@@ -59,6 +59,20 @@ public class InventoryController {
         return ResponseEntity.noContent().build();
     }
 
+    // ─── Stock Movement Ledger Endpoints ──────────────────────────────────────
+
+    /** GET /api/v1/inventory/movements — paginated list of all stock movements */
+    @GetMapping("/movements")
+    public Page<StockMovementDto.Response> allMovements(Pageable pageable) {
+        return inventoryService.getAllMovements(pageable);
+    }
+
+    /** GET /api/v1/inventory/{id}/movements — all movements for one specific item */
+    @GetMapping("/{id}/movements")
+    public List<StockMovementDto.Response> movementsForItem(@PathVariable UUID id) {
+        return inventoryService.getMovements(id);
+    }
+
     @GetMapping("/kpis")
     @SuppressWarnings("unchecked")
     public Map<String, Object> kpis() {

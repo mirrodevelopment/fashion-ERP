@@ -48,8 +48,42 @@ public class InventoryItem {
     @Builder.Default
     private BigDecimal purchasePrice = BigDecimal.ZERO;
 
+    @Column(name = "selling_price", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal sellingPrice = BigDecimal.ZERO;
+
+    @Column(length = 150)
+    private String composition;
+
+    @Column(length = 100)
+    private String weave;
+
+    @Column(length = 50)
+    private String width;
+
+    @Column(length = 50)
+    private String gsm;
+
+    @Column(name = "hsn_code", length = 30)
+    private String hsnCode;
+
+    @Column(length = 100)
+    private String origin;
+
+    @Column(length = 100)
+    private String location;
+
+    @Column(name = "lead_time", length = 50)
+    private String leadTime;
+
     @Column(name = "supplier_name", length = 200)
     private String supplierName;
+
+    @Column(name = "supplier_contact", length = 100)
+    private String supplierContact;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 
     @Column(name = "image_url")
     private String imageUrl;

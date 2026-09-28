@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -87,8 +88,11 @@ public class OrderController {
         m.put("readyCount",       orderRepository.countByStatus(OrderStatus.READY));
         m.put("deliveredCount",   orderRepository.countByStatus(OrderStatus.DELIVERED));
         m.put("cancelledCount",   orderRepository.countByStatus(OrderStatus.CANCELLED));
-        m.put("totalRevenue",     paymentRepository.sumPaidAmount());
-        m.put("thisMonthRevenue", paymentRepository.sumThisMonthPaidAmount());
+        // BUG-P1-07 FIX: Null-safe sumPaidAmount
+        BigDecimal totalRev = paymentRepository.sumPaidAmount();
+        BigDecimal thisMonthRev = paymentRepository.sumThisMonthPaidAmount();
+        m.put("totalRevenue",     totalRev != null ? totalRev : BigDecimal.ZERO);
+        m.put("thisMonthRevenue", thisMonthRev != null ? thisMonthRev : BigDecimal.ZERO);
         return m;
     }
 }

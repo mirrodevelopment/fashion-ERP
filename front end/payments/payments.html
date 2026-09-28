@@ -1,1 +1,1455 @@
-<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <title>Payments &amp; Receivables — Haulo Boutique ERP</title>  <meta name="description" content="Haulo Boutique ERP Payments and Receivables Management — Track receipts, advance payments, overdue aging, and customer ledgers." />  <!-- Google Fonts: Plus Jakarta Sans & Inter -->  <link rel="preconnect" href="https://fonts.googleapis.com" />  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />  <!-- Lucide Icons -->  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>  <!-- Base ERP Stylesheets & Shared Navigation -->  <link rel="stylesheet" href="../fragments/fragments.css" />  <link rel="stylesheet" href="../fragments/nav.css" />  <link rel="stylesheet" href="payments.css" />  <!-- Navigation & Fragment Base Configuration -->  <script>window.FRAGMENT_BASE = '../fragments/';</script>  <script src="../fragments/nav.js"></script></head><body data-module="payments">  <!-- Atmospheric Full-Screen Boutique Background -->  <div class="app-background">    <div class="bg-image-layer"></div>    <div class="bg-gradient-overlay"></div>  </div>  <!-- App Shell -->  <div class="app-shell" id="appShell">    <!-- Shared Sidebar Container Slot -->    <div class="sidebar-slot" id="sidebarSlot"></div>    <!-- Main Content Area -->    <div class="main-content" id="mainContent">      <!-- Topbar Fragment Container -->      <div id="navbarSlot"></div>      <!-- Page Container Workspace -->      <div class="page-container">        <!-- ─── Page Header Row ─── -->        <div class="page-header-row">          <div class="header-left">            <span class="header-overline">Finance</span>            <h1 class="header-title">Payments &amp; Receivables</h1>            <p class="header-subtitle">Track payments, manage receivables and keep your business healthy.</p>          </div>          <div class="header-right">            <div class="datetime-cluster">              <span class="datetime-date" id="liveHeaderDate">Tue, 08 Sep 2026</span>              <span class="datetime-time" id="liveHeaderTime">01:36 PM</span>            </div>            <div class="header-actions">              <button class="btn-primary-record" id="btnHeaderRecordPayment">                <i data-lucide="plus"></i>                <span>Record Payment</span>              </button>              <button class="btn-secondary-receipt" id="btnHeaderGenerateReceipt">                <i data-lucide="receipt"></i>                <span>Generate Receipt</span>              </button>              <button class="btn-more-options" id="btnHeaderMoreOptions" title="More Options" aria-label="More Options">                <i data-lucide="more-horizontal"></i>              </button>              <!-- Dropdown for Header More -->              <div class="dropdown-menu-popover" id="headerMoreDropdown">                <button class="dropdown-item" id="menuExportAll"><i data-lucide="download"></i> Export All Transactions</button>                <button class="dropdown-item" id="menuPrintSummary"><i data-lucide="printer"></i> Print Finance Summary</button>                <button class="dropdown-item" id="menuAuditLog"><i data-lucide="shield-check"></i> Audit Trail Log</button>                <div class="dropdown-divider"></div>                <button class="dropdown-item" id="menuPaymentSettings"><i data-lucide="sliders"></i> Payment Gateway Settings</button>              </div>            </div>          </div>        </div>      <!-- ─── ROW 1: 5 KPI Metric Cards ─── -->      <section class="kpi-row" aria-label="Financial Key Performance Indicators">        <!-- KPI 1: Total Receipts -->        <div class="kpi-card">          <div class="kpi-icon-box green">            <i data-lucide="wallet"></i>          </div>          <div class="kpi-content">            <span class="kpi-label">Total Receipts (This Month)</span>            <span class="kpi-value" id="kpiTotalReceipts">&#8377;0</span>            <span class="kpi-subtext green" id="kpiTotalReceiptsSub">&mdash;</span>          </div>        </div>        <!-- KPI 2: Advance Received -->        <div class="kpi-card">          <div class="kpi-icon-box purple">            <i data-lucide="credit-card"></i>          </div>          <div class="kpi-content">            <span class="kpi-label">Advance Received</span>            <span class="kpi-value" id="kpiAdvanceReceived">&#8377;0</span>            <span class="kpi-subtext muted" id="kpiAdvanceReceivedSub">&mdash;</span>          </div>        </div>        <!-- KPI 3: Pending Receivables -->        <div class="kpi-card">          <div class="kpi-icon-box red">            <i data-lucide="clock"></i>          </div>          <div class="kpi-content">            <span class="kpi-label">Pending Receivables</span>            <span class="kpi-value" id="kpiPendingReceivables">&#8377;0</span>            <span class="kpi-subtext red" id="kpiPendingReceivablesSub">0 orders</span>          </div>        </div>        <!-- KPI 4: Overdue Payments -->        <div class="kpi-card">          <div class="kpi-icon-box yellow">            <i data-lucide="alert-triangle"></i>          </div>          <div class="kpi-content">            <span class="kpi-label">Overdue Payments</span>            <span class="kpi-value" id="kpiOverduePayments">&#8377;0</span>            <span class="kpi-subtext yellow" id="kpiOverduePaymentsSub">0 orders</span>          </div>        </div>        <!-- KPI 5: Collection Progress Donut Gauge -->        <div class="kpi-card progress-kpi">          <div class="progress-donut-wrapper">            <svg class="progress-donut-svg" viewBox="0 0 36 36">              <!-- Background Ring -->              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4.2" />              <!-- Collected % (Lime Green) -->              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#d4ff32" stroke-width="4.2" stroke-dasharray="0, 100" stroke-linecap="round" />            </svg>            <div class="progress-donut-center">0%</div>          </div>          <div class="progress-legend-col">            <span class="progress-legend-title">Collection Progress</span>            <div class="progress-legend-row">              <span class="legend-dot-label"><span class="legend-dot" style="background:#d4ff32;"></span> Collected</span>              <span class="legend-val" id="legendCollectedVal">0%</span>            </div>            <div class="progress-legend-row">              <span class="legend-dot-label"><span class="legend-dot" style="background:#c084fc;"></span> Pending</span>              <span class="legend-val" id="legendPendingVal">0%</span>            </div>            <div class="progress-legend-row">              <span class="legend-dot-label"><span class="legend-dot" style="background:#f472b6;"></span> Overdue</span>              <span class="legend-val" id="legendOverdueVal">0%</span>            </div>          </div>        </div>      </section>      <!-- ─── ROW 2: 3 Analytics Cards ─── -->      <section class="analytics-row" aria-label="Financial Trends and Breakdown">        <!-- Card 1: Payment Trend (Grouped Bar Chart) -->        <div class="analytics-card" id="cardPaymentTrend">          <div class="card-header-bar">            <div class="card-title-group">              <div class="card-mini-icon">                <i data-lucide="bar-chart-2"></i>              </div>              <span class="card-header-title">Payment Trend</span>            </div>            <div class="trend-legend-inline">              <span class="legend-inline-item"><span class="legend-dot" style="background:#d4ff32;"></span> Receipts</span>              <span class="legend-inline-item"><span class="legend-dot" style="background:#c084fc;"></span> Outstanding</span>            </div>          </div>          <div class="trend-chart-container">            <div class="trend-y-axis">              <span>20L</span>              <span>15L</span>              <span>10L</span>              <span>5L</span>              <span>0</span>            </div>            <div class="trend-bars-wrapper" id="trendBarsContainer">              <!-- Rendered via JS for responsive grouped heights -->            </div>          </div>        </div>        <!-- Card 2: Payment Methods (Donut Chart) -->        <div class="analytics-card" id="cardPaymentMethods">          <div class="card-header-bar">            <div class="card-title-group">              <div class="card-mini-icon">                <i data-lucide="pie-chart"></i>              </div>              <span class="card-header-title">Payment Methods</span>            </div>          </div>          <div class="methods-content-split">            <div class="methods-donut-wrapper">              <svg class="methods-donut-svg" viewBox="0 0 36 36">                <!-- Outer Base Ring -->                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4.5" />                <!-- UPI 42% (Lime Green) -->                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#d4ff32" stroke-width="4.5" stroke-dasharray="42, 100" />                <!-- Cash 28% (Purple) -->                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#c084fc" stroke-width="4.5" stroke-dasharray="28, 100" stroke-dashoffset="-42" />                <!-- Card 18% (Coral/Pink) -->                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#fb7185" stroke-width="4.5" stroke-dasharray="18, 100" stroke-dashoffset="-70" />                <!-- Bank Transfer 8% (Sky Blue) -->                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#38bdf8" stroke-width="4.5" stroke-dasharray="8, 100" stroke-dashoffset="-88" />                <!-- Other 4% (Gray) -->                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#94a3b8" stroke-width="4.5" stroke-dasharray="4, 100" stroke-dashoffset="-96" />              </svg>              <div class="methods-donut-center">                <span class="methods-center-val">&#8377;8.42L</span>                <span class="methods-center-lbl">Total Receipts</span>              </div>            </div>            <div class="methods-legend-list">              <div class="method-legend-row">                <span class="method-label-group"><span class="legend-dot" style="background:#d4ff32;"></span> UPI</span>                <span class="method-pct">42%</span>              </div>              <div class="method-legend-row">                <span class="method-label-group"><span class="legend-dot" style="background:#c084fc;"></span> Cash</span>                <span class="method-pct">28%</span>              </div>              <div class="method-legend-row">                <span class="method-label-group"><span class="legend-dot" style="background:#fb7185;"></span> Card</span>                <span class="method-pct">18%</span>              </div>              <div class="method-legend-row">                <span class="method-label-group"><span class="legend-dot" style="background:#38bdf8;"></span> Bank Transfer</span>                <span class="method-pct">8%</span>              </div>              <div class="method-legend-row">                <span class="method-label-group"><span class="legend-dot" style="background:#94a3b8;"></span> Other</span>                <span class="method-pct">4%</span>              </div>            </div>          </div>        </div>        <!-- Card 3: Receivables Aging (5 Buckets) -->        <div class="analytics-card" id="cardReceivablesAging">          <div class="card-header-bar">            <div class="card-title-group">              <div class="card-mini-icon">                <i data-lucide="hourglass"></i>              </div>              <span class="card-header-title">Receivables Aging</span>            </div>          </div>          <div class="aging-chart-wrapper">            <!-- Bucket 1: Not Due -->            <div class="aging-col-item">              <span class="aging-val-badge">&#8377;4,12,000</span>              <div class="aging-bar" style="height: 68px; background: linear-gradient(180deg, #c084fc 0%, rgba(192, 132, 252, 0.6) 100%);"></div>              <span class="aging-cat-lbl">Not Due<br/>(0&ndash;15 days)</span>            </div>            <!-- Bucket 2: 16-30 days -->            <div class="aging-col-item">              <span class="aging-val-badge">&#8377;1,28,750</span>              <div class="aging-bar" style="height: 28px; background: linear-gradient(180deg, #f472b6 0%, rgba(244, 114, 182, 0.6) 100%);"></div>              <span class="aging-cat-lbl">16&ndash;30 days</span>            </div>            <!-- Bucket 3: 31-60 days -->            <div class="aging-col-item">              <span class="aging-val-badge">&#8377;1,45,000</span>              <div class="aging-bar" style="height: 32px; background: linear-gradient(180deg, #fbbf24 0%, rgba(251, 191, 36, 0.6) 100%);"></div>              <span class="aging-cat-lbl">31&ndash;60 days</span>            </div>            <!-- Bucket 4: 61-90 days -->            <div class="aging-col-item">              <span class="aging-val-badge">&#8377;1,02,500</span>              <div class="aging-bar" style="height: 24px; background: linear-gradient(180deg, #fb923c 0%, rgba(251, 146, 60, 0.6) 100%);"></div>              <span class="aging-cat-lbl">61&ndash;90 days</span>            </div>            <!-- Bucket 5: > 90 days -->            <div class="aging-col-item">              <span class="aging-val-badge">&#8377;1,14,000</span>              <div class="aging-bar" style="height: 26px; background: linear-gradient(180deg, #f87171 0%, rgba(248, 113, 113, 0.6) 100%);"></div>              <span class="aging-cat-lbl">&gt; 90 days</span>            </div>          </div>        </div>      </section>      <!-- ─── ROW 3: Filter & Search Toolbar ─── -->      <div class="filter-toolbar-row">        <div class="tab-pills-cluster" id="paymentTabCluster">          <button class="tab-pill active" data-filter="all">All Orders (48)</button>          <button class="tab-pill" data-filter="pending">Pending Payments (24)</button>          <button class="tab-pill" data-filter="overdue">Overdue (8)</button>          <button class="tab-pill" data-filter="advance">Advance Paid (12)</button>          <button class="tab-pill" data-filter="paid">Fully Paid (16)</button>        </div>        <div class="toolbar-controls-right">          <div class="search-field-box">            <i data-lucide="search"></i>            <input type="text" class="search-field-input" id="tableSearchInput" placeholder="Search by customer, order or phone..." autocomplete="off" />          </div>          <button class="btn-toolbar-tool" id="btnOpenFilterModal">            <i data-lucide="sliders-horizontal"></i>            <span>Filter</span>          </button>          <button class="btn-toolbar-tool" id="btnExportMenuToggle">            <i data-lucide="download"></i>            <span>Export</span>          </button>          <!-- Export Dropdown -->          <div class="dropdown-menu-popover" id="exportMenuDropdown">            <button class="dropdown-item" id="exportCsvBtn"><i data-lucide="file-spreadsheet"></i> Export CSV</button>            <button class="dropdown-item" id="exportExcelBtn"><i data-lucide="file-text"></i> Export Excel</button>            <button class="dropdown-item" id="exportPrintBtn"><i data-lucide="printer"></i> Print Table</button>          </div>        </div>      </div>      <!-- ─── ROW 4: Main Two-Column Layout ─── -->      <div class="main-two-col">        <!-- =====================================================             LEFT COLUMN: Main Payment Orders Table             ===================================================== -->        <div class="glass-panel" id="paymentTablePanel">          <div class="table-responsive-container">            <table class="payments-table" id="paymentsMasterTable">              <thead>                <tr>                  <th>Order No.</th>                  <th>Customer</th>                  <th>Garment</th>                  <th>Order Value</th>                  <th>Paid</th>                  <th>Balance</th>                  <th>Status</th>                  <th>Due Date</th>                  <th style="text-align:center;">Actions</th>                </tr>              </thead>              <tbody id="paymentTableBody">                <!-- Rendered dynamically by payments.js -->              </tbody>            </table>          </div>          <!-- Table Pagination Footer -->          <div class="table-pagination-footer">            <span id="paginationInfoLabel">Showing 1–8 of 48 orders</span>            <div class="pagination-pages" id="paginationControls">              <button class="page-arrow-btn" id="prevPageBtn" title="Previous Page">&lt;</button>              <button class="page-num-btn active">1</button>              <button class="page-num-btn">2</button>              <button class="page-num-btn">3</button>              <button class="page-num-btn">4</button>              <button class="page-num-btn">5</button>              <span style="opacity:0.5;padding:0 2px;">...</span>              <button class="page-arrow-btn" id="nextPageBtn" title="Next Page">&gt;</button>            </div>          </div>        </div>        <!-- =====================================================             RIGHT COLUMN: Customer Summary, Recent, Quick Actions             ===================================================== -->        <div class="right-sidebar-column">          <!-- Card 1: Customer Payment Summary -->          <div class="glass-panel customer-summary-card" id="customerSummaryCard">            <div class="summary-header-row">              <div class="card-title-group">                <div class="card-mini-icon">                  <i data-lucide="user-check"></i>                </div>                <span class="card-header-title">Customer Payment Summary</span>              </div>              <a href="../customer/Customer360/customer360.html" class="view-profile-link" id="linkViewProfile">                <span>View Profile</span>                <i data-lucide="arrow-right" style="width:11px;height:11px;"></i>              </a>            </div>            <!-- Customer Hero Profile Info -->            <div class="customer-profile-hero">              <img id="summaryCustomerAvatar" src="../assets/user_avatar.jpg" alt="Customer Profile" class="customer-hero-img" onerror="this.src='../assets/user_avatar.jpg';" />              <div class="customer-hero-info">                <div class="customer-hero-name-row">                  <span class="customer-hero-name" id="summaryCustomerName">—</span>                  <span class="vip-badge-pill" id="summaryVipBadge" style="display:none;">                    <i data-lucide="star" style="width:9px;height:9px;fill:#fbbf24;"></i> VIP Customer                  </span>                </div>                <div class="customer-meta-row">                  <i data-lucide="phone"></i>                  <span id="summaryCustomerPhone">+91 99628 44110</span>                </div>                <div class="customer-meta-row">                  <i data-lucide="map-pin"></i>                  <span id="summaryCustomerLocation">Chennai, Tamil Nadu</span>                </div>              </div>            </div>            <!-- 4 Mini Statistics Glass Cards -->            <div class="stats-four-grid">              <div class="stat-mini-card">                <span class="stat-mini-label">Total Orders</span>                <span class="stat-mini-val" id="summaryTotalOrders">8</span>              </div>              <div class="stat-mini-card">                <span class="stat-mini-label">Total Order Value</span>                <span class="stat-mini-val" id="summaryTotalValue">&#8377;1,24,500</span>              </div>              <div class="stat-mini-card">                <span class="stat-mini-label">Total Paid</span>                <span class="stat-mini-val" id="summaryTotalPaid">&#8377;98,000</span>              </div>              <div class="stat-mini-card">                <span class="stat-mini-label">Outstanding</span>                <span class="stat-mini-val warn" id="summaryOutstanding">&#8377;26,500</span>              </div>            </div>          </div>          <!-- Card 2: Recent Payments -->          <div class="glass-panel recent-payments-card" id="recentPaymentsCard">            <div class="summary-header-row">              <div class="card-title-group">                <div class="card-mini-icon" style="background:rgba(168,85,247,0.18);color:#c084fc;">                  <i data-lucide="history"></i>                </div>                <span class="card-header-title">Recent Payments</span>              </div>              <a href="#" class="view-profile-link" id="linkViewAllRecent">                <span>View All</span>                <i data-lucide="arrow-right" style="width:11px;height:11px;"></i>              </a>            </div>            <table class="recent-table">              <thead>                <tr>                  <th>Date</th>                  <th>Order No.</th>                  <th>Amount</th>                  <th>Method</th>                  <th>Received By</th>                </tr>              </thead>              <tbody id="recentPaymentsBody"></tbody>            </table>          </div>          <!-- Card 3: Quick Actions -->          <div class="glass-panel quick-actions-card">            <div class="summary-header-row">              <div class="card-title-group">                <div class="card-mini-icon">                  <i data-lucide="zap"></i>                </div>                <span class="card-header-title">Quick Actions</span>              </div>            </div>            <div class="quick-actions-grid">              <button class="quick-action-btn" id="qaRecordPayment">                <div class="action-icon-box lime">                  <i data-lucide="credit-card"></i>                </div>                <span class="quick-action-label">Record<br/>Payment</span>              </button>              <button class="quick-action-btn" id="qaGenerateReceipt">                <div class="action-icon-box purple">                  <i data-lucide="receipt"></i>                </div>                <span class="quick-action-label">Generate<br/>Receipt</span>              </button>              <button class="quick-action-btn" id="qaSendReminder">                <div class="action-icon-box pink">                  <i data-lucide="mail"></i>                </div>                <span class="quick-action-label">Send Payment<br/>Reminder</span>              </button>              <button class="quick-action-btn" id="qaViewLedger">                <div class="action-icon-box yellow">                  <i data-lucide="book-open"></i>                </div>                <span class="quick-action-label">View Customer<br/>Ledger</span>              </button>            </div>          </div>        </div>      </div><!-- /.main-two-col -->      </div><!-- /.page-container -->      <!-- Footer slot - injected by fragments.js -->      <div id="footerSlot"></div>    </div><!-- /.main-content -->  </div><!-- /.app-shell -->  <!-- ─── MODAL 1: Record Payment Modal ─── -->  <div class="modal-backdrop" id="modalRecordPayment">    <div class="modal-window">      <div class="modal-header">        <div class="modal-title-group">          <div class="card-mini-icon">            <i data-lucide="credit-card"></i>          </div>          <span class="modal-title">Record Payment</span>        </div>        <button class="modal-close-btn" id="closeRecordModalBtn" title="Close modal">          <i data-lucide="x"></i>        </button>      </div>      <div class="modal-body">        <div class="form-row-two">          <div class="form-field-group">            <label class="form-label" for="recordCustomerSelect">Customer *</label>            <select class="form-select" id="recordCustomerSelect">              <option value="">Select customer...</option>            </select>          </div>          <div class="form-field-group">            <label class="form-label" for="recordOrderSelect">Order No. *</label>            <select class="form-select" id="recordOrderSelect">              <option value="">Select order...</option>            </select>          </div>        </div>        <div class="form-row-two">          <div class="form-field-group">            <label class="form-label" for="recordPaymentAmount">Payment Amount (&#8377;) *</label>            <input type="number" class="form-input" id="recordPaymentAmount" placeholder="Enter amount..." min="1" />          </div>          <div class="form-field-group">            <label class="form-label" for="recordPaymentDate">Payment Date *</label>            <input type="date" class="form-input" id="recordPaymentDate" value="2026-09-08" />          </div>        </div>        <div class="form-row-two">          <div class="form-field-group">            <label class="form-label" for="recordPaymentMethod">Payment Method *</label>            <select class="form-select" id="recordPaymentMethod">              <option value="UPI">UPI / GPay / PhonePe</option>              <option value="Cash">Cash</option>              <option value="Card">Credit / Debit Card</option>              <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>              <option value="Other">Other</option>            </select>          </div>          <div class="form-field-group">            <label class="form-label" for="recordPaymentRef">Reference / Transaction ID</label>            <input type="text" class="form-input" id="recordPaymentRef" placeholder="e.g. UPI/20260908/9872" />          </div>        </div>        <div class="form-field-group">          <label class="form-label" for="recordPaymentNotes">Notes / Remarks</label>          <textarea class="form-textarea" id="recordPaymentNotes" rows="2" placeholder="Optional payment receipt notes..."></textarea>        </div>      </div>      <div class="modal-footer">        <button class="btn-toolbar-tool" id="cancelRecordModalBtn">Cancel</button>        <button class="btn-primary-record" id="submitRecordPaymentBtn">          <i data-lucide="check"></i>          <span>Record Payment</span>        </button>      </div>    </div>  </div>  <!-- ─── MODAL 2: Generate Receipt Modal ─── -->  <div class="modal-backdrop" id="modalGenerateReceipt">    <div class="modal-window large">      <div class="modal-header">        <div class="modal-title-group">          <div class="card-mini-icon" style="background:rgba(168,85,247,0.2);color:#c084fc;">            <i data-lucide="receipt"></i>          </div>          <span class="modal-title">Payment Receipt Preview</span>        </div>        <button class="modal-close-btn" id="closeReceiptModalBtn" title="Close modal">          <i data-lucide="x"></i>        </button>      </div>      <div class="modal-body" style="padding:16px;">        <div class="receipt-paper" id="printableReceiptArea">          <div class="receipt-header">            <div class="receipt-brand">HAULO BOUTIQUE ERP</div>            <div class="receipt-sub">Haulo Designs &bull; Main Branch &bull; Chennai, Tamil Nadu</div>            <div class="receipt-title-banner">&mdash; OFFICIAL PAYMENT RECEIPT &mdash;</div>          </div>          <div class="receipt-meta-grid">            <div>              <div><strong>Receipt No:</strong> <span id="rcptNum">&mdash;</span></div>              <div><strong>Date &amp; Time:</strong> <span id="rcptDate">&mdash;</span></div>              <div><strong>Customer:</strong> <span id="rcptCustomer">&mdash;</span></div>              <div><strong>Phone:</strong> <span id="rcptPhone">&mdash;</span></div>            </div>            <div>              <div><strong>Order No:</strong> <span id="rcptOrderNo">&mdash;</span></div>              <div><strong>Garment:</strong> <span id="rcptGarment">&mdash;</span></div>              <div><strong>Payment Mode:</strong> <span id="rcptMethod">&mdash;</span></div>              <div><strong>Reference No:</strong> <span id="rcptRef">&mdash;</span></div>            </div>          </div>          <table class="receipt-table">            <thead>              <tr>                <th>Description</th>                <th>Order Value</th>                <th>Previous Paid</th>                <th>Current Payment</th>                <th>Balance Due</th>              </tr>            </thead>            <tbody>              <tr>                <td id="rcptDesc">&mdash;</td>                <td id="rcptVal">&#8377;0</td>                <td id="rcptPrevPaid">&#8377;0</td>                <td id="rcptCurrPaid" style="font-weight:700;color:#16a34a;">&#8377;0</td>                <td id="rcptBalance">&#8377;0</td>              </tr>              <tr class="receipt-total-row">                <td colspan="3">Total Received</td>                <td colspan="2" id="rcptTotalReceived" style="font-size:13px;color:#15803d;">&#8377;0</td>              </tr>            </tbody>          </table>          <div class="receipt-footer">            <div>Received with thanks by: <strong id="rcptCashier">Staff</strong> (Cashier / Accounts)</div>            <div style="margin-top:4px;">Thank you for your patronage! This is a computer-generated tax receipt.</div>          </div>        </div>      </div>      <div class="modal-footer">        <button class="btn-toolbar-tool" id="btnPrintReceipt">          <i data-lucide="printer"></i>          <span>Print Receipt</span>        </button>        <button class="btn-primary-record" id="btnDownloadReceipt">          <i data-lucide="download"></i>          <span>Download PDF</span>        </button>      </div>    </div>  </div>  <!-- ─── MODAL 3: Send Payment Reminder Modal ─── -->  <div class="modal-backdrop" id="modalPaymentReminder">    <div class="modal-window">      <div class="modal-header">        <div class="modal-title-group">          <div class="card-mini-icon" style="background:rgba(244,114,182,0.2);color:#f472b6;">            <i data-lucide="mail"></i>          </div>          <span class="modal-title">Send Payment Reminder</span>        </div>        <button class="modal-close-btn" id="closeReminderModalBtn" title="Close modal">          <i data-lucide="x"></i>        </button>      </div>      <div class="modal-body">        <div class="form-row-two">          <div class="form-field-group">            <label class="form-label">Customer</label>            <input type="text" class="form-input" id="remindCustomerName" readonly value="" placeholder="Customer Name" />          </div>          <div class="form-field-group">            <label class="form-label">Outstanding Due</label>            <input type="text" class="form-input" id="remindOutstandingVal" readonly value="" placeholder="₹0" style="color:#f472b6;font-weight:700;" />          </div>        </div>        <div class="form-field-group">          <label class="form-label">Communication Channel</label>          <div style="display:flex;gap:8px;">            <button class="tab-pill active" id="channelWhatsappBtn" type="button"><i data-lucide="message-circle" style="width:12px;height:12px;display:inline;"></i> WhatsApp</button>            <button class="tab-pill" id="channelSmsBtn" type="button"><i data-lucide="smartphone" style="width:12px;height:12px;display:inline;"></i> SMS</button>            <button class="tab-pill" id="channelEmailBtn" type="button"><i data-lucide="mail" style="width:12px;height:12px;display:inline;"></i> Email</button>          </div>        </div>        <div class="form-field-group">          <label class="form-label" for="reminderMessageText">Message Template</label>          <textarea class="form-textarea" id="reminderMessageText" rows="4" placeholder="Reminder message will be generated automatically..."></textarea>        </div>      </div>      <div class="modal-footer">        <button class="btn-toolbar-tool" id="cancelReminderBtn">Cancel</button>        <button class="btn-primary-record" id="submitSendReminderBtn">          <i data-lucide="send"></i>          <span>Send Reminder</span>        </button>      </div>    </div>  </div>  <!-- ─── MODAL 4: Customer Ledger Modal ─── -->  <div class="modal-backdrop" id="modalCustomerLedger">    <div class="modal-window large">      <div class="modal-header">        <div class="modal-title-group">          <div class="card-mini-icon" style="background:rgba(251,191,36,0.2);color:#fbbf24;">            <i data-lucide="book-open"></i>          </div>          <span class="modal-title" id="ledgerTitle">Customer Financial Ledger</span>        </div>        <button class="modal-close-btn" id="closeLedgerModalBtn" title="Close modal">          <i data-lucide="x"></i>        </button>      </div>      <div class="modal-body" style="padding:14px;">        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:var(--text-muted);">          <span>Customer: <strong id="ledgerCustomerSubtitle">&mdash;</strong></span>          <span>Statement Period: <strong id="ledgerStatementPeriod">All Time</strong></span>        </div>        <table class="recent-table" style="font-size:11px;">          <thead>            <tr>              <th>Date</th>              <th>Reference / Voucher</th>              <th>Order No.</th>              <th>Debit (&#8377;)</th>              <th>Credit (&#8377;)</th>              <th>Running Balance (&#8377;)</th>            </tr>          </thead>          <tbody id="ledgerTableBody">            <tr>              <td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">No ledger entries found.</td>            </tr>          </tbody>        </table>      </div>      <div class="modal-footer">        <button class="btn-toolbar-tool" id="btnExportLedgerCsv">          <i data-lucide="file-spreadsheet"></i>          <span>Export CSV</span>        </button>        <button class="btn-primary-record" id="btnCloseLedgerAction">          <span>Done</span>        </button>      </div>    </div>  </div>  <!-- ─── MODAL 5: Advanced Filters Modal ─── -->  <div class="modal-backdrop" id="modalAdvancedFilter">    <div class="modal-window">      <div class="modal-header">        <div class="modal-title-group">          <div class="card-mini-icon">            <i data-lucide="sliders-horizontal"></i>          </div>          <span class="modal-title">Filter Payments &amp; Receivables</span>        </div>        <button class="modal-close-btn" id="closeFilterModalBtn" title="Close modal">          <i data-lucide="x"></i>        </button>      </div>      <div class="modal-body">        <div class="form-field-group">          <label class="form-label" for="filterStatusSelect">Payment Status</label>          <select class="form-select" id="filterStatusSelect">            <option value="all">All Statuses</option>            <option value="Fully Paid">Fully Paid</option>            <option value="Pending">Pending</option>            <option value="Overdue">Overdue</option>          </select>        </div>        <div class="form-row-two">          <div class="form-field-group">            <label class="form-label" for="filterDateFrom">Due Date From</label>            <input type="date" class="form-input" id="filterDateFrom" />          </div>          <div class="form-field-group">            <label class="form-label" for="filterDateTo">Due Date To</label>            <input type="date" class="form-input" id="filterDateTo" />          </div>        </div>        <div class="form-row-two">          <div class="form-field-group">            <label class="form-label" for="filterMinAmount">Min Amount (&#8377;)</label>            <input type="number" class="form-input" id="filterMinAmount" placeholder="0" />          </div>          <div class="form-field-group">            <label class="form-label" for="filterMaxAmount">Max Amount (&#8377;)</label>            <input type="number" class="form-input" id="filterMaxAmount" placeholder="50000" />          </div>        </div>      </div>      <div class="modal-footer">        <button class="btn-toolbar-tool" id="resetFilterModalBtn">Reset</button>        <button class="btn-primary-record" id="applyFilterModalBtn">          <i data-lucide="check"></i>          <span>Apply Filters</span>        </button>      </div>    </div>  </div>  <!-- Row 3-Dots Action Popover Menu -->  <div class="dropdown-menu-popover" id="rowActionDropdown">    <button class="dropdown-item" id="rowActionViewOrder"><i data-lucide="eye"></i> View Order</button>    <button class="dropdown-item" id="rowActionRecordPayment"><i data-lucide="credit-card"></i> Record Payment</button>    <button class="dropdown-item" id="rowActionGenerateReceipt"><i data-lucide="receipt"></i> Generate Receipt</button>    <button class="dropdown-item" id="rowActionPaymentHistory"><i data-lucide="history"></i> Payment History</button>    <button class="dropdown-item" id="rowActionSendReminder"><i data-lucide="mail"></i> Send Payment Reminder</button>    <div class="dropdown-divider"></div>    <button class="dropdown-item" id="rowActionViewCustomer"><i data-lucide="user"></i> View Customer</button>  </div>  <!-- Global Toast Notifications Stack -->  <div class="toast-container" id="toastContainer"></div>  <!-- Application Logic & Shared Fragment Scripts -->  <script src="payments.js"></script>  <script src="../fragments/fragments-inline.js"></script>  <script src="../fragments/fragments.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Payments &amp; Receivables &mdash;  Haulo Boutique ERP
+    </title>
+    <meta name="description" content="Haulo Boutique ERP Payments and Receivables Management &mdash;  Track receipts, advance payments, overdue aging, and customer ledgers." />
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- Base ERP Stylesheets & Shared Navigation -->
+    <link rel="stylesheet" href="../fragments/fragments.css" />
+    <link rel="stylesheet" href="../fragments/nav.css" />
+    <link rel="stylesheet" href="payments.css" />
+    <!-- Navigation & Fragment Base Configuration -->
+    <script>window.FRAGMENT_BASE = '../fragments/';</script>
+    <script src="../fragments/nav.js"></script>
+  </head>
+  <body data-module="payments">
+    <!-- Atmospheric Full-Screen Boutique Background -->
+    <div class="app-background">
+      <div class="bg-image-layer">
+      </div>
+      <div class="bg-gradient-overlay">
+      </div>
+    </div>
+    <!-- App Shell -->
+    <div class="app-shell" id="appShell">
+      <!-- Shared Sidebar Container Slot -->
+      <div class="sidebar-slot" id="sidebarSlot">
+      </div>
+      <!-- Main Content Area -->
+      <div class="main-content" id="mainContent">
+        <!-- Topbar Fragment Container -->
+        <div id="navbarSlot">
+        </div>
+        <!-- Page Container Workspace -->
+        <div class="page-container">
+          <!-- ===== Section ===== -->
+          <div class="page-header-row">
+            <div class="header-left">
+              <span class="header-overline">
+                Finance
+              </span>
+              <h1 class="header-title">
+                Payments &amp; Receivables
+              </h1>
+              <p class="header-subtitle">
+                Track payments, manage receivables and keep your business healthy.
+              </p>
+            </div>
+            <div class="header-right">
+              <div class="header-actions">
+                <button class="btn-primary-record" id="btnHeaderRecordPayment">
+                  <i data-lucide="plus">
+                  </i>
+                  <span>
+                    Record Payment
+                  </span>
+                </button>
+                <button class="btn-secondary-receipt" id="btnHeaderGenerateReceipt">
+                  <i data-lucide="receipt">
+                  </i>
+                  <span>
+                    Generate Receipt
+                  </span>
+                </button>
+                <button class="btn-more-options" id="btnHeaderMoreOptions" title="More Options" aria-label="More Options">
+                  <i data-lucide="more-horizontal">
+                  </i>
+                </button>
+                <!-- Dropdown for Header More -->
+                <div class="dropdown-menu-popover" id="headerMoreDropdown">
+                  <button class="dropdown-item" id="menuExportAll">
+                    <i data-lucide="download">
+                    </i>
+                    Export All Transactions
+                  </button>
+                  <button class="dropdown-item" id="menuPrintSummary">
+                    <i data-lucide="printer">
+                    </i>
+                    Print Finance Summary
+                  </button>
+                  <button class="dropdown-item" id="menuAuditLog">
+                    <i data-lucide="shield-check">
+                    </i>
+                    Audit Trail Log
+                  </button>
+                  <div class="dropdown-divider">
+                  </div>
+                  <button class="dropdown-item" id="menuPaymentSettings">
+                    <i data-lucide="sliders">
+                    </i>
+                    Payment Gateway Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ===== Section ===== -->
+          <section class="kpi-row" aria-label="Financial Key Performance Indicators">
+            <!-- KPI 1: Total Receipts -->
+            <div class="kpi-card">
+              <div class="kpi-icon-box green">
+                <i data-lucide="wallet">
+                </i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">
+                  Total Receipts (This Month)
+                </span>
+                <span class="kpi-value" id="kpiTotalReceipts">
+                  &#8377;0
+                </span>
+                <span class="kpi-subtext green" id="kpiTotalReceiptsSub">
+                  &mdash;
+                </span>
+              </div>
+            </div>
+            <!-- KPI 2: Advance Received -->
+            <div class="kpi-card">
+              <div class="kpi-icon-box purple">
+                <i data-lucide="credit-card">
+                </i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">
+                  Advance Received
+                </span>
+                <span class="kpi-value" id="kpiAdvanceReceived">
+                  &#8377;0
+                </span>
+                <span class="kpi-subtext muted" id="kpiAdvanceReceivedSub">
+                  &mdash;
+                </span>
+              </div>
+            </div>
+            <!-- KPI 3: Pending Receivables -->
+            <div class="kpi-card">
+              <div class="kpi-icon-box red">
+                <i data-lucide="clock">
+                </i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">
+                  Pending Receivables
+                </span>
+                <span class="kpi-value" id="kpiPendingReceivables">
+                  &#8377;0
+                </span>
+                <span class="kpi-subtext red" id="kpiPendingReceivablesSub">
+                  0 orders
+                </span>
+              </div>
+            </div>
+            <!-- KPI 4: Overdue Payments -->
+            <div class="kpi-card">
+              <div class="kpi-icon-box yellow">
+                <i data-lucide="alert-triangle">
+                </i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">
+                  Overdue Payments
+                </span>
+                <span class="kpi-value" id="kpiOverduePayments">
+                  &#8377;0
+                </span>
+                <span class="kpi-subtext yellow" id="kpiOverduePaymentsSub">
+                  0 orders
+                </span>
+              </div>
+            </div>
+            <!-- KPI 5: Collection Progress Donut Gauge -->
+            <div class="kpi-card progress-kpi">
+              <div class="progress-donut-wrapper">
+                <svg class="progress-donut-svg" viewBox="0 0 36 36">
+                  <!-- Background Ring -->
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4.2" />
+                  <!-- Collected % (Lime Green) -->
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#d4ff32" stroke-width="4.2" stroke-dasharray="0, 100" stroke-linecap="round" />
+                </svg>
+                <div class="progress-donut-center">
+                  0%
+                </div>
+              </div>
+              <div class="progress-legend-col">
+                <span class="progress-legend-title">
+                  Collection Progress
+                </span>
+                <div class="progress-legend-row">
+                  <span class="legend-dot-label">
+                    <span class="legend-dot" style="background:#d4ff32;">
+                    </span>
+                    Collected
+                  </span>
+                  <span class="legend-val" id="legendCollectedVal">
+                    0%
+                  </span>
+                </div>
+                <div class="progress-legend-row">
+                  <span class="legend-dot-label">
+                    <span class="legend-dot" style="background:#c084fc;">
+                    </span>
+                    Pending
+                  </span>
+                  <span class="legend-val" id="legendPendingVal">
+                    0%
+                  </span>
+                </div>
+                <div class="progress-legend-row">
+                  <span class="legend-dot-label">
+                    <span class="legend-dot" style="background:#f472b6;">
+                    </span>
+                    Overdue
+                  </span>
+                  <span class="legend-val" id="legendOverdueVal">
+                    0%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- ===== Section ===== -->
+          <section class="analytics-row" aria-label="Financial Trends and Breakdown">
+            <!-- Card 1: Payment Trend (Grouped Bar Chart) -->
+            <div class="analytics-card" id="cardPaymentTrend">
+              <div class="card-header-bar">
+                <div class="card-title-group">
+                  <div class="card-mini-icon">
+                    <i data-lucide="bar-chart-2">
+                    </i>
+                  </div>
+                  <span class="card-header-title">
+                    Payment Trend
+                  </span>
+                </div>
+                <div class="trend-legend-inline">
+                  <span class="legend-inline-item">
+                    <span class="legend-dot" style="background:#d4ff32;">
+                    </span>
+                    Receipts
+                  </span>
+                  <span class="legend-inline-item">
+                    <span class="legend-dot" style="background:#c084fc;">
+                    </span>
+                    Outstanding
+                  </span>
+                </div>
+              </div>
+              <div class="trend-chart-container">
+                <div class="trend-y-axis">
+                  <span>
+                    20L
+                  </span>
+                  <span>
+                    15L
+                  </span>
+                  <span>
+                    10L
+                  </span>
+                  <span>
+                    5L
+                  </span>
+                  <span>
+                    0
+                  </span>
+                </div>
+                <div class="trend-bars-wrapper" id="trendBarsContainer">
+                  <!-- Rendered via JS for responsive grouped heights -->
+                </div>
+              </div>
+            </div>
+            <!-- Card 2: Payment Methods (Donut Chart) -->
+            <div class="analytics-card" id="cardPaymentMethods">
+              <div class="card-header-bar">
+                <div class="card-title-group">
+                  <div class="card-mini-icon">
+                    <i data-lucide="pie-chart">
+                    </i>
+                  </div>
+                  <span class="card-header-title">
+                    Payment Methods
+                  </span>
+                </div>
+              </div>
+              <div class="methods-content-split">
+                <div class="methods-donut-wrapper">
+                  <svg class="methods-donut-svg" id="methodsDonutSvg" viewBox="0 0 36 36">
+                    <!-- Outer Base Ring -->
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4.5" />
+                    <!-- Dynamic SVG Arcs Container -->
+                    <g id="methodsDonutArcs">
+                    </g>
+                  </svg>
+                  <div class="methods-donut-center">
+                    <span class="methods-center-val" id="methodsTotalReceipts">
+                      &#8377;0
+                    </span>
+                    <span class="methods-center-lbl">
+                      Total Receipts
+                    </span>
+                  </div>
+                </div>
+                <div class="methods-legend-list" id="methodsLegendList">
+                  <div class="method-legend-row" id="legendRowUpi" title="UPI: &#8377;0">
+                    <span class="method-label-group">
+                      <span class="legend-dot" style="background:#d4ff32;">
+                      </span>
+                      UPI
+                    </span>
+                    <span class="method-pct" id="pctUpi">
+                      0%
+                    </span>
+                  </div>
+                  <div class="method-legend-row" id="legendRowCash" title="Cash: &#8377;0">
+                    <span class="method-label-group">
+                      <span class="legend-dot" style="background:#c084fc;">
+                      </span>
+                      Cash
+                    </span>
+                    <span class="method-pct" id="pctCash">
+                      0%
+                    </span>
+                  </div>
+                  <div class="method-legend-row" id="legendRowCard" title="Card: &#8377;0">
+                    <span class="method-label-group">
+                      <span class="legend-dot" style="background:#fb7185;">
+                      </span>
+                      Card
+                    </span>
+                    <span class="method-pct" id="pctCard">
+                      0%
+                    </span>
+                  </div>
+                  <div class="method-legend-row" id="legendRowBank" title="Bank Transfer: &#8377;0">
+                    <span class="method-label-group">
+                      <span class="legend-dot" style="background:#38bdf8;">
+                      </span>
+                      Bank Transfer
+                    </span>
+                    <span class="method-pct" id="pctBank">
+                      0%
+                    </span>
+                  </div>
+                  <div class="method-legend-row" id="legendRowOther" title="Other: &#8377;0">
+                    <span class="method-label-group">
+                      <span class="legend-dot" style="background:#94a3b8;">
+                      </span>
+                      Other
+                    </span>
+                    <span class="method-pct" id="pctOther">
+                      0%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Card 3: Receivables Aging (5 Buckets) -->
+            <div class="analytics-card" id="cardReceivablesAging">
+              <div class="card-header-bar">
+                <div class="card-title-group">
+                  <div class="card-mini-icon">
+                    <i data-lucide="hourglass">
+                    </i>
+                  </div>
+                  <span class="card-header-title">
+                    Receivables Aging
+                  </span>
+                </div>
+              </div>
+              <div class="aging-chart-wrapper" id="agingChartWrapper">
+                <!-- Bucket 1: Not Due -->
+                <div class="aging-col-item" title="Not Due (0-15 days): &#8377;0">
+                  <span class="aging-val-badge" id="agingValNotDue">
+                    &#8377;0
+                  </span>
+                  <div class="aging-bar" id="agingBarNotDue" style="height: 4px; background: rgba(192, 132, 252, 0.3);">
+                  </div>
+                  <span class="aging-cat-lbl">
+                    Not Due
+                    <br/>
+                    (0&ndash;15 days)
+                  </span>
+                </div>
+                <!-- Bucket 2: 16-30 days -->
+                <div class="aging-col-item" title="16-30 days: &#8377;0">
+                  <span class="aging-val-badge" id="agingVal1630">
+                    &#8377;0
+                  </span>
+                  <div class="aging-bar" id="agingBar1630" style="height: 4px; background: rgba(244, 114, 182, 0.3);">
+                  </div>
+                  <span class="aging-cat-lbl">
+                    16&ndash;30 days
+                  </span>
+                </div>
+                <!-- Bucket 3: 31-60 days -->
+                <div class="aging-col-item" title="31-60 days: &#8377;0">
+                  <span class="aging-val-badge" id="agingVal3160">
+                    &#8377;0
+                  </span>
+                  <div class="aging-bar" id="agingBar3160" style="height: 4px; background: rgba(251, 191, 36, 0.3);">
+                  </div>
+                  <span class="aging-cat-lbl">
+                    31&ndash;60 days
+                  </span>
+                </div>
+                <!-- Bucket 4: 61-90 days -->
+                <div class="aging-col-item" title="61-90 days: &#8377;0">
+                  <span class="aging-val-badge" id="agingVal6190">
+                    &#8377;0
+                  </span>
+                  <div class="aging-bar" id="agingBar6190" style="height: 4px; background: rgba(251, 146, 60, 0.3);">
+                  </div>
+                  <span class="aging-cat-lbl">
+                    61&ndash;90 days
+                  </span>
+                </div>
+                <!-- Bucket 5: > 90 days -->
+                <div class="aging-col-item" title=">
+                  90 days: &#8377;0">
+                  <span class="aging-val-badge" id="agingVal90Plus">
+                    &#8377;0
+                  </span>
+                  <div class="aging-bar" id="agingBar90Plus" style="height: 4px; background: rgba(248, 113, 113, 0.3);">
+                  </div>
+                  <span class="aging-cat-lbl">
+                    &gt; 90 days
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- ===== Section ===== -->
+          <div class="filter-toolbar-row">
+            <div class="tab-pills-cluster" id="paymentTabCluster">
+              <button class="tab-pill active" data-filter="all">
+                All Orders (0)
+              </button>
+              <button class="tab-pill" data-filter="pending">
+                Pending Payments (0)
+              </button>
+              <button class="tab-pill" data-filter="overdue">
+                Overdue (0)
+              </button>
+              <button class="tab-pill" data-filter="advance">
+                Advance Paid (0)
+              </button>
+              <button class="tab-pill" data-filter="paid">
+                Fully Paid (0)
+              </button>
+            </div>
+            <div class="toolbar-controls-right">
+              <div class="search-field-box">
+                <i data-lucide="search">
+                </i>
+                <input type="text" class="search-field-input" id="tableSearchInput" placeholder="Search by customer, order or phone..." autocomplete="off" />
+              </div>
+              <button class="btn-toolbar-tool" id="btnOpenFilterModal">
+                <i data-lucide="sliders-horizontal">
+                </i>
+                <span>
+                  Filter
+                </span>
+              </button>
+              <button class="btn-toolbar-tool" id="btnExportMenuToggle">
+                <i data-lucide="download">
+                </i>
+                <span>
+                  Export
+                </span>
+              </button>
+              <!-- Export Dropdown -->
+              <div class="dropdown-menu-popover" id="exportMenuDropdown">
+                <button class="dropdown-item" id="exportCsvBtn">
+                  <i data-lucide="file-spreadsheet">
+                  </i>
+                  Export CSV
+                </button>
+                <button class="dropdown-item" id="exportExcelBtn">
+                  <i data-lucide="file-text">
+                  </i>
+                  Export Excel
+                </button>
+                <button class="dropdown-item" id="exportPrintBtn">
+                  <i data-lucide="printer">
+                  </i>
+                  Print Table
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- ===== Section ===== -->
+          <div class="main-two-col">
+            <!-- =====================================================             LEFT COLUMN: Main Payment Orders Table             ===================================================== -->
+            <div class="glass-panel" id="paymentTablePanel">
+              <div class="table-responsive-container">
+                <table class="payments-table" id="paymentsMasterTable">
+                  <thead>
+                    <tr>
+                      <th>
+                        Order No.
+                      </th>
+                      <th>
+                        Customer
+                      </th>
+                      <th>
+                        Garment
+                      </th>
+                      <th>
+                        Order Value
+                      </th>
+                      <th>
+                        Paid
+                      </th>
+                      <th>
+                        Balance
+                      </th>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Due Date
+                      </th>
+                      <th style="text-align:center;">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="paymentTableBody">
+                    <!-- Rendered dynamically by payments.js -->
+                  </tbody>
+                </table>
+              </div>
+              <!-- Table Pagination Footer -->
+              <div class="table-pagination-footer">
+                <span id="paginationInfoLabel">
+                  Showing 0 orders
+                </span>
+                <div class="pagination-pages" id="paginationControls">
+                  <button class="page-arrow-btn" id="prevPageBtn" title="Previous Page">
+                    &lt;
+                  </button>
+                  <button class="page-num-btn active">
+                    1
+                  </button>
+                  <button class="page-num-btn">
+                    2
+                  </button>
+                  <button class="page-num-btn">
+                    3
+                  </button>
+                  <button class="page-num-btn">
+                    4
+                  </button>
+                  <button class="page-num-btn">
+                    5
+                  </button>
+                  <span style="opacity:0.5;padding:0 2px;">
+                    ...
+                  </span>
+                  <button class="page-arrow-btn" id="nextPageBtn" title="Next Page">
+                    &gt;
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- =====================================================             RIGHT COLUMN: Customer Summary, Recent, Quick Actions             ===================================================== -->
+            <div class="right-sidebar-column">
+              <!-- Card 1: Customer Payment Summary -->
+              <div class="glass-panel customer-summary-card" id="customerSummaryCard">
+                <div class="summary-header-row">
+                  <div class="card-title-group">
+                    <div class="card-mini-icon">
+                      <i data-lucide="user-check">
+                      </i>
+                    </div>
+                    <span class="card-header-title">
+                      Customer Payment Summary
+                    </span>
+                  </div>
+                  <a href="../customer/Customer360/customer360.html" class="view-profile-link" id="linkViewProfile">
+                    <span>
+                      View Profile
+                    </span>
+                    <i data-lucide="arrow-right" style="width:11px;height:11px;">
+                    </i>
+                  </a>
+                </div>
+                <!-- Customer Hero Profile Info -->
+                <div class="customer-profile-hero">
+                  <div class="customer-hero-avatar" id="summaryCustomerAvatar">
+                    <span class="customer-hero-initial" id="summaryCustomerInitial">
+                      <i data-lucide="user">
+                      </i>
+                    </span>
+                  </div>
+                  <div class="customer-hero-info">
+                    <div class="customer-hero-name-row">
+                      <span class="customer-hero-name" id="summaryCustomerName">
+                        &mdash; 
+                      </span>
+                      <span class="vip-badge-pill" id="summaryVipBadge" style="display:none;">
+                        <i data-lucide="star" style="width:9px;height:9px;fill:#fbbf24;">
+                        </i>
+                        VIP Customer
+                      </span>
+                    </div>
+                    <div class="customer-meta-row">
+                      <i data-lucide="phone">
+                      </i>
+                      <span id="summaryCustomerPhone">
+                        &mdash;
+                      </span>
+                    </div>
+                    <div class="customer-meta-row">
+                      <i data-lucide="map-pin">
+                      </i>
+                      <span id="summaryCustomerLocation">
+                        &mdash;
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 4 Mini Statistics Glass Cards -->
+                <div class="stats-four-grid">
+                  <div class="stat-mini-card">
+                    <span class="stat-mini-label">
+                      Total Orders
+                    </span>
+                    <span class="stat-mini-val" id="summaryTotalOrders">
+                      0
+                    </span>
+                  </div>
+                  <div class="stat-mini-card">
+                    <span class="stat-mini-label">
+                      Total Order Value
+                    </span>
+                    <span class="stat-mini-val" id="summaryTotalValue">
+                      &#8377;0
+                    </span>
+                  </div>
+                  <div class="stat-mini-card">
+                    <span class="stat-mini-label">
+                      Total Paid
+                    </span>
+                    <span class="stat-mini-val" id="summaryTotalPaid">
+                      &#8377;0
+                    </span>
+                  </div>
+                  <div class="stat-mini-card">
+                    <span class="stat-mini-label">
+                      Outstanding
+                    </span>
+                    <span class="stat-mini-val warn" id="summaryOutstanding">
+                      &#8377;0
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <!-- Card 2: Recent Payments -->
+              <div class="glass-panel recent-payments-card" id="recentPaymentsCard">
+                <div class="summary-header-row">
+                  <div class="card-title-group">
+                    <div class="card-mini-icon" style="background:rgba(168,85,247,0.18);color:#c084fc;">
+                      <i data-lucide="history">
+                      </i>
+                    </div>
+                    <span class="card-header-title">
+                      Recent Payments
+                    </span>
+                  </div>
+                  <a href="#" class="view-profile-link" id="linkViewAllRecent">
+                    <span>
+                      View All
+                    </span>
+                    <i data-lucide="arrow-right" style="width:11px;height:11px;">
+                    </i>
+                  </a>
+                </div>
+                <table class="recent-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        Date
+                      </th>
+                      <th>
+                        Order No.
+                      </th>
+                      <th>
+                        Amount
+                      </th>
+                      <th>
+                        Method
+                      </th>
+                      <th>
+                        Received By
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentPaymentsBody">
+                  </tbody>
+                </table>
+              </div>
+              <!-- Card 3: Quick Actions -->
+              <div class="glass-panel quick-actions-card">
+                <div class="summary-header-row">
+                  <div class="card-title-group">
+                    <div class="card-mini-icon">
+                      <i data-lucide="zap">
+                      </i>
+                    </div>
+                    <span class="card-header-title">
+                      Quick Actions
+                    </span>
+                  </div>
+                </div>
+                <div class="quick-actions-grid">
+                  <button class="quick-action-btn" id="qaRecordPayment">
+                    <div class="action-icon-box lime">
+                      <i data-lucide="credit-card">
+                      </i>
+                    </div>
+                    <span class="quick-action-label">
+                      Record
+                      <br/>
+                      Payment
+                    </span>
+                  </button>
+                  <button class="quick-action-btn" id="qaGenerateReceipt">
+                    <div class="action-icon-box purple">
+                      <i data-lucide="receipt">
+                      </i>
+                    </div>
+                    <span class="quick-action-label">
+                      Generate
+                      <br/>
+                      Receipt
+                    </span>
+                  </button>
+                  <button class="quick-action-btn" id="qaSendReminder">
+                    <div class="action-icon-box pink">
+                      <i data-lucide="mail">
+                      </i>
+                    </div>
+                    <span class="quick-action-label">
+                      Send Payment
+                      <br/>
+                      Reminder
+                    </span>
+                  </button>
+                  <button class="quick-action-btn" id="qaViewLedger">
+                    <div class="action-icon-box yellow">
+                      <i data-lucide="book-open">
+                      </i>
+                    </div>
+                    <span class="quick-action-label">
+                      View Customer
+                      <br/>
+                      Ledger
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- /.main-two-col -->
+        </div>
+        <!-- /.page-container -->
+        <!-- Footer slot - injected by fragments.js -->
+        <div id="footerSlot">
+        </div>
+      </div>
+      <!-- /.main-content -->
+    </div>
+    <!-- /.app-shell -->
+    <!-- ===== Section ===== -->
+    <div class="modal-backdrop" id="modalRecordPayment">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="card-mini-icon">
+              <i data-lucide="credit-card">
+              </i>
+            </div>
+            <span class="modal-title">
+              Record Payment
+            </span>
+          </div>
+          <button class="modal-close-btn" id="closeRecordModalBtn" title="Close modal">
+            <i data-lucide="x">
+            </i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row-two">
+            <div class="form-field-group">
+              <label class="form-label" for="recordCustomerSelect">
+                Customer *
+              </label>
+              <select class="form-select" id="recordCustomerSelect">
+                <option value="">
+                  Select customer...
+                </option>
+              </select>
+            </div>
+            <div class="form-field-group">
+              <label class="form-label" for="recordOrderSelect">
+                Order No. *
+              </label>
+              <select class="form-select" id="recordOrderSelect">
+                <option value="">
+                  Select order...
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row-two">
+            <div class="form-field-group">
+              <label class="form-label" for="recordPaymentAmount">
+                Payment Amount (&#8377;) *
+              </label>
+              <input type="number" class="form-input" id="recordPaymentAmount" placeholder="Enter amount..." min="1" />
+            </div>
+            <div class="form-field-group">
+              <label class="form-label" for="recordPaymentDate">
+                Payment Date *
+              </label>
+              <input type="date" class="form-input" id="recordPaymentDate" value="2026-09-08" />
+            </div>
+          </div>
+          <div class="form-row-two">
+            <div class="form-field-group">
+              <label class="form-label" for="recordPaymentMethod">
+                Payment Method *
+              </label>
+              <select class="form-select" id="recordPaymentMethod">
+                <option value="UPI">
+                  UPI / GPay / PhonePe
+                </option>
+                <option value="Cash">
+                  Cash
+                </option>
+                <option value="Card">
+                  Credit / Debit Card
+                </option>
+                <option value="Bank Transfer">
+                  Bank Transfer (NEFT/IMPS)
+                </option>
+                <option value="Other">
+                  Other
+                </option>
+              </select>
+            </div>
+            <div class="form-field-group">
+              <label class="form-label" for="recordPaymentRef">
+                Reference / Transaction ID
+              </label>
+              <input type="text" class="form-input" id="recordPaymentRef" placeholder="e.g. UPI/20260908/9872" />
+            </div>
+          </div>
+          <div class="form-field-group">
+            <label class="form-label" for="recordPaymentNotes">
+              Notes / Remarks
+            </label>
+            <textarea class="form-textarea" id="recordPaymentNotes" rows="2" placeholder="Optional payment receipt notes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-toolbar-tool" id="cancelRecordModalBtn">
+            Cancel
+          </button>
+          <button class="btn-primary-record" id="submitRecordPaymentBtn">
+            <i data-lucide="check">
+            </i>
+            <span>
+              Record Payment
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- ===== Section ===== -->
+    <div class="modal-backdrop" id="modalGenerateReceipt">
+      <div class="modal-window large">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="card-mini-icon" style="background:rgba(168,85,247,0.2);color:#c084fc;">
+              <i data-lucide="receipt">
+              </i>
+            </div>
+            <span class="modal-title">
+              Payment Receipt Preview
+            </span>
+          </div>
+          <button class="modal-close-btn" id="closeReceiptModalBtn" title="Close modal">
+            <i data-lucide="x">
+            </i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding:16px;">
+          <div class="receipt-paper" id="printableReceiptArea">
+            <div class="receipt-header">
+              <div class="receipt-brand">
+                HAULO BOUTIQUE ERP
+              </div>
+              <div class="receipt-sub">
+                Haulo Designs &bull; Main Branch &bull; Chennai, Tamil Nadu
+              </div>
+              <div class="receipt-title-banner">
+                &mdash; OFFICIAL PAYMENT RECEIPT &mdash;
+              </div>
+            </div>
+            <div class="receipt-meta-grid">
+              <div>
+                <div>
+                  <strong>
+                    Receipt No:
+                  </strong>
+                  <span id="rcptNum">
+                    &mdash;
+                  </span>
+                </div>
+                <div>
+                  <strong>
+                    Date &amp; Time:
+                  </strong>
+                  <span id="rcptDate">
+                    &mdash;
+                  </span>
+                </div>
+                <div>
+                  <strong>
+                    Customer:
+                  </strong>
+                  <span id="rcptCustomer">
+                    &mdash;
+                  </span>
+                </div>
+                <div>
+                  <strong>
+                    Phone:
+                  </strong>
+                  <span id="rcptPhone">
+                    &mdash;
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div>
+                  <strong>
+                    Order No:
+                  </strong>
+                  <span id="rcptOrderNo">
+                    &mdash;
+                  </span>
+                </div>
+                <div>
+                  <strong>
+                    Garment:
+                  </strong>
+                  <span id="rcptGarment">
+                    &mdash;
+                  </span>
+                </div>
+                <div>
+                  <strong>
+                    Payment Mode:
+                  </strong>
+                  <span id="rcptMethod">
+                    &mdash;
+                  </span>
+                </div>
+                <div>
+                  <strong>
+                    Reference No:
+                  </strong>
+                  <span id="rcptRef">
+                    &mdash;
+                  </span>
+                </div>
+              </div>
+            </div>
+            <table class="receipt-table">
+              <thead>
+                <tr>
+                  <th>
+                    Description
+                  </th>
+                  <th>
+                    Order Value
+                  </th>
+                  <th>
+                    Previous Paid
+                  </th>
+                  <th>
+                    Current Payment
+                  </th>
+                  <th>
+                    Balance Due
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td id="rcptDesc">
+                    &mdash;
+                  </td>
+                  <td id="rcptVal">
+                    &#8377;0
+                  </td>
+                  <td id="rcptPrevPaid">
+                    &#8377;0
+                  </td>
+                  <td id="rcptCurrPaid" style="font-weight:700;color:#16a34a;">
+                    &#8377;0
+                  </td>
+                  <td id="rcptBalance">
+                    &#8377;0
+                  </td>
+                </tr>
+                <tr class="receipt-total-row">
+                  <td colspan="3">
+                    Total Received
+                  </td>
+                  <td colspan="2" id="rcptTotalReceived" style="font-size:13px;color:#15803d;">
+                    &#8377;0
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="receipt-footer">
+              <div>
+                Received with thanks by:
+                <strong id="rcptCashier">
+                  Staff
+                </strong>
+                (Cashier / Accounts)
+              </div>
+              <div style="margin-top:4px;">
+                Thank you for your patronage! This is a computer-generated tax receipt.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-toolbar-tool" id="btnPrintReceipt">
+            <i data-lucide="printer">
+            </i>
+            <span>
+              Print Receipt
+            </span>
+          </button>
+          <button class="btn-primary-record" id="btnDownloadReceipt">
+            <i data-lucide="download">
+            </i>
+            <span>
+              Download PDF
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- ===== Section ===== -->
+    <div class="modal-backdrop" id="modalPaymentReminder">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="card-mini-icon" style="background:rgba(244,114,182,0.2);color:#f472b6;">
+              <i data-lucide="mail">
+              </i>
+            </div>
+            <span class="modal-title">
+              Send Payment Reminder
+            </span>
+          </div>
+          <button class="modal-close-btn" id="closeReminderModalBtn" title="Close modal">
+            <i data-lucide="x">
+            </i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row-two">
+            <div class="form-field-group">
+              <label class="form-label">
+                Customer
+              </label>
+              <input type="text" class="form-input" id="remindCustomerName" readonly value="" placeholder="Customer Name" />
+            </div>
+            <div class="form-field-group">
+              <label class="form-label">
+                Outstanding Due
+              </label>
+              <input type="text" class="form-input" id="remindOutstandingVal" readonly value="" placeholder="&mdash;¢&mdash;š&mdash;¹0" style="color:#f472b6;font-weight:700;" />
+            </div>
+          </div>
+          <div class="form-field-group">
+            <label class="form-label">
+              Communication Channel
+            </label>
+            <div style="display:flex;gap:8px;">
+              <button class="tab-pill active" id="channelWhatsappBtn" type="button">
+                <i data-lucide="message-circle" style="width:12px;height:12px;display:inline;">
+                </i>
+                WhatsApp
+              </button>
+              <button class="tab-pill" id="channelSmsBtn" type="button">
+                <i data-lucide="smartphone" style="width:12px;height:12px;display:inline;">
+                </i>
+                SMS
+              </button>
+              <button class="tab-pill" id="channelEmailBtn" type="button">
+                <i data-lucide="mail" style="width:12px;height:12px;display:inline;">
+                </i>
+                Email
+              </button>
+            </div>
+          </div>
+          <div class="form-field-group">
+            <label class="form-label" for="reminderMessageText">
+              Message Template
+            </label>
+            <textarea class="form-textarea" id="reminderMessageText" rows="4" placeholder="Reminder message will be generated automatically..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-toolbar-tool" id="cancelReminderBtn">
+            Cancel
+          </button>
+          <button class="btn-primary-record" id="submitSendReminderBtn">
+            <i data-lucide="send">
+            </i>
+            <span>
+              Send Reminder
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- ===== Section ===== -->
+    <div class="modal-backdrop" id="modalCustomerLedger">
+      <div class="modal-window large">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="card-mini-icon" style="background:rgba(251,191,36,0.2);color:#fbbf24;">
+              <i data-lucide="book-open">
+              </i>
+            </div>
+            <span class="modal-title" id="ledgerTitle">
+              Customer Financial Ledger
+            </span>
+          </div>
+          <button class="modal-close-btn" id="closeLedgerModalBtn" title="Close modal">
+            <i data-lucide="x">
+            </i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:var(--text-muted);">
+            <span>
+              Customer:
+              <strong id="ledgerCustomerSubtitle">
+                &mdash;
+              </strong>
+            </span>
+            <span>
+              Statement Period:
+              <strong id="ledgerStatementPeriod">
+                All Time
+              </strong>
+            </span>
+          </div>
+          <table class="recent-table" style="font-size:11px;">
+            <thead>
+              <tr>
+                <th>
+                  Date
+                </th>
+                <th>
+                  Reference / Voucher
+                </th>
+                <th>
+                  Order No.
+                </th>
+                <th>
+                  Debit (&#8377;)
+                </th>
+                <th>
+                  Credit (&#8377;)
+                </th>
+                <th>
+                  Running Balance (&#8377;)
+                </th>
+              </tr>
+            </thead>
+            <tbody id="ledgerTableBody">
+              <tr>
+                <td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">
+                  No ledger entries found.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-toolbar-tool" id="btnExportLedgerCsv">
+            <i data-lucide="file-spreadsheet">
+            </i>
+            <span>
+              Export CSV
+            </span>
+          </button>
+          <button class="btn-primary-record" id="btnCloseLedgerAction">
+            <span>
+              Done
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- =====================================================
+         MODAL 6: Order Transactions History & Breakdown
+         ===================================================== -->
+    <div class="modal-backdrop" id="modalOrderTransactions">
+      <div class="modal-window large" style="max-width: 860px; width: 94%;">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="card-mini-icon" style="background:rgba(212,255,50,0.15);color:var(--lime,#d4ff32);">
+              <i data-lucide="receipt"></i>
+            </div>
+            <div>
+              <span class="modal-title">Transaction History &amp; Breakdown</span>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+                <span id="txnModalOrderCode" style="font-weight:700;color:var(--text-primary);letter-spacing:0.02em;">ORD-2026-0000</span>
+                &bull; <span id="txnModalCustomerName">Customer Name</span>
+                &bull; <span id="txnModalGarment">Garment</span>
+              </div>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="closeTxnModalBtn" onclick="window.closeOrderTransactionsModal()" title="Close modal">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="modal-body" style="padding:16px;">
+          <!-- Financial KPI Ribbon -->
+          <div class="txn-kpi-ribbon" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+            <div class="txn-kpi-card" style="background:var(--glass-inner,rgba(255,255,255,0.03));border:1px solid var(--glass-border);border-radius:var(--radius-md,8px);padding:10px 12px;">
+              <span style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;">Order Value</span>
+              <span id="txnModalOrderValue" style="font-size:16px;font-weight:800;color:var(--text-primary);margin-top:2px;display:block;">₹0</span>
+            </div>
+            <div class="txn-kpi-card" style="background:rgba(212,255,50,0.05);border:1px solid rgba(212,255,50,0.2);border-radius:var(--radius-md,8px);padding:10px 12px;">
+              <span style="font-size:10px;font-weight:600;color:var(--lime,#d4ff32);text-transform:uppercase;letter-spacing:0.05em;display:block;">Total Paid</span>
+              <span id="txnModalTotalPaid" style="font-size:16px;font-weight:800;color:var(--lime,#d4ff32);margin-top:2px;display:block;">₹0</span>
+            </div>
+            <div class="txn-kpi-card" style="background:var(--glass-inner,rgba(255,255,255,0.03));border:1px solid var(--glass-border);border-radius:var(--radius-md,8px);padding:10px 12px;">
+              <span style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;">Outstanding Balance</span>
+              <span id="txnModalBalance" style="font-size:16px;font-weight:800;color:#c084fc;margin-top:2px;display:block;">₹0</span>
+            </div>
+            <div class="txn-kpi-card" style="background:var(--glass-inner,rgba(255,255,255,0.03));border:1px solid var(--glass-border);border-radius:var(--radius-md,8px);padding:10px 12px;display:flex;flex-direction:column;justify-content:center;">
+              <span style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;">Payment Status</span>
+              <div style="margin-top:4px;">
+                <span id="txnModalStatusBadge" class="status-pill fully-paid">Fully Paid</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section title -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:12px;font-weight:700;color:var(--text-primary);letter-spacing:0.02em;">Individual Transaction Records</span>
+            <span id="txnModalCountLabel" style="font-size:11px;color:var(--text-muted);">0 transactions recorded</span>
+          </div>
+
+          <!-- Transactions Table -->
+          <div style="max-height:340px;overflow-y:auto;border:1px solid var(--glass-border);border-radius:var(--radius-md,8px);">
+            <table class="recent-table" style="font-size:11px;margin:0;width:100%;">
+              <thead>
+                <tr>
+                  <th style="width:54px;">#</th>
+                  <th>Date &amp; Time</th>
+                  <th>Type</th>
+                  <th class="amount-col">Amount</th>
+                  <th>Method</th>
+                  <th>Received By</th>
+                  <th>Reference</th>
+                  <th>Notes</th>
+                  <th style="text-align:center;width:70px;">Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="orderTransactionsTableBody">
+                <tr>
+                  <td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted);">
+                    No transactions recorded.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <button class="btn-toolbar-tool" id="btnTxnPrintAllReceipts" onclick="window.openReceiptModal()" title="Print receipts summary for this order">
+              <i data-lucide="printer"></i>
+              <span>Print Summary</span>
+            </button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-primary-record" id="btnTxnRecordNew" style="display:none;" onclick="window.closeOrderTransactionsModal(); window.openRecordPaymentModal()">
+              <i data-lucide="plus"></i>
+              <span>Record Payment</span>
+            </button>
+            <button class="btn-toolbar-tool" id="btnCloseTxnModalAction" onclick="window.closeOrderTransactionsModal()">
+              <span>Close</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ===== Section ===== -->
+    <div class="modal-backdrop" id="modalAdvancedFilter">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="card-mini-icon">
+              <i data-lucide="sliders-horizontal">
+              </i>
+            </div>
+            <span class="modal-title">
+              Filter Payments &amp; Receivables
+            </span>
+          </div>
+          <button class="modal-close-btn" id="closeFilterModalBtn" title="Close modal">
+            <i data-lucide="x">
+            </i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-field-group">
+            <label class="form-label" for="filterStatusSelect">
+              Payment Status
+            </label>
+            <select class="form-select" id="filterStatusSelect">
+              <option value="all">
+                All Statuses
+              </option>
+              <option value="Fully Paid">
+                Fully Paid
+              </option>
+              <option value="Pending">
+                Pending
+              </option>
+              <option value="Overdue">
+                Overdue
+              </option>
+            </select>
+          </div>
+          <div class="form-row-two">
+            <div class="form-field-group">
+              <label class="form-label" for="filterDateFrom">
+                Due Date From
+              </label>
+              <input type="date" class="form-input" id="filterDateFrom" />
+            </div>
+            <div class="form-field-group">
+              <label class="form-label" for="filterDateTo">
+                Due Date To
+              </label>
+              <input type="date" class="form-input" id="filterDateTo" />
+            </div>
+          </div>
+          <div class="form-row-two">
+            <div class="form-field-group">
+              <label class="form-label" for="filterMinAmount">
+                Min Amount (&#8377;)
+              </label>
+              <input type="number" class="form-input" id="filterMinAmount" placeholder="0" />
+            </div>
+            <div class="form-field-group">
+              <label class="form-label" for="filterMaxAmount">
+                Max Amount (&#8377;)
+              </label>
+              <input type="number" class="form-input" id="filterMaxAmount" placeholder="50000" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-toolbar-tool" id="resetFilterModalBtn">
+            Reset
+          </button>
+          <button class="btn-primary-record" id="applyFilterModalBtn">
+            <i data-lucide="check">
+            </i>
+            <span>
+              Apply Filters
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Row 3-Dots Action Popover Menu -->
+    <div class="dropdown-menu-popover" id="rowActionDropdown">
+      <button class="dropdown-item" id="rowActionViewOrder">
+        <i data-lucide="eye">
+        </i>
+        View Order
+      </button>
+      <button class="dropdown-item" id="rowActionViewTransactions">
+        <i data-lucide="receipt">
+        </i>
+        All Transactions
+      </button>
+      <button class="dropdown-item" id="rowActionRecordPayment">
+        <i data-lucide="credit-card">
+        </i>
+        Record Payment
+      </button>
+      <button class="dropdown-item" id="rowActionGenerateReceipt">
+        <i data-lucide="receipt">
+        </i>
+        Generate Receipt
+      </button>
+      <button class="dropdown-item" id="rowActionPaymentHistory">
+        <i data-lucide="history">
+        </i>
+        Payment History
+      </button>
+      <button class="dropdown-item" id="rowActionSendReminder">
+        <i data-lucide="mail">
+        </i>
+        Send Payment Reminder
+      </button>
+      <div class="dropdown-divider">
+      </div>
+      <button class="dropdown-item" id="rowActionViewCustomer">
+        <i data-lucide="user">
+        </i>
+        View Customer
+      </button>
+    </div>
+    <!-- Global Toast Notifications Stack -->
+    <div class="toast-container" id="toastContainer">
+    </div>
+    <!-- Application Logic & Shared Fragment Scripts -->
+    <script src="payments.js"></script>
+    <script src="../fragments/fragments-inline.js"></script>
+    <script src="../fragments/fragments.js"></script>
+  </body>
+</html>
+

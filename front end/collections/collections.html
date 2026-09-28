@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collections — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Playfair Display (Serif), Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="../fragments/notifications/notifications.css" />
+  <link rel="stylesheet" href="collections.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../fragments/';
+  </script>
+  <script src="../fragments/theme/theme-switch.js"></script>
+  <script src="../fragments/notifications/notifications.js"></script>
+  <script src="../fragments/nav.js"></script>
+</head>
+
+<body data-module="collections">
+  <!-- Atmospheric Background Layer -->
+  <div class="app-bg"></div>
+
+  <!-- Main Unified Application Shell -->
+  <div class="app-shell" id="appShell">
+    <!-- Shared Sidebar Slot (populated by nav.js / fragments.js) -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Top Navigation Header (populated by nav.js) -->
+      <div id="navbarSlot"></div>
+
+      <!-- Collections Scrollable Workspace Area -->
+      <div class="collections-workspace" id="collectionsWorkspace">
+
+        <!-- ==========================================
+             LEFT MAIN COLUMN (~63%):
+             Header, KPIs, Featured, All Collections
+             ========================================== -->
+        <div class="workspace-left">
+
+          <!-- 1. Main Page Header -->
+          <header class="workspace-left-header">
+            <div class="header-titles">
+              <span class="header-eyebrow">FASHION</span>
+              <h1 class="page-title-serif">Collections</h1>
+              <p class="page-subtitle">Organise your collections, seasonal edits and garment stories.</p>
+            </div>
+
+            <!-- Toggle Group: Collections / Archived -->
+            <div class="status-toggle-pill" role="tablist" aria-label="Collections Filter Mode">
+              <button type="button" class="toggle-tab active" id="tabModeCollections" role="tab" aria-selected="true" onclick="setMode('active')">Collections</button>
+              <button type="button" class="toggle-tab" id="tabModeArchived" role="tab" aria-selected="false" onclick="setMode('archived')">Archived</button>
+            </div>
+          </header>
+
+          <!-- 2. KPI Analytics Cards (Row of 6) -->
+          <section class="kpi-strip" aria-label="Collections Key Metrics">
+            <!-- Card 1: Total Collections -->
+            <div class="kpi-card" id="kpiTotalCollections">
+              <div class="kpi-icon-box">
+                <i data-lucide="folder" style="width:16px;height:16px;"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Total Collections</span>
+                <div class="kpi-val" id="valTotalCollections">0</div>
+                <div class="kpi-delta positive" id="deltaTotalCollections" style="display:none;">
+                  <i data-lucide="arrow-up" style="width:10px;height:10px;"></i>
+                  <span>—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Active Collections -->
+            <div class="kpi-card" id="kpiActiveCollections">
+              <div class="kpi-icon-box icon-ring">
+                <i data-lucide="circle-dot" style="width:16px;height:16px;"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Active Collections</span>
+                <div class="kpi-val" id="valActiveCollections">0</div>
+                <div class="kpi-delta positive" id="deltaActiveCollections" style="display:none;">
+                  <i data-lucide="arrow-up" style="width:10px;height:10px;"></i>
+                  <span>—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Current Season -->
+            <div class="kpi-card" id="kpiCurrentSeason">
+              <div class="kpi-icon-box">
+                <i data-lucide="calendar" style="width:16px;height:16px;"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Current Season</span>
+                <div class="kpi-val" id="valCurrentSeason">0</div>
+                <div class="kpi-subtext" id="subCurrentSeason">—</div>
+              </div>
+            </div>
+
+            <!-- Card 4: Total Garments -->
+            <div class="kpi-card" id="kpiTotalGarments">
+              <div class="kpi-icon-box icon-dress">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Total Garments</span>
+                <div class="kpi-val" id="valTotalGarments">0</div>
+              </div>
+            </div>
+
+            <!-- Card 5: Total Designs -->
+            <div class="kpi-card" id="kpiTotalDesigns">
+              <div class="kpi-icon-box icon-scissors">
+                <i data-lucide="scissors" style="width:16px;height:16px;"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Total Designs</span>
+                <div class="kpi-val" id="valTotalDesigns">0</div>
+              </div>
+            </div>
+
+            <!-- Card 6: Draft Collections -->
+            <div class="kpi-card" id="kpiDraftCollections">
+              <div class="kpi-icon-box icon-draft">
+                <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Draft Collections</span>
+                <div class="kpi-val" id="valDraftCollections">0</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. Featured Collections Section -->
+          <section class="featured-section" aria-label="Featured Collections">
+            <div class="section-header-flex">
+              <h2 class="section-title">Featured Collections</h2>
+              <button type="button" class="btn-section-link" onclick="scrollToAllCollections()">View All &rarr;</button>
+            </div>
+
+            <div class="featured-grid" id="featuredGrid">
+              <!-- Large Hero Card -->
+              <div class="featured-hero-card" id="featuredLargeCard"></div>
+
+              <!-- 2x2 Subgrid of Smaller Featured Cards -->
+              <div class="featured-subgrid" id="featuredSubgrid">
+                <div class="featured-sub-card skeleton-card"></div>
+                <div class="featured-sub-card skeleton-card"></div>
+                <div class="featured-sub-card skeleton-card"></div>
+                <div class="featured-sub-card skeleton-card"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. All Collections Section -->
+          <section class="all-collections-section" id="allCollectionsSection" aria-label="All Collections">
+            <div class="all-collections-header">
+              <h2 class="section-title" id="allCollectionsCountHeading">All Collections (0)</h2>
+
+              <!-- Filter Toolbar -->
+              <div class="filter-toolbar">
+                <!-- Search input -->
+                <div class="search-box">
+                  <i data-lucide="search" style="width:14px;height:14px;"></i>
+                  <input type="text" id="inputCollectionSearch" placeholder="Search collections..." oninput="handleSearch(this.value)" />
+                </div>
+
+                <!-- Dropdowns (Populated dynamically from DB) -->
+                <div class="select-wrapper">
+                  <select id="filterSeason" onchange="handleFilterChange()">
+                    <option value="all">Season: All</option>
+                  </select>
+                </div>
+
+                <div class="select-wrapper">
+                  <select id="filterYear" onchange="handleFilterChange()">
+                    <option value="all">Year: All</option>
+                  </select>
+                </div>
+
+                <div class="select-wrapper">
+                  <select id="filterStatus" onchange="handleFilterChange()">
+                    <option value="all">Status: All</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="PLANNING">Planning</option>
+                    <option value="DRAFT">Draft</option>
+                  </select>
+                </div>
+
+                <div class="select-wrapper">
+                  <select id="filterDesigner" onchange="handleFilterChange()">
+                    <option value="all">Designer: All</option>
+                  </select>
+                </div>
+
+                <div class="select-wrapper">
+                  <select id="filterBranch" onchange="handleFilterChange()">
+                    <option value="all">Branch: All</option>
+                  </select>
+                </div>
+
+                <button type="button" class="btn-reset-filters" id="btnResetFilters" onclick="resetFilters()">Reset</button>
+
+                <!-- View Mode Toggles: Grid / List -->
+                <div class="view-toggles" role="group" aria-label="View toggle">
+                  <button type="button" class="view-toggle-btn active" id="btnViewGrid" title="Grid View" onclick="setViewMode('grid')">
+                    <i data-lucide="layout-grid" style="width:15px;height:15px;"></i>
+                  </button>
+                  <button type="button" class="view-toggle-btn" id="btnViewList" title="List View" onclick="setViewMode('list')">
+                    <i data-lucide="list" style="width:15px;height:15px;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- All Collections Card Grid (4-Column) -->
+            <div class="collections-grid-view" id="collectionsGrid">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Empty State container -->
+            <div class="empty-state-box" id="collectionsEmptyState" style="display:none;">
+              <div class="empty-icon-wrap">
+                <i data-lucide="folder-search" style="width:36px;height:36px;"></i>
+              </div>
+              <h3 class="empty-title">No Collections Found</h3>
+              <p class="empty-desc">No collections matched your filters or search criteria. Try adjusting your filters or create a new collection.</p>
+              <button type="button" class="btn-new-collection" onclick="openNewCollectionModal()">
+                <i data-lucide="plus" style="width:15px;height:15px;"></i>
+                <span>Create Collection</span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- ==========================================
+             RIGHT COLUMN (~37%):
+             Top Action Buttons + Persistent Inspector
+             ========================================== -->
+        <aside class="workspace-right" id="workspaceRightPanel" aria-label="Collection Details Inspector">
+          
+          <!-- Top Action Bar (Aligned with page header on left) -->
+          <div class="workspace-right-header">
+            <!-- New Collection Button -->
+            <button type="button" class="btn-new-collection" id="btnNewCollection" onclick="openNewCollectionModal()">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i>
+              <span>New Collection</span>
+            </button>
+
+            <!-- More Options Button -->
+            <div class="more-menu-wrapper">
+              <button type="button" class="btn-more-options" id="btnMoreOptions" aria-label="More Actions" onclick="toggleMoreMenu(event)">
+                <i data-lucide="more-horizontal" style="width:18px;height:18px;"></i>
+              </button>
+              <div class="more-dropdown-menu" id="moreDropdownMenu">
+                <button type="button" class="dropdown-item" onclick="refreshCollectionsData()">
+                  <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+                  <span>Refresh Data</span>
+                </button>
+                <button type="button" class="dropdown-item" onclick="exportLookbook()">
+                  <i data-lucide="download" style="width:14px;height:14px;"></i>
+                  <span>Export Lookbook</span>
+                </button>
+                <button type="button" class="dropdown-item" onclick="window.print()">
+                  <i data-lucide="printer" style="width:14px;height:14px;"></i>
+                  <span>Print View</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Persistent Inspector Card -->
+          <div class="inspector-card" id="inspectorCard">
+
+            <!-- Hero Header of Selected Collection -->
+            <div class="inspector-hero" id="inspectorHero">
+              <div class="hero-bg-overlay"></div>
+              
+              <!-- Navigation arrow controls -->
+              <button type="button" class="hero-nav-arrow prev" onclick="navigateCollection(-1)" title="Previous Collection">
+                <i data-lucide="chevron-left" style="width:16px;height:16px;"></i>
+              </button>
+              <button type="button" class="hero-nav-arrow next" onclick="navigateCollection(1)" title="Next Collection">
+                <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
+              </button>
+              <button type="button" class="hero-expand-btn" onclick="openLookbookModal()" title="Fullscreen Lookbook">
+                <i data-lucide="maximize-2" style="width:15px;height:15px;"></i>
+              </button>
+
+              <div class="hero-content">
+                <div class="hero-title-row">
+                  <h2 class="hero-title" id="inspectorHeroTitle">—</h2>
+                  <span class="badge-status" id="inspectorHeroBadge" style="display:none;">Active</span>
+                </div>
+                <p class="hero-subtitle" id="inspectorHeroSubtitle">No collection selected</p>
+                <div class="hero-stats-line" id="inspectorHeroStatsLine">
+                  <span id="heroStatGarments">0 Garments</span>
+                  <span class="sep">|</span>
+                  <span id="heroStatDesigns">0 Designs</span>
+                  <span class="sep">|</span>
+                  <span id="heroStatLaunch">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inspector Navigation Tabs -->
+            <div class="inspector-tabs" role="tablist">
+              <button type="button" class="inspector-tab active" data-tab="overview" onclick="switchInspectorTab('overview')">Overview</button>
+              <button type="button" class="inspector-tab" data-tab="designs" onclick="switchInspectorTab('designs')">Designs</button>
+              <button type="button" class="inspector-tab" data-tab="garments" onclick="switchInspectorTab('garments')">Garments</button>
+              <button type="button" class="inspector-tab" data-tab="fabrics" onclick="switchInspectorTab('fabrics')">Fabrics</button>
+              <button type="button" class="inspector-tab" data-tab="moodboard" onclick="switchInspectorTab('moodboard')">Moodboard</button>
+              <button type="button" class="inspector-tab" data-tab="activity" onclick="switchInspectorTab('activity')">Activity</button>
+            </div>
+
+            <!-- Tab Body Content -->
+            <div class="inspector-body" id="inspectorBody">
+
+              <!-- TAB 1: OVERVIEW -->
+              <div class="tab-pane active" id="paneOverview">
+
+                <!-- ROW 1: Collection Details + Launch & Timeline -->
+                <div class="inspector-row-split">
+                  <!-- 1. Collection Details -->
+                  <div class="detail-card">
+                    <h3 class="detail-card-title">Collection Details</h3>
+                    <div class="detail-props-grid">
+                      <div class="prop-item">
+                        <span class="prop-label">Collection Code</span>
+                        <span class="prop-val" id="detCode">—</span>
+                      </div>
+                      <div class="prop-item">
+                        <span class="prop-label">Season</span>
+                        <span class="prop-val" id="detSeason">—</span>
+                      </div>
+                      <div class="prop-item">
+                        <span class="prop-label">Designer</span>
+                        <span class="prop-val" id="detDesigner">—</span>
+                      </div>
+                      <div class="prop-item">
+                        <span class="prop-label">Branch</span>
+                        <span class="prop-val" id="detBranch">—</span>
+                      </div>
+                      <div class="prop-item">
+                        <span class="prop-label">Created On</span>
+                        <span class="prop-val" id="detCreatedOn">—</span>
+                      </div>
+                      <div class="prop-item">
+                        <span class="prop-label">Status</span>
+                        <span class="prop-val">
+                          <span class="badge-status" id="detStatusBadge" style="display:none;">—</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. Launch & Timeline -->
+                  <div class="detail-card">
+                    <h3 class="detail-card-title">Launch &amp; Timeline</h3>
+                    <div class="timeline-box-wrap">
+                      <div class="timeline-top-row">
+                        <div class="timeline-icon-box">
+                          <i data-lucide="calendar" style="width:16px;height:16px;"></i>
+                        </div>
+                        <div class="timeline-dates-wrap">
+                          <div class="timeline-date-entry">
+                            <span class="prop-label">Launch Date</span>
+                            <span class="prop-val" id="detLaunchDate">—</span>
+                          </div>
+                          <div class="timeline-date-entry">
+                            <span class="prop-label">Production Deadline</span>
+                            <span class="prop-val" id="detDeadlineVal">—</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="days-remaining-pill" id="detDaysRemaining" style="display:none;">—</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ROW 2: Collection Snapshot + Collection Progress -->
+                <div class="inspector-row-split">
+                  <!-- 1. Collection Snapshot -->
+                  <div class="detail-card">
+                    <h3 class="detail-card-title">Collection Snapshot</h3>
+                    <div class="stats-triad">
+                      <div class="stat-box">
+                        <div class="stat-box-icon">
+                          <i data-lucide="shirt" style="width:16px;height:16px;"></i>
+                        </div>
+                        <div class="stat-box-num" id="statGarmentsNum">0</div>
+                        <div class="stat-box-lbl">Garments</div>
+                      </div>
+
+                      <div class="stat-box">
+                        <div class="stat-box-icon">
+                          <i data-lucide="scissors" style="width:16px;height:16px;"></i>
+                        </div>
+                        <div class="stat-box-num" id="statDesignsNum">0</div>
+                        <div class="stat-box-lbl">Designs</div>
+                      </div>
+
+                      <div class="stat-box">
+                        <div class="stat-box-icon">
+                          <span style="font-weight:700;font-size:14px;color:var(--text-muted);">₹</span>
+                        </div>
+                        <div class="stat-box-num" id="statEstValueNum">₹0</div>
+                        <div class="stat-box-lbl">Est. Value</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. Collection Progress -->
+                  <div class="detail-card">
+                    <h3 class="detail-card-title">Collection Progress</h3>
+                    <div class="progress-ring-row">
+                      <div class="progress-ring-wrap">
+                        <svg class="progress-circle-svg" viewBox="0 0 100 100">
+                          <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                          <circle class="ring-fill" id="ringOverallFill" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                        </svg>
+                        <div class="ring-center-text">
+                          <span class="ring-pct" id="ringOverallPct">0%</span>
+                        </div>
+                      </div>
+                      <div class="progress-breakdown-list">
+                        <div class="prog-item">
+                          <span class="prog-dot dot-design"></span>
+                          <span class="prog-label">Design</span>
+                          <span class="prog-val" id="progDesignVal">0%</span>
+                        </div>
+                        <div class="prog-item">
+                          <span class="prog-dot dot-materials"></span>
+                          <span class="prog-label">Materials</span>
+                          <span class="prog-val" id="progMaterialsVal">0%</span>
+                        </div>
+                        <div class="prog-item">
+                          <span class="prog-dot dot-production"></span>
+                          <span class="prog-label">Production</span>
+                          <span class="prog-val" id="progProductionVal">0%</span>
+                        </div>
+                        <div class="prog-item">
+                          <span class="prog-dot dot-qc"></span>
+                          <span class="prog-label">QC</span>
+                          <span class="prog-val" id="progQcVal">0%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ROW 3: Garment Mix + Production Status -->
+                <div class="inspector-row-split">
+                  <!-- 1. Garment Mix -->
+                  <div class="detail-card">
+                    <h3 class="detail-card-title">Garment Mix</h3>
+                    <div class="composition-bars" id="compositionBars">
+                      <!-- Rendered dynamically -->
+                    </div>
+                  </div>
+
+                  <!-- 2. Production Status -->
+                  <div class="detail-card">
+                    <h3 class="detail-card-title">Production Status</h3>
+                    <div class="prod-status-list" id="prodLegendList">
+                      <!-- Legend items injected dynamically -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 4. Key Fabrics -->
+                <div class="detail-card">
+                  <div class="card-header-flex">
+                    <h3 class="detail-card-title" id="keyFabricsTitle">Key Fabrics (0)</h3>
+                    <button type="button" class="btn-card-link" onclick="switchInspectorTab('fabrics')">View All &gt;</button>
+                  </div>
+                  <div class="fabrics-thumb-grid" id="keyFabricsGrid">
+                    <!-- 5 fabric cards injected dynamically -->
+                  </div>
+                </div>
+
+                <!-- 5. Recent Activity -->
+                <div class="detail-card">
+                  <div class="card-header-flex">
+                    <h3 class="detail-card-title">Recent Activity</h3>
+                    <button type="button" class="btn-card-link" onclick="switchInspectorTab('activity')">View All &gt;</button>
+                  </div>
+                  <div class="timeline-list" id="recentActivityList">
+                    <!-- Chronological timeline items injected dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+                <!-- TAB 2: DESIGNS -->
+                <div class="tab-pane" id="paneDesigns">
+                  <div class="sub-tab-header">
+                    <h4 class="sub-tab-title">Collection Designs</h4>
+                    <span class="sub-tab-badge" id="designsTabBadge">0 Designs</span>
+                  </div>
+                  <div class="designs-grid-list" id="tabDesignsList">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
+                <!-- TAB 3: GARMENTS -->
+                <div class="tab-pane" id="paneGarments">
+                  <div class="sub-tab-header">
+                    <h4 class="sub-tab-title">Client Garments &amp; Orders</h4>
+                    <span class="sub-tab-badge" id="garmentsTabBadge">0 Garments</span>
+                  </div>
+                  <div class="garments-table-list" id="tabGarmentsList">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
+                <!-- TAB 4: FABRICS -->
+                <div class="tab-pane" id="paneFabrics">
+                  <div class="sub-tab-header">
+                    <h4 class="sub-tab-title">Allocated Fabric Lots</h4>
+                    <span class="sub-tab-badge" id="fabricsTabBadge">0 Lots</span>
+                  </div>
+                  <div class="fabrics-full-list" id="tabFabricsList">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
+                <!-- TAB 5: MOODBOARD -->
+                <div class="tab-pane" id="paneMoodboard">
+                  <div class="sub-tab-header">
+                    <h4 class="sub-tab-title">Visual Story &amp; Moodboard</h4>
+                  </div>
+                  <div class="moodboard-gallery" id="tabMoodboardGallery">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
+                <!-- TAB 6: ACTIVITY -->
+                <div class="tab-pane" id="paneActivity">
+                  <div class="sub-tab-header">
+                    <h4 class="sub-tab-title">Audit Trail &amp; Milestones</h4>
+                  </div>
+                  <div class="activity-full-timeline" id="tabActivityTimeline">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </aside>
+        </div>
+
+      </div><!-- /.collections-workspace -->
+
+      <!-- Shared Footer / Status Bar Slot -->
+      <div id="footerSlot"></div>
+
+    </main><!-- /.main-content -->
+  </div><!-- /.app-shell -->
+
+  <!-- ==========================================
+       4. NEW COLLECTION MODAL
+       ========================================== -->
+  <div class="modal-backdrop" id="modalNewCollection" role="dialog" aria-modal="true" aria-labelledby="modalNewTitle">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="sparkles" style="width:20px;height:20px;color:var(--lime,#B8FF3D);"></i>
+          <h2 class="modal-title" id="modalNewTitle">Create New Collection</h2>
+        </div>
+        <button type="button" class="modal-close" onclick="closeModal('modalNewCollection')" aria-label="Close modal">
+          <i data-lucide="x" style="width:18px;height:18px;"></i>
+        </button>
+      </div>
+
+      <form id="formNewCollection" onsubmit="handleCreateCollectionSubmit(event)">
+        <div class="modal-body modal-grid-2">
+          <div class="form-group span-2">
+            <label class="form-label" for="newColName">Collection Name <span class="required">*</span></label>
+            <input type="text" id="newColName" class="form-input" placeholder="e.g. Bridal 2026, Royal Heritage" required />
+          </div>
+
+          <div class="form-group span-2">
+            <label class="form-label" for="newColSubtitle">Subtitle / Tagline</label>
+            <input type="text" id="newColSubtitle" class="form-input" placeholder="e.g. The Heirloom Edit, Modern Traditions" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newColSeason">Season <span class="required">*</span></label>
+            <input type="text" id="newColSeason" list="seasonsDatalist" class="form-input" placeholder="e.g. Autumn/Winter 2026" required />
+            <datalist id="seasonsDatalist"></datalist>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newColYear">Year</label>
+            <input type="number" id="newColYear" class="form-input" value="2026" min="2020" max="2035" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newColDesigner">Lead Designer</label>
+            <select id="newColDesigner" class="form-select">
+              <option value="">Select Designer...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newColBranch">Branch</label>
+            <input type="text" id="newColBranch" class="form-input" placeholder="e.g. Main Branch" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newColStatus">Status</label>
+            <select id="newColStatus" class="form-select">
+              <option value="ACTIVE" selected>Active</option>
+              <option value="PLANNING">Planning</option>
+              <option value="DRAFT">Draft</option>
+            </select>
+          </div>
+
+          <div class="form-group span-2">
+            <label class="form-label" for="newColDesc">Curatorial Description</label>
+            <textarea id="newColDesc" class="form-textarea" rows="3" placeholder="Enter collection story, fabric inspiration, and silhouette direction..."></textarea>
+          </div>
+
+          <div class="form-group span-2">
+            <label class="form-label" for="newColCover">Cover Image URL</label>
+            <input type="text" id="newColCover" class="form-input" placeholder="Enter image URL (e.g. /front end/assets/collections/bridal-heirloom.jpg)" />
+            <div class="cover-selector-grid" id="newColCoverSelector"></div>
+          </div>
+
+          <div class="form-group span-2">
+            <label class="checkbox-label">
+              <input type="checkbox" id="newColFeatured" />
+              <span>Pin as Featured Collection on Dashboard</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" onclick="closeModal('modalNewCollection')">Cancel</button>
+          <button type="submit" class="btn-modal-submit" id="btnSubmitNewCollection">Create Collection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       5. EDIT COLLECTION MODAL
+       ========================================== -->
+  <div class="modal-backdrop" id="modalEditCollection" role="dialog" aria-modal="true" aria-labelledby="modalEditTitle">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="edit-3" style="width:20px;height:20px;color:var(--lime,#B8FF3D);"></i>
+          <h2 class="modal-title" id="modalEditTitle">Edit Collection Details</h2>
+        </div>
+        <button type="button" class="modal-close" onclick="closeModal('modalEditCollection')" aria-label="Close modal">
+          <i data-lucide="x" style="width:18px;height:18px;"></i>
+        </button>
+      </div>
+
+      <form id="formEditCollection" onsubmit="handleEditCollectionSubmit(event)">
+        <input type="hidden" id="editColOriginalName" />
+        <div class="modal-body modal-grid-2">
+          <div class="form-group span-2">
+            <label class="form-label" for="editColName">Collection Name</label>
+            <input type="text" id="editColName" class="form-input" required />
+          </div>
+
+          <div class="form-group span-2">
+            <label class="form-label" for="editColSubtitle">Subtitle / Tagline</label>
+            <input type="text" id="editColSubtitle" class="form-input" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editColSeason">Season</label>
+            <input type="text" id="editColSeason" list="seasonsDatalist" class="form-input" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editColStatus">Status</label>
+            <select id="editColStatus" class="form-select">
+              <option value="ACTIVE">Active</option>
+              <option value="PLANNING">Planning</option>
+              <option value="DRAFT">Draft</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editColDesigner">Lead Designer</label>
+            <select id="editColDesigner" class="form-select">
+              <option value="">Select Designer...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editColBranch">Branch</label>
+            <input type="text" id="editColBranch" class="form-input" />
+          </div>
+
+          <div class="form-group span-2">
+            <label class="form-label" for="editColCover">Cover Image URL</label>
+            <input type="text" id="editColCover" class="form-input" placeholder="Image URL" />
+          </div>
+
+          <div class="form-group span-2">
+            <label class="form-label" for="editColDesc">Description</label>
+            <textarea id="editColDesc" class="form-textarea" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-danger" onclick="archiveCurrentCollection()">Archive Collection</button>
+          <div style="flex:1"></div>
+          <button type="button" class="btn-modal-cancel" onclick="closeModal('modalEditCollection')">Cancel</button>
+          <button type="submit" class="btn-modal-submit" id="btnSubmitEditCollection">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Shared Navigation & App Logic -->
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+  <script type="module" src="collections.js"></script>
+</body>
+</html>

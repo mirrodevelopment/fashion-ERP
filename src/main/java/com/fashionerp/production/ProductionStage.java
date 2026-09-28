@@ -23,7 +23,7 @@ public class ProductionStage {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"customer", "hibernateLazyInitializer", "handler"})
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"customer", "progressStages", "hibernateLazyInitializer", "handler"})
     private Order order;
 
     @Column(name = "stage_name", nullable = false, length = 100)

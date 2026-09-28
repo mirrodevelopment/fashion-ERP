@@ -1,14 +1,13 @@
 package com.fashionerp.production;
 
-import com.fashionerp.order.Order;
 import com.fashionerp.order.OrderRepository;
 import com.fashionerp.order.OrderStatus;
 import com.fashionerp.workforce.Employee;
 import com.fashionerp.workforce.EmployeeRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,9 +22,9 @@ public class ProductionController {
 
     private final ProductionStageRepository stageRepository;
     private final OrderRepository orderRepository;
-    private final EmployeeRepository employeeRepository;
     private final StageDefinitionService stageDefinitionService;
-    private final StageDefinitionRepository stageDefinitionRepository;
+    private final ProductionService productionService;
+    private final EmployeeRepository employeeRepository;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EXISTING — Per-order production stages
@@ -60,111 +59,30 @@ public class ProductionController {
         return stageRepository.save(stage);
     }
 
+    @PatchMapping("/stages/{id}/assign")
+    public ProductionStage assignEmployee(
+            @PathVariable UUID id,
+            @RequestParam(required = false) UUID employeeId) {
+        ProductionStage stage = stageRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Production Stage not found: " + id));
+
+        if (employeeId != null) {
+            Employee emp = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found: " + employeeId));
+            stage.setAssignedTo(emp);
+        } else {
+            stage.setAssignedTo(null);
+        }
+        return stageRepository.save(stage);
+    }
+
     @PostMapping("/transition")
     public Map<String, Object> transitionStage(
             @RequestParam UUID orderId,
             @RequestParam String targetStage,
             @RequestParam(required = false) UUID employeeId,
             @RequestParam(required = false) String notes) {
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found: " + orderId));
-
-        Employee employee = null;
-        if (employeeId != null) {
-            employee = employeeRepository.findById(employeeId).orElse(null);
-        }
-
-        String rawUpper = targetStage != null ? targetStage.toUpperCase().trim() : "";
-        if ("NEXT_AFTER_QC".equals(rawUpper) || "PASS_QC".equals(rawUpper)) {
-            Map<String, Object> nextInfo = getNextStageAfterQc();
-            rawUpper = ((String) nextInfo.get("stageKey")).toUpperCase().trim();
-        }
-        final String stUpper = rawUpper;
-
-        order.setCurrentStage(stUpper);
-        if ("READY".equals(stUpper) || "READY_TO_DELIVER".equals(stUpper)) {
-            order.setStatus(OrderStatus.READY);
-        } else if ("ORDER_TAKEN".equals(stUpper) || "ORDER".equals(stUpper)) {
-            // ORDER_TAKEN is the only system-recognized first stage; keeps status PENDING
-            order.setStatus(OrderStatus.PENDING);
-        } else {
-            // All other stages (user-defined or QC) move order to IN_PROGRESS
-            order.setStatus(OrderStatus.IN_PROGRESS);
-        }
-
-        if (notes != null && !notes.isBlank()) {
-            order.setProductionNotes(notes);
-        }
-        orderRepository.save(order);
-
-        List<ProductionStage> stages = stageRepository.findByOrderIdOrderBySortOrderAsc(orderId);
-        int targetSortOrder = 1;
-
-        // Dynamically resolve target sort order from order's stages or stage definitions
-        Optional<ProductionStage> matchingStage = stages.stream()
-                .filter(s -> s.getStageName() != null &&
-                        (s.getStageName().equalsIgnoreCase(stUpper) ||
-                         // Support legacy alias: READY and READY_TO_DELIVER are the same final stage
-                         (s.getStageName().equalsIgnoreCase("READY_TO_DELIVER") && "READY".equals(stUpper)) ||
-                         (s.getStageName().equalsIgnoreCase("READY") && "READY_TO_DELIVER".equals(stUpper)) ||
-                         // Support legacy alias: ORDER and ORDER_TAKEN are the same initial stage
-                         (s.getStageName().equalsIgnoreCase("ORDER_TAKEN") && "ORDER".equals(stUpper)) ||
-                         (s.getStageName().equalsIgnoreCase("ORDER") && "ORDER_TAKEN".equals(stUpper))))
-                .findFirst();
-
-        if (matchingStage.isPresent() && matchingStage.get().getSortOrder() != null) {
-            targetSortOrder = matchingStage.get().getSortOrder();
-        } else {
-            Optional<StageDefinition> def = stageDefinitionRepository.findByStageKey(stUpper);
-            if (def.isPresent() && def.get().getSortOrder() != null) {
-                targetSortOrder = def.get().getSortOrder();
-            } else {
-                List<StageDefinition> allDefs = stageDefinitionRepository.findAllByOrderBySortOrderAsc();
-                for (StageDefinition d : allDefs) {
-                    if ((d.getStageKey() != null && d.getStageKey().equalsIgnoreCase(stUpper)) ||
-                        (d.getDisplayName() != null && d.getDisplayName().equalsIgnoreCase(stUpper))) {
-                        targetSortOrder = d.getSortOrder();
-                        break;
-                    }
-                }
-            }
-        }
-
-        for (ProductionStage stage : stages) {
-            int so = stage.getSortOrder() != null ? stage.getSortOrder() : 0;
-            if (so < targetSortOrder) {
-                stage.setStatus("COMPLETED");
-                if (stage.getCompletedAt() == null) stage.setCompletedAt(LocalDateTime.now());
-            } else if (so == targetSortOrder) {
-                if ("READY".equals(stUpper) || "READY_TO_DELIVER".equals(stUpper)) {
-                    stage.setStatus("COMPLETED");
-                    stage.setCompletedAt(LocalDateTime.now());
-                } else {
-                    stage.setStatus("IN_PROGRESS");
-                    if (stage.getStartedAt() == null) stage.setStartedAt(LocalDateTime.now());
-                }
-                if (employee != null) {
-                    stage.setAssignedTo(employee);
-                }
-                if (notes != null && !notes.isBlank()) {
-                    stage.setNotes(notes);
-                }
-            } else {
-                stage.setStatus("NOT_STARTED");
-            }
-        }
-        if (!stages.isEmpty()) {
-            stageRepository.saveAll(stages);
-        }
-
-        Map<String, Object> resp = new LinkedHashMap<>();
-        resp.put("success", true);
-        resp.put("orderCode", order.getOrderCode());
-        resp.put("currentStage", order.getCurrentStage());
-        resp.put("status", order.getStatus());
-        resp.put("assignedTo", employee != null ? employee.getName() : null);
-        return resp;
+        return productionService.transitionStage(orderId, targetStage, employeeId, notes);
     }
 
     /**
@@ -174,36 +92,7 @@ public class ProductionController {
      */
     @GetMapping("/qc/next-stage")
     public Map<String, Object> getNextStageAfterQc() {
-        List<StageDefinition> activeStages = stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
-        int qcSortOrder = -1;
-        for (StageDefinition sd : activeStages) {
-            if ("QC".equalsIgnoreCase(sd.getStageKey())) {
-                qcSortOrder = sd.getSortOrder() != null ? sd.getSortOrder() : -1;
-                break;
-            }
-        }
-
-        StageDefinition nextStage = null;
-        if (qcSortOrder != -1) {
-            for (StageDefinition sd : activeStages) {
-                if (sd.getSortOrder() != null && sd.getSortOrder() > qcSortOrder) {
-                    nextStage = sd;
-                    break;
-                }
-            }
-        }
-
-        Map<String, Object> resp = new LinkedHashMap<>();
-        if (nextStage != null) {
-            resp.put("stageKey", nextStage.getStageKey());
-            resp.put("displayName", nextStage.getDisplayName());
-            resp.put("sortOrder", nextStage.getSortOrder());
-        } else {
-            resp.put("stageKey", "READY_TO_DELIVER");
-            resp.put("displayName", "Ready to Deliver");
-            resp.put("sortOrder", 999);
-        }
-        return resp;
+        return productionService.getNextStageAfterQc();
     }
 
     @GetMapping("/kpis")

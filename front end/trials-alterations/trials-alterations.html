@@ -140,23 +140,23 @@
                 <i data-lucide="calendar" class="header-icon purple-tint"></i>
                 <span>Upcoming Trials</span>
               </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <button type="button" class="btn-select-order-trigger" id="btnOpenOrderPicker" onclick="openOrderPickerModal()">
+              <div class="col-header-actions">
+                <button type="button" class="btn-select-order-trigger" id="btnOpenOrderPicker" onclick="openOrderPickerModal()" title="Select Order">
                   <i data-lucide="folder-search" style="width:13px;height:13px;"></i>
                   <span>Select Order</span>
                 </button>
                 <a href="../appointments/appointments.html" class="header-link" title="Open Calendar View">
-                  Calendar &rarr;
+                  View Calendar &rarr;
                 </a>
               </div>
             </div>
 
-            <!-- Filter Pills -->
+            <!-- Filter Pills with Dynamic Counts -->
             <div class="filter-pills" id="filterPills">
-              <button class="filter-pill active" data-filter="all">All</button>
-              <button class="filter-pill" data-filter="today">Today</button>
-              <button class="filter-pill" data-filter="week">This Week</button>
-              <button class="filter-pill" data-filter="overdue">Overdue</button>
+              <button class="filter-pill active" data-filter="all">All (<span id="countAll">0</span>)</button>
+              <button class="filter-pill" data-filter="today">Today (<span id="countToday">0</span>)</button>
+              <button class="filter-pill" data-filter="week">This Week (<span id="countWeek">0</span>)</button>
+              <button class="filter-pill" data-filter="overdue">Overdue (<span id="countOverdue">0</span>)</button>
             </div>
 
             <!-- Search Box -->
@@ -183,7 +183,7 @@
               <!-- Header with Mark as Completed Button -->
               <div class="col-header border-bottom">
                 <div class="col-title">
-                  <i data-lucide="clipboard-list" class="header-icon yellow-tint"></i>
+                  <i data-lucide="calendar" class="header-icon yellow-tint"></i>
                   <span>Trial Details</span>
                 </div>
                 <button class="btn-translucent" id="btnMarkCompleted" onclick="handleMarkCompletedClick()">
@@ -191,23 +191,13 @@
                 </button>
               </div>
 
-              <!-- Trial Attempt & Alteration Round Hero Strip -->
-              <div style="padding: 12px 18px 0 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div class="trial-counter-hero-badge" id="heroTrialCounter">
-                  <span class="attempt-number" id="detailAttemptNumber">🎯 Trial Attempt #1 (First Trial)</span>
-                  <span>&bull;</span>
-                  <span class="alt-counter" id="detailAlterationCounter">✂️ Alteration Round 0</span>
-                </div>
-                <span id="detailFitSummaryPill" class="stage-pill-purple" style="font-size:11px;">PENDING FITTING</span>
-              </div>
-
               <!-- Customer & Order Information Hero Grid -->
               <div class="customer-order-hero">
 
                 <!-- Customer Profile Block -->
                 <div class="customer-profile-block">
-                  <div class="customer-avatar-box">
-                    <img id="detailCustomerImg" src="../assets/user_avatar.jpg" alt="Customer Profile" onerror="this.src='../assets/user_avatar.jpg';" />
+                  <div class="customer-avatar-box" id="detailCustomerAvatarBox">
+                    <div class="haulo-patron-avatar-initials haulo-avatar-md" style="width:48px;height:48px;border-radius:12px;">CU</div>
                   </div>
                   <div class="customer-text-meta">
                     <div class="name-row">
@@ -282,6 +272,40 @@
                       <input type="file" id="imageUploadInput" accept="image/png, image/jpeg, image/webp" style="display:none;" onchange="handleImageUpload(event)" multiple />
                     </div>
                   </div>
+
+                  <!-- Garment Specifications inside Tab 1 / under gallery -->
+                  <div class="specs-section">
+                    <div class="specs-section-header">
+                      <i data-lucide="sliders" class="header-icon gold-tint" style="width:14px;height:14px;"></i>
+                      <span>Garment Specifications</span>
+                    </div>
+                    <div class="specs-table" id="garmentSpecsTable">
+                      <div class="specs-row">
+                        <span class="spec-label">Neck Style</span>
+                        <span class="spec-value" id="specNeck">—</span>
+                      </div>
+                      <div class="specs-row">
+                        <span class="spec-label">Sleeve Style</span>
+                        <span class="spec-value" id="specSleeve">—</span>
+                      </div>
+                      <div class="specs-row">
+                        <span class="spec-label">Lining</span>
+                        <span class="spec-value" id="specLining">—</span>
+                      </div>
+                      <div class="specs-row">
+                        <span class="spec-label">Embroidery</span>
+                        <span class="spec-value" id="specEmbroidery">—</span>
+                      </div>
+                      <div class="specs-row">
+                        <span class="spec-label">Fabric</span>
+                        <span class="spec-value" id="specFabric">—</span>
+                      </div>
+                      <div class="specs-row">
+                        <span class="spec-label">Special Notes</span>
+                        <span class="spec-value text-muted" id="specSpecialNotes">—</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Tab 2: Measurements -->
@@ -323,42 +347,6 @@
 
             </div>
 
-            <!-- Card: Garment Specifications -->
-            <div class="glass-card specs-card">
-              <div class="col-header border-bottom">
-                <div class="col-title">
-                  <i data-lucide="sliders" class="header-icon gold-tint"></i>
-                  <span>Garment Specifications</span>
-                </div>
-              </div>
-              <div class="specs-table" id="garmentSpecsTable">
-                <div class="specs-row">
-                  <span class="spec-label">Neck Style</span>
-                  <span class="spec-value" id="specNeck">—</span>
-                </div>
-                <div class="specs-row">
-                  <span class="spec-label">Sleeve Style</span>
-                  <span class="spec-value" id="specSleeve">—</span>
-                </div>
-                <div class="specs-row">
-                  <span class="spec-label">Lining</span>
-                  <span class="spec-value" id="specLining">—</span>
-                </div>
-                <div class="specs-row">
-                  <span class="spec-label">Embroidery</span>
-                  <span class="spec-value" id="specEmbroidery">—</span>
-                </div>
-                <div class="specs-row">
-                  <span class="spec-label">Fabric</span>
-                  <span class="spec-value" id="specFabric">—</span>
-                </div>
-                <div class="specs-row">
-                  <span class="spec-label">Special Notes</span>
-                  <span class="spec-value text-muted" id="specSpecialNotes">—</span>
-                </div>
-              </div>
-            </div>
-
           </section>
 
           <!-- =====================================================
@@ -366,51 +354,7 @@
                ===================================================== -->
           <section class="col-assessments" aria-label="Fit Assessment and Actions">
 
-            <!-- Card 1: Consumer Feedback -->
-            <div class="glass-card feedback-card">
-              <div class="col-header border-bottom">
-                <div class="col-title">
-                  <i data-lucide="message-square-heart" class="header-icon pink-tint"></i>
-                  <span>Consumer Feedback</span>
-                </div>
-                <div class="rating-display-value" id="feedbackRatingValueText">5.0 / 5.0 (Excellent)</div>
-              </div>
-              <div class="feedback-body">
-                <!-- 5-Star Rating -->
-                <div class="feedback-field-group">
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <label class="form-label-sm" style="margin:0;">Client Satisfaction Rating</label>
-                    <span id="starRatingSubtext" style="font-size:11px;color:#fbbf24;font-weight:600;">★★★★★ 5 Stars</span>
-                  </div>
-                  <div class="star-rating-row" id="starRatingRow">
-                    <button type="button" class="star-btn active" data-rating="1" onclick="setCustomerRating(1)" title="1 Star - Poor">★</button>
-                    <button type="button" class="star-btn active" data-rating="2" onclick="setCustomerRating(2)" title="2 Stars - Fair">★</button>
-                    <button type="button" class="star-btn active" data-rating="3" onclick="setCustomerRating(3)" title="3 Stars - Good">★</button>
-                    <button type="button" class="star-btn active" data-rating="4" onclick="setCustomerRating(4)" title="4 Stars - Very Good">★</button>
-                    <button type="button" class="star-btn active" data-rating="5" onclick="setCustomerRating(5)" title="5 Stars - Excellent">★</button>
-                  </div>
-                </div>
-
-                <!-- Desired Fit Preference -->
-                <div class="feedback-field-group">
-                  <label class="form-label-sm">Client's Desired Fit Style</label>
-                  <div class="fit-preference-pills" id="fitPreferencePills">
-                    <button type="button" class="pref-pill" data-pref="Slim / Snug Fit" onclick="setFitPreference('Slim / Snug Fit')">Slim / Snug</button>
-                    <button type="button" class="pref-pill active" data-pref="Comfort / Regular Fit" onclick="setFitPreference('Comfort / Regular Fit')">Comfort / Regular</button>
-                    <button type="button" class="pref-pill" data-pref="Relaxed / Flowy Fit" onclick="setFitPreference('Relaxed / Flowy Fit')">Relaxed / Flowy</button>
-                    <button type="button" class="pref-pill" data-pref="Bridal / Traditional" onclick="setFitPreference('Bridal / Traditional')">Bridal Silhouette</button>
-                  </div>
-                </div>
-
-                <!-- Client's Direct Words / Notes -->
-                <div class="feedback-field-group">
-                  <label class="form-label-sm" for="customerFeedbackNotes">Client's Direct Comments / Impressions</label>
-                  <textarea id="customerFeedbackNotes" class="alteration-textarea textarea-compact" placeholder="e.g. Loved overall fall and neck cut; prefers 0.5&quot; ease around underarm for movement..."></textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- Card 2: Fit Assessment -->
+            <!-- Card 1: Fit Assessment -->
             <div class="glass-card fit-card">
               <div class="col-header border-bottom">
                 <div class="col-title">
@@ -418,8 +362,8 @@
                   <span>Fit Assessment</span>
                 </div>
               </div>
-              <div class="section-subheading" style="padding: 10px 14px 4px;">Overall Fit Status</div>
-              <div class="fit-options-grid" style="padding: 0 14px 10px;">
+              <div class="section-subheading">Overall Fit Status</div>
+              <div class="fit-options-grid">
 
                 <!-- Option 1: Perfect Fit -->
                 <div class="fit-option" data-fit="perfect" onclick="selectFitStatus('perfect')">
@@ -452,19 +396,9 @@
                 </div>
 
               </div>
-
-              <!-- 8-Point Checkpoint Evaluation Grid -->
-              <div class="section-subheading border-top" style="padding: 10px 14px 4px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06);">
-                <span>Body Checkpoints Evaluation</span>
-                <span id="checkpointSummaryCounter" style="font-size:10.5px;color:rgba(255,255,255,0.45);">8 Checkpoints</span>
-              </div>
-              <div class="checkpoints-grid" id="checkpointsGrid">
-                <!-- Injected dynamically via JavaScript -->
-              </div>
-
             </div>
 
-            <!-- Card: Alteration Details -->
+            <!-- Card 2: Alteration Details -->
             <div class="glass-card alteration-card">
               <div class="col-header border-bottom">
                 <div class="col-title">
@@ -528,13 +462,9 @@
                   </div>
                 </div>
                 <div class="action-buttons-group">
-                  <button class="btn-action-lime" id="btnAdvanceQC" onclick="handleAdvanceToQC()">
-                    <i data-lucide="check-check" style="width:15px;height:15px;"></i>
-                    <span>Advance to QC (Perfect Fit)</span>
-                  </button>
                   <button class="btn-action-primary" id="btnSaveAlterations" onclick="handleSaveAlterations()">
                     <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
-                    <span>Save Alterations &amp; Feedback</span>
+                    <span>Save Alterations</span>
                   </button>
                   <button class="btn-action-glass" id="btnScheduleRetrial" onclick="openScheduleRetrialModal()">
                     <i data-lucide="calendar" style="width:14px;height:14px;"></i>
@@ -857,8 +787,8 @@
   <div id="footerSlot"></div>
 
   <!-- Logic Controller Script & Global Fragments -->
-  <script src="trials-alterations.js?v=15"></script>
   <script src="../fragments/fragments-inline.js"></script>
   <script src="../fragments/fragments.js"></script>
+  <script src="trials-alterations.js?v=16"></script>
 </body>
 </html>

@@ -19,7 +19,7 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="../fragments/fragments.css" />
   <link rel="stylesheet" href="../fragments/nav.css" />
-  <link rel="stylesheet" href="production.css" />
+  <link rel="stylesheet" href="production.css?v=2.1" />
   <script src="../fragments/nav.js"></script>
   <script>window.FRAGMENT_BASE = '../fragments/';</script>
 </head>
@@ -319,13 +319,27 @@
         <section class="workflow-section">
 
           <!-- Workflow Toolbar Header -->
-          <div class="workflow-header-row">
+          <div class="workflow-header-row" id="workflowHeaderRow">
+
+            <!-- LEFT: Section collapse toggle (‹) + Title -->
             <div class="wf-title-area">
-              <h2 class="wf-title">Production Workflow</h2>
-              <p class="wf-subtitle">Drag and drop cards to update status</p>
+              <button class="wf-section-collapse-btn" id="wfSectionCollapseBtn"
+                      onclick="toggleWorkflowSection(event)"
+                      title="Collapse board section" aria-label="Toggle workflow section">
+                <!-- ‹ left chevron — rotates to › when collapsed -->
+                <svg class="wf-section-chevron" viewBox="0 0 24 24" width="14" height="14"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
+              <div>
+                <h2 class="wf-title">Production Workflow</h2>
+                <p class="wf-subtitle">Drag and drop cards to update status</p>
+              </div>
             </div>
 
-            <div class="wf-controls-area">
+            <div class="wf-controls-area" id="wfControlsArea">
               <!-- Search within Workflow -->
               <div class="wf-search-box">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
@@ -389,228 +403,32 @@
                 </svg>
                 <span>New Order</span>
               </button>
-            </div>
-                  <!-- KANBAN BOARD COLUMNS CONTAINER -->
-          <div class="kanban-board" id="kanbanBoard">
 
-            <!-- 1. Order Taken Column -->
-            <div class="kanban-col col-ordertaken" data-stage-id="ordertaken" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'ordertaken')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-emerald"></span>
-                  <img src="/front end/assets/stages/Order_Taken_1010.jpg" class="stage-col-thumb" alt="Order Taken" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Order Taken</span>
-                </div>
-                <span class="k-col-count" id="count-ordertaken">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-ordertaken">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('ordertaken')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
+              <!-- Collapse-All button (goes AFTER the +New Order button) -->
+              <button class="btn-collapse-all" id="btnCollapseAll"
+                      onclick="toggleCollapseAll(event)"
+                      title="Collapse all columns" aria-label="Collapse all columns">
+                <svg class="collapse-all-chevron" viewBox="0 0 24 24" width="12" height="12"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"/><!-- ‹ left chevron, rotates to › -->
                 </svg>
-                <span>Add Order</span>
+                <span class="collapse-all-label">All</span>
               </button>
             </div>
+          </div>
 
-            <!-- 2. Designing Column -->
-            <div class="kanban-col col-designing" data-stage-id="designing" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'designing')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-purple"></span>
-                  <img src="/front end/assets/stages/Designing_1058.jpg" class="stage-col-thumb" alt="Designing" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Designing</span>
-                </div>
-                <span class="k-col-count" id="count-designing">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-designing">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('designing')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
+          <!-- Stage summary strip — shown ONLY when section is collapsed -->
+          <div class="wf-stage-summary-strip" id="wfStageSummaryStrip"></div>
 
-            <!-- 3. Lining Column -->
-            <div class="kanban-col col-lining" data-stage-id="lining" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'lining')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-blue"></span>
-                  <img src="/front end/assets/stages/Lining_2047.jpg" class="stage-col-thumb" alt="Lining" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Lining</span>
-                </div>
-                <span class="k-col-count" id="count-lining">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-lining">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('lining')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
+          <!-- Collapsible board body (kanban board) -->
+          <div class="wf-board-body" id="wfBoardBody">
+            <!-- KANBAN BOARD COLUMNS CONTAINER -->
+            <div class="kanban-board" id="kanbanBoard">
 
-            <!-- 4. Cutting Column -->
-            <div class="kanban-col col-cutting" data-stage-id="cutting" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'cutting')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-yellow"></span>
-                  <img src="/front end/assets/stages/Cutting_4091.jpg" class="stage-col-thumb" alt="Cutting" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Cutting</span>
-                </div>
-                <span class="k-col-count" id="count-cutting">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-cutting">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('cutting')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
-
-            <!-- 5. Hand Work Column -->
-            <div class="kanban-col col-handwork" data-stage-id="handwork" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'handwork')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-pink"></span>
-                  <img src="/front end/assets/stages/Hand_Work_3082.jpg" class="stage-col-thumb" alt="Hand Work" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Hand Work</span>
-                </div>
-                <span class="k-col-count" id="count-handwork">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-handwork">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('handwork')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
-
-            <!-- 6. Stitching Column -->
-            <div class="kanban-col col-stitching" data-stage-id="stitching" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'stitching')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-green"></span>
-                  <img src="/front end/assets/stages/Stitching_5076.jpg" class="stage-col-thumb" alt="Stitching" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Stitching</span>
-                </div>
-                <span class="k-col-count" id="count-stitching">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-stitching">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('stitching')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
-
-            <!-- 7. Trial Column -->
-            <div class="kanban-col col-trial" data-stage-id="trial" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'trial')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-cyan"></span>
-                  <img src="/front end/assets/stages/Trial_6034.jpg" class="stage-col-thumb" alt="Trial" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Trial</span>
-                </div>
-                <span class="k-col-count" id="count-trial">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-trial">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('trial')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
-
-            <!-- 8. QC Column (Penultimate Stage) -->
-            <div class="kanban-col col-qc" data-stage-id="qc" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'qc')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-coral"></span>
-                  <img src="/front end/assets/stages/QC_7019.jpg" class="stage-col-thumb" alt="QC" onerror="this.style.display='none'" />
-                  <span class="k-col-name">QC</span>
-                </div>
-                <span class="k-col-count" id="count-qc">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-qc">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('qc')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
-
-            <!-- 9. Ready to Deliver Column (Final Stage) -->
-            <div class="kanban-col col-readytodeliver" data-stage-id="readytodeliver" ondragover="handleDragOver(event)"
-              ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'readytodeliver')">
-              <div class="k-col-header">
-                <div class="k-title-group">
-                  <span class="stage-dot dot-silver"></span>
-                  <img src="/front end/assets/stages/Ready_8043.jpg" class="stage-col-thumb" alt="Ready to Deliver" onerror="this.style.display='none'" />
-                  <span class="k-col-name">Ready to Deliver</span>
-                </div>
-                <span class="k-col-count" id="count-readytodeliver">0</span>
-              </div>
-              <div class="k-cards-zone" id="zone-readytodeliver">
-                <!-- Injected via JS -->
-              </div>
-              <button class="btn-add-order-col" onclick="openNewOrderModal('readytodeliver')">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Order</span>
-              </button>
-            </div>
-
-          </div>    </div>
-        </section>
+          </div>
+        </div>
+      </section>
 
         <!-- =====================================================
              4. BOTTOM SUMMARY PANELS (4 CARDS)
@@ -906,8 +724,7 @@
           </div>
           <div>
             <h3 class="modal-title" style="font-size: 15px; margin: 0;">Stage Transition & Assignment</h3>
-            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">User must assign an employee to advance the
-              garment</span>
+            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">Optionally assign a specialist and advance the garment</span>
           </div>
         </div>
         <button class="modal-close-btn" onclick="cancelStageTransition()">✕</button>
@@ -935,20 +752,19 @@
         </div>
 
         <form id="stageTransitionForm" onsubmit="confirmStageTransition(event)">
-          <!-- Employee Assignment Field (MANDATORY) -->
+          <!-- Employee Assignment Field (OPTIONAL) -->
           <div class="form-group" style="margin-bottom: 14px;">
             <label
               style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; margin-bottom: 6px;">
-              <span>Assign Specialist on this Stage <strong style="color: #f87171;">*</strong></span>
+              <span>Assign Specialist on this Stage <span style="font-size: 10.5px; color: rgba(255, 255, 255, 0.4); font-weight: normal;">(Optional)</span></span>
               <span id="transDeptHint" style="font-size: 10.5px; color: #a3e635; font-weight: 500;"></span>
             </label>
-            <select id="transEmployeeSelect" required
+            <select id="transEmployeeSelect"
               style="width: 100%; padding: 10px 12px; border-radius: 8px; font-size: 12.5px; background: rgba(28, 24, 22, 0.95); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff; outline: none;">
-              <option value="">-- Select Specialist to Assign (Required) * --</option>
+              <option value="">-- None / Unassigned (Optional) --</option>
               <!-- Populated dynamically with active employees -->
             </select>
-            <span id="transErrorMsg" style="display:none; color:#f87171; font-size:11px; margin-top:4px;">Please select
-              an employee before proceeding.</span>
+            <span id="transErrorMsg" style="display:none; color:#f87171; font-size:11px; margin-top:4px;"></span>
           </div>
 
           <!-- Handover / Tailoring Instructions -->
@@ -983,7 +799,7 @@
   <!-- Scripts -->
   <script src="../fragments/fragments-inline.js"></script>
   <script src="../fragments/fragments.js"></script>
-  <script src="production.js"></script>
+  <script src="production.js?v=2.1"></script>
 
 </body>
 

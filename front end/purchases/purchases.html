@@ -24,20 +24,17 @@
 </head>
 <body data-module="purchases">
 
-  <!-- Atmospheric Full-Screen Boutique Background -->
-  <div class="app-background">
-    <div class="bg-image-layer"></div>
-    <div class="bg-gradient-overlay"></div>
-  </div>
+  <!-- Background Atmospheric Image Layer (Matches Dashboard Standard) -->
+  <div class="app-bg"></div>
 
-  <!-- App Shell -->
+  <!-- App Shell (Matches Dashboard Standard) -->
   <div class="app-shell" id="appShell">
 
     <!-- Shared Sidebar Slot — injected by fragments.js -->
-    <div class="sidebar-slot" id="sidebarSlot"></div>
+    <div id="sidebarSlot"></div>
 
     <!-- Main Content Area -->
-    <div class="main-content" id="mainContent">
+    <main class="main-content" id="mainContent">
 
       <!-- Global Topbar Header Slot — injected by fragments.js -->
       <div id="navbarSlot"></div>
@@ -52,7 +49,7 @@
           <div class="header-left">
             <span class="header-overline">Procurement</span>
             <h1 class="page-title">Purchase &amp; Supplier Management</h1>
-            <p class="page-subtitle">Manage purchase requeets, orders, suppliers and incoming stock.</p>
+            <p class="page-subtitle">Manage purchase requests, orders, suppliers and incoming stock.</p>
           </div>
           <div class="header-right">
             <button type="button" class="btn-primary-create" id="openCreatePoModalBtn">
@@ -71,8 +68,8 @@
             </div>
             <div class="kpi-body">
               <span class="kpi-label">Total Purchase Orders</span>
-              <div class="kpi-val" id="kpiTotalPos">24</div>
-              <span class="kpi-trend mint">&uarr; 26% from last month</span>
+              <div class="kpi-val" id="kpiTotalPos">0</div>
+              <span class="kpi-trend mint" id="kpiTotalPosTrend">—</span>
             </div>
           </div>
 
@@ -84,7 +81,7 @@
             <div class="kpi-body">
               <span class="kpi-label">Total Purchase Value</span>
               <div class="kpi-val" id="kpiTotalValue">₹0</div>
-              <span class="kpi-trend green">&uarr; Real-time</span>
+              <span class="kpi-trend green" id="kpiTotalValueTrend">—</span>
             </div>
           </div>
 
@@ -95,8 +92,8 @@
             </div>
             <div class="kpi-body">
               <span class="kpi-label">Pending Deliveries</span>
-              <div class="kpi-val" id="kpiPendingDeliveries">8</div>
-              <span class="kpi-trend coral">&darr; 2 from last week</span>
+              <div class="kpi-val" id="kpiPendingDeliveries">0</div>
+              <span class="kpi-trend coral" id="kpiPendingDeliveriesTrend">—</span>
             </div>
           </div>
 
@@ -107,8 +104,8 @@
             </div>
             <div class="kpi-body">
               <span class="kpi-label">Goods Received (This Month)</span>
-              <div class="kpi-val" id="kpiGoodsReceived">16</div>
-              <span class="kpi-trend emerald">&uarr; 33% from last month</span>
+              <div class="kpi-val" id="kpiGoodsReceived">0</div>
+              <span class="kpi-trend emerald" id="kpiGoodsReceivedTrend">—</span>
             </div>
           </div>
 
@@ -119,8 +116,8 @@
             </div>
             <div class="kpi-body">
               <span class="kpi-label">Active Suppliers</span>
-              <div class="kpi-val" id="kpiActiveSuppliers">28</div>
-              <span class="kpi-trend purple">3 new this month</span>
+              <div class="kpi-val" id="kpiActiveSuppliers">0</div>
+              <span class="kpi-trend purple" id="kpiActiveSuppliersTrend">—</span>
             </div>
           </div>
         </div>
@@ -204,12 +201,12 @@
             <!-- Filter Tabs & Search Controls Bar -->
             <div class="table-filter-bar">
               <div class="po-tabs" id="poFilterTabs">
-                <button type="button" class="tab-pill active" data-filter="all">All POs (24)</button>
-                <button type="button" class="tab-pill" data-filter="Draft">Draft (2)</button>
-                <button type="button" class="tab-pill" data-filter="Sent">Sent (6)</button>
-                <button type="button" class="tab-pill" data-filter="Partially Received">Partially Received (8)</button>
-                <button type="button" class="tab-pill" data-filter="Received">Received (6)</button>
-                <button type="button" class="tab-pill" data-filter="Cancelled">Cancelled (2)</button>
+                <button type="button" class="tab-pill active" data-filter="all">All POs (0)</button>
+                <button type="button" class="tab-pill" data-filter="Draft">Draft (0)</button>
+                <button type="button" class="tab-pill" data-filter="Sent">Sent (0)</button>
+                <button type="button" class="tab-pill" data-filter="Partially Received">Partially Received (0)</button>
+                <button type="button" class="tab-pill" data-filter="Received">Received (0)</button>
+                <button type="button" class="tab-pill" data-filter="Cancelled">Cancelled (0)</button>
               </div>
 
               <div class="table-controls-right">
@@ -229,14 +226,14 @@
               <div class="table-responsive">
                 <table class="purchases-table" id="purchaseOrdersTable">
                   <colgroup>
-                    <col style="width: 17%;" />
+                    <col style="width: 18%;" />
                     <col style="width: 12%;" />
                     <col style="width: 22%;" />
-                    <col style="width: 7%;" />
+                    <col style="width: 8%;" />
                     <col style="width: 13%;" />
-                    <col style="width: 14%;" />
-                    <col style="width: 10%;" />
-                    <col style="width: 5%;" />
+                    <col style="width: 12%;" />
+                    <col style="width: 11%;" />
+                    <col style="width: 4%;" />
                   </colgroup>
                   <thead>
                     <tr>
@@ -286,25 +283,25 @@
               </div>
               <div class="supplier-360-body">
                 <div class="supplier-hero-row">
-                  <div class="supplier-avatar-large st" id="s360Avatar">ST</div>
+                  <div class="supplier-avatar-large st" id="s360Avatar">—</div>
                   <div class="supplier-hero-info">
                     <div class="supplier-title-row">
-                      <span class="supplier-name" id="s360Name">Shree Textiles</span>
-                      <span class="badge-preferred" id="s360Badge">
+                      <span class="supplier-name" id="s360Name">Select a Supplier</span>
+                      <span class="badge-preferred" id="s360PreferredBadge" style="display:none;">
                         <span class="badge-dot"></span> Preferred Supplier
                       </span>
                     </div>
                     <div class="supplier-meta-item">
                       <i data-lucide="map-pin"></i>
-                      <span id="s360Location">Surat, Gujarat</span>
+                      <span id="s360Location">—</span>
                     </div>
                     <div class="supplier-meta-item">
                       <i data-lucide="phone"></i>
-                      <span id="s360Phone">+91 98765 43210</span>
+                      <span id="s360Phone">—</span>
                     </div>
                     <div class="supplier-meta-item">
                       <i data-lucide="mail"></i>
-                      <span id="s360Email">sales@shreetextiles.in</span>
+                      <span id="s360Email">—</span>
                     </div>
                   </div>
                   <div class="supplier-action-col">
@@ -368,13 +365,13 @@
 
         </div>
 
-        <!-- 5. Bottom Summary Cards Row (4 Cards Across) -->
+        <!-- 5. Bottom Summary Cards Row (4 Cards Across - Compact Horizontal Reference Layout) -->
         <div class="bottom-summary-grid">
 
           <!-- Card 1: Pending Approvals -->
           <div class="glass-card summary-card approvals-card">
             <div class="summary-header">
-              <span class="panel-icon-badge green"><i data-lucide="check-square"></i></span>
+              <span class="panel-icon-badge lime"><i data-lucide="check-square"></i></span>
               <span class="summary-card-title">Pending Approvals</span>
             </div>
             <div class="summary-body">
@@ -383,10 +380,10 @@
               </div>
               <div class="summary-info">
                 <div class="summary-val-row">
-                  <span class="summary-big-val">3</span>
+                  <span class="summary-big-val" id="pendingApprovalsCount">0</span>
                   <span class="summary-sub-label">Purchase requests</span>
                 </div>
-                <a href="#approvals" class="summary-action-link red" id="pendingApprovalsAction">Requires approval</a>
+                <a href="#pending" class="summary-action-link red" id="pendingApprovalsAction">All requests approved</a>
               </div>
             </div>
           </div>
@@ -394,19 +391,19 @@
           <!-- Card 2: Price Variance Alerts -->
           <div class="glass-card summary-card alerts-card">
             <div class="summary-header">
-              <span class="panel-icon-badge green"><i data-lucide="alert-triangle"></i></span>
+              <span class="panel-icon-badge lime"><i data-lucide="alert-triangle"></i></span>
               <span class="summary-card-title">Price Variance Alerts</span>
             </div>
             <div class="summary-body">
-              <div class="summary-icon-box yellow">
+              <div class="summary-icon-box amber">
                 <i data-lucide="bell"></i>
               </div>
               <div class="summary-info">
                 <div class="summary-val-row">
-                  <span class="summary-big-val">2</span>
+                  <span class="summary-big-val" id="priceVarianceCount">0</span>
                   <span class="summary-sub-label">Items with higher price</span>
                 </div>
-                <a href="#alerts" class="summary-action-link yellow" id="priceVarianceAction">Check and review</a>
+                <a href="#alerts" class="summary-action-link yellow" id="priceVarianceAction">No price variances</a>
               </div>
             </div>
           </div>
@@ -414,16 +411,16 @@
           <!-- Card 3: Low Stock Purchase Suggestions -->
           <div class="glass-card summary-card lowstock-card">
             <div class="summary-header">
-              <span class="panel-icon-badge green"><i data-lucide="shopping-cart"></i></span>
+              <span class="panel-icon-badge lime"><i data-lucide="shopping-cart"></i></span>
               <span class="summary-card-title">Low Stock Purchase Suggestions</span>
             </div>
             <div class="summary-body">
               <div class="summary-icon-box emerald">
-                <i data-lucide="package-search"></i>
+                <i data-lucide="shopping-cart"></i>
               </div>
               <div class="summary-info">
                 <div class="summary-val-row">
-                  <span class="summary-big-val">12</span>
+                  <span class="summary-big-val" id="lowStockCount">0</span>
                   <span class="summary-sub-label">Items to reorder</span>
                 </div>
                 <a href="#reorder" class="summary-action-link emerald" id="lowStockAction">View suggestions</a>
@@ -434,25 +431,25 @@
           <!-- Card 4: Quick Actions -->
           <div class="glass-card summary-card quick-actions-card">
             <div class="summary-header">
-              <span class="panel-icon-badge green"><i data-lucide="zap"></i></span>
+              <span class="panel-icon-badge lime"><i data-lucide="zap"></i></span>
               <span class="summary-card-title">Quick Actions</span>
             </div>
-            <div class="quick-actions-body">
-              <button type="button" class="quick-action-pill" id="quickPurchaseRequestBtn">
-                <span class="qa-icon-wrap purple"><i data-lucide="file-plus"></i></span>
-                <span class="qa-label">Create Purchase Request</span>
+            <div class="quick-actions-row">
+              <button type="button" class="qa-action-pill" id="quickPurchaseRequestBtn">
+                <span class="qa-pill-icon purple"><i data-lucide="zap"></i></span>
+                <span class="qa-pill-label"><span>Create Purchase</span><span>Request</span></span>
               </button>
-              <button type="button" class="quick-action-pill" id="quickPurchaseOrderBtn">
-                <span class="qa-icon-wrap lime"><i data-lucide="shopping-bag"></i></span>
-                <span class="qa-label">Create Purchase Order</span>
+              <button type="button" class="qa-action-pill" id="quickPurchaseOrderBtn">
+                <span class="qa-pill-icon mint"><i data-lucide="shopping-cart"></i></span>
+                <span class="qa-pill-label"><span>Create Purchase</span><span>Order</span></span>
               </button>
-              <button type="button" class="quick-action-pill" id="quickRecordGrnBtn">
-                <span class="qa-icon-wrap red"><i data-lucide="clipboard-check"></i></span>
-                <span class="qa-label">Record Goods Receipt</span>
+              <button type="button" class="qa-action-pill" id="quickRecordGrnBtn">
+                <span class="qa-pill-icon red"><i data-lucide="pie-chart"></i></span>
+                <span class="qa-pill-label"><span>Record Goods</span><span>Receipt</span></span>
               </button>
-              <button type="button" class="quick-action-pill" id="quickManageSuppliersBtn">
-                <span class="qa-icon-wrap yellow"><i data-lucide="contact"></i></span>
-                <span class="qa-label">Manage Suppliers</span>
+              <button type="button" class="qa-action-pill" id="quickManageSuppliersBtn">
+                <span class="qa-pill-icon yellow"><i data-lucide="tree-pine"></i></span>
+                <span class="qa-pill-label"><span>Manage</span><span>Suppliers</span></span>
               </button>
             </div>
           </div>
@@ -464,7 +461,7 @@
       <!-- Shared Global Footer Slot — injected by fragments.js -->
       <div id="footerSlot"></div>
 
-    </div><!-- /main-content -->
+    </main><!-- /main-content -->
   </div><!-- /app-shell -->
 
   <!-- ============================================================
@@ -491,14 +488,7 @@
             <div class="form-group">
               <label for="poSupplierSelect" class="form-label">Supplier *</label>
               <select id="poSupplierSelect" class="form-select" required>
-                <option value="Shree Textiles">Shree Textiles (Surat)</option>
-                <option value="Kumar Buttons">Kumar Buttons (Chennai)</option>
-                <option value="Sri Balaji Fashions">Sri Balaji Fashions (Bangalore)</option>
-                <option value="Zari World">Zari World (Varanasi)</option>
-                <option value="Apex Trims">Apex Trims (Mumbai)</option>
-                <option value="R.K. Linings">R.K. Linings (Surat)</option>
-                <option value="Metro Labels">Metro Labels (Tirupur)</option>
-                <option value="Chennai Zippers">Chennai Zippers (Chennai)</option>
+                <option value="" disabled selected>Select registered supplier...</option>
               </select>
             </div>
             <div class="form-group">
@@ -593,14 +583,6 @@
           <label for="filterSupplierSelect" class="form-label">Supplier</label>
           <select id="filterSupplierSelect" class="form-select">
             <option value="all">All Suppliers</option>
-            <option value="Shree Textiles">Shree Textiles</option>
-            <option value="Kumar Buttons">Kumar Buttons</option>
-            <option value="Sri Balaji Fashions">Sri Balaji Fashions</option>
-            <option value="Zari World">Zari World</option>
-            <option value="Apex Trims">Apex Trims</option>
-            <option value="R.K. Linings">R.K. Linings</option>
-            <option value="Metro Labels">Metro Labels</option>
-            <option value="Chennai Zippers">Chennai Zippers</option>
           </select>
         </div>
       </div>
@@ -626,9 +608,9 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic & Shared Fragment Scripts -->
-  <script src="purchases.js"></script>
   <script src="../fragments/fragments-inline.js"></script>
   <script src="../fragments/fragments.js"></script>
+  <script src="purchases.js"></script>
 
 </body>
 </html>

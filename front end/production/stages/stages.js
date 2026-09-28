@@ -65,8 +65,35 @@ async function loadStages() {
 async function loadEmployees() {
   try {
     allEmployees = await api.employees.list({ size: 200 });
+    populateDynamicRoles();
   } catch (e) {
     console.warn('Could not preload employees:', e);
+  }
+}
+
+function populateDynamicRoles(selectedRole) {
+  const select = document.getElementById('fRequiredRole');
+  if (!select) return;
+
+  const currentVal = selectedRole || select.value || '';
+  const rolesSet = new Set(['STYLIST', 'DESIGNER', 'CUTTER', 'TAILOR', 'EMBROIDERER', 'FINISHER', 'SUPERVISOR', 'MANAGER', 'DISPATCHER']);
+
+  if (Array.isArray(allEmployees)) {
+    allEmployees.forEach(e => {
+      if (e.role && e.role.trim()) {
+        rolesSet.add(e.role.trim().toUpperCase());
+      }
+    });
+  }
+
+  let html = '<option value="">— Any / None —</option>';
+  Array.from(rolesSet).sort().forEach(r => {
+    html += `<option value="${r}">${titleCase(r)}</option>`;
+  });
+
+  select.innerHTML = html;
+  if (currentVal) {
+    select.value = currentVal;
   }
 }
 
@@ -107,6 +134,15 @@ function buildStageCard(stage, idx) {
   const dotClass = stage.colorClass || 'dot-silver';
   const empHtml  = buildEmpPills(stage.pinnedEmployees || []);
   const activeClass = stage.active ? '' : 'inactive';
+  const isFixed = Boolean(
+    stage.systemFixed ||
+    stage.stageKey === 'ORDER_TAKEN' ||
+    stage.stageKey === 'READY_TO_DELIVER' ||
+    stage.stageKey === 'READY' ||
+    stage.displayName === 'Order Taken' ||
+    stage.displayName === 'Ready to Deliver' ||
+    stage.displayName === 'Ready for Delivery'
+  );
   const linkedTip = stage.linkedOrderCount > 0
     ? `<span class="meta-item"><i data-lucide="package-2"></i><span>${stage.linkedOrderCount} active order${stage.linkedOrderCount !== 1 ? 's' : ''}</span></span>`
     : '';
@@ -127,11 +163,11 @@ function buildStageCard(stage, idx) {
   <div class="stage-card ${activeClass}"
        data-id="${stage.id}"
        data-sort="${stage.sortOrder}"
-       draggable="true"
+       draggable="${!isFixed}"
        id="stageCard_${stage.id}">
 
     <!-- Drag handle -->
-    <div class="drag-handle" title="Drag to reorder">
+    <div class="drag-handle" title="${isFixed ? 'Fixed system stage boundary' : 'Drag to reorder'}">
       <span></span><span></span><span></span>
     </div>
 
@@ -144,6 +180,7 @@ function buildStageCard(stage, idx) {
         <span class="stage-dot ${dotClass}"></span>
         <span class="stage-key-badge">${escHtml(stage.stageKey)}</span>
         <span class="stage-display-name">${escHtml(stage.displayName)}</span>
+        ${isFixed ? '<span class="system-fixed-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);letter-spacing:0.03em;"><i data-lucide="lock" style="width:10px;height:10px;"></i> Fixed Stage</span>' : ''}
         ${!stage.active ? '<span class="inactive-tag">Inactive</span>' : ''}
       </div>
       <div class="stage-card-meta">
@@ -159,10 +196,13 @@ function buildStageCard(stage, idx) {
       <span class="sort-chip" title="Sort order">${stage.sortOrder}</span>
 
       <!-- Toggle active -->
-      <button class="btn-icon ${stage.active ? '' : 'warn'}" title="${stage.active ? 'Deactivate stage' : 'Activate stage'}"
-              onclick="toggleActive('${stage.id}', this)">
-        <i data-lucide="${stage.active ? 'eye' : 'eye-off'}" style="width:14px;height:14px;"></i>
-      </button>
+      ${isFixed
+        ? `<button class="btn-icon disabled" disabled title="Fixed system stage is permanently active" style="opacity:0.35;cursor:not-allowed;"><i data-lucide="check" style="width:14px;height:14px;"></i></button>`
+        : `<button class="btn-icon ${stage.active ? '' : 'warn'}" title="${stage.active ? 'Deactivate stage' : 'Activate stage'}"
+                onclick="toggleActive('${stage.id}', this)">
+          <i data-lucide="${stage.active ? 'eye' : 'eye-off'}" style="width:14px;height:14px;"></i>
+        </button>`
+      }
 
       <!-- Assign employees -->
       <button class="btn-icon" title="Assign employees"
@@ -177,10 +217,13 @@ function buildStageCard(stage, idx) {
       </button>
 
       <!-- Delete -->
-      <button class="btn-icon danger" title="Delete stage"
-              onclick="openDeleteModal('${stage.id}', '${escHtml(stage.displayName)}', ${stage.linkedOrderCount})">
-        <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
-      </button>
+      ${isFixed
+        ? `<button class="btn-icon disabled" disabled title="Order Taken & Ready to Deliver are permanent system stages and cannot be deleted" style="opacity:0.35;cursor:not-allowed;"><i data-lucide="lock" style="width:14px;height:14px;"></i></button>`
+        : `<button class="btn-icon danger" title="Delete stage"
+                onclick="openDeleteModal('${stage.id}', '${escHtml(stage.displayName)}', ${stage.linkedOrderCount})">
+          <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+        </button>`
+      }
     </div>
   </div>`;
 }
@@ -230,6 +273,18 @@ function initDragAndDrop() {
       const moved = filtered.splice(dragSrcIndex, 1)[0];
       filtered.splice(targetIdx, 0, moved);
 
+      // Enforce boundary: ORDER_TAKEN must be at index 0, READY_TO_DELIVER must be at last index
+      const otIdx = filtered.findIndex(s => s.stageKey === 'ORDER_TAKEN');
+      if (otIdx > 0) {
+        const [ot] = filtered.splice(otIdx, 1);
+        filtered.unshift(ot);
+      }
+      const rdIdx = filtered.findIndex(s => s.stageKey === 'READY_TO_DELIVER');
+      if (rdIdx >= 0 && rdIdx < filtered.length - 1) {
+        const [rd] = filtered.splice(rdIdx, 1);
+        filtered.push(rd);
+      }
+
       // Update allStages order to match
       const filteredIds = new Set(filtered.map(s => s.id));
       const others = allStages.filter(s => !filteredIds.has(s.id));
@@ -252,6 +307,11 @@ function initDragAndDrop() {
 
 // ─── Toggle Active ────────────────────────────────────────────────────────────
 window.toggleActive = async (stageId, btn) => {
+  const stage = allStages.find(s => s.id === stageId);
+  if (stage && (stage.systemFixed || stage.stageKey === 'ORDER_TAKEN' || stage.stageKey === 'READY_TO_DELIVER' || stage.stageKey === 'READY' || stage.displayName === 'Order Taken' || stage.displayName === 'Ready to Deliver')) {
+    showToast('Order Taken and Ready to Deliver must remain permanently active.', 'warn');
+    return;
+  }
   btn.disabled = true;
   try {
     const updated = await api.production.stageDefinitions.toggle(stageId);
@@ -367,6 +427,7 @@ function openAddModal() {
   document.getElementById('btnSaveStageLabel').textContent  = 'Create Stage';
   document.getElementById('stageForm').reset();
   document.getElementById('stageKeyPreview').textContent = '';
+  populateDynamicRoles();
   selectColor('dot-purple');
 
   // Reset image upload zone
@@ -389,10 +450,30 @@ window.openEditModal = (stage) => {
   document.getElementById('btnSaveStageLabel').textContent  = 'Save Changes';
   document.getElementById('fDisplayName').value    = stage.displayName || '';
   document.getElementById('fDescription').value    = stage.description || '';
+  populateDynamicRoles(stage.requiredRole);
   document.getElementById('fRequiredRole').value   = stage.requiredRole || '';
   document.getElementById('fSortOrder').value      = stage.sortOrder || '';
   document.getElementById('fDeptLabel').value      = stage.deptLabel || '';
   document.getElementById('fActive').checked       = stage.active;
+  const isFixedStage = Boolean(
+    stage.systemFixed ||
+    stage.stageKey === 'ORDER_TAKEN' ||
+    stage.stageKey === 'READY_TO_DELIVER' ||
+    stage.stageKey === 'READY' ||
+    stage.displayName === 'Order Taken' ||
+    stage.displayName === 'Ready to Deliver'
+  );
+  const activeChk = document.getElementById('fActive');
+  if (activeChk) {
+    if (isFixedStage) {
+      activeChk.checked = true;
+      activeChk.disabled = true;
+      activeChk.title = 'Order Taken and Ready to Deliver must remain permanently active.';
+    } else {
+      activeChk.disabled = false;
+      activeChk.title = '';
+    }
+  }
   document.getElementById('stageKeyPreview').textContent = `Key: ${stage.stageKey}`;
   selectColor(stage.colorClass || 'dot-purple');
 
@@ -489,6 +570,11 @@ document.getElementById('fDisplayName').addEventListener('input', e => {
 let pendingDeleteId = null;
 
 window.openDeleteModal = (stageId, stageName, linkedCount) => {
+  const stage = allStages.find(s => s.id === stageId);
+  if (stage && (stage.systemFixed || stage.stageKey === 'ORDER_TAKEN' || stage.stageKey === 'READY_TO_DELIVER' || stage.stageKey === 'READY' || stage.displayName === 'Order Taken' || stage.displayName === 'Ready to Deliver')) {
+    showToast('Order Taken and Ready to Deliver are permanent system stages and cannot be deleted.', 'warn');
+    return;
+  }
   pendingDeleteId = stageId;
   document.getElementById('deleteTargetName').textContent = stageName;
   const statEl = document.getElementById('deleteLinkedStat');

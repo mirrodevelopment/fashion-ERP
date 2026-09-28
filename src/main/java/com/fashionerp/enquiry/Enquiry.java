@@ -52,6 +52,7 @@ public class Enquiry {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "converted_order_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Order convertedOrder;
 
     @Column(length = 50)

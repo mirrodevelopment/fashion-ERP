@@ -100,11 +100,11 @@ body {
 
 .btn-export {
   display: flex; align-items: center; gap: 7px; padding: 9px 16px;
-  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  background: var(--glass-inner); border: 1px solid var(--border);
   border-radius: 10px; color: var(--text-2); font-size: 13px; font-weight: 500;
   cursor: pointer; transition: all 180ms ease;
 }
-.btn-export:hover { background: rgba(255,255,255,0.10); color: var(--text-1); }
+.btn-export:hover { background: var(--bg-card); color: var(--text-1); }
 
 .btn-new-order {
   display: flex; align-items: center; gap: 7px; padding: 9px 18px;
@@ -162,7 +162,7 @@ body {
 .filter-chip-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .filter-chip {
   padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
-  border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); background: var(--glass-inner);
   color: var(--text-2); cursor: pointer; transition: all 160ms ease;
 }
 .filter-chip:hover  { border-color: var(--lime); color: var(--lime); }
@@ -195,7 +195,7 @@ body {
 /* -- Skeleton Card -- */
 .order-card-skeleton {
   border-radius: var(--radius-card);
-  background: rgba(255,255,255,0.04);
+  background: var(--glass-inner);
   border: 1px solid var(--border);
   height: 260px;
   animation: skelPulse 1.6s ease-in-out infinite;
@@ -297,7 +297,7 @@ body {
 .card-garment {
   display: flex; align-items: center; gap: 8px;
   padding: 9px 12px;
-  background: rgba(255,255,255,0.04); border-radius: 10px;
+  background: var(--glass-inner); border-radius: 10px;
   border: 1px solid var(--border);
 }
 .card-garment-icon { color: var(--lime); flex-shrink: 0; opacity: 0.8; }
@@ -310,7 +310,7 @@ body {
 .card-dates { display: flex; align-items: center; gap: 8px; }
 .card-date-item {
   flex: 1; padding: 8px 10px; border-radius: 9px;
-  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+  background: var(--glass-inner); border: 1px solid var(--border);
 }
 .card-date-label { font-size: 9px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .card-date-val   { font-size: 11.5px; color: var(--text-2); font-weight: 600; margin-top: 2px; }
@@ -338,7 +338,7 @@ body {
 .card-pip-track   { display: flex; align-items: center; gap: 3px; }
 .card-pip {
   flex: 1; height: 4px; border-radius: 4px;
-  background: rgba(255,255,255,0.08); transition: background 300ms ease;
+  background: var(--bg-input); transition: background 300ms ease;
 }
 .card-pip.done      { background: var(--lime); }
 .card-pip.active    { background: linear-gradient(90deg, var(--lime), rgba(184,255,61,0.5)); box-shadow: 0 0 6px rgba(184,255,61,0.4); }
@@ -374,11 +374,11 @@ body {
 .card-actions .btn-quick {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 8px 12px; border-radius: 9px;
-  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  background: var(--glass-inner); border: 1px solid var(--border);
   color: var(--text-2); font-size: 12px; font-weight: 500;
   cursor: pointer; transition: all 160ms ease; font-family: inherit;
 }
-.card-actions .btn-quick:hover { background: rgba(255,255,255,0.10); color: var(--text-1); }
+.card-actions .btn-quick:hover { background: var(--bg-card); color: var(--text-1); }
 
 /* -- Empty State -- */
 .empty-state {
@@ -400,7 +400,7 @@ body {
 .page-btns { display: flex; align-items: center; gap: 6px; }
 .page-btn {
   width: 32px; height: 32px; border-radius: 8px;
-  border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); background: var(--glass-inner);
   color: var(--text-2); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: all 160ms ease;
@@ -410,7 +410,7 @@ body {
 .page-numbers { display: flex; align-items: center; gap: 4px; }
 .page-num {
   min-width: 32px; height: 32px; border-radius: 8px; padding: 0 8px;
-  border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); background: var(--glass-inner);
   color: var(--text-2); cursor: pointer; font-size: 12px; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
   transition: all 160ms ease;
@@ -421,7 +421,7 @@ body {
 /* -- Quick-View Drawer -- */
 .drawer-backdrop {
   position: fixed; inset: 0; z-index: 200;
-  background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+  background: var(--bg-card); backdrop-filter: blur(3px);
   animation: fadeIn 180ms ease;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -452,7 +452,7 @@ body {
 .drawer-view-full:hover { color: var(--lime); border-color: var(--lime); }
 .drawer-close {
   width: 30px; height: 30px; border-radius: 7px;
-  border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); background: var(--glass-inner);
   color: var(--text-2); cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: all 160ms ease;
 }
@@ -463,11 +463,21 @@ body {
 }
 .drawer-body::-webkit-scrollbar       { width: 4px; }
 .drawer-body::-webkit-scrollbar-track { background: transparent; }
-.drawer-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
+.drawer-body::-webkit-scrollbar-thumb { background: var(--bg-card); border-radius: 4px; }
 .drawer-footer {
   padding: 16px 22px; border-top: 1px solid var(--border);
   display: flex; gap: 10px; flex-shrink: 0;
 }
+.btn-drawer-cancel {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 14px; border-radius: 10px;
+  background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 160ms ease;
+  white-space: nowrap;
+}
+.btn-drawer-cancel:hover { background: rgba(239, 68, 68, 0.22); border-color: rgba(239, 68, 68, 0.6); }
+.btn-drawer-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-drawer-view {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
   padding: 10px; border-radius: 10px;
@@ -489,7 +499,7 @@ body {
 }
 .drawer-detail-row {
   display: flex; justify-content: space-between; align-items: flex-start;
-  padding: 9px 12px; background: rgba(255,255,255,0.03);
+  padding: 9px 12px; background: var(--glass-inner);
   border-radius: 8px; border: 1px solid var(--border);
 }
 .drawer-detail-key { font-size: 12px; color: var(--text-2); }
@@ -501,6 +511,10 @@ body {
 }
 .drawer-progress-step.done   { background: rgba(184,255,61,0.07); border-color: rgba(184,255,61,0.15); }
 .drawer-progress-step.active { background: rgba(184,255,61,0.12); border-color: rgba(184,255,61,0.30); }
+.drawer-progress-step.active-frozen-cancelled { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.45); }
+.drawer-progress-step.active-frozen-cancelled .drawer-step-label { color: #f87171 !important; font-weight: 700; }
+.drawer-progress-step.past-cancelled { opacity: 0.65; }
+.drawer-progress-step.locked-cancelled { opacity: 0.35; }
 .drawer-step-num {
   width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -508,7 +522,7 @@ body {
 }
 .drawer-progress-step.done    .drawer-step-num { background: var(--lime); color: var(--lime-dark); }
 .drawer-progress-step.active  .drawer-step-num { background: rgba(184,255,61,0.25); color: var(--lime); border: 1.5px solid var(--lime); }
-.drawer-progress-step.pending .drawer-step-num { background: rgba(255,255,255,0.05); color: var(--text-3); border: 1px solid var(--border); }
+.drawer-progress-step.pending .drawer-step-num { background: var(--glass-inner); color: var(--text-3); border: 1px solid var(--border); }
 .drawer-step-label            { font-size: 12px; font-weight: 600; color: var(--text-2); }
 .drawer-progress-step.done   .drawer-step-label { color: var(--lime); }
 .drawer-progress-step.active .drawer-step-label { color: var(--text-1); }

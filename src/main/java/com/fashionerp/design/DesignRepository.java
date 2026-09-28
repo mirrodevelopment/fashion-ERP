@@ -49,8 +49,13 @@ public interface DesignRepository extends JpaRepository<Design, UUID> {
 
     long countByStatus(String status);
 
+    long countByProductionStatus(String productionStatus);
+
     @Query("SELECT d.garmentType, COUNT(d) FROM Design d GROUP BY d.garmentType ORDER BY COUNT(d) DESC")
     List<Object[]> countByGarmentType();
+
+    @Query("SELECT d.primaryFabric, COUNT(d) FROM Design d WHERE d.primaryFabric IS NOT NULL AND d.primaryFabric != '' GROUP BY d.primaryFabric ORDER BY COUNT(d) DESC")
+    List<Object[]> topFabrics();
 
     @Query("SELECT COALESCE(SUM(d.timesUsed), 0) FROM Design d")
     long sumTimesUsed();
@@ -66,4 +71,11 @@ public interface DesignRepository extends JpaRepository<Design, UUID> {
 
     @Query("SELECT DISTINCT d.occasion FROM Design d WHERE d.occasion IS NOT NULL ORDER BY d.occasion")
     List<String> distinctOccasions();
+
+    List<Design> findByCollectionIgnoreCase(String collection);
+
+    @Query("SELECT d FROM Design d WHERE LOWER(d.collection) IN :collections")
+    List<Design> findByCollectionInIgnoreCase(@Param("collections") java.util.Collection<String> collections);
+
+    long countByCollectionIgnoreCase(String collection);
 }

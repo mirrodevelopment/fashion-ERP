@@ -69,7 +69,7 @@ window.FRAGMENT_HTML = {
     <!-- Fashion -->
     <div class="nav-section">
       <span class="nav-section-label">Fashion</span>
-      <a href="#" class="nav-item uncompleted" id="nav-garments" data-tooltip="Garments (In Progress)" data-module="garments" onclick="navNavigate('garments',event)">
+      <a href="../garments/garments.html" class="nav-item" id="nav-garments" data-tooltip="Garments" data-module="garments" onclick="navNavigate('garments',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <span>Garments</span>
       </a>
@@ -85,7 +85,7 @@ window.FRAGMENT_HTML = {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
         <span>Fabrics &amp; Materials</span>
       </a>
-      <a href="../DesignStudio/design-studio.html" class="nav-item" id="nav-collections" data-tooltip="Collections" data-module="collections" onclick="navNavigate('collections',event)">
+      <a href="../collections/collections.html" class="nav-item" id="nav-collections" data-tooltip="Collections" data-module="collections" onclick="navNavigate('collections',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         <span>Collections</span>
       </a>
@@ -225,51 +225,19 @@ window.FRAGMENT_HTML = {
       </div>
     </div>
 
+    <!-- Theme Toggle (Classic & Haulo Dark) -->
+    <button class="icon-btn haulo-theme-btn" id="hauloThemeToggleBtn" data-haulo-theme-btn aria-label="Switch Theme" title="Switch Theme" onclick="if(window.HauloTheme)window.HauloTheme.toggle();" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);cursor:pointer;color:var(--text-secondary);transition:all 0.18s ease;flex-shrink:0;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
     <!-- Notifications Menu -->
     <div class="notif-wrap" id="notifWrap">
       <button class="icon-btn" id="notifBtn" aria-label="Notifications" title="Notifications" aria-haspopup="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="badge" id="notifBadge">3</span>
+        <span class="badge" id="notifBadge" style="display:none;">0</span>
       </button>
       <div class="notif-panel dd-panel" id="notifPanel">
-        <div class="dd-panel-header notif-panel-header">
-          <span>Notifications</span>
-          <button type="button" class="notif-clear-btn" id="notifClearBtn" title="Mark all as read">Mark all read</button>
-        </div>
-        <div class="notif-list" id="notifListContainer">
-          <div class="notif-item unread" onclick="navNavigate('purchases',event)">
-            <div class="notif-dot info"></div>
-            <div class="notif-content">
-              <div class="notif-title">PO-2026-008 Goods Received</div>
-              <div class="notif-sub">Zari World consignment verified by store</div>
-              <span class="notif-time">10 mins ago</span>
-            </div>
-          </div>
-          <div class="notif-item unread" onclick="navNavigate('trials-alterations',event)">
-            <div class="notif-dot warn"></div>
-            <div class="notif-content">
-              <div class="notif-title">Trial Scheduled: Priya Sharma</div>
-              <div class="notif-sub">Bridal Lehenga final fitting at 4:30 PM</div>
-              <span class="notif-time">25 mins ago</span>
-            </div>
-          </div>
-          <div class="notif-item unread" onclick="navNavigate('fabrics',event)">
-            <div class="notif-dot danger"></div>
-            <div class="notif-content">
-              <div class="notif-title">Low Stock Alert</div>
-              <div class="notif-sub">Banarasi Brocade Gold below reorder level (4.2m)</div>
-              <span class="notif-time">1 hour ago</span>
-            </div>
-          </div>
-          <div class="notif-item read" onclick="navNavigate('orders',event)">
-            <div class="notif-dot success"></div>
-            <div class="notif-content">
-              <div class="notif-title">Order ORD-2026-089 Ready</div>
-              <div class="notif-sub">Completed QC check and ready for dispatch</div>
-              <span class="notif-time">3 hours ago</span>
-            </div>
-          </div>
-        </div>
+        <!-- Dynamically rendered by NotificationCenter -->
       </div>
     </div>
 
@@ -400,3 +368,86 @@ window.FRAGMENT_HTML = {
 </footer>`
 
 };
+
+/* ============================================================
+   UNIVERSAL PATRON AVATAR & INITIALS ENGINE
+   - Multi-word names: First letter of first name + First letter of second name
+   - Single-word names: First 2 letters of name
+   - Automatic honorific cleaning (Ms., Mr., Mrs., Dr., etc.)
+   - Deterministic dark luxury glassmorphism palettes
+   ============================================================ */
+
+if (typeof window.getPatronInitials !== 'function') {
+  window.getPatronInitials = function (name) {
+    if (!name || typeof name !== 'string') return 'CU';
+    const clean = name.trim();
+    if (!clean || clean === '-') return 'CU';
+
+    const HONORIFICS = new Set(['MS.', 'MS', 'MR.', 'MR', 'MRS.', 'MRS', 'MISS', 'DR.', 'DR', 'PROF.', 'PROF', 'SMT.', 'SMT', 'SHRI']);
+    let rawTokens = clean.split(/\s+/).filter(Boolean);
+    if (rawTokens.length > 1 && HONORIFICS.has(rawTokens[0].toUpperCase())) {
+      rawTokens.shift();
+    }
+
+    if (rawTokens.length === 0) return 'CU';
+
+    if (rawTokens.length === 1) {
+      const single = rawTokens[0].replace(/[^a-zA-Z0-9]/g, '');
+      if (!single) return rawTokens[0].substring(0, 2).toUpperCase();
+      return single.length >= 2 ? single.substring(0, 2).toUpperCase() : single.toUpperCase();
+    }
+
+    const firstTokenClean = rawTokens[0].replace(/[^a-zA-Z0-9]/g, '');
+    const secondTokenClean = rawTokens[1].replace(/[^a-zA-Z0-9]/g, '');
+    const firstLetter = firstTokenClean[0] || rawTokens[0][0];
+    const secondLetter = secondTokenClean[0] || rawTokens[1][0];
+    return (firstLetter + secondLetter).toUpperCase();
+  };
+}
+
+if (typeof window.getPatronAvatarTheme !== 'function') {
+  window.getPatronAvatarTheme = function (name) {
+    const PALETTES = [
+      { bg: 'linear-gradient(135deg, rgba(234, 179, 8, 0.22), rgba(184, 255, 61, 0.18))', border: 'rgba(234, 179, 8, 0.35)', color: '#facc15' },
+      { bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(139, 92, 246, 0.18))', border: 'rgba(168, 85, 247, 0.35)', color: '#c084fc' },
+      { bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(184, 255, 61, 0.18))', border: 'rgba(184, 255, 61, 0.35)', color: '#b8ff3d' },
+      { bg: 'linear-gradient(135deg, rgba(244, 63, 94, 0.22), rgba(251, 113, 133, 0.18))', border: 'rgba(244, 63, 94, 0.35)', color: '#fb7185' },
+      { bg: 'linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(56, 189, 248, 0.18))', border: 'rgba(56, 189, 248, 0.35)', color: '#38bdf8' },
+      { bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(129, 140, 248, 0.18))', border: 'rgba(99, 102, 241, 0.35)', color: '#818cf8' }
+    ];
+    let hash = 0;
+    const str = String(name || 'Customer');
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return PALETTES[Math.abs(hash) % PALETTES.length];
+  };
+}
+
+if (typeof window.renderPatronAvatarHtml !== 'function') {
+  window.renderPatronAvatarHtml = function (name, avatarUrl, sizeClass = 'haulo-avatar-md', extraStyles = '') {
+    const inits = window.getPatronInitials(name);
+    const theme = window.getPatronAvatarTheme(name);
+    const isImageValid = avatarUrl &&
+      !avatarUrl.includes('user_avatar.jpg') &&
+      !avatarUrl.includes('default') &&
+      avatarUrl !== 'null' &&
+      avatarUrl !== 'undefined';
+
+    const safeName = (name || 'Customer').replace(/"/g, '&quot;');
+    const initialsTile = `<div class="haulo-patron-avatar-initials ${sizeClass}" style="background:${theme.bg};border:1.5px solid ${theme.border};color:${theme.color};${extraStyles}" title="${safeName}">${inits}</div>`;
+
+    if (!isImageValid) {
+      return initialsTile;
+    }
+
+    return `<div class="haulo-patron-avatar-wrap ${sizeClass}" style="position:relative;display:inline-flex;overflow:hidden;border-radius:inherit;${extraStyles}"><img src="${avatarUrl}" alt="${safeName}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.parentElement.outerHTML=\`${initialsTile.replace(/"/g, '&quot;')}\`" /></div>`;
+  };
+}
+
+if (typeof window.applyPatronAvatarElement !== 'function') {
+  window.applyPatronAvatarElement = function (containerEl, name, avatarUrl, sizeClass = 'haulo-avatar-md', extraStyles = '') {
+    if (!containerEl) return;
+    containerEl.innerHTML = window.renderPatronAvatarHtml(name, avatarUrl, sizeClass, extraStyles);
+  };
+}

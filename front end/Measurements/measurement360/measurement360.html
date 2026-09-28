@@ -78,14 +78,8 @@
           <!-- Wide Horizontal Customer Profile Glass Card -->
           <div class="customer-card">
             <!-- Left Portrait -->
-            <div class="customer-avatar-wrapper">
-              <img 
-                src="../../assets/user_avatar.jpg" 
-                alt="Customer Profile Portrait" 
-                class="customer-avatar-img"
-                id="customerAvatar"
-                onerror="this.onerror=null; this.src='../../assets/user_avatar.jpg';"
-              />
+            <div class="customer-avatar-wrapper" id="customerAvatarWrapper">
+              <div class="haulo-patron-avatar-initials haulo-avatar-xl" id="customerAvatarInitials">CU</div>
             </div>
 
             <!-- Center Info -->
@@ -507,10 +501,9 @@
   <!-- Toast Notification Container -->
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
-  <!-- Fragment Includer Scripts & Measurements Controller -->
   <script src="../../fragments/fragments-inline.js"></script>
   <script src="../../fragments/fragments.js"></script>
-  <script src="measurement360.js"></script>
+  <script src="measurement360.js?v=2.0"></script>
 
 </body>
 </html>

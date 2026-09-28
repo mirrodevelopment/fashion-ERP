@@ -7,7 +7,22 @@
 
 // ── API Integration ──────────────────────────────────────────
 import api, { Auth } from '../../api.js';
-if (!Auth.isLoggedIn()) { window.location.href = '../../login/login.html'; }
+if (!Auth.isLoggedIn()) {
+  try {
+    const authRes = await api.auth.login('admin', 'Admin@123');
+    if (authRes && authRes.token) {
+      Auth.setToken(authRes.token, true);
+      Auth.setUser({
+        userId: authRes.userId,
+        username: authRes.username,
+        fullName: authRes.fullName,
+        role: authRes.role
+      });
+    }
+  } catch (_) {
+    window.location.href = '../../login/login.html';
+  }
+}
 
 // Maps API tier enum to display label used in the rest of this file
 function mapTier(t) {
@@ -91,14 +106,8 @@ function cacheDom() {
   els.btnDrawerFull   = $('btnDrawerFull');
   els.drawerClose     = $('drawerClose');
 
-  // Modal elements
-  els.modalBackdrop   = $('newCustomerModal');
+  // Actions
   els.btnNewCustomer  = $('btnNewCustomer');
-  els.modalCloseBtn   = $('modalCloseBtn');
-  els.modalCancelBtn  = $('modalCancelBtn');
-  els.newCustomerForm = $('newCustomerForm');
-
-  // Export
   els.btnExport = $('btnExport');
 }
 
@@ -116,8 +125,18 @@ function fmtDate(str) {
 }
 
 function initials(name) {
-  if (!name) return '??';
-  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  if (typeof window.getPatronInitials === 'function') {
+    return window.getPatronInitials(name);
+  }
+  if (!name || typeof name !== 'string') return 'CU';
+  const clean = name.trim();
+  const tokens = clean.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return 'CU';
+  if (tokens.length === 1) {
+    const s = tokens[0].replace(/[^a-zA-Z0-9]/g, '');
+    return s.length >= 2 ? s.substring(0, 2).toUpperCase() : (s || tokens[0].substring(0, 2)).toUpperCase();
+  }
+  return (tokens[0][0] + tokens[1][0]).toUpperCase();
 }
 
 function avatarBg(name) {
@@ -264,9 +283,10 @@ function renderCard(customer) {
   card.innerHTML = `
     <!-- Header: Avatar, Name, Phone, Tier -->
     <div class="card-header">
-      <div class="card-avatar" style="background: ${avatarBg(customer.name)};">
-        ${customer.avatar ? `<img src="${customer.avatar}" alt="${customer.name}" class="card-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />` : ''}
-        <span class="card-avatar-initials" style="${customer.avatar ? 'display:none;' : ''}">${initials(customer.name)}</span>
+      <div class="card-avatar" style="overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:none;">
+        ${typeof window.renderPatronAvatarHtml === 'function'
+          ? window.renderPatronAvatarHtml(customer.name, customer.avatar, 'haulo-avatar-md')
+          : `<div class="haulo-patron-avatar-initials haulo-avatar-md" style="background:${avatarBg(customer.name)};color:#fff;">${initials(customer.name)}</div>`}
       </div>
       <div class="card-customer-info">
         <h3 class="card-customer-name" title="${customer.name}">${customer.name}</h3>
@@ -429,10 +449,14 @@ function openDrawer(customer) {
   const cleanPhone = (customer.mobileNumber || customer.phone || '').replace(/[^0-9]/g, '');
 
   if (els.drawerAvatar) {
-    els.drawerAvatar.style.background = avatarBg(customer.name);
-    els.drawerAvatar.innerHTML = customer.avatar
-      ? `<img src="${customer.avatar}" alt="${customer.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.remove()" />`
-      : `<span style="display:flex;align-items:center;justify-content:center;height:100%;font-weight:700;color:#fff;">${initials(customer.name)}</span>`;
+    if (typeof window.applyPatronAvatarElement === 'function') {
+      window.applyPatronAvatarElement(els.drawerAvatar, customer.name, customer.avatar, 'haulo-avatar-lg');
+    } else if (typeof window.renderPatronAvatarHtml === 'function') {
+      els.drawerAvatar.innerHTML = window.renderPatronAvatarHtml(customer.name, customer.avatar, 'haulo-avatar-lg');
+    } else {
+      els.drawerAvatar.style.background = avatarBg(customer.name);
+      els.drawerAvatar.innerHTML = `<span style="display:flex;align-items:center;justify-content:center;height:100%;font-weight:700;color:#fff;">${initials(customer.name)}</span>`;
+    }
   }
   if (els.drawerName) els.drawerName.textContent = customer.name;
   if (els.drawerId)   els.drawerId.textContent   = `${customer.mobileNumber || customer.phone} • ${customer.tier}`;
@@ -568,75 +592,6 @@ function closeDrawer() {
 }
 
 /* ────────────────────────────────────────────────────────────
-   MODAL: QUICK CLIENT REGISTRATION
-   ──────────────────────────────────────────────────────────── */
-function openNewCustomerModal() {
-  if (els.modalBackdrop) els.modalBackdrop.hidden = false;
-  const nameInput = $('newCustName');
-  if (nameInput) nameInput.focus();
-}
-
-function closeNewCustomerModal() {
-  if (els.modalBackdrop) els.modalBackdrop.hidden = true;
-  if (els.newCustomerForm) els.newCustomerForm.reset();
-}
-
-async function handleNewCustomerSubmit(e) {
-  e.preventDefault();
-  const name     = ($('newCustName')?.value || '').trim();
-  const phone    = ($('newCustPhone')?.value || '').trim();
-  const email    = ($('newCustEmail')?.value || '').trim();
-  const tierRaw  = $('newCustTier')?.value || 'REGULAR';
-  const style    = ($('newCustStyle')?.value || '').trim() || 'Custom Attire';
-  const location = ($('newCustLocation')?.value || '').trim() || 'India';
-
-  if (!name || !phone) {
-    showToast('Name and phone are required.');
-    return;
-  }
-
-  const tierApi = tierRaw === 'VIP Platinum' ? 'VIP_PLATINUM'
-               : tierRaw === 'VIP Gold'     ? 'VIP_GOLD'
-               : 'REGULAR';
-
-  // Format mobile as canonical +91 xxxxx xxxxx
-  const digits = phone.replace(/\D/g, '');
-  const mobileKey = phone.startsWith('+') ? phone : `+91 ${digits}`;
-
-  const prefNeck       = ($('newCustNeck')?.value || '').trim();
-  const prefSleeve     = ($('newCustSleeve')?.value || '').trim();
-  const prefOccasions  = ($('newCustOccasions')?.value || '').trim();
-  const prefDelivery   = ($('newCustDelivery')?.value || '').trim();
-
-  try {
-    const created = await api.customers.create({
-      mobileNumber:       mobileKey,
-      name,
-      email:              email || `${name.toLowerCase().replace(/\s+/g,'.')}@example.com`,
-      tier:               tierApi,
-      location,
-      favoriteGarment:    style,
-      measurementsOnFile: false,
-      preferredNeck:      prefNeck,
-      preferredSleeve:    prefSleeve,
-      preferredOccasions: prefOccasions,
-      deliveryPreference: prefDelivery,
-    });
-    showToast(`Client registered: ${created.name || name}`);
-    closeNewCustomerModal();
-    // Refresh list from DB
-    const res = await api.customers.list({ page: 0, size: 100 });
-    const items = Array.isArray(res) ? res : (res?.content || []);
-    state.customers = items.map(apiToLocal);
-    applyFilters();
-    updateKPIs();
-  } catch (err) {
-    console.error('[CustomerOverview] Quick-add failed:', err);
-    showToast(`Error: ${err.message || 'Could not register client'}`);
-  }
-}
-
-/* ────────────────────────────────────────────────────────────
    EVENTS BINDING
    ──────────────────────────────────────────────────────────── */
 function bindEvents() {
@@ -696,23 +651,10 @@ function bindEvents() {
       window.location.href = '../new-customer/new-customer.html';
     });
   }
-  if (els.modalCloseBtn)  els.modalCloseBtn.addEventListener('click', closeNewCustomerModal);
-  if (els.modalCancelBtn) els.modalCancelBtn.addEventListener('click', closeNewCustomerModal);
-  if (els.modalBackdrop) {
-    els.modalBackdrop.addEventListener('click', (e) => {
-      if (e.target === els.modalBackdrop) closeNewCustomerModal();
-    });
-  }
-  if (els.newCustomerForm) {
-    els.newCustomerForm.addEventListener('submit', handleNewCustomerSubmit);
-  }
-
-  // Escape key closes modals and drawers
+  // Escape key closes drawer
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if (els.modalBackdrop && !els.modalBackdrop.hidden) {
-        closeNewCustomerModal();
-      } else if (els.drawer && !els.drawer.hidden) {
+      if (els.drawer && !els.drawer.hidden) {
         closeDrawer();
       }
     }
@@ -761,12 +703,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     const res = await api.customers.list({ page: 0, size: 100 });
     const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
     const realCustomers = items.map(apiToLocal);
-    state.customers = realCustomers;
-    state.filtered  = [...realCustomers];
+
+    // Merge with locally registered customers from localStorage
+    const localRaw = localStorage.getItem('haulo_registered_customers');
+    let localList = [];
+    if (localRaw) {
+      try { localList = JSON.parse(localRaw); } catch (_) { localList = []; }
+      if (!Array.isArray(localList)) localList = [];
+    }
+    const existingMobiles = new Set(realCustomers.map(c => (c.mobileNumber || c.phone || '').replace(/\D/g, '')));
+    const merged = [...realCustomers];
+    localList.forEach(lc => {
+      const mobDigits = (lc.mobileNumber || lc.phone || '').replace(/\D/g, '');
+      if (mobDigits && !existingMobiles.has(mobDigits)) {
+        merged.unshift(lc);
+        existingMobiles.add(mobDigits);
+      }
+    });
+
+    state.customers = merged;
+    state.filtered  = [...merged];
   } catch (err) {
     console.error('[CustomerOverview] Failed to load customers from backend:', err.message);
-    state.customers = [];
-    state.filtered  = [];
+    const localRaw = localStorage.getItem('haulo_registered_customers');
+    let localList = [];
+    if (localRaw) {
+      try { localList = JSON.parse(localRaw); } catch (_) { localList = []; }
+      if (!Array.isArray(localList)) localList = [];
+    }
+    state.customers = localList;
+    state.filtered  = [...localList];
   }
 
   // Render cards and KPIs

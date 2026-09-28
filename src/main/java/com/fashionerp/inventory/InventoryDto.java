@@ -17,7 +17,18 @@ public class InventoryDto {
         private BigDecimal reservedQty;
         private BigDecimal reorderLevel;
         private BigDecimal purchasePrice;
+        private BigDecimal sellingPrice;
+        private String composition;
+        private String weave;
+        private String width;
+        private String gsm;
+        private String hsnCode;
+        private String origin;
+        private String location;
+        private String leadTime;
         private String supplierName;
+        private String supplierContact;
+        private String notes;
         private String imageUrl;
     }
 
@@ -34,7 +45,18 @@ public class InventoryDto {
         private BigDecimal availableQty;
         private BigDecimal reorderLevel;
         private BigDecimal purchasePrice;
+        private BigDecimal sellingPrice;
+        private String composition;
+        private String weave;
+        private String width;
+        private String gsm;
+        private String hsnCode;
+        private String origin;
+        private String location;
+        private String leadTime;
         private String supplierName;
+        private String supplierContact;
+        private String notes;
         private String imageUrl;
         private InventoryStatus status;
         private LocalDateTime updatedAt;
@@ -48,7 +70,18 @@ public class InventoryDto {
                     .availableQty(i.getAvailableQty())
                     .reorderLevel(i.getReorderLevel())
                     .purchasePrice(i.getPurchasePrice())
+                    .sellingPrice(i.getSellingPrice())
+                    .composition(i.getComposition())
+                    .weave(i.getWeave())
+                    .width(i.getWidth())
+                    .gsm(i.getGsm())
+                    .hsnCode(i.getHsnCode())
+                    .origin(i.getOrigin())
+                    .location(i.getLocation())
+                    .leadTime(i.getLeadTime())
                     .supplierName(i.getSupplierName())
+                    .supplierContact(i.getSupplierContact())
+                    .notes(i.getNotes())
                     .imageUrl(i.getImageUrl()).status(i.getStatus())
                     .updatedAt(i.getUpdatedAt())
                     .build();
@@ -57,7 +90,9 @@ public class InventoryDto {
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class AdjustRequest {
-        private BigDecimal quantity; // positive = add, negative = remove
+        private BigDecimal quantity;       // positive = add, negative = remove
+        private MovementType movementType; // optional – inferred from quantity sign if null
+        private String reference;          // optional – order code, PO number, etc.
         private String reason;
         private String movedBy;
     }

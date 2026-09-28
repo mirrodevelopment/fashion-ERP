@@ -24,15 +24,22 @@ const Auth = {
     if (remember) { localStorage.setItem('erp_token', token); }
     else          { sessionStorage.setItem('erp_token', token); }
   },
-  setUser: (user) => sessionStorage.setItem('erp_user', JSON.stringify(user)),
+  setUser: (user, remember = false) => {
+    const s = JSON.stringify(user);
+    sessionStorage.setItem('erp_user', s);
+    if (remember || localStorage.getItem('erp_token')) {
+      localStorage.setItem('erp_user', s);
+    }
+  },
   getUser: () => {
-    const u = sessionStorage.getItem('erp_user');
+    const u = sessionStorage.getItem('erp_user') || localStorage.getItem('erp_user');
     return u ? JSON.parse(u) : null;
   },
   clear: () => {
     sessionStorage.removeItem('erp_token');
     sessionStorage.removeItem('erp_user');
     localStorage.removeItem('erp_token');
+    localStorage.removeItem('erp_user');
   },
   isLoggedIn: () => {
     const t = Auth.getToken();
@@ -54,7 +61,7 @@ const Auth = {
   },
   requireLogin: () => {
     if (!Auth.isLoggedIn()) {
-      window.location.href = '/front%20end/login/login.html';
+      window.location.href = '/front end/login/login.html';
       return false;
     }
     return true;
@@ -247,16 +254,24 @@ const api = {
       patch(`/inventory/${id}/adjust`, { quantity, reason, movedBy }),
     delete: (id) => del(`/inventory/${id}`),
     kpis: () => get('/inventory/kpis'),
+    /** Paginated list of all stock movements across all items */
+    allMovements: (params = {}) => get('/inventory/movements', params),
+    /** All movements for a specific inventory item (by UUID) */
+    movements: (itemId) => get(`/inventory/${itemId}/movements`),
   },
 
   payments: {
     list: async (params = {}) => unwrapList(await get('/payments', params)),
     page: (params = {}) => get('/payments', params),
     get: (id) => get(`/payments/${id}`),
+    getByOrderId: (orderId) => get(`/payments/order/${orderId}`),
     create: (data) => post('/payments', data),
     recordTransaction: (id, data) => post(`/payments/${id}/transactions`, data),
+    backfill: () => post('/payments/backfill', {}),
     kpis: () => get('/payments/kpis'),
   },
+
+  // NOTE: collections namespace is defined once below (merged from duplicate at original L265 and L419)
 
   appointments: {
     list: async (params = {}) => unwrapList(await get('/appointments', params)),
@@ -324,6 +339,10 @@ const api = {
     stages: (params = {}) => get('/production/stages', params),
     getByOrder: (orderId) => get(`/production/order/${orderId}`),
     updateStatus: (id, status) => patch(`/production/stages/${id}/status?status=${status}`, {}),
+    assignEmployee: (stageId, employeeId) => {
+      const qs = employeeId ? `?employeeId=${encodeURIComponent(employeeId)}` : '';
+      return patch(`/production/stages/${stageId}/assign${qs}`, {});
+    },
     transition: (orderId, targetStage, employeeId, notes) => {
       let qs = `orderId=${encodeURIComponent(orderId)}&targetStage=${encodeURIComponent(targetStage)}`;
       if (employeeId) qs += `&employeeId=${encodeURIComponent(employeeId)}`;
@@ -355,20 +374,10 @@ const api = {
       removeEmployee: (stageId, empId) => del(`/production/stage-definitions/${stageId}/employees/${empId}`),
       /** Upload artwork/photo for a stage definition */
       uploadImage: (id, file) => uploadFile(`/production/stage-definitions/${id}/image`, file),
-      /** Get curated gallery of preset stage images */
-      presets: () => get('/production/stage-definitions/preset-images'),
+      // presets() endpoint was removed from backend — do not call it
     },
   },
 
-  employees: {
-    list: async (params = {}) => unwrapList(await get('/employees', params)),
-    page: (params = {}) => get('/employees', params),
-    get: (id) => get(`/employees/${id}`),
-    create: (data) => post('/employees', data),
-    update: (id, data) => put(`/employees/${id}`, data),
-    delete: (id) => del(`/employees/${id}`),
-    kpis: () => get('/employees/kpis'),
-  },
 
   qc: {
     checklists: (params = {}) => get('/qc/checklists', params),
@@ -408,15 +417,106 @@ const api = {
     kpis: () => get('/trials/kpis'),
   },
 
-  designs: {
-    list: async (params = {}) => unwrapList(await get('/designs', params)),
-    page: (params = {}) => get('/designs', params),
-    get: (id) => get(`/designs/${id}`),
-    kpis: () => get('/designs/kpis'),
-    create: (data) => post('/designs', data),
-    update: (id, data) => put(`/designs/${id}`, data),
-    delete: (id) => del(`/designs/${id}`),
+  collections: {
+    /** Get paginated page of collections (Spring Page object) */
+    page: (params = {}) => get('/collections', params),
+    /** Get all collections as a flat array */
+    list: async (params = {}) => {
+      const res = await get('/collections', params);
+      if (res && Array.isArray(res.content)) return res.content;
+      if (Array.isArray(res)) return res;
+      return [];
+    },
+    /** KPIs calculated from live database records */
+    kpis: async () => {
+      const res = await get('/collections/kpis');
+      return res || {
+        totalCollections: 0,
+        activeCollections: 0,
+        currentSeasonCount: 0,
+        currentSeasonName: '—',
+        totalGarments: 0,
+        totalDesigns: 0,
+        draftCollections: 0
+      };
+    },
+    getById:    (id)       => get(`/collections/${id}`),
+    getByName:  (name)     => get(`/collections/by-name/${encodeURIComponent(name)}`),
+    create:     (data)     => post('/collections', data),
+    update:     (id, data) => put(`/collections/${id}`, data),
+    /** Toggle archive/unarchive */
+    archive:       (id) => patch(`/collections/${id}/archive`, {}),
+    toggleArchive: (id) => patch(`/collections/${id}/archive`, {}),
+    delete:        (id) => del(`/collections/${id}`),
   },
+
+  garments: {
+    /**
+     * Get paginated garments list with filters
+     */
+    list: async (params = {}) => {
+      const res = await get('/garments', params);
+      return res || { content: [], totalElements: 0, totalPages: 0, number: 0 };
+    },
+
+    /**
+     * Get Garment KPIs & stage counts
+     */
+    kpis: async () => {
+      const res = await get('/garments/kpis');
+      // BUG-P0-04 FIX: No fabricated fallback — return zeroed defaults so UI shows error state, not fake data
+      return res || {
+        totalGarments: 0,
+        totalGarmentsDelta: null,
+        inProduction: 0,
+        inProductionDelta: null,
+        inTrial: 0,
+        inTrialDelta: null,
+        awaitingQc: 0,
+        awaitingQcDelta: null,
+        ready: 0,
+        readyDelta: null,
+        delivered: 0,
+        deliveredDelta: null,
+        allCount: 0,
+        designingCount: 0,
+        inProductionCount: 0,
+        trialCount: 0,
+        qcCount: 0,
+        readyCount: 0,
+        deliveredCount: 0,
+        onHoldCount: 0
+      };
+    },
+
+    /**
+     * Get Garment details by ID
+     */
+    getById: async (id) => {
+      return get(`/garments/${id}`);
+    },
+
+    /**
+     * Create new Garment
+     */
+    create: async (data) => {
+      return post('/garments', data);
+    },
+
+    /**
+     * Update Garment
+     */
+    update: async (id, data) => {
+      return put(`/garments/${id}`, data);
+    },
+
+    /**
+     * Update Garment stage
+     */
+    updateStage: async (id, data) => {
+      return patch(`/garments/${id}/stage`, data);
+    }
+  }
 };
 
 if (typeof window !== 'undefined') {

@@ -1,0 +1,15 @@
+/* ================================================================
+   HAULO BOUTIQUE ERP — Master Theme Orchestrator
+   Path: front end/fragments/theme/haulo-tokens.css
+
+   Seamlessly aggregates all modular boutique ERP themes:
+     1. theme-classic.css      — Warm Glassmorphism (:root / [data-theme="classic"])
+     2. theme-dark.css         — Obsidian Solid Dark ([data-theme="haulo-dark"])
+     3. theme-luxury-light.css — Haulo Atelier Ivory Light ([data-theme="haulo-light"])
+
+   Maintains 100% backwards compatibility with all existing imports.
+   ================================================================ */
+
+@import url('theme-classic.css');
+@import url('theme-dark.css');
+@import url('theme-luxury-light.css');

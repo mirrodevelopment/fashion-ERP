@@ -1,10 +1,12 @@
 package com.fashionerp.measurement;
 
+import com.fashionerp.customer.CustomerBodyMeasurementRepository;
+import com.fashionerp.customer.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
-import java.util.List;
+import java.util.*;
 import java.util.UUID;
 
 @RestController
@@ -13,32 +15,62 @@ import java.util.UUID;
 public class MeasurementController {
 
     private final MeasurementService measurementService;
-    private final MeasurementProfileRepository profileRepository;
+    private final CustomerRepository customerRepository;
+    private final CustomerBodyMeasurementRepository bodyMeasurementRepository;
 
     @GetMapping("/kpis")
-    public ResponseEntity<java.util.Map<String, Object>> kpis() {
-        java.util.Map<String, Object> res = new java.util.LinkedHashMap<>();
-        long dbProfiles = profileRepository.count();
-        long totalMeasurements = Math.max(dbProfiles, 3862L);
-        res.put("totalCustomers", 1248L);
-        res.put("totalMeasurements", totalMeasurements);
-        res.put("pendingMeasurements", 48L);
-        res.put("pendingCustomers", 32L);
-        res.put("dueRemeasurement", 96L);
-        res.put("fitAccuracy", 98);
-        res.put("customersTrend", "+12% from last month");
-        res.put("measurementsTrend", "+18% from last month");
-        res.put("fitAccuracyTrend", "+2% from last month");
+    public ResponseEntity<Map<String, Object>> kpis() {
+        // ── Real database aggregates ──────────────────────────────────────────
+        long totalCustomers      = customerRepository.count();
+        long totalMeasurements   = bodyMeasurementRepository.count();
 
-        java.util.Map<String, Long> cats = new java.util.LinkedHashMap<>();
-        cats.put("all", 1248L);
-        cats.put("blouse", 482L);
-        cats.put("chudi", 286L);
-        cats.put("lehenga", 192L);
-        cats.put("saree", 168L);
-        cats.put("gown", 96L);
-        cats.put("custom", 24L);
-        res.put("categoryCounts", cats);
+        // BUG-P1-05 FIX: Use targeted database aggregate queries instead of loading whole table into heap
+        long customersWithMeasurements = bodyMeasurementRepository.countDistinctCustomerByIsCurrentTrue();
+
+        // Customers who do NOT yet have a body measurement
+        long pendingCustomers = Math.max(0, totalCustomers - customersWithMeasurements);
+
+        // Fit accuracy: ratio of versions > 1 (customers who were re-measured — indicates refinement)
+        long remeasuredCount = bodyMeasurementRepository.countDistinctCustomerWithVersionGreaterThanOne();
+        int fitAccuracy = totalCustomers > 0
+                ? (int) Math.min(100, 90 + (remeasuredCount * 10 / Math.max(1, totalCustomers)))
+                : 90;
+
+        // Category breakdown — how many current body measurements exist per garment type
+        Map<String, Long> categoryMap = new LinkedHashMap<>();
+        for (Object[] row : bodyMeasurementRepository.countCurrentByGarmentType()) {
+            String key = row[0] != null ? row[0].toString() : "custom";
+            long cnt = ((Number) row[1]).longValue();
+            categoryMap.put(key, cnt);
+        }
+
+        // Build ordered category counts with "all" sentinel
+        Map<String, Long> cats = new LinkedHashMap<>();
+        cats.put("all", customersWithMeasurements);
+        long[] blouse   = {categoryMap.getOrDefault("blouse", 0L)};
+        long[] chudi    = {categoryMap.getOrDefault("chudi", 0L)};
+        long[] lehenga  = {categoryMap.getOrDefault("lehenga", 0L)};
+        long[] saree    = {categoryMap.getOrDefault("saree", 0L)};
+        long[] gown     = {categoryMap.getOrDefault("gown", 0L)};
+        long[] custom   = {categoryMap.getOrDefault("custom", 0L)};
+        cats.put("blouse",  blouse[0]);
+        cats.put("chudi",   chudi[0]);
+        cats.put("lehenga", lehenga[0]);
+        cats.put("saree",   saree[0]);
+        cats.put("gown",    gown[0]);
+        cats.put("custom",  custom[0]);
+
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("totalCustomers",    totalCustomers);
+        res.put("totalMeasurements", totalMeasurements);
+        res.put("pendingMeasurements", pendingCustomers);
+        res.put("pendingCustomers",    pendingCustomers);
+        res.put("dueRemeasurement",    remeasuredCount);
+        res.put("fitAccuracy",         fitAccuracy);
+        res.put("customersTrend",      "Live data");
+        res.put("measurementsTrend",   "Live data");
+        res.put("fitAccuracyTrend",    "Live data");
+        res.put("categoryCounts",      cats);
 
         return ResponseEntity.ok(res);
     }

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Garments — Haulo Boutique ERP</title>
+
+  <!-- Google Fonts: Cormorant Garamond & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Design System & Navigation Styles -->
+  <link rel="stylesheet" href="../fragments/fragments.css">
+  <link rel="stylesheet" href="../fragments/nav.css">
+  <link rel="stylesheet" href="../fragments/notifications/notifications.css">
+  <link rel="stylesheet" href="garments.css">
+
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+  <script src="../fragments/theme/theme-switch.js"></script>
+  <script src="../fragments/notifications/notifications.js"></script>
+  <script src="../fragments/nav.js"></script>
+</head>
+<body class="app-body" data-module="garments">
+
+  <!-- Atmospheric Background Layer (Matching Standard ERP Design System) -->
+  <div class="app-bg"></div>
+
+  <div class="app-shell" id="appShell">
+    <!-- Dynamic Sidebar Slot -->
+    <div class="sidebar-slot" id="sidebarSlot"></div>
+
+    <div class="app-main-wrapper">
+      <!-- Dynamic Top Navbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- Garments Workspace -->
+      <main class="main-content garments-workspace" id="mainContent">
+
+        <!-- Header Row -->
+        <header class="page-header garments-header">
+          <div class="header-left">
+            <h1 class="page-title">Garments</h1>
+            <p class="page-subtitle">Manage every garment from design to delivery.</p>
+          </div>
+          <div class="header-actions">
+            <button type="button" class="btn btn-lime-primary" id="btnAddGarment" onclick="openNewGarmentModal()">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i>
+              <span>Add Garment</span>
+            </button>
+            <button type="button" class="btn btn-icon-dark" id="btnMoreHeader" title="More Options" onclick="toggleMoreMenu(event)">
+              <i data-lucide="more-horizontal" style="width:16px;height:16px;"></i>
+            </button>
+            <div class="header-dropdown-menu" id="headerDropdownMenu">
+              <div class="dropdown-item" onclick="exportGarmentsCsv()"><i data-lucide="download"></i> Export CSV</div>
+              <div class="dropdown-item" onclick="refreshGarmentsData()"><i data-lucide="refresh-cw"></i> Refresh Data</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="printGarmentBatch()"><i data-lucide="printer"></i> Print Job Cards</div>
+            </div>
+          </div>
+        </header>
+
+        <!-- KPI Metrics Strip (6 Cards) -->
+        <section class="kpi-strip garments-kpi-strip" aria-label="Garment KPI Summary">
+          <!-- Total Garments -->
+          <div class="kpi-card" id="kpiTotalGarments">
+            <div class="kpi-icon-wrap icon-green">
+              <i data-lucide="shirt" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Total Garments</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="valTotalGarments">0</span>
+              </div>
+              <span class="kpi-delta delta-neutral" id="deltaTotalGarments">0% vs last month</span>
+            </div>
+          </div>
+
+          <!-- In Production -->
+          <div class="kpi-card" id="kpiInProduction">
+            <div class="kpi-icon-wrap icon-blue">
+              <i data-lucide="scissors" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">In Production</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="valInProduction">0</span>
+              </div>
+              <span class="kpi-delta delta-neutral" id="deltaInProduction">0% vs last month</span>
+            </div>
+          </div>
+
+          <!-- In Trial -->
+          <div class="kpi-card" id="kpiInTrial">
+            <div class="kpi-icon-wrap icon-amber">
+              <i data-lucide="user-check" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">In Trial</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="valInTrial">0</span>
+              </div>
+              <span class="kpi-delta delta-neutral" id="deltaInTrial">0% vs last month</span>
+            </div>
+          </div>
+
+          <!-- Awaiting QC -->
+          <div class="kpi-card" id="kpiAwaitingQc">
+            <div class="kpi-icon-wrap icon-rose">
+              <i data-lucide="shield-check" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Awaiting QC</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="valAwaitingQc">0</span>
+              </div>
+              <span class="kpi-delta delta-neutral" id="deltaAwaitingQc">0% vs last month</span>
+            </div>
+          </div>
+
+          <!-- Ready -->
+          <div class="kpi-card" id="kpiReady">
+            <div class="kpi-icon-wrap icon-emerald">
+              <i data-lucide="package-check" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Ready</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="valReady">0</span>
+              </div>
+              <span class="kpi-delta delta-neutral" id="deltaReady">0% vs last month</span>
+            </div>
+          </div>
+
+          <!-- Delivered -->
+          <div class="kpi-card" id="kpiDelivered">
+            <div class="kpi-icon-wrap icon-cyan">
+              <i data-lucide="truck" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Delivered</span>
+              <div class="kpi-val-row">
+                <span class="kpi-value" id="valDelivered">0</span>
+              </div>
+              <span class="kpi-delta delta-neutral" id="deltaDelivered">0% vs last month</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Stage Navigation Pills Bar -->
+        <section class="stage-pills-bar" aria-label="Garment Stage Navigation">
+          <div class="pills-scroll-group" id="stagePillsGroup">
+            <button type="button" class="stage-pill active" data-stage="all" onclick="setStageFilter('all')">
+              <span>All</span> <span class="pill-badge" id="badgeStageAll">0</span>
+            </button>
+            <!-- Dynamically populated from active stage_definitions -->
+          </div>
+          <div class="saved-views-wrap">
+            <button type="button" class="btn btn-saved-views" onclick="toggleSavedViews(event)">
+              <i data-lucide="bookmark" style="width:13px;height:13px;"></i>
+              <span>Saved Views</span>
+              <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+            </button>
+          </div>
+        </section>
+
+        <!-- Multi-Facet Filter Toolbar -->
+        <section class="filter-toolbar garments-filter-toolbar">
+          <div class="search-input-wrap">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="searchGarments" placeholder="Search garments..." oninput="handleSearchInput(event)" />
+          </div>
+
+          <div class="filters-wrap">
+            <!-- Garment Type -->
+            <select id="filterGarmentType" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Garment Type</option>
+              <option value="Blouse">Blouse</option>
+              <option value="Lehenga">Lehenga</option>
+              <option value="Chudi">Chudi</option>
+              <option value="Saree">Saree</option>
+              <option value="Gown">Gown</option>
+              <option value="Kurti">Kurti</option>
+              <option value="Anarkali">Anarkali</option>
+            </select>
+
+            <!-- Collection -->
+            <select id="filterCollection" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Collection</option>
+              <option value="Bridal 2026">Bridal 2026</option>
+              <option value="Festive 2026">Festive 2026</option>
+              <option value="Wedding Edit">Wedding Edit</option>
+              <option value="Contemporary Classics">Contemporary Classics</option>
+              <option value="Summer 2026">Summer 2026</option>
+              <option value="Eid 2026">Eid 2026</option>
+              <option value="Reception 2026">Reception 2026</option>
+              <option value="Traditional">Traditional</option>
+              <option value="Custom">Custom</option>
+            </select>
+
+            <!-- Production Stage — Dynamically populated from active stage_definitions -->
+            <select id="filterProductionStage" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Production Stage (All)</option>
+            </select>
+
+            <!-- Status -->
+            <select id="filterStatus" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Status</option>
+              <option value="In Production">In Production</option>
+              <option value="Trial">Trial</option>
+              <option value="Awaiting QC">Awaiting QC</option>
+              <option value="Ready">Ready</option>
+              <option value="Delivered">Delivered</option>
+              <option value="On Hold">On Hold</option>
+            </select>
+
+            <!-- Priority -->
+            <select id="filterPriority" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Priority</option>
+              <option value="Urgent">Urgent</option>
+              <option value="High">High</option>
+              <option value="Normal">Normal</option>
+            </select>
+
+            <!-- Material Status -->
+            <select id="filterMaterialStatus" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Material Status</option>
+              <option value="READY">Ready</option>
+              <option value="PARTIAL">Partial</option>
+              <option value="AWAITING">Awaiting</option>
+            </select>
+
+            <!-- Designer -->
+            <select id="filterDesigner" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Designer</option>
+              <option value="Aishwarya">Aishwarya</option>
+              <option value="Priya S">Priya S</option>
+              <option value="Sneha">Sneha</option>
+            </select>
+
+            <!-- Branch -->
+            <select id="filterBranch" class="filter-select" onchange="handleFilterChange()">
+              <option value="all">Branch</option>
+              <option value="Haulo Designs — Main Branch">Main Branch</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Garments Workspace Content Area: Table + Inspector Drawer -->
+        <section class="garments-table-inspector-layout">
+
+          <!-- Left: Table Container -->
+          <div class="table-container-wrap">
+            <div class="table-responsive-wrapper">
+              <table class="garments-data-table" id="garmentsTable">
+                <thead>
+                  <tr>
+                    <th class="th-check"><input type="checkbox" id="checkSelectAll" onchange="toggleSelectAll(this)" /></th>
+                    <th class="th-garment">Garment</th>
+                    <th class="th-customer">Customer / Order</th>
+                    <th class="th-type">Type</th>
+                    <th class="th-design">Design / Collection</th>
+                    <th class="th-stage">Production Stage<br><span class="th-sub">Material Status</span></th>
+                    <th class="th-trial">Trial / Alteration</th>
+                    <th class="th-due">Due Date<br><span class="th-sub">Days Left</span></th>
+                    <th class="th-priority">Priority</th>
+                    <th class="th-payment">Payment</th>
+                    <th class="th-status">Status</th>
+                    <th class="th-actions"><i data-lucide="more-vertical" style="width:14px;height:14px;"></i></th>
+                  </tr>
+                </thead>
+                <tbody id="garmentsTableBody">
+                  <!-- Populated dynamically via garments.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+              <i data-lucide="package-search" style="width:48px;height:48px;color:var(--text-muted);margin-bottom:12px;"></i>
+              <h3>No Garments Found</h3>
+              <p>Try adjusting your search filters or stage tabs.</p>
+            </div>
+
+            <!-- Table Pagination Bar -->
+            <footer class="table-pagination-bar">
+              <div class="pagination-info" id="paginationInfo">
+                Showing 0 garments
+              </div>
+
+              <div class="pagination-buttons" id="paginationControls">
+                <!-- Dynamically generated page buttons -->
+              </div>
+
+              <div class="pagination-size">
+                <select id="pageSizeSelect" onchange="handlePageSizeChange(this.value)">
+                  <option value="10" selected>10 per page</option>
+                  <option value="25">25 per page</option>
+                  <option value="50">50 per page</option>
+                </select>
+              </div>
+            </footer>
+          </div>
+
+          <!-- Right: Garment Inspector Drawer -->
+          <aside class="garment-inspector-drawer" id="garmentInspector" aria-label="Garment Inspector">
+            <div class="drawer-header-actions">
+              <button type="button" class="btn-drawer-action" onclick="closeInspector()" title="Close Inspector">
+                <i data-lucide="x" style="width:16px;height:16px;"></i>
+              </button>
+              <button type="button" class="btn-drawer-action" onclick="toggleInspectorExpand()" title="Full Preview">
+                <i data-lucide="maximize-2" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+
+            <!-- Inspector Hero Media -->
+            <div class="inspector-hero-wrap">
+              <img id="inspectorHeroImg" src="../assets/designs/zari-bloom-back.jpg" alt="Garment Preview" onerror="this.src='../assets/designs/zari-bloom-front.jpg'" />
+            </div>
+
+            <!-- Inspector Title & Status -->
+            <div class="inspector-title-strip">
+              <div>
+                <span class="inspector-code" id="inspectorCode">BRD-0528</span>
+                <h3 class="inspector-title" id="inspectorTitle">Bridal Blouse</h3>
+              </div>
+              <span class="badge-status-capsule in-production" id="inspectorStatusBadge">
+                <span class="status-dot"></span> In Production
+              </span>
+            </div>
+
+            <!-- Inspector Secondary Tabs -->
+            <nav class="inspector-tabs-nav">
+              <button type="button" class="inspector-tab active" data-tab="overview" onclick="switchInspectorTab('overview')">Overview</button>
+              <button type="button" class="inspector-tab" data-tab="materials" onclick="switchInspectorTab('materials')">Materials</button>
+              <button type="button" class="inspector-tab" data-tab="measurements" onclick="switchInspectorTab('measurements')">Measurements</button>
+              <button type="button" class="inspector-tab" data-tab="timeline" onclick="switchInspectorTab('timeline')">Timeline</button>
+            </nav>
+
+            <!-- Inspector Tab Panes -->
+            <div class="inspector-tab-panes">
+
+              <!-- Pane 1: Overview (2-Column Detail Pairs matching screenshot) -->
+              <div class="tab-pane active" id="paneOverview">
+                <div class="inspector-pairs-grid">
+                  <div class="pair-row">
+                    <span class="pair-label">Customer</span>
+                    <span class="pair-value" id="detCustomer">Kavya Nair</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Order</span>
+                    <span class="pair-value link-accent" id="detOrder" onclick="viewOrder()">ORD-2026-0528</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Garment Type</span>
+                    <span class="pair-value" id="detType">Blouse</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Collection</span>
+                    <span class="pair-value" id="detCollection">Bridal 2026</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Design</span>
+                    <span class="pair-value" id="detDesign">BR-024</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Due Date</span>
+                    <span class="pair-value text-green" id="detDueDate">22 Sep 2026 (14 days)</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Priority</span>
+                    <span class="pair-value"><span class="badge-priority high" id="detPriority">High</span></span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Material Status</span>
+                    <span class="pair-value"><span class="dot-status ready"></span> <span id="detMaterialStatus">Ready</span></span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Trial</span>
+                    <span class="pair-value" id="detTrial">14 Sep 2026</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Payment</span>
+                    <span class="pair-value" id="detPayment"><span class="dot-payment partial"></span> ₹6,250 / ₹12,500</span>
+                  </div>
+                  <div class="pair-row">
+                    <span class="pair-label">Assigned To</span>
+                    <span class="pair-value" id="detAssigned">Sneha</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pane 2: Materials -->
+              <div class="tab-pane" id="paneMaterials">
+                <div class="materials-list-wrap" id="inspectorMaterialsList">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <!-- Pane 3: Measurements -->
+              <div class="tab-pane" id="paneMeasurements">
+                <div class="measurements-grid-wrap" id="inspectorMeasurementsList">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <!-- Pane 4: Timeline -->
+              <div class="tab-pane" id="paneTimeline">
+                <div class="timeline-feed-wrap" id="inspectorTimelineList">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Inspector Footer Actions -->
+            <div class="inspector-footer-actions">
+              <button type="button" class="btn btn-lime-cta" onclick="viewGarmentDetails()">
+                <span>View Garment Details</span>
+                <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+              </button>
+              <div class="inspector-subactions-row">
+                <button type="button" class="btn btn-dark-sub" onclick="viewOrder()">Open Order</button>
+                <button type="button" class="btn btn-dark-sub" onclick="viewCustomer()">View Customer</button>
+                <button type="button" class="btn btn-icon-sub" onclick="openGarmentMenu(event)"><i data-lucide="more-horizontal"></i></button>
+              </div>
+            </div>
+          </aside>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Core Scripts & Shared Fragments -->
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+  <script type="module" src="garments.js"></script>
+</body>
+</html>

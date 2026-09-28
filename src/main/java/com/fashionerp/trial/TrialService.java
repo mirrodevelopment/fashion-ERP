@@ -4,8 +4,9 @@ import com.fashionerp.customer.Customer;
 import com.fashionerp.customer.CustomerRepository;
 import com.fashionerp.order.Order;
 import com.fashionerp.order.OrderRepository;
-import com.fashionerp.production.ProductionController;
+import com.fashionerp.production.ProductionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -26,7 +28,7 @@ public class TrialService {
     private final TrialRepository trialRepository;
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
-    private final ProductionController productionController;
+    private final ProductionService productionService;
 
     public Page<TrialDto.Response> list(String search, String status, String fitStatus, LocalDate date, Pageable pageable) {
         return trialRepository.search(search, status, fitStatus, date, pageable).map(TrialDto.Response::from);
@@ -56,7 +58,8 @@ public class TrialService {
             order = orderRepository.findByOrderCode(req.getOrderCode()).orElse(null);
         }
 
-        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // BUG-P1-06 FIX: High-resolution timestamp + random suffix to prevent collisions
+        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-" + (100 + (int)(Math.random() * 900));
 
         int attempt = req.getTrialAttempt() != null ? req.getTrialAttempt() : 1;
         int altCount = req.getAlterationCount() != null ? req.getAlterationCount() : 0;
@@ -167,7 +170,8 @@ public class TrialService {
         int attempt = (int) (priorCount + 1);
         String stageLabel = attempt == 1 ? "First Trial (Attempt #1)" : ("Re-trial Attempt #" + attempt);
 
-        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // BUG-P1-06 FIX: High-resolution timestamp + random suffix to prevent collisions
+        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-" + (100 + (int)(Math.random() * 900));
 
         Trial trial = Trial.builder()
                 .trialCode(code)
@@ -228,14 +232,14 @@ public class TrialService {
 
         if (trial.getOrder() != null) {
             try {
-                productionController.transitionStage(
+                productionService.transitionStage(
                         trial.getOrder().getId(),
                         "QC",
                         null,
                         "Passed Trial Fitting - Perfect Fit (Attempt #" + (trial.getTrialAttempt() != null ? trial.getTrialAttempt() : 1) + ")"
                 );
             } catch (Exception e) {
-                // Catch any transition stage alias fallback
+                log.warn("Could not auto-advance order {} to QC stage: {}", trial.getOrder().getId(), e.getMessage());
             }
         }
 

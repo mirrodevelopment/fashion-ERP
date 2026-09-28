@@ -15,24 +15,15 @@ let CUSTOMERS_CACHE = [];
 
 const GARMENT_DEFINITIONS = {
   Blouse: {
-    basePrice: 4500,
     measurements: [
       'Shoulder', 'Bust', 'Under Bust', 'Waist', 'Blouse Length',
       'Armhole', 'Upper Arm', 'Sleeve Length', 'Sleeve Round',
       'Elbow Round', 'Wrist Round', 'Front Neck Depth', 'Back Neck Depth',
       'Bust Point', 'Bust Point to Bust Point', 'Shoulder to Bust',
       'Shoulder to Waist', 'Front Width', 'Back Width'
-    ],
-    defaultValues: {
-      Shoulder: 14.5, Bust: 34.0, 'Under Bust': 29.0, Waist: 28.0, 'Blouse Length': 14.0,
-      Armhole: 15.5, 'Upper Arm': 11.5, 'Sleeve Length': 10.5, 'Sleeve Round': 11.0,
-      'Elbow Round': 10.0, 'Wrist Round': 6.5, 'Front Neck Depth': 6.5, 'Back Neck Depth': 8.0,
-      'Bust Point': 9.5, 'Bust Point to Bust Point': 7.5, 'Shoulder to Bust': 9.5,
-      'Shoulder to Waist': 14.0, 'Front Width': 13.5, 'Back Width': 14.0
-    }
+    ]
   },
   Chudi: {
-    basePrice: 5500,
     measurements: [
       'Shoulder', 'Bust', 'Under Bust', 'Waist', 'Hip', 'Top Length',
       'Armhole', 'Upper Arm', 'Sleeve Length', 'Sleeve Round',
@@ -40,76 +31,40 @@ const GARMENT_DEFINITIONS = {
       'Front Width', 'Back Width', 'Pant Waist', 'Pant Hip', 'Pant Length',
       'Thigh Round', 'Knee Round', 'Calf Round', 'Ankle Round',
       'Crotch Length', 'Bottom Opening'
-    ],
-    defaultValues: {
-      Shoulder: 14.5, Bust: 35.0, 'Under Bust': 29.5, Waist: 29.0, Hip: 38.0, 'Top Length': 40.0,
-      Armhole: 16.0, 'Upper Arm': 11.5, 'Sleeve Length': 18.0, 'Sleeve Round': 10.5,
-      'Elbow Round': 9.5, 'Wrist Round': 6.5, 'Front Neck Depth': 6.5, 'Back Neck Depth': 7.0,
-      'Front Width': 13.5, 'Back Width': 14.0, 'Pant Waist': 30.0, 'Pant Hip': 40.0,
-      'Pant Length': 39.0, 'Thigh Round': 22.0, 'Knee Round': 15.0, 'Calf Round': 13.0,
-      'Ankle Round': 10.0, 'Crotch Length': 26.0, 'Bottom Opening': 12.0
-    }
+    ]
   },
   Lehenga: {
-    basePrice: 14500,
     measurements: [
       'Shoulder', 'Bust', 'Under Bust', 'Waist', 'Hip', 'Blouse Length',
       'Armhole', 'Upper Arm', 'Sleeve Length', 'Sleeve Round',
       'Elbow Round', 'Wrist Round', 'Front Neck Depth', 'Back Neck Depth',
       'Bust Point', 'Bust Point to Bust Point', 'Shoulder to Bust',
       'Shoulder to Waist', 'Skirt Length', 'Waist to Hip', 'Flare', 'Bottom Opening'
-    ],
-    defaultValues: {
-      Shoulder: 14.5, Bust: 34.0, 'Under Bust': 29.0, Waist: 28.0, Hip: 38.0, 'Blouse Length': 14.0,
-      Armhole: 15.5, 'Upper Arm': 11.5, 'Sleeve Length': 10.5, 'Sleeve Round': 11.0,
-      'Elbow Round': 10.0, 'Wrist Round': 6.5, 'Front Neck Depth': 6.5, 'Back Neck Depth': 8.0,
-      'Bust Point': 9.5, 'Bust Point to Bust Point': 7.5, 'Shoulder to Bust': 9.5,
-      'Shoulder to Waist': 14.0, 'Skirt Length': 42.0, 'Waist to Hip': 8.0, Flare: 120.0, 'Bottom Opening': 140.0
-    }
+    ]
   },
   Saree: {
-    basePrice: 3800,
     measurements: [
       'Shoulder', 'Bust', 'Under Bust', 'Waist', 'Blouse Length',
       'Armhole', 'Upper Arm', 'Sleeve Length', 'Sleeve Round',
       'Elbow Round', 'Wrist Round', 'Front Neck Depth', 'Back Neck Depth',
       'Bust Point', 'Bust Point to Bust Point', 'Shoulder to Bust',
       'Shoulder to Waist', 'Front Width', 'Back Width'
-    ],
-    defaultValues: {
-      Shoulder: 14.5, Bust: 34.0, 'Under Bust': 29.0, Waist: 28.0, 'Blouse Length': 14.0,
-      Armhole: 15.5, 'Upper Arm': 11.5, 'Sleeve Length': 10.5, 'Sleeve Round': 11.0,
-      'Elbow Round': 10.0, 'Wrist Round': 6.5, 'Front Neck Depth': 6.5, 'Back Neck Depth': 8.0,
-      'Bust Point': 9.5, 'Bust Point to Bust Point': 7.5, 'Shoulder to Bust': 9.5,
-      'Shoulder to Waist': 14.0, 'Front Width': 13.5, 'Back Width': 14.0
-    }
+    ]
   },
   Gown: {
-    basePrice: 12000,
     measurements: [
       'Shoulder', 'Bust', 'Under Bust', 'Waist', 'Hip', 'Full Length',
       'Armhole', 'Upper Arm', 'Sleeve Length', 'Sleeve Round',
       'Elbow Round', 'Wrist Round', 'Front Neck Depth', 'Back Neck Depth',
       'Bust Point', 'Bust Point to Bust Point', 'Shoulder to Bust',
       'Shoulder to Waist', 'Waist to Hip', 'Flare', 'Bottom Opening'
-    ],
-    defaultValues: {
-      Shoulder: 14.5, Bust: 34.5, 'Under Bust': 29.5, Waist: 28.5, Hip: 38.5, 'Full Length': 56.0,
-      Armhole: 16.0, 'Upper Arm': 11.5, 'Sleeve Length': 22.0, 'Sleeve Round': 10.5,
-      'Elbow Round': 9.5, 'Wrist Round': 6.5, 'Front Neck Depth': 6.5, 'Back Neck Depth': 7.5,
-      'Bust Point': 9.5, 'Bust Point to Bust Point': 7.5, 'Shoulder to Bust': 9.5,
-      'Shoulder to Waist': 14.0, 'Waist to Hip': 8.0, Flare: 140.0, 'Bottom Opening': 150.0
-    }
+    ]
   },
   Alteration: {
-    basePrice: 1200,
-    measurements: ['Bust Alteration', 'Waist Alteration', 'Length Adjustment', 'Sleeve Adjustment'],
-    defaultValues: { 'Bust Alteration': 1, 'Waist Alteration': 0.5, 'Length Adjustment': 2, 'Sleeve Adjustment': 0 }
+    measurements: ['Bust Alteration', 'Waist Alteration', 'Length Adjustment', 'Sleeve Adjustment']
   },
   Custom: {
-    basePrice: 8500,
-    measurements: ['Shoulder', 'Bust', 'Waist', 'Hip', 'Total Length'],
-    defaultValues: { Shoulder: 14.5, Bust: 34.0, Waist: 28.0, Hip: 38.0, 'Total Length': 45.0 }
+    measurements: ['Shoulder', 'Bust', 'Waist', 'Hip', 'Total Length']
   }
 };
 
@@ -123,25 +78,26 @@ const orderState = {
   customer: null,
 
   garment: {
-    type: 'Blouse',
+    type: '',
     customType: ''
   },
 
   design: {
-    category: 'Custom Design',
-    neckStyle: 'Round Neck',
-    sleeveStyle: '3/4 Sleeve',
+    category: '',
+    neckStyle: '',
+    sleeveStyle: '',
     notes: '',
-    referenceImages: []
+    referenceImages: [],
+    referenceImageFiles: []  // Actual File objects queued for API upload after order creation
   },
 
   fabric: {
-    source: 'Customer Supplied',
-    type: 'Silk',
+    source: '',
+    type: '',
     colour: '',
     quantity: '',
     notes: '',
-    libraryMaterialId: 1,
+    libraryMaterialId: '',
     boutiqueQty: 0,
     materials: []
   },
@@ -150,21 +106,21 @@ const orderState = {
     mode: 'existing',
     profileId: '',
     profileName: '',
-    values: { ...GARMENT_DEFINITIONS.Blouse.defaultValues }
+    values: {}
   },
 
   production: {
-    deliveryDate: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
-    priority: 'Normal',
+    deliveryDate: '',
+    priority: '',
     assignedTo: '',
     notes: ''
   },
 
   payment: {
-    estimatedAmount: 4500,
-    advanceAmount: 2250,
-    paymentMethod: 'UPI',
-    reminderEnabled: true
+    estimatedAmount: 0,
+    advanceAmount: 0,
+    paymentMethod: '',
+    reminderEnabled: false
   }
 };
 
@@ -173,6 +129,12 @@ const orderState = {
 // ─────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Purge any stale mock drafts or mock registered customers
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem('haulo_registered_customers');
+  } catch (_) {}
+
   initCustomerSection();
   initGarmentSelection();
   initDesignSection();
@@ -208,56 +170,36 @@ function initCustomerSection() {
   (async () => {
     try {
       const { default: api } = await import('../../api.js');
-      const res = await api.customers.list({ page: 0, size: 50 });
-      const items = Array.isArray(res) ? res : (res?.content || []);
-      if (items.length > 0) {
-        CUSTOMERS_CACHE = items.map(c => {
-          const mob = c.mobileNumber || c.phone || '';
-          return {
-            id: mob,
-            mobileNumber: mob,
-            name: c.name,
-            phone: mob,
-            email: c.email || '',
-            location: c.location || '',
-            badge: c.tier === 'VIP_PLATINUM' ? 'VIP Platinum' : c.tier === 'VIP_GOLD' ? 'VIP Gold' : 'Customer',
-            customerSince: c.createdAt ? String(c.createdAt).slice(0, 10) : '2026-09-08',
-            totalOrders: c.totalOrders || 0,
-            totalSpent: '₹' + (Number(c.totalSpend || c.totalSpent) || 0).toLocaleString('en-IN'),
-            avatar: c.avatarUrl || '../../assets/user_avatar.jpg'
-          };
-        });
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlMob = urlParams.get('mobile') || urlParams.get('phone');
+      const urlCust = urlParams.get('customer');
 
-        // Match from URL parameters (mobile or customer name)
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlMob = urlParams.get('mobile') || urlParams.get('phone');
-        const urlCust = urlParams.get('customer');
-        let matched = null;
-        if (urlMob) {
-          const cleanQ = urlMob.replace(/[^0-9]/g, '');
-          matched = CUSTOMERS_CACHE.find(c => c.mobileNumber.replace(/[^0-9]/g, '').includes(cleanQ));
-        } else if (urlCust) {
-          matched = CUSTOMERS_CACHE.find(c => c.name.toLowerCase().includes(urlCust.toLowerCase()));
+      if (urlMob) {
+        const c = await api.customers.getByMobile(urlMob).catch(() => null);
+        if (c) {
+          selectCustomerObject(c);
+          return;
         }
-
-        if (matched) {
-          orderState.customer = { ...matched };
-        }
-
-        if (orderState.customer) {
-          renderSelectedCustomer();
-          updateOrderSummary();
-          autoPopulateCustomerMeasurements(orderState.customer.mobileNumber || orderState.customer.phone, orderState.garment.type);
+      } else if (urlCust) {
+        const res = await api.customers.list({ search: urlCust, size: 5 });
+        const list = Array.isArray(res) ? res : (res?.content || []);
+        if (list.length > 0) {
+          selectCustomerObject(list[0]);
+          return;
         }
       }
+      renderSelectedCustomer();
+      updateOrderSummary();
     } catch (err) {
-      console.error('[NewOrder] Failed to load customers from API:', err.message);
+      console.error('[NewOrder] Failed to initialize customer section:', err.message);
+      renderSelectedCustomer();
     }
   })();
 
+  let debounceTimer = null;
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
+      const q = e.target.value.trim();
       if (btnClear) btnClear.style.display = q ? 'block' : 'none';
 
       if (!q) {
@@ -265,13 +207,34 @@ function initCustomerSection() {
         return;
       }
 
-      const matches = CUSTOMERS_CACHE.filter(c =>
-        c.name.toLowerCase().includes(q) ||
-        c.phone.includes(q) ||
-        c.email.toLowerCase().includes(q)
-      );
-
-      renderCustomerSearchResults(matches, searchResults);
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        try {
+          const { default: api } = await import('../../api.js');
+          const res = await api.customers.list({ search: q, size: 20 });
+          const items = Array.isArray(res) ? res : (res?.content || []);
+          const list = items.map(c => {
+            const mob = c.mobileNumber || c.phone || '';
+            return {
+              id: mob,
+              mobileNumber: mob,
+              name: c.name || '',
+              phone: mob,
+              email: c.email || '',
+              location: c.location || [c.city, c.state].filter(Boolean).join(', ') || '',
+              badge: c.tier === 'VIP_PLATINUM' ? 'VIP Platinum' : c.tier === 'VIP_GOLD' ? 'VIP Gold' : (c.tier || 'Customer'),
+              customerSince: c.createdAt ? String(c.createdAt).slice(0, 10) : '',
+              totalOrders: c.totalOrders || 0,
+              totalSpent: '₹' + (Number(c.totalSpend || c.totalSpent) || 0).toLocaleString('en-IN'),
+              avatar: c.avatarUrl || ''
+            };
+          });
+          CUSTOMERS_CACHE = list;
+          renderCustomerSearchResults(list, searchResults);
+        } catch (err) {
+          console.error('[NewOrder] Customer search API error:', err);
+        }
+      }, 250);
     });
 
     // Close results when clicking outside
@@ -298,10 +261,12 @@ function initCustomerSection() {
   }
 
   renderSelectedCustomer();
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function renderCustomerSearchResults(matches, container) {
   if (!container) return;
+  container.innerHTML = '';
   if (!matches || matches.length === 0) {
     container.innerHTML = `
       <div style="padding:10px 14px;font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;justify-content:space-between;">
@@ -312,31 +277,60 @@ function renderCustomerSearchResults(matches, container) {
     return;
   }
 
-  let html = '';
   matches.forEach(c => {
-    html += `
-      <div class="customer-search-item" onclick="selectCustomerById(${c.id})">
-        <div>
-          <div class="cs-name">${c.name} <span class="badge-vip" style="font-size:8px;padding:1px 5px;">${c.badge}</span></div>
-          <div class="cs-phone">${c.phone} • ${c.location}</div>
-        </div>
-        <div style="text-align:right;">
-          <span style="font-size:11px;font-weight:700;color:var(--lime);">${c.totalSpent}</span>
-        </div>
+    const div = document.createElement('div');
+    div.className = 'customer-search-item';
+    div.innerHTML = `
+      <div>
+        <div class="cs-name">${c.name} <span class="badge-vip" style="font-size:8px;padding:1px 5px;">${c.badge}</span></div>
+        <div class="cs-phone">${c.phone} • ${c.location}</div>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-size:11px;font-weight:700;color:var(--lime);">${c.totalSpent}</span>
       </div>
     `;
+    div.addEventListener('click', () => {
+      selectCustomerObject(c);
+    });
+    container.appendChild(div);
   });
-  container.innerHTML = html;
   container.style.display = 'block';
 }
 
-function selectCustomerById(id) {
-  const c = CUSTOMERS_CACHE.find(x => x.id === id);
-  if (!c) return;
+async function selectCustomerById(id) {
+  try {
+    const { default: api } = await import('../../api.js');
+    const c = await api.customers.getByMobile(id).catch(() => null);
+    if (c) {
+      selectCustomerObject(c);
+      return;
+    }
+  } catch (_) {}
+  const cached = CUSTOMERS_CACHE.find(x => String(x.id) === String(id) || String(x.mobileNumber) === String(id));
+  if (cached) selectCustomerObject(cached);
+}
 
-  orderState.customer = { ...c };
+function selectCustomerObject(c) {
+  const mob = c.mobileNumber || c.phone || '';
+  orderState.customer = {
+    id: mob,
+    mobileNumber: mob,
+    name: c.name || '',
+    phone: mob,
+    email: c.email || '',
+    location: c.location || [c.city, c.state].filter(Boolean).join(', ') || '',
+    badge: c.tier === 'VIP_PLATINUM' ? 'VIP Platinum' : c.tier === 'VIP_GOLD' ? 'VIP Gold' : (c.tier || 'Customer'),
+    customerSince: c.createdAt ? String(c.createdAt).slice(0, 10) : '',
+    totalOrders: c.totalOrders || 0,
+    totalSpent: '₹' + (Number(c.totalSpend || c.totalSpent) || 0).toLocaleString('en-IN'),
+    avatar: c.avatarUrl || ''
+  };
+
   renderSelectedCustomer();
   updateOrderSummary();
+  if (orderState.garment.type) {
+    autoPopulateCustomerMeasurements(mob, orderState.garment.type);
+  }
 
   const searchResults = document.getElementById('customerSearchResults');
   const searchInput = document.getElementById('customerSearchInput');
@@ -346,34 +340,80 @@ function selectCustomerById(id) {
   if (searchInput) searchInput.value = '';
   if (btnClear) btnClear.style.display = 'none';
 
-  showToast(`Customer selected: ${c.name}`, 'info');
+  showToast(`Customer selected: ${orderState.customer.name}`, 'info');
 }
 
 function renderSelectedCustomer() {
   const c = orderState.customer;
-  if (!c) return;
+  const nameDisplay = document.getElementById('customerNameDisplay');
+  const phoneDisplay = document.getElementById('customerPhoneDisplay');
+  const emailDisplay = document.getElementById('customerEmailDisplay');
+  const locDisplay = document.getElementById('customerLocationDisplay');
+  const badgeDisplay = document.getElementById('customerBadgeDisplay');
+  const avatarBox = document.getElementById('customerAvatarBox');
+  const sinceDisplay = document.getElementById('customerSinceDisplay');
+  const ordersDisplay = document.getElementById('customerOrdersDisplay');
+  const spentDisplay = document.getElementById('customerSpentDisplay');
 
-  const nameEl = document.getElementById('customerNameDisplay');
-  const badgeEl = document.getElementById('customerBadgeDisplay');
-  const phoneEl = document.getElementById('customerPhoneDisplay');
-  const emailEl = document.getElementById('customerEmailDisplay');
-  const locEl = document.getElementById('customerLocationDisplay');
-  const sinceEl = document.getElementById('customerSinceDisplay');
-  const ordersEl = document.getElementById('customerOrdersDisplay');
-  const spentEl = document.getElementById('customerSpentDisplay');
-  const avatarEl = document.getElementById('customerAvatarImg');
+  function getInitials(name) {
+    if (typeof window.getPatronInitials === 'function') {
+      return window.getPatronInitials(name);
+    }
+    if (!name || name === '—') return 'CU';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'CU';
+    if (parts.length === 1) {
+      const s = parts[0].replace(/[^a-zA-Z0-9]/g, '');
+      return s.length >= 2 ? s.substring(0, 2).toUpperCase() : s.toUpperCase();
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
 
-  if (nameEl) nameEl.textContent = c.name;
-  if (badgeEl) badgeEl.textContent = `★ ${c.badge}`;
-  if (phoneEl) phoneEl.textContent = c.phone;
-  if (emailEl) emailEl.textContent = c.email;
-  if (locEl) locEl.textContent = c.location;
-  if (sinceEl) sinceEl.textContent = c.customerSince || 'Mar 2023';
-  if (ordersEl) ordersEl.textContent = c.totalOrders || 12;
-  if (spentEl) spentEl.textContent = c.totalSpent || '₹1,24,500';
+  if (c && c.name && c.name !== '—') {
+    if (nameDisplay) nameDisplay.textContent = c.name || '—';
+    if (phoneDisplay) phoneDisplay.textContent = c.phone || c.mobileNumber || '—';
+    if (emailDisplay) emailDisplay.textContent = c.email || '—';
+    if (locDisplay) locDisplay.textContent = c.location || '—';
+    if (badgeDisplay) {
+      const isVip = (c.tier && c.tier.includes('VIP')) || (c.badge && c.badge.includes('VIP'));
+      badgeDisplay.style.display = isVip ? 'inline-block' : 'none';
+      if (c.badge) badgeDisplay.textContent = c.badge;
+    }
+    if (sinceDisplay) sinceDisplay.textContent = c.customerSince || '—';
+    if (ordersDisplay) ordersDisplay.textContent = c.totalOrders != null ? String(c.totalOrders) : '0';
+    if (spentDisplay) spentDisplay.textContent = c.totalSpent || '₹0';
 
-  if (avatarEl && c.avatar) {
-    avatarEl.src = c.avatar;
+    if (avatarBox) {
+      const formattedAvatar = (c.avatar && !c.avatar.includes('user_avatar.jpg')) ? c.avatar : '';
+      if (typeof window.applyPatronAvatarElement === 'function') {
+        window.applyPatronAvatarElement(avatarBox, c.name, formattedAvatar, 'haulo-avatar-lg', 'width:68px;height:68px;border-radius:12px;font-size:22px;');
+      } else if (typeof window.renderPatronAvatarHtml === 'function') {
+        avatarBox.innerHTML = window.renderPatronAvatarHtml(c.name, formattedAvatar, 'haulo-avatar-lg', 'width:68px;height:68px;border-radius:12px;font-size:22px;');
+      } else {
+        avatarBox.innerHTML = `<div class="haulo-patron-avatar-initials haulo-avatar-lg" style="width:68px;height:68px;border-radius:12px;font-size:22px;">${getInitials(c.name)}</div>`;
+      }
+    }
+  } else {
+    if (nameDisplay) nameDisplay.textContent = '—';
+    if (phoneDisplay) phoneDisplay.textContent = '—';
+    if (emailDisplay) emailDisplay.textContent = '—';
+    if (locDisplay) locDisplay.textContent = '—';
+    if (badgeDisplay) badgeDisplay.style.display = 'none';
+    if (sinceDisplay) sinceDisplay.textContent = '—';
+    if (ordersDisplay) ordersDisplay.textContent = '0';
+    if (spentDisplay) spentDisplay.textContent = '₹0';
+
+    if (avatarBox) {
+      avatarBox.innerHTML = `
+        <div class="customer-avatar-placeholder" id="customerAvatarPlaceholder">
+          <i data-lucide="user" class="avatar-user-icon"></i>
+          <span class="customer-avatar-initials" id="customerAvatarInitials" style="display:none;"></span>
+        </div>`;
+    }
+  }
+
+  if (window.lucide) {
+    try { window.lucide.createIcons(); } catch (_) {}
   }
 }
 
@@ -391,8 +431,8 @@ async function handleCreateCustomer(event) {
   event.preventDefault();
   const name = document.getElementById('ncName').value.trim();
   const phone = document.getElementById('ncPhone').value.trim();
-  const email = document.getElementById('ncEmail').value.trim() || `${name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`;
-  const location = document.getElementById('ncLocation').value.trim() || 'Chennai, Tamil Nadu';
+  const email = document.getElementById('ncEmail').value.trim();
+  const location = document.getElementById('ncLocation').value.trim();
 
   if (!name || !phone) {
     showToast('Name and phone are required', 'error');
@@ -404,30 +444,17 @@ async function handleCreateCustomer(event) {
     const { default: api } = await import('../../api.js');
     dbCustomer = await api.customers.create({ name, phone, email, location });
   } catch (err) {
-    console.warn('[NewOrder] Customer API create fallback:', err.message);
+    console.error('[NewOrder] Customer create error:', err.message);
+    showToast(err.message || 'Failed to create customer', 'error');
+    return;
   }
 
-  const newCust = {
-    id: dbCustomer ? dbCustomer.id : Date.now(),
-    dbId: dbCustomer ? dbCustomer.id : null,
-    name: dbCustomer ? dbCustomer.name : name,
-    phone: dbCustomer ? dbCustomer.phone : phone,
-    email: dbCustomer ? dbCustomer.email : email,
-    location: dbCustomer ? dbCustomer.location : location,
-    badge: 'New Customer',
-    customerSince: 'Today',
-    totalOrders: 0,
-    totalSpent: '₹0',
-    avatar: dbCustomer?.avatarUrl || '../../assets/user_avatar.jpg'
-  };
-
-  CUSTOMERS_CACHE.unshift(newCust);
-  orderState.customer = newCust;
-  renderSelectedCustomer();
-  updateOrderSummary();
-  closeNewCustomerModal();
-  showToast(`New customer created in DB: ${name}`, 'info');
-  document.getElementById('newCustomerForm').reset();
+  if (dbCustomer) {
+    selectCustomerObject(dbCustomer);
+    closeNewCustomerModal();
+    showToast(`New customer created: ${name}`, 'info');
+    document.getElementById('newCustomerForm').reset();
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -472,18 +499,21 @@ function initDesignSection() {
   if (neckSel) {
     neckSel.addEventListener('change', (e) => {
       orderState.design.neckStyle = e.target.value;
+      updateOrderSummary();
     });
   }
 
   if (sleeveSel) {
     sleeveSel.addEventListener('change', (e) => {
       orderState.design.sleeveStyle = e.target.value;
+      updateOrderSummary();
     });
   }
 
   if (notesArea) {
     notesArea.addEventListener('input', (e) => {
       orderState.design.notes = e.target.value;
+      updateOrderSummary();
     });
   }
 }
@@ -506,6 +536,7 @@ function handleImageUpload(event) {
       const imgUrl = e.target.result;
       const refId = `ref-custom-${Date.now()}-${idx}`;
       orderState.design.referenceImages.push(imgUrl);
+      orderState.design.referenceImageFiles.push(file);  // Store File for API upload
 
       const div = document.createElement('div');
       div.className = 'ref-image-item';
@@ -515,6 +546,7 @@ function handleImageUpload(event) {
         <button type="button" class="btn-remove-img" onclick="removeReferenceImage('${refId}')">&times;</button>
       `;
       strip.insertBefore(div, uploadTile);
+      updateOrderSummary();
       showToast('Reference image added', 'info');
     };
     reader.readAsDataURL(file);
@@ -525,6 +557,7 @@ function removeReferenceImage(id) {
   const item = document.querySelector(`.ref-image-item[data-id="${id}"]`);
   if (item) {
     item.remove();
+    updateOrderSummary();
     showToast('Image removed', 'info');
   }
 }
@@ -533,11 +566,44 @@ function removeReferenceImage(id) {
 // 7. STEP 4: FABRIC & MATERIALS
 // ─────────────────────────────────────────────────────────────
 
+let INVENTORY_MATERIALS = [];
+
+async function loadInventoryMaterials() {
+  try {
+    const { default: api } = await import('../../api.js');
+    const res = await api.inventory.list({ size: 100 });
+    const items = Array.isArray(res) ? res : (res?.content || []);
+    if (items.length > 0) {
+      INVENTORY_MATERIALS = items.map(item => ({
+        id: item.id,
+        name: item.name || 'Material',
+        color: item.color || '',
+        category: item.category || 'Fabric',
+        unitPrice: Number(item.unitPrice) || 0,
+        stockQuantity: Number(item.quantityOnHand || item.stockQuantity || item.quantity) || 0,
+        unit: item.unitOfMeasure || 'm'
+      }));
+
+      const sel = document.getElementById('libraryMaterialSelect');
+      if (sel) {
+        sel.innerHTML = '<option value="">Select Material from Library...</option>' +
+          INVENTORY_MATERIALS.map(m =>
+            `<option value="${m.id}">${m.name} ${m.color ? '(' + m.color + ')' : ''} — ₹${m.unitPrice.toLocaleString('en-IN')}/${m.unit} [${m.stockQuantity}${m.unit} avail]</option>`
+          ).join('');
+      }
+    }
+  } catch (err) {
+    console.warn('[NewOrder] Failed to load inventory materials:', err.message);
+  }
+}
+
 function initFabricSection() {
   const typeSel = document.getElementById('fabricTypeSelect');
   const colourSel = document.getElementById('fabricColourSelect');
   const qtyInput = document.getElementById('fabricQuantityInput');
   const notesInput = document.getElementById('fabricNotesInput');
+
+  loadInventoryMaterials();
 
   if (typeSel) {
     typeSel.addEventListener('change', (e) => {
@@ -548,16 +614,19 @@ function initFabricSection() {
   if (colourSel) {
     colourSel.addEventListener('change', (e) => {
       orderState.fabric.colour = e.target.value;
+      updateOrderSummary();
     });
   }
   if (qtyInput) {
     qtyInput.addEventListener('input', (e) => {
       orderState.fabric.quantity = e.target.value;
+      updateOrderSummary();
     });
   }
   if (notesInput) {
     notesInput.addEventListener('input', (e) => {
       orderState.fabric.notes = e.target.value;
+      updateOrderSummary();
     });
   }
 }
@@ -588,47 +657,66 @@ function toggleFabricSource(source) {
 
 function handleLibraryMaterialSelect() {
   const sel = document.getElementById('libraryMaterialSelect');
-  orderState.fabric.libraryMaterialId = sel.value;
+  orderState.fabric.libraryMaterialId = sel ? sel.value : '';
   calculateMaterialSubtotal();
+  updateOrderSummary();
 }
 
 function calculateMaterialSubtotal() {
   const sel = document.getElementById('libraryMaterialSelect');
-  const qty = parseFloat(document.getElementById('boutiqueQtyInput').value) || 2.5;
+  const qty = parseFloat(document.getElementById('boutiqueQtyInput')?.value) || 0;
+  if (!sel) return;
 
-  let baseRate = 1850;
-  if (sel.value === '2') baseRate = 980;
-  if (sel.value === '3') baseRate = 1450;
-  if (sel.value === '4') baseRate = 1200;
-  if (sel.value === '5') baseRate = 2200;
-
+  const mat = INVENTORY_MATERIALS.find(m => String(m.id) === String(sel.value));
+  const baseRate = mat ? (Number(mat.unitPrice) || 0) : 0;
   const fabricCost = baseRate * qty;
-  const trimsCost = 450 + 80; // Default trims
-  const total = fabricCost + trimsCost;
 
+  let trimsCost = 0;
+  document.querySelectorAll('#materialRowsList .mat-row').forEach(row => {
+    const p = parseFloat(row.dataset.price) || 0;
+    trimsCost += p;
+  });
+
+  const total = fabricCost + trimsCost;
   const subDisplay = document.getElementById('materialSubtotalDisplay');
   if (subDisplay) subDisplay.textContent = `₹${total.toLocaleString('en-IN')}`;
+  updateOrderSummary();
 }
 
 function addMaterialRow() {
   const list = document.getElementById('materialRowsList');
+  if (!list) return;
+
+  if (!INVENTORY_MATERIALS || INVENTORY_MATERIALS.length === 0) {
+    showToast('No materials or trims available in inventory', 'info');
+    return;
+  }
+
+  const trim = INVENTORY_MATERIALS.find(m => (m.category && m.category.toLowerCase().includes('trim')) || (m.category && m.category.toLowerCase().includes('access'))) || INVENTORY_MATERIALS[0];
+  if (!trim) return;
+
   const id = `mat-${Date.now()}`;
   const div = document.createElement('div');
   div.className = 'mat-row';
   div.dataset.id = id;
+  div.dataset.price = trim.unitPrice;
   div.innerHTML = `
-    <span class="mat-name">Custom Embroidery Zari Thread</span>
-    <span class="mat-qty">2 spools</span>
-    <span class="mat-price">₹220</span>
+    <span class="mat-name">${trim.name}</span>
+    <span class="mat-qty">1 ${trim.unit || 'm'}</span>
+    <span class="mat-price">₹${(Number(trim.unitPrice) || 0).toLocaleString('en-IN')}</span>
     <button type="button" class="mat-del-btn" onclick="removeMaterialRow('${id}')">&times;</button>
   `;
   list.appendChild(div);
-  showToast('Material row added', 'info');
+  calculateMaterialSubtotal();
+  showToast('Material added from inventory', 'info');
 }
 
 function removeMaterialRow(id) {
   const row = document.querySelector(`.mat-row[data-id="${id}"]`);
-  if (row) row.remove();
+  if (row) {
+    row.remove();
+    calculateMaterialSubtotal();
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -636,7 +724,9 @@ function removeMaterialRow(id) {
 // ─────────────────────────────────────────────────────────────
 
 function initMeasurementsSection() {
-  updateMeasurementsForGarment('Blouse');
+  if (orderState.garment.type) {
+    updateMeasurementsForGarment(orderState.garment.type);
+  }
 }
 
 function toggleMeasurementMode(mode) {
@@ -669,30 +759,26 @@ function updateMeasurementsForGarment(garment) {
 
   grid.innerHTML = '';
   def.measurements.forEach(mName => {
-    const val = def.defaultValues[mName] || 0;
+    const val = (orderState.measurements.values && orderState.measurements.values[mName] != null) ? orderState.measurements.values[mName] : '';
     const div = document.createElement('div');
     div.className = 'meas-input-group';
     div.innerHTML = `
       <label>${mName}</label>
-      <input type="number" step="0.5" class="form-input" value="${val}" data-metric="${mName}" oninput="handleCustomMeasurementChange(this)" />
+      <input type="number" step="0.5" class="form-input" value="${val}" placeholder="—" data-metric="${mName}" oninput="handleCustomMeasurementChange(this)" />
     `;
     grid.appendChild(div);
   });
 
-  // Also update preview chips in existing profile card
-  const bustVal = def.defaultValues['Bust'] || def.defaultValues['Chest'] || 34;
-  const waistVal = def.defaultValues['Waist'] || 28;
-  const shoulderVal = def.defaultValues['Shoulder'] || 14;
-
+  // Update preview chips in existing profile card
   const bustEl = document.getElementById('measBustVal');
   const waistEl = document.getElementById('measWaistVal');
   const shoulderEl = document.getElementById('measShoulderVal');
   const profTitle = document.getElementById('profileNameDisplay');
 
-  if (bustEl) bustEl.textContent = `${bustVal}"`;
-  if (waistEl) waistEl.textContent = `${waistVal}"`;
-  if (shoulderEl) shoulderEl.textContent = `${shoulderVal}"`;
-  if (profTitle) profTitle.textContent = `${garment} — 08 Sep 2026`;
+  if (bustEl) bustEl.textContent = '—';
+  if (waistEl) waistEl.textContent = '—';
+  if (shoulderEl) shoulderEl.textContent = '—';
+  if (profTitle) profTitle.textContent = 'No measurement profile selected';
 
   if (orderState.customer) {
     autoPopulateCustomerMeasurements(orderState.customer.mobileNumber || orderState.customer.phone, garment);
@@ -704,8 +790,13 @@ async function autoPopulateCustomerMeasurements(mobile, garment) {
   try {
     const { default: api } = await import('../../api.js');
     const comp = await api.customers.bodyMeasurements.getComparison(mobile, garment).catch(() => null);
-    const m = (comp && comp.current) ? comp.current : 
-              await api.customers.measurements.getByGarment(mobile, garment).catch(() => null);
+    const m = (comp && comp.current) ? comp.current :
+      await api.customers.measurements.getByGarment(mobile, garment).catch(() => null);
+
+    const bustEl = document.getElementById('measBustVal');
+    const waistEl = document.getElementById('measWaistVal');
+    const shoulderEl = document.getElementById('measShoulderVal');
+    const profTitle = document.getElementById('profileNameDisplay');
 
     if (m) {
       // Map all numeric points
@@ -752,24 +843,16 @@ async function autoPopulateCustomerMeasurements(mobile, garment) {
         }
       });
 
-      const bustEl = document.getElementById('measBustVal');
-      const waistEl = document.getElementById('measWaistVal');
-      const shoulderEl = document.getElementById('measShoulderVal');
-      const profTitle = document.getElementById('profileNameDisplay');
-
       if (bustEl && m.bust) bustEl.textContent = `${m.bust}"`;
       if (waistEl && m.waist) waistEl.textContent = `${m.waist}"`;
       if (shoulderEl && m.shoulder) shoulderEl.textContent = `${m.shoulder}"`;
 
-      if (profTitle) {
-        if (comp && comp.old) {
-          profTitle.innerHTML = `${garment} Spec: <b style="color:var(--lime,#84cc16)">Current v${comp.current.version}</b> <span style="font-size:11px;color:#94a3b8;">(Prev: v${comp.old.version})</span>`;
-        } else if (comp && comp.current) {
-          profTitle.innerHTML = `${garment} Spec: <b style="color:var(--lime,#84cc16)">Current v${comp.current.version}</b>`;
-        } else {
-          profTitle.textContent = `${garment} Profile (${m.recordedBy || 'Bespoke DB'})`;
-        }
+      let profName = `${garment} Profile` + (m.recordedBy ? ` (${m.recordedBy})` : '');
+      if (comp && comp.current) {
+        profName = `${garment} Spec: Current v${comp.current.version}`;
       }
+      orderState.measurements.profileName = profName;
+      if (profTitle) profTitle.textContent = profName;
 
       document.querySelectorAll('#newMeasurementsGrid input').forEach(input => {
         const metric = input.dataset.metric;
@@ -777,7 +860,14 @@ async function autoPopulateCustomerMeasurements(mobile, garment) {
           input.value = orderState.measurements.values[metric];
         }
       });
+    } else {
+      if (profTitle) profTitle.textContent = 'No measurement profile available';
+      if (bustEl) bustEl.textContent = '—';
+      if (waistEl) waistEl.textContent = '—';
+      if (shoulderEl) shoulderEl.textContent = '—';
+      orderState.measurements.profileName = '';
     }
+    updateOrderSummary();
   } catch (err) {
     console.warn('[NewOrder] Autofill measurements error:', err);
   }
@@ -787,6 +877,7 @@ function handleCustomMeasurementChange(input) {
   const metric = input.dataset.metric;
   const val = parseFloat(input.value) || 0;
   orderState.measurements.values[metric] = val;
+  updateOrderSummary();
 }
 
 function openProfileViewerModal() {
@@ -796,13 +887,14 @@ function openProfileViewerModal() {
 
   if (!modal) return;
 
-  // Render tabs
-  const garments = ['Blouse', 'Lehenga', 'Chudi', 'Saree'];
+  // Render tabs from definitions
+  const garments = Object.keys(GARMENT_DEFINITIONS);
   tabs.innerHTML = '';
   garments.forEach((g, idx) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `prof-tab-btn ${idx === 0 ? 'active' : ''}`;
+    const isAct = (orderState.garment.type ? g === orderState.garment.type : idx === 0);
+    btn.className = `prof-tab-btn ${isAct ? 'active' : ''}`;
     btn.textContent = `${g} Profile`;
     btn.onclick = () => {
       document.querySelectorAll('.prof-tab-btn').forEach(b => b.classList.remove('active'));
@@ -812,7 +904,8 @@ function openProfileViewerModal() {
     tabs.appendChild(btn);
   });
 
-  renderProfileSpecs('Blouse', specs);
+  const activeG = orderState.garment.type || garments[0];
+  renderProfileSpecs(activeG, specs);
   modal.style.display = 'flex';
 }
 
@@ -820,12 +913,12 @@ function renderProfileSpecs(garment, container) {
   const def = GARMENT_DEFINITIONS[garment] || GARMENT_DEFINITIONS.Blouse;
   container.innerHTML = '';
   def.measurements.forEach(m => {
-    const v = def.defaultValues[m] || 0;
+    const v = (orderState.measurements.values && orderState.measurements.values[m] != null) ? orderState.measurements.values[m] : '—';
     const item = document.createElement('div');
     item.className = 'spec-item';
     item.innerHTML = `
       <span class="spec-name">${m}</span>
-      <span class="spec-val">${v}"</span>
+      <span class="spec-val">${v !== '—' ? v + '"' : '—'}</span>
     `;
     container.appendChild(item);
   });
@@ -852,6 +945,9 @@ function initProductionSection() {
   const notesInput = document.getElementById('productionNotesInput');
 
   if (dateInput) {
+    if (orderState.production.deliveryDate) {
+      dateInput.value = orderState.production.deliveryDate;
+    }
     dateInput.addEventListener('change', (e) => {
       orderState.production.deliveryDate = e.target.value;
       updateTimeline();
@@ -862,6 +958,7 @@ function initProductionSection() {
   if (prioritySel) {
     prioritySel.addEventListener('change', (e) => {
       orderState.production.priority = e.target.value;
+      updateOrderSummary();
     });
   }
 
@@ -873,12 +970,12 @@ function initProductionSection() {
         if (emps && emps.length > 0) {
           EMPLOYEES = emps.map(e => ({
             name: e.fullName || e.name || 'Staff',
-            avatar: e.avatarUrl || '../../assets/user_avatar.jpg',
+            avatar: (e.avatarUrl && !e.avatarUrl.includes('user_avatar.jpg')) ? e.avatarUrl : '',
             initial: (e.fullName || e.name || 'S').split(' ').map(p => p[0]).join('').slice(0, 2)
           }));
           assignSel.innerHTML = '<option value="">Select Employee</option>' + EMPLOYEES.map(e => `<option value="${e.name}">${e.name}</option>`).join('');
         }
-      } catch (_) {}
+      } catch (_) { }
     })();
 
     assignSel.addEventListener('change', (e) => {
@@ -889,10 +986,16 @@ function initProductionSection() {
       const emp = EMPLOYEES.find(x => x.name === name);
       const preview = document.getElementById('assigneePreview');
       if (preview && emp) {
-        preview.innerHTML = `
-          <img src="${emp.avatar}" alt="${emp.name}" class="assignee-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
-          <span class="assignee-initial" style="display:none;">${emp.initial}</span>
-        `;
+        if (emp.avatar) {
+          preview.innerHTML = `
+            <img src="${emp.avatar}" alt="${emp.name}" class="assignee-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
+            <span class="assignee-initial" style="display:none;">${emp.initial}</span>
+          `;
+        } else {
+          preview.innerHTML = `<span class="assignee-initial">${emp.initial}</span>`;
+        }
+      } else if (preview) {
+        preview.innerHTML = `<span class="assignee-initial">—</span>`;
       }
       updateOrderSummary();
     });
@@ -901,26 +1004,42 @@ function initProductionSection() {
   if (notesInput) {
     notesInput.addEventListener('input', (e) => {
       orderState.production.notes = e.target.value;
+      updateOrderSummary();
     });
   }
 }
 
 function updateTimeline() {
   const dateStr = orderState.production.deliveryDate;
+  const createdDate = new Date(); // Today
+  const createdEl = document.getElementById('tlDateCreated');
+  if (createdEl) createdEl.textContent = formatDate(createdDate);
+
   if (!dateStr) return;
 
   const targetDate = new Date(dateStr);
   if (isNaN(targetDate.getTime())) return;
 
-  const formattedDelivery = formatDate(targetDate);
-  const trialDate = new Date(targetDate);
-  trialDate.setDate(trialDate.getDate() - 4);
+  const diffMs = targetDate.getTime() - createdDate.getTime();
+  const diffDays = Math.max(1, Math.round(diffMs / 86400000));
 
-  const deliveryEl = document.getElementById('tlDateDelivery');
+  // Dynamically calculate intermediate milestones based on total span
+  const dDesign = new Date(createdDate.getTime() + Math.max(1, Math.round(diffDays * 0.15)) * 86400000);
+  const dFabric = new Date(createdDate.getTime() + Math.max(2, Math.round(diffDays * 0.30)) * 86400000);
+  const dProd = new Date(createdDate.getTime() + Math.max(3, Math.round(diffDays * 0.45)) * 86400000);
+  const dTrial = new Date(targetDate.getTime() - Math.max(1, Math.round(diffDays * 0.25)) * 86400000);
+
+  const designEl = document.getElementById('tlDateDesign');
+  const fabricEl = document.getElementById('tlDateFabric');
+  const prodEl = document.getElementById('tlDateProd');
   const trialEl = document.getElementById('tlDateTrial');
+  const deliveryEl = document.getElementById('tlDateDelivery');
 
-  if (deliveryEl) deliveryEl.textContent = formattedDelivery;
-  if (trialEl) trialEl.textContent = formatDate(trialDate);
+  if (designEl) designEl.textContent = formatDate(dDesign);
+  if (fabricEl) fabricEl.textContent = formatDate(dFabric);
+  if (prodEl) prodEl.textContent = formatDate(dProd);
+  if (trialEl) trialEl.textContent = formatDate(dTrial);
+  if (deliveryEl) deliveryEl.textContent = formatDate(targetDate);
 }
 
 function formatDate(d) {
@@ -936,16 +1055,29 @@ function formatDate(d) {
 function initPaymentSection() {
   const methodSel = document.getElementById('paymentMethodSelect');
   const reminderToggle = document.getElementById('paymentReminderToggle');
+  const estInput = document.getElementById('estimatedAmountInput');
+  const advInput = document.getElementById('advanceAmountInput');
+
+  if (estInput) {
+    estInput.value = orderState.payment.estimatedAmount > 0 ? orderState.payment.estimatedAmount : '';
+  }
+  if (advInput) {
+    advInput.value = orderState.payment.advanceAmount > 0 ? orderState.payment.advanceAmount : '';
+  }
 
   if (methodSel) {
+    methodSel.value = orderState.payment.paymentMethod || '';
     methodSel.addEventListener('change', (e) => {
       orderState.payment.paymentMethod = e.target.value;
+      updateOrderSummary();
     });
   }
 
   if (reminderToggle) {
+    reminderToggle.checked = Boolean(orderState.payment.reminderEnabled);
     reminderToggle.addEventListener('change', (e) => {
       orderState.payment.reminderEnabled = e.target.checked;
+      updateOrderSummary();
     });
   }
 }
@@ -974,21 +1106,23 @@ function updateOrderSummary() {
 
   // Update Garment
   const sumGarm = document.getElementById('sumGarment');
-  if (sumGarm) sumGarm.textContent = orderState.garment.type;
+  if (sumGarm) sumGarm.textContent = orderState.garment.type || '—';
 
   // Update Design
   const sumDes = document.getElementById('sumDesign');
-  if (sumDes) sumDes.textContent = orderState.design.category;
+  if (sumDes) sumDes.textContent = orderState.design.category || '—';
 
   // Update Fabric
   const sumFab = document.getElementById('sumFabric');
-  if (sumFab) sumFab.textContent = orderState.fabric.source;
+  if (sumFab) sumFab.textContent = orderState.fabric.source || '—';
 
   // Update Measurements
   const sumMeas = document.getElementById('sumMeasurements');
   if (sumMeas) {
     if (orderState.measurements.mode === 'existing') {
-      sumMeas.textContent = `Existing Profile (${formatDate(new Date('2026-09-08'))})`;
+      sumMeas.textContent = (orderState.measurements.profileName && orderState.measurements.profileName !== 'No profile' && orderState.measurements.profileName !== 'No measurement profile selected')
+        ? orderState.measurements.profileName
+        : '—';
     } else {
       sumMeas.textContent = `Custom (${orderState.garment.type})`;
     }
@@ -998,12 +1132,12 @@ function updateOrderSummary() {
   const sumDue = document.getElementById('sumDueDate');
   if (sumDue) {
     const d = new Date(orderState.production.deliveryDate);
-    sumDue.textContent = isNaN(d.getTime()) ? '22 Sep 2026' : formatDate(d);
+    sumDue.textContent = !isNaN(d.getTime()) ? formatDate(d) : '—';
   }
 
   // Update Assigned To
   const sumAssigned = document.getElementById('sumAssigned');
-  if (sumAssigned) sumAssigned.textContent = orderState.production.assignedTo;
+  if (sumAssigned) sumAssigned.textContent = orderState.production.assignedTo || 'No employee assigned';
 
   // Update Estimated Amount
   const sumEst = document.getElementById('sumEstimatedAmount');
@@ -1012,6 +1146,8 @@ function updateOrderSummary() {
 
   // Update Advance Payment Card
   const advDisplay = document.getElementById('advanceSummaryDisplay');
+  const advBadge = document.getElementById('advanceStatusBadge');
+  const advText = document.getElementById('advanceStatusText');
   const advVal = orderState.payment.advanceAmount || 0;
 
   let pct = 0;
@@ -1021,11 +1157,219 @@ function updateOrderSummary() {
   if (advDisplay) {
     advDisplay.textContent = `₹${advVal.toLocaleString('en-IN')} (${pct}%)`;
   }
+  if (advBadge && advText) {
+    if (advVal > 0) {
+      advText.textContent = 'Collected';
+      advBadge.className = 'collected-badge';
+    } else {
+      advText.textContent = 'Pending';
+      advBadge.className = 'collected-badge badge-pending';
+    }
+  }
+
+  updateWorkflowStepper();
 }
 
 // ─────────────────────────────────────────────────────────────
 // 12. 7-STEP WORKFLOW STEPPER CONTROLLER
 // ─────────────────────────────────────────────────────────────
+
+function isStepFilled(stepNum) {
+  switch (String(stepNum)) {
+    case '1': {
+      // Step 1: Customer Details
+      const hasStateCust = Boolean(orderState.customer && orderState.customer.name && orderState.customer.name !== '—');
+      const custNameEl = document.getElementById('customerNameDisplay');
+      const hasDomCust = Boolean(custNameEl && custNameEl.textContent.trim() !== '—' && custNameEl.textContent.trim() !== '');
+      return hasStateCust || hasDomCust;
+    }
+    case '2': {
+      // Step 2: Garment Type
+      const hasStateGarment = Boolean(orderState.garment && (orderState.garment.type || orderState.garment.customType));
+      const hasActiveTile = Boolean(document.querySelector('.garment-tile.active'));
+      return hasStateGarment || hasActiveTile;
+    }
+    case '3': {
+      // Step 3: Design Details
+      const hasStateDesign = Boolean(
+        orderState.design && (
+          orderState.design.category ||
+          orderState.design.neckStyle ||
+          orderState.design.sleeveStyle ||
+          (orderState.design.notes && orderState.design.notes.trim()) ||
+          (orderState.design.referenceImages && orderState.design.referenceImages.length > 0) ||
+          (orderState.design.referenceImageFiles && orderState.design.referenceImageFiles.length > 0)
+        )
+      );
+      const catVal = document.getElementById('designCategorySelect')?.value || '';
+      const neckVal = document.getElementById('neckStyleSelect')?.value || '';
+      const sleeveVal = document.getElementById('sleeveStyleSelect')?.value || '';
+      const notesVal = document.getElementById('designNotesInput')?.value?.trim() || '';
+      const hasDomRef = Boolean(document.querySelector('.ref-image-item'));
+      return hasStateDesign || Boolean(catVal || neckVal || sleeveVal || notesVal || hasDomRef);
+    }
+    case '4': {
+      // Step 4: Fabric & Materials
+      const hasStateFabric = Boolean(
+        orderState.fabric && (
+          orderState.fabric.source ||
+          orderState.fabric.type ||
+          orderState.fabric.colour ||
+          (orderState.fabric.quantity && String(orderState.fabric.quantity).trim()) ||
+          (orderState.fabric.notes && orderState.fabric.notes.trim()) ||
+          orderState.fabric.libraryMaterialId ||
+          (orderState.fabric.materials && orderState.fabric.materials.length > 0)
+        )
+      );
+      const pillCust = document.getElementById('pillCustSupplied')?.classList.contains('active');
+      const pillBoutique = document.getElementById('pillBoutiqueSupplied')?.classList.contains('active');
+      const fabType = document.getElementById('fabricTypeSelect')?.value || '';
+      const fabCol = document.getElementById('fabricColourSelect')?.value || '';
+      const fabQty = document.getElementById('fabricQuantityInput')?.value?.trim() || '';
+      const fabNotes = document.getElementById('fabricNotesInput')?.value?.trim() || '';
+      const libMat = document.getElementById('libraryMaterialSelect')?.value || '';
+      const boutQty = document.getElementById('boutiqueQtyInput')?.value?.trim() || '';
+      const hasDomMats = Boolean(document.querySelector('#materialRowsList .mat-row'));
+      return hasStateFabric || Boolean(pillCust || pillBoutique || fabType || fabCol || fabQty || fabNotes || libMat || boutQty || hasDomMats);
+    }
+    case '5': {
+      // Step 5: Measurements
+      const profTitle = document.getElementById('profileNameDisplay')?.textContent?.trim() || '';
+      const hasProfile = Boolean(
+        profTitle &&
+        !profTitle.toLowerCase().includes('no measurement profile') &&
+        !profTitle.toLowerCase().includes('no profile')
+      );
+      const bustVal = document.getElementById('measBustVal')?.textContent?.trim() || '—';
+      const hasChipData = bustVal !== '—' && bustVal !== '';
+      const hasStateProfile = Boolean(
+        orderState.measurements.profileId ||
+        (orderState.measurements.profileName && !orderState.measurements.profileName.toLowerCase().includes('no profile'))
+      );
+      const hasCustomValues = Boolean(
+        (orderState.measurements.values && Object.values(orderState.measurements.values).some(v => v !== '' && v !== null && v !== undefined && !isNaN(Number(v)) && Number(v) > 0)) ||
+        Array.from(document.querySelectorAll('#newMeasurementsGrid input')).some(i => i.value.trim() !== '' && Number(i.value) > 0)
+      );
+      return (orderState.measurements.mode === 'existing' && (hasProfile || hasChipData || hasStateProfile)) || hasCustomValues;
+    }
+    case '6': {
+      // Step 6: Production Details
+      const hasStateProd = Boolean(
+        orderState.production && (
+          orderState.production.deliveryDate ||
+          orderState.production.priority ||
+          orderState.production.assignedTo ||
+          (orderState.production.notes && orderState.production.notes.trim())
+        )
+      );
+      const delivDate = document.getElementById('deliveryDateInput')?.value || '';
+      const priority = document.getElementById('prioritySelect')?.value || '';
+      const assigned = document.getElementById('assignToSelect')?.value || '';
+      const prodNotes = document.getElementById('productionNotesInput')?.value?.trim() || '';
+      return hasStateProd || Boolean(delivDate || priority || assigned || prodNotes);
+    }
+    case '7': {
+      // Step 7: Payment Details
+      const hasStatePay = Boolean(
+        orderState.payment && (
+          (Number(orderState.payment.estimatedAmount) > 0) ||
+          (Number(orderState.payment.advanceAmount) > 0) ||
+          Boolean(orderState.payment.paymentMethod)
+        )
+      );
+      const estRaw = document.getElementById('estimatedAmountInput')?.value?.replace(/[^0-9.]/g, '') || '';
+      const advRaw = document.getElementById('advanceAmountInput')?.value?.replace(/[^0-9.]/g, '') || '';
+      const estVal = parseFloat(estRaw) || 0;
+      const advVal = parseFloat(advRaw) || 0;
+      const methodVal = document.getElementById('paymentMethodSelect')?.value || '';
+      return hasStatePay || Boolean(estVal > 0 || advVal > 0 || (methodVal && methodVal !== ''));
+    }
+    default:
+      return false;
+  }
+}
+
+function updateWorkflowStepper() {
+  const stepper = document.getElementById('workflowStepper');
+  if (!stepper) return;
+
+  const nodes = stepper.querySelectorAll('.step-node');
+  const lines = stepper.querySelectorAll('.step-line');
+
+  let firstUnfilledStep = null;
+
+  nodes.forEach((node, idx) => {
+    const stepNum = idx + 1;
+    const filled = isStepFilled(stepNum);
+    const circle = node.querySelector('.step-circle');
+
+    if (filled) {
+      node.classList.add('completed');
+      if (circle) {
+        circle.innerHTML = '<span class="step-check-mark">✓</span>';
+        circle.setAttribute('title', `Step ${stepNum} Completed`);
+      }
+    } else {
+      node.classList.remove('completed');
+      if (circle) {
+        circle.textContent = String(stepNum);
+        circle.removeAttribute('title');
+      }
+      if (firstUnfilledStep === null) {
+        firstUnfilledStep = stepNum;
+      }
+    }
+  });
+
+  // Connecting line progressive fills
+  lines.forEach((line, idx) => {
+    // line[idx] connects Step (idx+1) to Step (idx+2)
+    // If Step (idx+1) is filled, line fills to the next step
+    if (isStepFilled(idx + 1)) {
+      line.classList.add('completed');
+    } else {
+      line.classList.remove('completed');
+    }
+  });
+
+  // Also sync each card's header badge (.step-badge)
+  const cardIds = [
+    'cardCustomer',
+    'cardGarment',
+    'cardDesign',
+    'cardFabric',
+    'cardMeasurements',
+    'cardProduction',
+    'cardPayment'
+  ];
+
+  cardIds.forEach((cardId, idx) => {
+    const cardEl = document.getElementById(cardId);
+    if (!cardEl) return;
+    const badge = cardEl.querySelector('.step-badge');
+    if (!badge) return;
+    const stepNum = idx + 1;
+    if (isStepFilled(stepNum)) {
+      badge.classList.add('completed');
+      badge.innerHTML = '✓';
+    } else {
+      badge.classList.remove('completed');
+      badge.textContent = String(stepNum);
+    }
+  });
+}
+
+function setActiveStep(stepNum) {
+  const target = parseInt(stepNum, 10);
+  document.querySelectorAll('.step-node').forEach(node => {
+    const s = parseInt(node.dataset.step, 10);
+    if (s === target) {
+      node.classList.add('active');
+    } else {
+      node.classList.remove('active');
+    }
+  });
+}
 
 function initWorkflowStepper() {
   const nodes = document.querySelectorAll('.step-node');
@@ -1055,17 +1399,40 @@ function initWorkflowStepper() {
       }
     });
   });
-}
 
-function setActiveStep(stepNum) {
-  document.querySelectorAll('.step-node').forEach(node => {
-    const s = parseInt(node.dataset.step, 10);
-    const target = parseInt(stepNum, 10);
-    node.classList.remove('active');
-    if (s === target) {
-      node.classList.add('active');
-    }
-  });
+  // Track active card when interacting directly with form inputs
+  const grid = document.querySelector('.order-grid');
+  if (grid) {
+    grid.addEventListener('input', () => updateWorkflowStepper());
+    grid.addEventListener('change', () => updateWorkflowStepper());
+
+    const reverseCardMap = {
+      'cardCustomer': 1,
+      'cardGarment': 2,
+      'cardDesign': 3,
+      'cardFabric': 4,
+      'cardMeasurements': 5,
+      'cardProduction': 6,
+      'cardPayment': 7
+    };
+
+    grid.addEventListener('focusin', (e) => {
+      const card = e.target.closest('.section-card');
+      if (card && reverseCardMap[card.id]) {
+        setActiveStep(reverseCardMap[card.id]);
+      }
+    });
+
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.section-card');
+      if (card && reverseCardMap[card.id]) {
+        setActiveStep(reverseCardMap[card.id]);
+      }
+    });
+  }
+
+  // Initial evaluation
+  updateWorkflowStepper();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1086,8 +1453,10 @@ function saveOrderDraft() {
 
 function autoSaveDraft() {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(orderState));
-  } catch (_) {}
+    if (orderState.customer && (orderState.payment.estimatedAmount > 0 || orderState.garment.type)) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(orderState));
+    }
+  } catch (_) { }
 }
 
 function restoreDraftIfExists() {
@@ -1095,31 +1464,28 @@ function restoreDraftIfExists() {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return;
     const draft = JSON.parse(raw);
-    if (draft && draft.customer) {
+    if (draft && draft.customer && draft.customer.name && CUSTOMERS_CACHE.some(c => String(c.id) === String(draft.customer.id))) {
       Object.assign(orderState, draft);
       renderSelectedCustomer();
       updateOrderSummary();
       updateTimeline();
+    } else {
+      localStorage.removeItem(DRAFT_KEY);
     }
   } catch (err) {
     console.warn('Draft restoration skipped', err);
   }
 }
 
-function clearDraft() {
-  localStorage.removeItem(DRAFT_KEY);
-  showToast('Draft cleared', 'info');
-}
-
 // ─────────────────────────────────────────────────────────────
 // 14. CREATE ORDER & VALIDATION
 // ─────────────────────────────────────────────────────────────
-
 async function submitCreateOrder() {
   // Full Validation
   if (!orderState.customer || !orderState.customer.name) {
-    showToast('Customer is required', 'error');
+    showToast('Customer name is required', 'error');
     setActiveStep(1);
+    document.getElementById('customerSearchInput')?.focus();
     return;
   }
 
@@ -1157,15 +1523,15 @@ async function submitCreateOrder() {
     const total = parseFloat(orderState.payment?.estimatedAmount || 0);
     const advance = parseFloat(orderState.payment?.advanceAmount || 0);
     const balance = Math.max(0, total - advance);
-    const delivDate = orderState.production?.deliveryDate || new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+    const delivDate = orderState.production?.deliveryDate || null;
     const ordDate = new Date().toISOString().slice(0, 10);
 
     createdOrder = await api.orders.create({
-      customerMobile: mobile || '9999900001',
+      customerMobile: mobile,
       customerName: orderState.customer?.name || '',
       garmentType: orderState.garment.type,
-      garmentDesc: `${orderState.garment.type} — ${orderState.design?.silhouette || 'Bespoke design'}`,
-      collection: 'Custom Couture',
+      garmentDesc: `${orderState.garment.type}${orderState.design?.category ? ' — ' + orderState.design.category : ''}`,
+      collection: orderState.design?.category || '',
       orderDate: ordDate,
       expectedDeliveryDate: delivDate,
       advancePaid: advance,
@@ -1173,22 +1539,40 @@ async function submitCreateOrder() {
       balanceAmount: balance,
       amount: total,
       dueDate: delivDate,
-      notes: orderState.production?.specialInstructions || orderState.production?.notes || ''
+      notes: orderState.production?.notes || orderState.design?.notes || '',
+      paymentMethod: orderState.payment?.paymentMethod || 'CASH'
     });
 
     if (createdOrder) {
-      realOrderId = createdOrder.orderCode || ('ORD-' + (createdOrder.id ? createdOrder.id.slice(0, 8) : ''));
+      realOrderId = createdOrder.orderCode || createdOrder.id;
       if (createdOrder.id) {
         sessionStorage.setItem('selectedOrderId', createdOrder.id);
         localStorage.setItem('selectedOrderId', createdOrder.id);
       }
       console.log('[New Order] Successfully persisted to live REST API with orderCode:', realOrderId);
+
+      // Upload reference images (non-blocking, fire-and-forget)
+      const refFiles = orderState.design.referenceImageFiles || [];
+      if (refFiles.length > 0 && createdOrder.id) {
+        refFiles.forEach((imgFile, idx) => {
+          api.orders.uploadReferenceImage(createdOrder.id, idx + 1, imgFile)
+            .then(() => console.log(`[New Order] Reference image ${idx + 1} uploaded.`))
+            .catch(err => console.warn(`[New Order] Reference image ${idx + 1} upload failed:`, err.message));
+        });
+      }
     }
   } catch (err) {
-    console.warn('[New Order] Could not save to API:', err.message);
+    console.error('[New Order] Could not save to API:', err.message);
+    showToast(err.message || 'Failed to create order on server', 'error');
+    return;
   }
 
-  const finalOrderCode = realOrderId || 'ORD-NEW';
+  if (!createdOrder) {
+    showToast('Failed to create order on server', 'error');
+    return;
+  }
+
+  const finalOrderCode = realOrderId;
 
   // Populate Success Modal
   const modal = document.getElementById('orderSuccessModal');
@@ -1201,7 +1585,7 @@ async function submitCreateOrder() {
   if (idDisplay) idDisplay.textContent = finalOrderCode;
   if (scCust) scCust.textContent = orderState.customer.name;
   if (scGarm) scGarm.textContent = orderState.garment.type;
-  if (scDel) scDel.textContent = formatDate(new Date(orderState.production.deliveryDate));
+  if (scDel) scDel.textContent = orderState.production.deliveryDate ? formatDate(new Date(orderState.production.deliveryDate)) : '—';
   if (scAmt) scAmt.textContent = `₹${orderState.payment.estimatedAmount.toLocaleString('en-IN')}`;
 
   if (modal) modal.style.display = 'flex';
@@ -1224,7 +1608,7 @@ async function submitCreateOrder() {
     const existing = JSON.parse(localStorage.getItem('fashionERP.ordersList') || '[]');
     existing.unshift(orderPayload);
     localStorage.setItem('fashionERP.ordersList', JSON.stringify(existing));
-  } catch (_) {}
+  } catch (_) { }
 
   // Clear draft
   localStorage.removeItem(DRAFT_KEY);
@@ -1236,10 +1620,80 @@ function resetNewOrderForm() {
   const modal = document.getElementById('orderSuccessModal');
   if (modal) modal.style.display = 'none';
 
-  // Reset state to default
-  selectCustomerById(1);
-  const blouseTile = document.querySelector('.garment-tile[data-garment="Blouse"]');
-  if (blouseTile) blouseTile.click();
+  orderState.customer = null;
+  orderState.garment.type = '';
+  orderState.garment.customType = '';
+  orderState.design.category = '';
+  orderState.design.neckStyle = '';
+  orderState.design.sleeveStyle = '';
+  orderState.design.notes = '';
+  orderState.design.referenceImages = [];
+  orderState.design.referenceImageFiles = [];
+  orderState.fabric.source = '';
+  orderState.fabric.type = '';
+  orderState.fabric.colour = '';
+  orderState.fabric.quantity = '';
+  orderState.fabric.notes = '';
+  orderState.measurements.mode = 'existing';
+  orderState.measurements.profileId = '';
+  orderState.measurements.profileName = '';
+  orderState.measurements.values = {};
+  orderState.payment.estimatedAmount = 0;
+  orderState.payment.advanceAmount = 0;
+  orderState.production.deliveryDate = '';
+  orderState.production.priority = '';
+  orderState.production.assignedTo = '';
+  orderState.production.notes = '';
+
+  // Deselect garment tiles
+  document.querySelectorAll('.garment-tile').forEach(t => t.classList.remove('active'));
+
+  // Reset selects
+  const dCat = document.getElementById('designCategorySelect');
+  if (dCat) dCat.selectedIndex = 0;
+  const nStyle = document.getElementById('neckStyleSelect');
+  if (nStyle) nStyle.selectedIndex = 0;
+  const sStyle = document.getElementById('sleeveStyleSelect');
+  if (sStyle) sStyle.selectedIndex = 0;
+  const fType = document.getElementById('fabricTypeSelect');
+  if (fType) fType.selectedIndex = 0;
+  const fCol = document.getElementById('fabricColourSelect');
+  if (fCol) fCol.selectedIndex = 0;
+  const prio = document.getElementById('prioritySelect');
+  if (prio) prio.selectedIndex = 0;
+  const ass = document.getElementById('assignToSelect');
+  if (ass) ass.selectedIndex = 0;
+  const dDate = document.getElementById('deliveryDateInput');
+  if (dDate) dDate.value = '';
+
+  const pillCust = document.getElementById('pillCustSupplied');
+  const pillBoutique = document.getElementById('pillBoutiqueSupplied');
+  if (pillCust) pillCust.classList.remove('active');
+  if (pillBoutique) pillBoutique.classList.remove('active');
+
+  const dNotes = document.getElementById('designNotesInput');
+  if (dNotes) dNotes.value = '';
+  const fQty = document.getElementById('fabricQuantityInput');
+  if (fQty) fQty.value = '';
+  const fNotes = document.getElementById('fabricNotesInput');
+  if (fNotes) fNotes.value = '';
+  const eAmt = document.getElementById('estimatedAmountInput');
+  if (eAmt) eAmt.value = '';
+  const aAmt = document.getElementById('advanceAmountInput');
+  if (aAmt) aAmt.value = '';
+
+  const matList = document.getElementById('materialRowsList');
+  if (matList) matList.innerHTML = '';
+  const matSub = document.getElementById('materialSubtotalDisplay');
+  if (matSub) matSub.textContent = '₹0';
+
+  const measGrid = document.getElementById('newMeasurementsGrid');
+  if (measGrid) measGrid.innerHTML = '';
+
+  localStorage.removeItem(DRAFT_KEY);
+  renderSelectedCustomer();
+  updateOrderSummary();
+  updateTimeline();
 
   showToast('Ready for new order', 'info');
 }
@@ -1274,142 +1728,5 @@ function showToast(message, type = 'info') {
     toast.style.transform = 'translateY(10px)';
     setTimeout(() => toast.remove(), 260);
   }, 3200);
-}
-
-// ─────────────────────────────────────────────────────────────
-// 16. BACKEND API INTEGRATION STUBS (SPRING BOOT READY)
-// ─────────────────────────────────────────────────────────────
-
-async function loadCustomers() {
-  try {
-    const { default: api } = await import('../../api.js');
-    const page = await api.customers.list({ size: 50 });
-    const items = Array.isArray(page) ? page : (page?.content || []);
-    if (items.length > 0) {
-      return items.map(c => ({
-        id: c.id,
-        name: c.name,
-        phone: c.phone || '',
-        email: c.email || '',
-        location: c.location || '',
-        badge: (c.tier === 'VIP_PLATINUM' ? 'VIP Customer' : c.tier === 'VIP_GOLD' ? 'Gold Member' : 'Regular Customer'),
-        totalOrders: 0,
-        totalSpent: '₹' + (c.totalSpend || 0),
-        avatar: c.avatarUrl || '../../assets/user_avatar.jpg'
-      }));
-    }
-  } catch (_) {}
-  return CUSTOMERS_CACHE;
-}
-
-async function searchCustomers(query) {
-  try {
-    const { default: api } = await import('../../api.js');
-    const page = await api.customers.list({ search: query, size: 20 });
-    const items = Array.isArray(page) ? page : (page?.content || []);
-    if (items.length > 0) {
-      return items.map(c => ({
-        id: c.id,
-        name: c.name,
-        phone: c.phone || '',
-        email: c.email || '',
-        location: c.location || '',
-        badge: (c.tier === 'VIP_PLATINUM' ? 'VIP Customer' : c.tier === 'VIP_GOLD' ? 'Gold Member' : 'Regular Customer'),
-        totalOrders: 0,
-        totalSpent: '₹' + (c.totalSpend || 0),
-        avatar: c.avatarUrl || '../../assets/user_avatar.jpg'
-      }));
-    }
-  } catch (_) {}
-  return CUSTOMERS_CACHE.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
-}
-
-async function loadCustomer(id) {
-  try {
-    const { default: api } = await import('../../api.js');
-    const c = await api.customers.get(id);
-    if (c) {
-      return {
-        id: c.id,
-        name: c.name,
-        phone: c.phone || '',
-        email: c.email || '',
-        location: c.location || '',
-        badge: (c.tier === 'VIP_PLATINUM' ? 'VIP Customer' : c.tier === 'VIP_GOLD' ? 'Gold Member' : 'Regular Customer'),
-        totalOrders: 0,
-        totalSpent: '₹' + (c.totalSpend || 0),
-        avatar: c.avatarUrl || '../../assets/user_avatar.jpg'
-      };
-    }
-  } catch (_) {}
-  return CUSTOMERS_CACHE.find(c => c.id === id);
-}
-
-async function loadGarmentTypes() {
-  return Object.keys(GARMENT_DEFINITIONS);
-}
-
-async function loadMaterials() {
-  try {
-    const { default: api } = await import('../../api.js');
-    const page = await api.inventory.list({ size: 50 });
-    const items = Array.isArray(page) ? page : (page?.content || []);
-    if (items.length > 0) {
-      return items;
-    }
-  } catch (_) {}
-  return [];
-}
-
-async function loadMeasurementProfiles(customerMobile, garmentType) {
-  try {
-    const { default: api } = await import('../../api.js');
-    const bm = await api.customers.bodyMeasurements.list(customerMobile).catch(() => []);
-    if (bm && bm.length > 0) return bm;
-    const m = await api.customers.measurements.list(customerMobile).catch(() => []);
-    if (m && m.length > 0) return m;
-    const list = await api.measurements.listByCustomer(customerMobile).catch(() => []);
-    if (list && list.length > 0) return list;
-  } catch (_) {}
-  return [];
-}
-
-async function saveDraft(orderData) {
-  return { success: true };
-}
-
-async function createOrder(orderData) {
-  try {
-    const { default: api } = await import('../../api.js');
-    const mob = orderData.customerMobile || orderData.phone || orderData.customerId;
-    const name = orderData.customerName || orderData.name || '';
-    const total = parseFloat(orderData.totalAmount || orderData.amount || orderData.estimatedAmount || 5000);
-    const advance = parseFloat(orderData.advancePaid || orderData.advanceAmount || 0);
-    const balance = orderData.balanceAmount !== undefined ? parseFloat(orderData.balanceAmount) : Math.max(0, total - advance);
-    const expDate = orderData.expectedDeliveryDate || orderData.deliveryDate || orderData.dueDate || new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-    const ordDate = orderData.orderDate || new Date().toISOString().slice(0, 10);
-
-    const created = await api.orders.create({
-      customerMobile: mob,
-      customerName: name,
-      garmentType: orderData.garmentType || 'Blouse',
-      garmentDesc: orderData.garmentDesc || orderData.garmentType,
-      collection: orderData.collection || 'Bridal Collection',
-      orderDate: ordDate,
-      expectedDeliveryDate: expDate,
-      advancePaid: advance,
-      totalAmount: total,
-      balanceAmount: balance,
-      amount: total,
-      dueDate: expDate,
-      notes: orderData.specialInstructions || orderData.notes || ''
-    });
-    if (created && created.orderCode) {
-      return { success: true, orderId: created.orderCode };
-    }
-  } catch (err) {
-    console.warn('[NewOrder] API create failed, using local order:', err.message);
-  }
-  return { success: true, orderId: `ORD-${Date.now()}` };
 }
 

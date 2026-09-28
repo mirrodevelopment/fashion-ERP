@@ -1,11 +1,11 @@
-﻿/* ============================================================
-   stages.css — Production Stage Definitions Management Page
+/* ============================================================
+   stages.css � Production Stage Definitions Management Page
    Design: Dark glass, matches existing ERP design system
    ============================================================ */
 
-/* ─── Color Tokens ─────────────────────────────────────────── */
+/* --- Color Tokens ------------------------------------------- */
 
-/* ─── Layout ────────────────────────────────────────────────── */
+/* --- Layout -------------------------------------------------- */
 .stages-content {
   padding: 24px 28px 48px;
   max-width: 1200px;
@@ -15,7 +15,7 @@
   gap: 24px;
 }
 
-/* ─── Page Header ───────────────────────────────────────────── */
+/* --- Page Header --------------------------------------------- */
 .page-header-row {
   display: flex;
   align-items: flex-start;
@@ -56,7 +56,7 @@
   flex-shrink: 0;
 }
 
-/* ─── Buttons ───────────────────────────────────────────────── */
+/* --- Buttons ------------------------------------------------- */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -104,7 +104,7 @@
 .btn-icon.danger:hover { color: var(--clr-danger); border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.08); }
 .btn-icon.warn:hover   { color: var(--clr-warning); border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.08); }
 
-/* ─── Info Banner ───────────────────────────────────────────── */
+/* --- Info Banner --------------------------------------------- */
 .info-banner {
   background: rgba(168,139,250,.08);
   border: 1px solid rgba(168,139,250,.22);
@@ -119,7 +119,7 @@
 .info-banner i { color: var(--clr-accent2); flex-shrink: 0; margin-top: 1px; }
 .info-banner strong { color: var(--clr-text); }
 
-/* ─── Stage List ────────────────────────────────────────────── */
+/* --- Stage List ---------------------------------------------- */
 .stages-list-header {
   display: flex;
   align-items: center;
@@ -165,7 +165,7 @@
   color: var(--clr-accent2);
 }
 
-/* ─── Stage Card ────────────────────────────────────────────── */
+/* --- Stage Card ---------------------------------------------- */
 #stagesGrid {
   display: flex;
   flex-direction: column;
@@ -351,7 +351,7 @@
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background: rgba(255,255,255,.12);
+  background: var(--border-input);
   border-radius: 20px;
   transition: .25s;
 }
@@ -367,7 +367,7 @@
 .toggle input:checked + .toggle-slider { background: var(--purple-deeper); }
 .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
 
-/* ─── Empty / Loading States ────────────────────────────────── */
+/* --- Empty / Loading States ---------------------------------- */
 .stages-empty {
   text-align: center;
   padding: 60px 20px;
@@ -390,7 +390,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ─── Modal ─────────────────────────────────────────────────── */
+/* --- Modal --------------------------------------------------- */
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,.65);
@@ -505,7 +505,7 @@
 .color-swatch:hover { transform: scale(1.12); }
 .color-swatch.selected { border-color: white; }
 .color-swatch::after {
-  content: '✓';
+  content: '?';
   position: absolute;
   inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -545,7 +545,7 @@
 }
 .confirm-stat i { flex-shrink: 0; }
 
-/* ─── Employee Panel ─────────────────────────────────────────── */
+/* --- Employee Panel ------------------------------------------- */
 .emp-panel-modal .modal-box { max-width: 480px; }
 .emp-search-input {
   background: rgba(255,255,255,.05);
@@ -601,7 +601,7 @@
 .emp-pin-btn.remove { border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.08); color: var(--clr-danger); }
 .emp-pin-btn.remove:hover { background: rgba(248,113,113,.15); }
 
-/* ─── Toast notification ─────────────────────────────────────── */
+/* --- Toast notification --------------------------------------- */
 #toastContainer {
   position: fixed;
   bottom: 24px; right: 24px;
@@ -635,13 +635,13 @@
   to   { transform: translateX(0);    opacity: 1; }
 }
 
-/* ─── Scrollbar ──────────────────────────────────────────────── */
+/* --- Scrollbar ------------------------------------------------ */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border-input); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.22); }
 
-/* ─── Stage Card Image Thumbnail ─── */
+/* --- Stage Card Image Thumbnail --- */
 .stage-card {
   grid-template-columns: 30px 58px 1fr auto !important;
 }
@@ -706,11 +706,11 @@
   opacity: 1;
 }
 
-/* ─── Modal Stage Image Selector (Presets & Custom Upload) ─── */
+/* --- Modal Stage Image Selector (Presets & Custom Upload) --- */
 .image-tab-group {
   display: flex;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-inner);
   border: 1px solid var(--clr-border);
   padding: 2px;
   border-radius: 8px;
@@ -841,7 +841,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 6px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass-inner);
   border: 1px solid var(--clr-border);
   border-radius: 10px;
   cursor: pointer;
@@ -850,7 +850,7 @@
 }
 
 .preset-card:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-inner);
   border-color: rgba(212, 175, 55, 0.4);
   transform: translateY(-2px);
 }
@@ -910,7 +910,7 @@
   padding: 16px 20px;
   border: 1.5px dashed var(--clr-border-hv);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass-inner);
   cursor: pointer;
   transition: all 0.2s ease;
 }

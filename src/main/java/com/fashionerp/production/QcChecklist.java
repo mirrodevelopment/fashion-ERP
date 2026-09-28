@@ -23,6 +23,7 @@ public class QcChecklist {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"customer", "progressStages", "hibernateLazyInitializer", "handler"})
     private Order order;
 
     @Column(name = "check_point", nullable = false, length = 200)
@@ -34,6 +35,7 @@ public class QcChecklist {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "checked_by")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Employee checkedBy;
 
     @Column(name = "checked_at")
