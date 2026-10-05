@@ -1,5 +1,6 @@
 package com.fashionerp.garment;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,9 @@ public class GarmentService {
             String branch,
             Pageable pageable
     ) {
+        UUID companyId = TenantContext.getCompanyId();
         Page<Garment> page = garmentRepository.searchGarments(
+                companyId,
                 search, stage, status, garmentType, collectionName,
                 priority, materialStatus, designer, branch, pageable
         );
@@ -42,17 +45,19 @@ public class GarmentService {
 
     @Transactional(readOnly = true)
     public GarmentDto.KpiResponse getKpis() {
-        long total = garmentRepository.count();
-        long inProd = garmentRepository.countByStatusIgnoreCase("In Production");
-        long inTrial = garmentRepository.countByProductionStageIgnoreCase("Trial");
-        long awaitingQc = garmentRepository.countByStatusIgnoreCase("Awaiting QC");
-        if (awaitingQc == 0) awaitingQc = garmentRepository.countByProductionStageIgnoreCase("QC");
-        long ready = garmentRepository.countByProductionStageIgnoreCase("Ready");
-        long delivered = garmentRepository.countByProductionStageIgnoreCase("Delivered");
-        long designing = garmentRepository.countByProductionStageIgnoreCase("Designing");
-        long onHold = garmentRepository.countByProductionStageIgnoreCase("On Hold");
+        UUID companyId = TenantContext.getCompanyId();
+        long total = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "all") > 0 
+                ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "all") 
+                : garmentRepository.count();
+        long inProd = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production");
+        long inTrial = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial");
+        long awaitingQc = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC");
+        if (awaitingQc == 0) awaitingQc = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC");
+        long ready = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready");
+        long delivered = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered");
+        long designing = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing");
+        long onHold = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold");
 
-        // BUG-P0-05 FIX: Do not return fabricated delta strings.
         // Real month-over-month deltas require historical data queries; return null until implemented.
         return GarmentDto.KpiResponse.builder()
                 .totalGarments(total)
@@ -82,6 +87,10 @@ public class GarmentService {
     public GarmentDto.DetailResponse getById(UUID id) {
         Garment g = garmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Garment not found with id: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(g.getCompanyId())) {
+            throw new IllegalArgumentException("Garment not found with id: " + id);
+        }
         return toDetailResponse(g);
     }
 

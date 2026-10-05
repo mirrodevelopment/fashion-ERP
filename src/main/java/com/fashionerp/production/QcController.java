@@ -23,14 +23,15 @@ public class QcController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        long passed = qcRepository.countByResult("PASS");
-        long rework = qcRepository.countByResult("REWORK");
-        long fail = qcRepository.countByResult("FAIL");
-        long pending = qcRepository.countByResult("PENDING");
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        long passed = qcRepository.countByCompanyIdAndResult(companyId, "PASS");
+        long rework = qcRepository.countByCompanyIdAndResult(companyId, "REWORK");
+        long fail = qcRepository.countByCompanyIdAndResult(companyId, "FAIL");
+        long pending = qcRepository.countByCompanyIdAndResult(companyId, "PENDING");
 
-        long awaitingQc = orderRepository.countOrdersAwaitingQc();
+        long awaitingQc = orderRepository.countOrdersAwaitingQc(companyId);
         long inInspection = awaitingQc;
-        long readyDelivery = orderRepository.countByStatus(OrderStatus.READY);
+        long readyDelivery = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY);
 
         long totalAudited = passed + rework + fail;
         BigDecimal passRate = totalAudited > 0

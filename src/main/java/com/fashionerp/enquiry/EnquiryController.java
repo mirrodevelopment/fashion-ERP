@@ -1,5 +1,6 @@
 package com.fashionerp.enquiry;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,13 +38,19 @@ public class EnquiryController {
         } else {
             status = null;
         }
-        return enquiryRepository.search(search, status, pageable);
+        UUID companyId = TenantContext.getCompanyId();
+        return enquiryRepository.search(companyId, search, status, pageable);
     }
 
     @GetMapping("/{id}")
     public Enquiry getById(@PathVariable UUID id) {
-        return enquiryRepository.findById(id)
+        Enquiry existing = enquiryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Enquiry not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Enquiry not found: " + id);
+        }
+        return existing;
     }
 
     @PostMapping
@@ -68,6 +75,10 @@ public class EnquiryController {
     public Enquiry update(@PathVariable UUID id, @RequestBody Enquiry updated) {
         Enquiry existing = enquiryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Enquiry not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Enquiry not found: " + id);
+        }
 
         if (updated.getCustomerName() != null) existing.setCustomerName(updated.getCustomerName());
         if (updated.getPhone() != null) existing.setPhone(updated.getPhone());
@@ -91,30 +102,34 @@ public class EnquiryController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!enquiryRepository.existsById(id)) {
+        Enquiry existing = enquiryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Enquiry not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Enquiry not found: " + id);
         }
-        enquiryRepository.deleteById(id);
+        enquiryRepository.delete(existing);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        long total = enquiryRepository.count();
-        long newCount = enquiryRepository.countByStatusIgnoreCase("NEW") + enquiryRepository.countByStatusIgnoreCase("PENDING");
-        long inDiscussion = enquiryRepository.countByStatusIgnoreCase("IN_DISCUSSION");
-        long quotationSent = enquiryRepository.countByStatusIgnoreCase("QUOTATION_SENT");
-        long converted = enquiryRepository.countByStatusIgnoreCase("CONVERTED");
-        long followUp = enquiryRepository.countByStatusIgnoreCase("FOLLOW_UP");
-        long closed = enquiryRepository.countByStatusIgnoreCase("CLOSED") + followUp;
+        UUID companyId = TenantContext.getCompanyId();
+        long total = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "all") : enquiryRepository.count();
+        if (total == 0 && companyId == null) total = enquiryRepository.count();
+        long newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW") + enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "PENDING");
+        long inDiscussion = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_DISCUSSION");
+        long quotationSent = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "QUOTATION_SENT");
+        long converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED");
+        long followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP");
+        long closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") + followUp;
 
         // Dynamic KPI queries directly from database
-        long newThisWeek = enquiryRepository.countByCreatedAtAfter(LocalDateTime.now().minusDays(7));
+        long newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7));
         if (newThisWeek == 0) newThisWeek = newCount;
 
         long pendingFollowUp = followUp;
-        // BUG-P2-03 FIX: appointmentRepository is injected as a required Spring bean
-        long appointmentsCount = appointmentRepository.count();
+        long appointmentsCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, null) : appointmentRepository.count();
 
         BigDecimal conversionRate = total > 0
                 ? BigDecimal.valueOf(converted * 100.0 / total).setScale(1, RoundingMode.HALF_UP)

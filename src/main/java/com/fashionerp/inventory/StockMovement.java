@@ -15,6 +15,9 @@ public class StockMovement {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     private InventoryItem item;
@@ -39,4 +42,11 @@ public class StockMovement {
     @Column(name = "moved_at", nullable = false)
     @Builder.Default
     private LocalDateTime movedAt = LocalDateTime.now();
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

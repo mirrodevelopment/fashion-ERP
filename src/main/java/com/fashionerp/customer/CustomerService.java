@@ -1,5 +1,6 @@
 package com.fashionerp.customer;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,16 +33,21 @@ public class CustomerService {
 
     public Page<CustomerDto.Response> list(String search, String tier, Pageable pageable) {
         CustomerTier tierEnum = (tier != null && !tier.isBlank()) ? CustomerTier.valueOf(tier.toUpperCase()) : null;
-        return customerRepository.search(search, tierEnum, pageable)
+        UUID companyId = TenantContext.getCompanyId();
+        return customerRepository.search(companyId, search, tierEnum, pageable)
                 .map(CustomerDto.Response::from);
     }
 
     public CustomerDto.Response getByMobile(String mobileNumber) {
         String cleanMobile = cleanPhone(mobileNumber);
-        return customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .map(CustomerDto.Response::from)
+        UUID companyId = TenantContext.getCompanyId();
+        Customer customer = (companyId != null
+                ? customerRepository.findByMobileNumberAndCompanyId(cleanMobile, companyId)
+                        .or(() -> customerRepository.findByFlexibleMobile(companyId, cleanMobile))
+                : customerRepository.findById(cleanMobile)
+                        .or(() -> customerRepository.findByFlexibleMobile(cleanMobile)))
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found with mobile: " + mobileNumber));
+        return CustomerDto.Response.from(customer);
     }
 
     @Transactional
@@ -50,9 +57,13 @@ public class CustomerService {
             throw new IllegalArgumentException("Mobile number is required as primary key.");
         }
         String cleanMobile = cleanPhone(mobile);
+        UUID companyId = TenantContext.getCompanyId();
 
-        Customer customer = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
+        Customer customer = (companyId != null
+                ? customerRepository.findByMobileNumberAndCompanyId(cleanMobile, companyId)
+                        .or(() -> customerRepository.findByFlexibleMobile(companyId, cleanMobile))
+                : customerRepository.findById(cleanMobile)
+                        .or(() -> customerRepository.findByFlexibleMobile(cleanMobile)))
                 .orElse(null);
         if (customer == null) {
             customer = Customer.builder()

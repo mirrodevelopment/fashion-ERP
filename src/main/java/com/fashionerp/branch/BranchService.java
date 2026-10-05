@@ -1,5 +1,6 @@
 package com.fashionerp.branch;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,14 +24,19 @@ public class BranchService {
     public Page<BranchDto.Response> list(String search, String type, Boolean active, Pageable pageable) {
         String cleanSearch = (search == null || search.isBlank()) ? null : search.trim();
         String cleanType = (type == null || type.isBlank()) ? null : type.trim();
-        return branchRepository.search(cleanSearch, cleanType, active, pageable).map(BranchDto.Response::from);
+        UUID companyId = TenantContext.getCompanyId();
+        return branchRepository.search(companyId, cleanSearch, cleanType, active, pageable).map(BranchDto.Response::from);
     }
 
     /* ── Get Single ── */
     public BranchDto.Response get(UUID id) {
-        return branchRepository.findById(id)
-            .map(BranchDto.Response::from)
+        Branch branch = branchRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Branch not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(branch.getCompanyId())) {
+            throw new RuntimeException("Branch not found: " + id);
+        }
+        return BranchDto.Response.from(branch);
     }
 
     /* ── Create ── */

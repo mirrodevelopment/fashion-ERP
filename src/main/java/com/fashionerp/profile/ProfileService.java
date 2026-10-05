@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -132,7 +133,9 @@ public class ProfileService {
     }
 
     private UserProfile getOrCreateProfile(AppUser user) {
-        return userProfileRepository.findByUserId(user.getId())
+        UUID companyId = user.getCompanyId() != null ? user.getCompanyId() : com.fashionerp.common.TenantContext.getCompanyId();
+        return userProfileRepository.findByUserIdAndCompanyId(user.getId(), companyId)
+                .or(() -> userProfileRepository.findByUserId(user.getId()))
                 .orElseGet(() -> {
                     String roleStr = user.getRole() != null ? user.getRole().name() : "";
                     String joinDate = user.getCreatedAt() != null
@@ -141,6 +144,7 @@ public class ProfileService {
                     String encType = user.getPasswordHash() != null && user.getPasswordHash().startsWith("$2") ? "BCrypt" : "";
 
                     UserProfile np = UserProfile.builder()
+                            .companyId(companyId)
                             .user(user)
                             .fullName(user.getFullName() != null && !user.getFullName().isBlank()
                                     ? user.getFullName().trim()

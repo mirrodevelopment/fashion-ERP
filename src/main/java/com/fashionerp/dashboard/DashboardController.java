@@ -1,5 +1,6 @@
 package com.fashionerp.dashboard;
 
+import com.fashionerp.common.TenantContext;
 import com.fashionerp.customer.CustomerRepository;
 import com.fashionerp.inventory.InventoryRepository;
 import com.fashionerp.inventory.InventoryStatus;
@@ -40,23 +41,28 @@ public class DashboardController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        // ── Basic counts ──────────────────────────────────────────
-        long totalCustomers    = customerRepository.count();
-        long totalOrders       = orderRepository.count();
-        long pendingOrders     = orderRepository.countByStatus(OrderStatus.PENDING);
-        long inProgressOrders  = orderRepository.countByStatus(OrderStatus.IN_PROGRESS)
-                + orderRepository.countByStatus(OrderStatus.IN_PRODUCTION);
-        long readyOrders       = orderRepository.countByStatus(OrderStatus.READY)
-                + orderRepository.countByStatus(OrderStatus.COMPLETED);
-        long deliveredOrders   = orderRepository.countByStatus(OrderStatus.DELIVERED);
-        long cancelledOrders   = orderRepository.countByStatus(OrderStatus.CANCELLED);
-        long lowStockItems     = inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);
-        long outOfStockItems   = inventoryRepository.countByStatus(InventoryStatus.OUT_OF_STOCK);
-        BigDecimal totalRevenue   = paymentRepository.sumPaidAmount();
-        BigDecimal pendingPayments = paymentRepository.sumPendingAmount();
+        UUID companyId = TenantContext.getCompanyId();
 
-        long pendingPaymentsCount = paymentRepository.countByStatus(PaymentStatus.PARTIAL)
-                + paymentRepository.countByStatus(PaymentStatus.PENDING);
+        // ── Basic counts ──────────────────────────────────────────
+        long totalCustomers    = companyId != null ? customerRepository.countByCompanyId(companyId) : customerRepository.count();
+        long totalOrders       = companyId != null ? orderRepository.countByCompanyId(companyId) : orderRepository.count();
+        long pendingOrders     = companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING) : orderRepository.countByStatus(OrderStatus.PENDING);
+        long inProgressOrders  = companyId != null
+                ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS) + orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PRODUCTION)
+                : orderRepository.countByStatus(OrderStatus.IN_PROGRESS) + orderRepository.countByStatus(OrderStatus.IN_PRODUCTION);
+        long readyOrders       = companyId != null
+                ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY) + orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.COMPLETED)
+                : orderRepository.countByStatus(OrderStatus.READY) + orderRepository.countByStatus(OrderStatus.COMPLETED);
+        long deliveredOrders   = companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED) : orderRepository.countByStatus(OrderStatus.DELIVERED);
+        long cancelledOrders   = companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED) : orderRepository.countByStatus(OrderStatus.CANCELLED);
+        long lowStockItems     = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK) : inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);
+        long outOfStockItems   = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK) : inventoryRepository.countByStatus(InventoryStatus.OUT_OF_STOCK);
+        BigDecimal totalRevenue   = companyId != null ? paymentRepository.sumPaidAmount(companyId) : paymentRepository.sumPaidAmount();
+        BigDecimal pendingPayments = companyId != null ? paymentRepository.sumPendingAmount(companyId) : paymentRepository.sumPendingAmount();
+
+        long pendingPaymentsCount = companyId != null
+                ? paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL) + paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PENDING)
+                : paymentRepository.countByStatus(PaymentStatus.PARTIAL) + paymentRepository.countByStatus(PaymentStatus.PENDING);
 
         // ── Order status breakdown for donut chart ────────────────
         List<Map<String, Object>> orderStatusBreakdown = new ArrayList<>();
@@ -73,13 +79,13 @@ public class DashboardController {
         }
 
         // ── Monthly revenue (last 9 months) ───────────────────────
-        List<Map<String, Object>> monthlyRevenue = buildMonthlyRevenue();
+        List<Map<String, Object>> monthlyRevenue = buildMonthlyRevenue(companyId);
 
         // ── Production pulse (stage counts) ──────────────────────
-        List<Map<String, Object>> productionPulse = buildProductionPulse();
+        List<Map<String, Object>> productionPulse = buildProductionPulse(companyId);
 
         // ── Business Health metrics ───────────────────────────────
-        Map<String, Object> businessHealth = buildBusinessHealth(
+        Map<String, Object> businessHealth = buildBusinessHealth(companyId,
                 totalRevenue, totalOrders, deliveredOrders, totalCustomers);
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -105,14 +111,17 @@ public class DashboardController {
 
     // ── Monthly Revenue: last 9 months ────────────────────────────
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> buildMonthlyRevenue() {
-        List<Object[]> rows = em.createNativeQuery(
+    private List<Map<String, Object>> buildMonthlyRevenue(UUID companyId) {
+        var query = em.createNativeQuery(
             "SELECT DATE_TRUNC('month', created_at) AS month_start, " +
             "       COALESCE(SUM(paid_amount), 0) AS revenue " +
             "FROM payments " +
-            "WHERE created_at >= NOW() - INTERVAL '9 months' " +
+            "WHERE (:companyId IS NULL OR company_id = :companyId) " +
+            "  AND created_at >= NOW() - INTERVAL '9 months' " +
             "GROUP BY 1 ORDER BY 1"
-        ).getResultList();
+        );
+        query.setParameter("companyId", companyId);
+        List<Object[]> rows = query.getResultList();
 
         Map<YearMonth, BigDecimal> revenueMap = new LinkedHashMap<>();
         for (Object[] row : rows) {
@@ -130,16 +139,18 @@ public class DashboardController {
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
-        // BUG-P2-04 FIX: Fetch real monthly purchase spend from purchase_orders instead of hardcoding 40%
         Map<YearMonth, BigDecimal> costMap = new LinkedHashMap<>();
         try {
-            List<Object[]> costRows = em.createNativeQuery(
+            var costQuery = em.createNativeQuery(
                 "SELECT DATE_TRUNC('month', created_at) AS month_start, " +
                 "       COALESCE(SUM(total_amount), 0) AS spend " +
                 "FROM purchase_orders " +
-                "WHERE created_at >= NOW() - INTERVAL '9 months' " +
+                "WHERE (:companyId IS NULL OR company_id = :companyId) " +
+                "  AND created_at >= NOW() - INTERVAL '9 months' " +
                 "GROUP BY 1 ORDER BY 1"
-            ).getResultList();
+            );
+            costQuery.setParameter("companyId", companyId);
+            List<Object[]> costRows = costQuery.getResultList();
             for (Object[] crow : costRows) {
                 LocalDateTime cldt;
                 if (crow[0] instanceof LocalDateTime) {
@@ -172,21 +183,24 @@ public class DashboardController {
 
     // ── Production Pulse: stage counts & bespoke artworks ─────────
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> buildProductionPulse() {
-        // Query active stage definitions ordered by sort_order
-        List<Object[]> defRows = em.createNativeQuery(
+    private List<Map<String, Object>> buildProductionPulse(UUID companyId) {
+        var defQuery = em.createNativeQuery(
             "SELECT sd.stage_key, sd.display_name, sd.color_class, sd.image_url, " +
             "COALESCE(cnt_tbl.cnt, 0) AS cnt " +
             "FROM stage_definitions sd " +
             "LEFT JOIN (" +
             "    SELECT stage_name, COUNT(*) AS cnt " +
             "    FROM production_stages " +
-            "    WHERE status IN ('IN_PROGRESS','NOT_STARTED') " +
+            "    WHERE (:companyId IS NULL OR company_id = :companyId) " +
+            "      AND status IN ('IN_PROGRESS','NOT_STARTED') " +
             "    GROUP BY stage_name" +
             ") cnt_tbl ON UPPER(cnt_tbl.stage_name) = UPPER(sd.stage_key) " +
-            "WHERE sd.active = TRUE " +
+            "WHERE (:companyId IS NULL OR sd.company_id = :companyId) " +
+            "  AND sd.active = TRUE " +
             "ORDER BY sd.sort_order ASC"
-        ).getResultList();
+        );
+        defQuery.setParameter("companyId", companyId);
+        List<Object[]> defRows = defQuery.getResultList();
 
         Map<String, String> colorMap = Map.of(
             "dot-purple", "#c084fc",
@@ -225,12 +239,15 @@ public class DashboardController {
 
         // If stage_definitions returned nothing, fallback to legacy query
         if (result.isEmpty()) {
-            List<Object[]> legacyRows = em.createNativeQuery(
+            var legacyQuery = em.createNativeQuery(
                 "SELECT stage_name, COUNT(*) AS cnt " +
                 "FROM production_stages " +
-                "WHERE status IN ('IN_PROGRESS','NOT_STARTED') " +
+                "WHERE (:companyId IS NULL OR company_id = :companyId) " +
+                "  AND status IN ('IN_PROGRESS','NOT_STARTED') " +
                 "GROUP BY stage_name ORDER BY MIN(sort_order)"
-            ).getResultList();
+            );
+            legacyQuery.setParameter("companyId", companyId);
+            List<Object[]> legacyRows = legacyQuery.getResultList();
 
             String[] stageColors = {
                 "#c084fc","#fbbf24","#4ade80","#fb7185","#f472b6",
@@ -254,10 +271,10 @@ public class DashboardController {
     }
 
     // ── Business Health ───────────────────────────────────────────
-    private Map<String, Object> buildBusinessHealth(BigDecimal totalRevenue, long totalOrders,
+    private Map<String, Object> buildBusinessHealth(UUID companyId, BigDecimal totalRevenue, long totalOrders,
                                                      long deliveredOrders, long totalCustomers) {
         // Financial: paid / total billed
-        BigDecimal totalBilled = paymentRepository.sumTotalAmount();
+        BigDecimal totalBilled = companyId != null ? paymentRepository.sumTotalAmount(companyId) : paymentRepository.sumTotalAmount();
         int financial = totalBilled != null && totalBilled.compareTo(BigDecimal.ZERO) > 0
                 ? totalRevenue.multiply(BigDecimal.valueOf(100)).divide(totalBilled, 0, RoundingMode.HALF_UP).intValue()
                 : 0;
@@ -269,14 +286,14 @@ public class DashboardController {
                 : 0;
 
         // Customer: customers who ordered in last 90 days / total
-        long activeCustomers = customerRepository.countActiveIn90Days();
+        long activeCustomers = companyId != null ? customerRepository.countActiveIn90Days(companyId) : customerRepository.countActiveIn90Days();
         int customer = totalCustomers > 0
                 ? (int) Math.min(100, activeCustomers * 100L / totalCustomers)
                 : 0;
 
         // People: active employees / total
-        long totalEmployees  = employeeRepository.count();
-        long activeEmployees = employeeRepository.countByStatus("ACTIVE");
+        long totalEmployees  = companyId != null ? employeeRepository.countByCompanyId(companyId) : employeeRepository.count();
+        long activeEmployees = companyId != null ? employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE") : employeeRepository.countByStatus("ACTIVE");
         int people = totalEmployees > 0
                 ? (int) Math.min(100, activeEmployees * 100L / totalEmployees)
                 : 0;

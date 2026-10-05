@@ -1,5 +1,6 @@
 package com.fashionerp.order;
 
+import com.fashionerp.common.TenantContext;
 import com.fashionerp.customer.Customer;
 import com.fashionerp.customer.CustomerRepository;
 import com.fashionerp.payment.Payment;
@@ -43,26 +44,34 @@ public class OrderService {
         OrderStatus statusEnum = (status != null && !status.isBlank())
                 ? OrderStatus.valueOf(status.toUpperCase().replace('-', '_'))
                 : null;
-        return orderRepository.search(search, statusEnum, pageable).map(OrderDto.Response::from);
+        UUID companyId = TenantContext.getCompanyId();
+        return orderRepository.search(companyId, search, statusEnum, pageable).map(OrderDto.Response::from);
     }
 
     public OrderDto.Response getById(UUID id) {
-        return orderRepository.findById(id)
-                .map(OrderDto.Response::from)
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(order.getCompanyId())) {
+            throw new IllegalArgumentException("Order not found: " + id);
+        }
+        return OrderDto.Response.from(order);
     }
 
     public OrderDto.Response getByIdOrCode(String identifier) {
         if (identifier == null || identifier.isBlank()) {
             throw new IllegalArgumentException("Order identifier is required");
         }
+        UUID companyId = TenantContext.getCompanyId();
         try {
             UUID id = UUID.fromString(identifier);
             return getById(id);
         } catch (IllegalArgumentException e) {
-            return orderRepository.findByOrderCode(identifier)
-                    .map(OrderDto.Response::from)
+            Order order = (companyId != null
+                    ? orderRepository.findByOrderCodeAndCompanyId(identifier, companyId)
+                    : orderRepository.findByOrderCode(identifier))
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with code: " + identifier));
+            return OrderDto.Response.from(order);
         }
     }
 

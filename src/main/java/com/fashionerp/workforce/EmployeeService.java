@@ -1,5 +1,6 @@
 package com.fashionerp.workforce;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,28 +24,40 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
 
     public Page<EmployeeDto.Response> list(String search, String role, String status, Pageable pageable) {
-        return employeeRepository.search(search, role, status, pageable).map(EmployeeDto.Response::from);
+        UUID companyId = TenantContext.getCompanyId();
+        return employeeRepository.search(companyId, search, role, status, pageable).map(EmployeeDto.Response::from);
     }
 
     public EmployeeDto.Response get(UUID id) {
-        return employeeRepository.findById(id)
-            .map(EmployeeDto.Response::from)
+        Employee emp = employeeRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(emp.getCompanyId())) {
+            throw new RuntimeException("Employee not found with id: " + id);
+        }
+        return EmployeeDto.Response.from(emp);
     }
 
     public Employee findByIdOrCode(String identifier) {
         if (identifier == null || identifier.isBlank()) {
             throw new IllegalArgumentException("Employee identifier cannot be blank");
         }
+        UUID companyId = TenantContext.getCompanyId();
         try {
             UUID uuid = UUID.fromString(identifier.trim());
             Optional<Employee> byId = employeeRepository.findById(uuid);
-            if (byId.isPresent()) return byId.get();
+            if (byId.isPresent()) {
+                if (companyId == null || companyId.equals(byId.get().getCompanyId())) {
+                    return byId.get();
+                }
+            }
         } catch (IllegalArgumentException ignored) {
             // Not a UUID, fallback to employee code
         }
 
-        return employeeRepository.findByEmployeeCode(identifier.trim())
+        return (companyId != null
+            ? employeeRepository.findByEmployeeCodeAndCompanyId(identifier.trim(), companyId)
+            : employeeRepository.findByEmployeeCode(identifier.trim()))
             .orElseThrow(() -> new RuntimeException("Employee not found with id or code: " + identifier));
     }
 

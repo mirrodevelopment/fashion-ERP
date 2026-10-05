@@ -1,5 +1,6 @@
 package com.fashionerp.appointment;
 
+import com.fashionerp.common.TenantContext;
 import com.fashionerp.customer.Customer;
 import com.fashionerp.customer.CustomerRepository;
 import com.fashionerp.order.OrderRepository;
@@ -25,13 +26,17 @@ public class AppointmentService {
     public Page<AppointmentDto.Response> list(String search, String status, Pageable pageable) {
         AppointmentStatus statusEnum = (status != null && !status.isBlank())
                 ? AppointmentStatus.valueOf(status.toUpperCase().replace('-', '_')) : null;
-        return appointmentRepository.search(search, statusEnum, pageable).map(AppointmentDto.Response::from);
+        UUID companyId = TenantContext.getCompanyId();
+        return appointmentRepository.search(companyId, search, statusEnum, pageable).map(AppointmentDto.Response::from);
     }
 
     public List<AppointmentDto.Response> today() {
         LocalDateTime start = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
         LocalDateTime end = start.plusDays(1);
-        return appointmentRepository.findByScheduledAtBetweenOrderByScheduledAtAsc(start, end)
+        UUID companyId = TenantContext.getCompanyId();
+        return (companyId != null
+                ? appointmentRepository.findByCompanyIdAndScheduledAtBetweenOrderByScheduledAtAsc(companyId, start, end)
+                : appointmentRepository.findByScheduledAtBetweenOrderByScheduledAtAsc(start, end))
                 .stream().map(AppointmentDto.Response::from).toList();
     }
 

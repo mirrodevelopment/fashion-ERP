@@ -16,6 +16,9 @@ public class TrialAlteration {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trial_id", nullable = false)
     @JsonIgnore
@@ -271,5 +274,20 @@ public class TrialAlteration {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public UUID getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
+    }
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
     }
 }

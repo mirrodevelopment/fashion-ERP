@@ -64,6 +64,8 @@ public class AuthDto {
         private String username;
         private String fullName;
         private String role;
+        private UUID companyId;
+        private String companyName;
         private LocalDateTime expiresAt;
         /** true when company_settings table is empty — frontend should redirect to setup wizard */
         private boolean needsCompanySetup;

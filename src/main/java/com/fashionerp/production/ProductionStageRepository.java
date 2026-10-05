@@ -11,11 +11,19 @@ import java.util.UUID;
 public interface ProductionStageRepository extends JpaRepository<ProductionStage, UUID> {
 
     List<ProductionStage> findByOrderIdOrderBySortOrderAsc(UUID orderId);
+    List<ProductionStage> findByOrderIdAndCompanyIdOrderBySortOrderAsc(UUID orderId, UUID companyId);
 
     long countByStatus(String status);
+    long countByCompanyIdAndStatus(UUID companyId, String status);
+
+    @Query("SELECT ps.stageName, COUNT(ps) FROM ProductionStage ps WHERE (:companyId IS NULL OR ps.companyId = :companyId) AND ps.status IN ('IN_PROGRESS', 'NOT_STARTED') GROUP BY ps.stageName ORDER BY MIN(ps.sortOrder)")
+    List<Object[]> countActiveByStageName(@org.springframework.data.repository.query.Param("companyId") UUID companyId);
 
     @Query("SELECT ps.stageName, COUNT(ps) FROM ProductionStage ps WHERE ps.status IN ('IN_PROGRESS', 'NOT_STARTED') GROUP BY ps.stageName ORDER BY MIN(ps.sortOrder)")
     List<Object[]> countActiveByStageName();
+
+    @Query("SELECT COUNT(DISTINCT ps.order.id) FROM ProductionStage ps WHERE (:companyId IS NULL OR ps.companyId = :companyId) AND ps.status = 'IN_PROGRESS'")
+    long countOrdersInProduction(@org.springframework.data.repository.query.Param("companyId") UUID companyId);
 
     @Query("SELECT COUNT(DISTINCT ps.order.id) FROM ProductionStage ps WHERE ps.status = 'IN_PROGRESS'")
     long countOrdersInProduction();

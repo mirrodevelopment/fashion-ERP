@@ -22,7 +22,10 @@ public class Enquiry {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "enquiry_code", nullable = false, unique = true, length = 20)
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(name = "enquiry_code", nullable = false, length = 20)
     private String enquiryCode;
 
     @Column(name = "customer_name", nullable = false, length = 150)
@@ -85,4 +88,11 @@ public class Enquiry {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

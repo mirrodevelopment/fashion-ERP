@@ -13,6 +13,24 @@ import java.util.UUID;
 public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
 
     Optional<Enquiry> findByEnquiryCode(String enquiryCode);
+    Optional<Enquiry> findByEnquiryCodeAndCompanyId(String enquiryCode, UUID companyId);
+
+    @Query("""
+        SELECT e FROM Enquiry e
+        WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND (:search IS NULL OR :search = '' OR
+               LOWER(e.customerName)  LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(e.enquiryCode)   LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(e.garmentType)   LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(COALESCE(e.occasion, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(COALESCE(e.phone, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+          AND (:status IS NULL OR :status = '' OR UPPER(e.status) = UPPER(:status))
+        ORDER BY e.createdAt DESC
+        """)
+    Page<Enquiry> search(@Param("companyId") UUID companyId,
+                         @Param("search") String search,
+                         @Param("status") String status,
+                         Pageable pageable);
 
     @Query("""
         SELECT e FROM Enquiry e
@@ -29,7 +47,9 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
                          @Param("status") String status,
                          Pageable pageable);
 
+    long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);
     long countByStatusIgnoreCase(String status);
 
+    long countByCompanyIdAndCreatedAtAfter(UUID companyId, java.time.LocalDateTime date);
     long countByCreatedAtAfter(java.time.LocalDateTime date);
 }

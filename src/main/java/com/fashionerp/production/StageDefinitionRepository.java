@@ -13,18 +13,23 @@ import java.util.UUID;
 public interface StageDefinitionRepository extends JpaRepository<StageDefinition, UUID> {
 
     /** All active stages ordered for Kanban rendering */
+    List<StageDefinition> findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(UUID companyId);
     List<StageDefinition> findAllByActiveTrueOrderBySortOrderAsc();
 
     /** All stages (active + inactive) ordered for admin management UI */
+    List<StageDefinition> findAllByCompanyIdOrderBySortOrderAsc(UUID companyId);
     List<StageDefinition> findAllByOrderBySortOrderAsc();
 
     /** Lookup by machine key for transition mapping */
+    Optional<StageDefinition> findByCompanyIdAndStageKey(UUID companyId, String stageKey);
     Optional<StageDefinition> findByStageKey(String stageKey);
 
     /** Uniqueness check when editing a stage's key (exclude self) */
+    boolean existsByCompanyIdAndStageKeyAndIdNot(UUID companyId, String stageKey, UUID id);
     boolean existsByStageKeyAndIdNot(String stageKey, UUID id);
 
     /** Check if a stage key already exists (for create) */
+    boolean existsByCompanyIdAndStageKey(UUID companyId, String stageKey);
     boolean existsByStageKey(String stageKey);
 
     /** Batch update sort_order — used by the reorder endpoint */

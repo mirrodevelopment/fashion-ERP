@@ -25,7 +25,10 @@ public class PurchaseOrder {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "po_code", nullable = false, unique = true, length = 30)
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(name = "po_code", nullable = false, length = 30)
     private String poCode;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -64,4 +67,11 @@ public class PurchaseOrder {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

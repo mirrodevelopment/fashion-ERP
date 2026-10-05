@@ -1,5 +1,6 @@
 package com.fashionerp.measurement;
 
+import com.fashionerp.common.TenantContext;
 import com.fashionerp.customer.Customer;
 import com.fashionerp.customer.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,23 +19,27 @@ public class MeasurementService {
     private final CustomerRepository customerRepository;
 
     public List<MeasurementDto.Response> getByCustomer(String customerMobile) {
-        return profileRepository.findByCustomerMobileNumberOrderByRecordedAtDesc(customerMobile)
+        UUID companyId = TenantContext.getCompanyId();
+        return profileRepository.findByCustomerMobileNumberAndCompanyIdOrderByRecordedAtDesc(customerMobile, companyId)
                 .stream().map(MeasurementDto.Response::from).toList();
     }
 
     public MeasurementDto.Response getById(UUID id) {
-        return profileRepository.findById(id)
+        UUID companyId = TenantContext.getCompanyId();
+        return profileRepository.findByIdAndCompanyId(id, companyId)
                 .map(MeasurementDto.Response::from)
                 .orElseThrow(() -> new IllegalArgumentException("Profile not found: " + id));
     }
 
     @Transactional
     public MeasurementDto.Response create(MeasurementDto.Request req) {
+        UUID companyId = TenantContext.getCompanyId();
         String mobile = req.getEffectiveMobile();
-        Customer customer = customerRepository.findById(mobile)
-                .or(() -> customerRepository.findByFlexibleMobile(mobile))
+        Customer customer = customerRepository.findByMobileNumberAndCompanyId(mobile, companyId)
+                .or(() -> customerRepository.findByFlexibleMobile(companyId, mobile))
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found with mobile: " + mobile));
         MeasurementProfile profile = MeasurementProfile.builder()
+                .companyId(companyId)
                 .customer(customer)
                 .garmentType(req.getGarmentType())
                 .recordedBy(req.getRecordedBy())
@@ -62,7 +67,8 @@ public class MeasurementService {
 
     @Transactional
     public MeasurementDto.Response update(UUID id, MeasurementDto.Request req) {
-        MeasurementProfile profile = profileRepository.findById(id)
+        UUID companyId = TenantContext.getCompanyId();
+        MeasurementProfile profile = profileRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Profile not found: " + id));
         profile.setGarmentType(req.getGarmentType());
         if (req.getRecordedBy() != null) profile.setRecordedBy(req.getRecordedBy());
@@ -89,8 +95,9 @@ public class MeasurementService {
 
     @Transactional
     public void delete(UUID id) {
-        if (!profileRepository.existsById(id))
-            throw new IllegalArgumentException("Profile not found: " + id);
-        profileRepository.deleteById(id);
+        UUID companyId = TenantContext.getCompanyId();
+        MeasurementProfile profile = profileRepository.findByIdAndCompanyId(id, companyId)
+                .orElseThrow(() -> new IllegalArgumentException("Profile not found: " + id));
+        profileRepository.delete(profile);
     }
 }

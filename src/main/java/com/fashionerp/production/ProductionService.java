@@ -1,5 +1,6 @@
 package com.fashionerp.production;
 
+import com.fashionerp.common.TenantContext;
 import com.fashionerp.order.Order;
 import com.fashionerp.order.OrderRepository;
 import com.fashionerp.order.OrderStatus;
@@ -29,7 +30,10 @@ public class ProductionService {
      */
     @Transactional(readOnly = true)
     public Map<String, Object> getNextStageAfterQc() {
-        List<StageDefinition> activeStages = stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
+        UUID companyId = TenantContext.getCompanyId();
+        List<StageDefinition> activeStages = companyId != null
+                ? stageDefinitionRepository.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(companyId)
+                : stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
         int qcSortOrder = -1;
         for (StageDefinition sd : activeStages) {
             if ("QC".equalsIgnoreCase(sd.getStageKey())) {
@@ -68,6 +72,10 @@ public class ProductionService {
     public Map<String, Object> transitionStage(UUID orderId, String targetStage, UUID employeeId, String notes) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found: " + orderId));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(order.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found: " + orderId);
+        }
 
         Employee employee = null;
         if (employeeId != null) {

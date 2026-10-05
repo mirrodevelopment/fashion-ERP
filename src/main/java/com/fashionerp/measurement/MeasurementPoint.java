@@ -14,6 +14,9 @@ public class MeasurementPoint {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
     private MeasurementProfile profile;
@@ -34,4 +37,11 @@ public class MeasurementPoint {
     @Column(name = "sort_order", nullable = false)
     @Builder.Default
     private Integer sortOrder = 0;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

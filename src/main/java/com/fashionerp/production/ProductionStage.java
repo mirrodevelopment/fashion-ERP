@@ -21,6 +21,9 @@ public class ProductionStage {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"customer", "progressStages", "hibernateLazyInitializer", "handler"})
@@ -49,4 +52,11 @@ public class ProductionStage {
     @Column(name = "sort_order", nullable = false)
     @Builder.Default
     private Integer sortOrder = 0;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

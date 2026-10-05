@@ -29,6 +29,9 @@ public class StageDefinitionEmployee {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "stage_def_id", nullable = false)
     private StageDefinition stageDef;
@@ -48,4 +51,11 @@ public class StageDefinitionEmployee {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

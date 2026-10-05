@@ -14,6 +14,19 @@ import java.util.UUID;
 public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
 
     Optional<Supplier> findBySupplierCode(String supplierCode);
+    Optional<Supplier> findBySupplierCodeAndCompanyId(String supplierCode, UUID companyId);
+
+    @Query("""
+        SELECT s FROM Supplier s
+        WHERE (:companyId IS NULL OR s.companyId = :companyId)
+          AND (:search IS NULL OR :search = '' OR
+               LOWER(s.name)           LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(s.supplierCode)   LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(s.contactPerson)  LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(s.specialization) LIKE LOWER(CONCAT('%', :search, '%')))
+        ORDER BY s.name ASC
+        """)
+    Page<Supplier> search(@Param("companyId") UUID companyId, @Param("search") String search, Pageable pageable);
 
     @Query("""
         SELECT s FROM Supplier s

@@ -12,10 +12,32 @@ import java.util.UUID;
 public interface BranchRepository extends JpaRepository<Branch, UUID> {
 
     Optional<Branch> findByBranchCode(String branchCode);
+    Optional<Branch> findByBranchCodeAndCompanyId(String branchCode, UUID companyId);
 
+    boolean existsByCompanyIdAndIsHeadquartersTrue(UUID companyId);
     boolean existsByIsHeadquartersTrue();
 
+    long countByCompanyId(UUID companyId);
+    long countByCompanyIdAndActiveTrue(UUID companyId);
     long countByActiveTrue();
+
+    @Query("""
+        SELECT b FROM Branch b
+        WHERE (:companyId IS NULL OR b.companyId = :companyId)
+          AND (:search IS NULL OR :search = '' OR
+               LOWER(b.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR
+               LOWER(b.city) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))
+          AND (:type IS NULL OR :type = '' OR b.type = :type)
+          AND (:active IS NULL OR b.active = :active)
+        ORDER BY b.createdAt ASC
+        """)
+    Page<Branch> search(
+        @Param("companyId") UUID companyId,
+        @Param("search") String search,
+        @Param("type") String type,
+        @Param("active") Boolean active,
+        Pageable pageable
+    );
 
     @Query("""
         SELECT b FROM Branch b

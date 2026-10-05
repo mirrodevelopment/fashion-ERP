@@ -1,5 +1,7 @@
 package com.fashionerp.auth;
 
+import com.fashionerp.company.CompanySettings;
+import com.fashionerp.company.CompanySettingsRepository;
 import com.fashionerp.company.CompanySettingsDto;
 import com.fashionerp.company.CompanySettingsService;
 import jakarta.annotation.PostConstruct;
@@ -9,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -20,16 +23,28 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final LoginRateLimiter rateLimiter;
     private final CompanySettingsService companySettingsService;
+    private final CompanySettingsRepository companySettingsRepository;
 
     @PostConstruct
     public void initAdmin() {
         try {
+            CompanySettings defaultCompany = companySettingsRepository.findFirstByOrderByCreatedAtAsc().orElse(null);
+            UUID companyId = defaultCompany != null ? defaultCompany.getId() : null;
+
             userRepository.findByUsernameAndActiveTrue("admin").ifPresentOrElse(
                 user -> {
+                    boolean changed = false;
                     if (!passwordEncoder.matches("Admin@123", user.getPasswordHash())) {
                         user.setPasswordHash(passwordEncoder.encode("Admin@123"));
+                        changed = true;
+                    }
+                    if (user.getCompanyId() == null && companyId != null) {
+                        user.setCompanyId(companyId);
+                        changed = true;
+                    }
+                    if (changed) {
                         userRepository.save(user);
-                        log.info("Updated admin password hash to match Admin@123");
+                        log.info("Updated admin user credentials and company association");
                     }
                 },
                 () -> {
@@ -39,6 +54,7 @@ public class AuthService {
                             .fullName("Boutique Admin")
                             .role(UserRole.ADMIN)
                             .active(true)
+                            .companyId(companyId)
                             .build();
                     userRepository.save(admin);
                     log.info("Created default admin user with username 'admin'");
@@ -79,7 +95,23 @@ public class AuthService {
             rateLimiter.recordSuccess(clientIp);
         }
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        UUID companyId = user.getCompanyId();
+        String companyName = null;
+        if (companyId != null) {
+            companyName = companySettingsRepository.findById(companyId)
+                    .map(CompanySettings::getCompanyName)
+                    .orElse(null);
+        } else {
+            var defaultComp = companySettingsRepository.findFirstByOrderByCreatedAtAsc().orElse(null);
+            if (defaultComp != null) {
+                companyId = defaultComp.getId();
+                companyName = defaultComp.getCompanyName();
+                user.setCompanyId(companyId);
+                userRepository.save(user);
+            }
+        }
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), companyId, companyName);
         updateLastLogin(user);
 
         boolean needsSetup = !companySettingsService.isConfigured();
@@ -90,6 +122,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
+                .companyId(companyId)
+                .companyName(companyName)
                 .expiresAt(LocalDateTime.now().plusHours(24))
                 .needsCompanySetup(needsSetup)
                 .build();
@@ -117,6 +151,16 @@ public class AuthService {
             throw new IllegalStateException("This username is already taken. Please choose another.");
         }
 
+        CompanySettings company = CompanySettings.builder()
+                .companyName(req.getFullName().trim() + "'s Boutique")
+                .ownerName(req.getFullName().trim())
+                .email(req.getEmail() != null ? req.getEmail().trim() : null)
+                .primaryPhone(req.getPhone() != null ? req.getPhone().trim() : null)
+                .businessType("Bespoke Atelier")
+                .country("India")
+                .build();
+        company = companySettingsRepository.save(company);
+
         AppUser user = AppUser.builder()
                 .username(req.getUsername().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
@@ -125,12 +169,13 @@ public class AuthService {
                 .phone(req.getPhone() != null ? req.getPhone().trim() : null)
                 .role(UserRole.ADMIN)   // first registrant is always owner-admin
                 .active(true)
+                .companyId(company.getId())
                 .build();
 
         userRepository.save(user);
         log.info("New boutique admin registered: {}", user.getUsername());
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName());
 
         // New registrants always need company setup
         return AuthDto.LoginResponse.builder()
@@ -139,6 +184,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
+                .companyId(company.getId())
+                .companyName(company.getCompanyName())
                 .expiresAt(LocalDateTime.now().plusHours(24))
                 .needsCompanySetup(true)
                 .build();
@@ -169,7 +216,30 @@ public class AuthService {
             throw new IllegalStateException("This username is already taken. Please choose another.");
         }
 
-        // 1. Create and save the Admin user
+        // 1. Configure and save Company Settings
+        CompanySettings company = CompanySettings.builder()
+                .companyName(req.getCompanyName().trim())
+                .shortName(req.getShortName() != null ? req.getShortName().trim() : null)
+                .tagline(req.getTagline())
+                .ownerName(req.getOwnerName() != null && !req.getOwnerName().isBlank() ? req.getOwnerName() : req.getFullName())
+                .businessType(req.getBusinessType() != null && !req.getBusinessType().isBlank() ? req.getBusinessType() : "Bespoke Atelier")
+                .gstin(req.getGstin())
+                .panNumber(req.getPanNumber())
+                .primaryPhone(req.getPrimaryPhone())
+                .whatsapp(req.getWhatsapp())
+                .email(req.getEmail())
+                .website(req.getWebsite())
+                .streetAddress(req.getStreetAddress())
+                .city(req.getCity())
+                .state(req.getState())
+                .pinCode(req.getPinCode())
+                .country(req.getCountry() != null && !req.getCountry().isBlank() ? req.getCountry() : "India")
+                .logoBase64(req.getLogoBase64())
+                .build();
+
+        company = companySettingsRepository.save(company);
+
+        // 2. Create and save the Admin user
         AppUser user = AppUser.builder()
                 .username(req.getUsername().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
@@ -178,35 +248,14 @@ public class AuthService {
                 .phone(req.getUserPhone() != null ? req.getUserPhone().trim() : req.getPrimaryPhone())
                 .role(UserRole.ADMIN)
                 .active(true)
+                .companyId(company.getId())
                 .build();
 
         userRepository.save(user);
         log.info("New boutique admin registered via onboarding: {}", user.getUsername());
 
-        // 2. Configure and save Company Settings
-        CompanySettingsDto.Request companyReq = new CompanySettingsDto.Request();
-        companyReq.setCompanyName(req.getCompanyName());
-        companyReq.setShortName(req.getShortName());
-        companyReq.setTagline(req.getTagline());
-        companyReq.setOwnerName(req.getOwnerName() != null && !req.getOwnerName().isBlank() ? req.getOwnerName() : req.getFullName());
-        companyReq.setBusinessType(req.getBusinessType());
-        companyReq.setGstin(req.getGstin());
-        companyReq.setPanNumber(req.getPanNumber());
-        companyReq.setPrimaryPhone(req.getPrimaryPhone());
-        companyReq.setWhatsapp(req.getWhatsapp());
-        companyReq.setEmail(req.getEmail());
-        companyReq.setWebsite(req.getWebsite());
-        companyReq.setStreetAddress(req.getStreetAddress());
-        companyReq.setCity(req.getCity());
-        companyReq.setState(req.getState());
-        companyReq.setPinCode(req.getPinCode());
-        companyReq.setCountry(req.getCountry());
-        companyReq.setLogoBase64(req.getLogoBase64());
-
-        companySettingsService.update(companyReq);
-
         // 3. Issue JWT Token
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName());
 
         return AuthDto.LoginResponse.builder()
                 .token(token)
@@ -214,6 +263,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
+                .companyId(company.getId())
+                .companyName(company.getCompanyName())
                 .expiresAt(LocalDateTime.now().plusHours(24))
                 .needsCompanySetup(false)
                 .build();

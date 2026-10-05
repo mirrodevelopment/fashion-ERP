@@ -422,7 +422,9 @@ public class StageDefinitionService {
 
     private Map<String, Long> getActiveOrderCountsMap() {
         try {
-            return orderRepository.countActiveOrdersGroupedByStage().stream()
+            UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+            List<Object[]> rows = orderRepository.countActiveOrdersGroupedByStage(companyId);
+            return rows.stream()
                     .filter(row -> row != null && row.length >= 2 && row[0] != null)
                     .collect(Collectors.toMap(
                             row -> ((String) row[0]).toUpperCase().trim(),

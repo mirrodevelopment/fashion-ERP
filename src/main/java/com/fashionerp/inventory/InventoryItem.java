@@ -16,6 +16,9 @@ public class InventoryItem {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @Column(name = "item_code", unique = true, nullable = false, length = 30)
     private String itemCode;
 
@@ -109,6 +112,9 @@ public class InventoryItem {
     /** Auto-compute status before persist/update */
     @PrePersist @PreUpdate
     public void computeStatus() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
         if (stockQty.compareTo(BigDecimal.ZERO) <= 0) {
             this.status = InventoryStatus.OUT_OF_STOCK;
         } else if (stockQty.compareTo(reorderLevel) <= 0) {

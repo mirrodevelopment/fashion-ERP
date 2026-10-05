@@ -14,8 +14,25 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     boolean existsByOrderId(UUID orderId);
 
+    @Query("SELECT DISTINCT p FROM Payment p LEFT JOIN FETCH p.transactions JOIN FETCH p.order JOIN FETCH p.customer WHERE p.order.id = :orderId AND (:companyId IS NULL OR p.companyId = :companyId)")
+    Optional<Payment> findByOrderIdAndCompanyId(@Param("orderId") UUID orderId, @Param("companyId") UUID companyId);
+
     @Query("SELECT DISTINCT p FROM Payment p LEFT JOIN FETCH p.transactions JOIN FETCH p.order JOIN FETCH p.customer WHERE p.order.id = :orderId")
     Optional<Payment> findByOrderId(@Param("orderId") UUID orderId);
+
+    @Query("""
+        SELECT p FROM Payment p JOIN p.customer c JOIN p.order o
+        WHERE (:companyId IS NULL OR p.companyId = :companyId)
+          AND (:search IS NULL OR :search = '' OR
+               LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :search, '%')))
+          AND (:status IS NULL OR p.status = :status)
+        ORDER BY p.createdAt DESC
+        """)
+    Page<Payment> search(@Param("companyId") UUID companyId,
+                         @Param("search") String search,
+                         @Param("status") PaymentStatus status,
+                         Pageable pageable);
 
     @Query("""
         SELECT p FROM Payment p JOIN p.customer c JOIN p.order o
@@ -31,17 +48,34 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     long countByStatus(PaymentStatus status);
 
+    long countByCompanyIdAndStatus(UUID companyId, PaymentStatus status);
+
+    @Query("SELECT COALESCE(SUM(p.paidAmount), 0) FROM Payment p WHERE (:companyId IS NULL OR p.companyId = :companyId)")
+    java.math.BigDecimal sumPaidAmount(@Param("companyId") UUID companyId);
+
     @Query("SELECT COALESCE(SUM(p.paidAmount), 0) FROM Payment p")
     java.math.BigDecimal sumPaidAmount();
+
+    @Query("SELECT COALESCE(SUM(p.totalAmount - p.paidAmount), 0) FROM Payment p WHERE (:companyId IS NULL OR p.companyId = :companyId) AND p.status != 'PAID'")
+    java.math.BigDecimal sumPendingAmount(@Param("companyId") UUID companyId);
 
     @Query("SELECT COALESCE(SUM(p.totalAmount - p.paidAmount), 0) FROM Payment p WHERE p.status != 'PAID'")
     java.math.BigDecimal sumPendingAmount();
 
+    @Query("SELECT COALESCE(SUM(p.totalAmount), 0) FROM Payment p WHERE (:companyId IS NULL OR p.companyId = :companyId)")
+    java.math.BigDecimal sumTotalAmount(@Param("companyId") UUID companyId);
+
     @Query("SELECT COALESCE(SUM(p.totalAmount), 0) FROM Payment p")
     java.math.BigDecimal sumTotalAmount();
 
+    @Query("SELECT COALESCE(SUM(p.paidAmount), 0) FROM Payment p WHERE (:companyId IS NULL OR p.companyId = :companyId) AND MONTH(p.createdAt) = MONTH(CURRENT_DATE) AND YEAR(p.createdAt) = YEAR(CURRENT_DATE)")
+    java.math.BigDecimal sumThisMonthPaidAmount(@Param("companyId") UUID companyId);
+
     @Query("SELECT COALESCE(SUM(p.paidAmount), 0) FROM Payment p WHERE MONTH(p.createdAt) = MONTH(CURRENT_DATE) AND YEAR(p.createdAt) = YEAR(CURRENT_DATE)")
     java.math.BigDecimal sumThisMonthPaidAmount();
+
+    @Query("SELECT COUNT(p) FROM Payment p WHERE (:companyId IS NULL OR p.companyId = :companyId) AND p.status = 'OVERDUE'")
+    long countOverdue(@Param("companyId") UUID companyId);
 
     @Query("SELECT COUNT(p) FROM Payment p WHERE p.status = 'OVERDUE'")
     long countOverdue();

@@ -56,7 +56,8 @@ public class CollectionService {
         if ("all".equalsIgnoreCase(branch) || (branch != null && branch.isBlank())) branch = null;
         if (Boolean.TRUE.equals(archived) && status == null) status = "ARCHIVED";
 
-        Page<Collection> page = collectionRepository.search(search, status, season, year, designer, branch, pageable);
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        Page<Collection> page = collectionRepository.search(companyId, search, status, season, year, designer, branch, pageable);
 
         List<String> collectionNames = page.getContent().stream()
                 .map(c -> c != null ? c.getName() : null)
@@ -66,13 +67,13 @@ public class CollectionService {
 
         Map<String, List<Design>> designsByCollection = collectionNames.isEmpty()
                 ? Collections.emptyMap()
-                : designRepository.findByCollectionInIgnoreCase(collectionNames).stream()
+                : designRepository.findByCollectionInIgnoreCase(companyId, collectionNames).stream()
                         .filter(d -> d.getCollection() != null)
                         .collect(Collectors.groupingBy(d -> d.getCollection().toLowerCase()));
 
         Map<String, List<Order>> ordersByCollection = collectionNames.isEmpty()
                 ? Collections.emptyMap()
-                : orderRepository.findByCollectionInIgnoreCase(collectionNames).stream()
+                : orderRepository.findByCollectionInIgnoreCase(companyId, collectionNames).stream()
                         .filter(o -> o.getCollection() != null)
                         .collect(Collectors.groupingBy(o -> o.getCollection().toLowerCase()));
 
@@ -90,15 +91,16 @@ public class CollectionService {
 
     @Transactional(readOnly = true)
     public CollectionDto.KpiResponse getKpis() {
-        long totalCollections = collectionRepository.count();
-        long activeCollections = collectionRepository.countByStatusIgnoreCase("ACTIVE");
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        long totalCollections = collectionRepository.countByCompanyId(companyId);
+        long activeCollections = collectionRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "ACTIVE");
         String currentSeasonName = totalCollections > 0
-                ? collectionRepository.findCurrentSeasonName().orElse("—")
+                ? collectionRepository.findCurrentSeasonName(companyId).orElse("—")
                 : "—";
-        long currentSeasonCount = collectionRepository.countBySeasonIgnoreCase(currentSeasonName);
-        long totalGarments = orderRepository.count();
-        long totalDesigns = designRepository.count();
-        long draftCollections = collectionRepository.countByStatusIgnoreCase("DRAFT");
+        long currentSeasonCount = collectionRepository.countByCompanyIdAndSeasonIgnoreCase(companyId, currentSeasonName);
+        long totalGarments = orderRepository.countByCompanyId(companyId);
+        long totalDesigns = designRepository.countByCompanyId(companyId);
+        long draftCollections = collectionRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "DRAFT");
 
         return CollectionDto.KpiResponse.builder()
                 .totalCollections(totalCollections)
@@ -113,40 +115,44 @@ public class CollectionService {
 
     @Transactional(readOnly = true)
     public CollectionDto.DetailResponse getById(UUID id) {
-        Collection collection = collectionRepository.findById(id)
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        Collection collection = collectionRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Collection not found with id: " + id));
         return toDetailResponse(collection);
     }
 
     @Transactional(readOnly = true)
     public CollectionDto.DetailResponse getByName(String name) {
-        Collection collection = collectionRepository.findByNameIgnoreCase(name)
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        Collection collection = collectionRepository.findByNameIgnoreCaseAndCompanyId(name, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Collection not found with name: " + name));
         return toDetailResponse(collection);
     }
 
     @Transactional
     public CollectionDto.SummaryResponse create(CollectionDto.CreateRequest req) {
-        if (collectionRepository.existsByNameIgnoreCase(req.getName())) {
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        if (collectionRepository.existsByNameIgnoreCaseAndCompanyId(req.getName(), companyId)) {
             throw new IllegalArgumentException("Collection with name '" + req.getName() + "' already exists");
         }
 
         String code = req.getCode();
         if (code == null || code.isBlank()) {
-            long count = collectionRepository.count() + 1;
+            long count = collectionRepository.countByCompanyId(companyId) + 1;
             code = String.format("COL-%03d", count);
         }
 
-        if (collectionRepository.existsByCode(code)) {
+        if (collectionRepository.existsByCodeAndCompanyId(code, companyId)) {
             code = "COL-" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();
         }
 
         Collection collection = Collection.builder()
+                .companyId(companyId)
                 .code(code)
                 .name(req.getName().trim())
                 .subtitle(req.getSubtitle())
                 .description(req.getDescription())
-                .season(req.getSeason() != null && !req.getSeason().isBlank() ? req.getSeason() : collectionRepository.findCurrentSeasonName().orElse(null))
+                .season(req.getSeason() != null && !req.getSeason().isBlank() ? req.getSeason() : collectionRepository.findCurrentSeasonName(companyId).orElse(null))
                 .year(req.getYear() != null ? req.getYear() : LocalDate.now().getYear())
                 .status(req.getStatus() != null && !req.getStatus().isBlank() ? req.getStatus().toUpperCase() : "ACTIVE")
                 .designer(req.getDesigner() != null && !req.getDesigner().isBlank() ? req.getDesigner() : null)
@@ -163,12 +169,13 @@ public class CollectionService {
 
     @Transactional
     public CollectionDto.SummaryResponse update(UUID id, CollectionDto.UpdateRequest req) {
-        Collection collection = collectionRepository.findById(id)
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        Collection collection = collectionRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Collection not found with id: " + id));
 
         if (req.getName() != null && !req.getName().isBlank()) {
             if (!collection.getName().equalsIgnoreCase(req.getName()) &&
-                collectionRepository.existsByNameIgnoreCase(req.getName())) {
+                collectionRepository.existsByNameIgnoreCaseAndCompanyId(req.getName(), companyId)) {
                 throw new IllegalArgumentException("Collection with name '" + req.getName() + "' already exists");
             }
             collection.setName(req.getName().trim());
@@ -192,7 +199,8 @@ public class CollectionService {
 
     @Transactional
     public CollectionDto.SummaryResponse toggleArchive(UUID id) {
-        Collection collection = collectionRepository.findById(id)
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        Collection collection = collectionRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Collection not found with id: " + id));
 
         if ("ARCHIVED".equalsIgnoreCase(collection.getStatus())) {
@@ -207,10 +215,10 @@ public class CollectionService {
 
     @Transactional
     public void delete(UUID id) {
-        if (!collectionRepository.existsById(id)) {
-            throw new IllegalArgumentException("Collection not found with id: " + id);
-        }
-        collectionRepository.deleteById(id);
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        Collection collection = collectionRepository.findByIdAndCompanyId(id, companyId)
+                .orElseThrow(() -> new IllegalArgumentException("Collection not found with id: " + id));
+        collectionRepository.delete(collection);
     }
 
     @lombok.Data
@@ -271,8 +279,9 @@ public class CollectionService {
     }
 
     private CollectionDto.SummaryResponse toSummaryResponse(Collection c) {
-        List<Design> designs = designRepository.findByCollectionIgnoreCase(c.getName());
-        List<Order> orders = orderRepository.findByCollectionIgnoreCase(c.getName());
+        UUID companyId = c.getCompanyId() != null ? c.getCompanyId() : com.fashionerp.common.TenantContext.getCompanyId();
+        List<Design> designs = designRepository.findByCompanyIdAndCollectionIgnoreCase(companyId, c.getName());
+        List<Order> orders = orderRepository.findByCompanyIdAndCollectionIgnoreCase(companyId, c.getName());
         return toSummaryResponse(c, designs, orders);
     }
 
@@ -313,8 +322,9 @@ public class CollectionService {
     }
 
     private CollectionDto.DetailResponse toDetailResponse(Collection c) {
-        List<Design> designs = designRepository.findByCollectionIgnoreCase(c.getName());
-        List<Order> orders = orderRepository.findByCollectionIgnoreCase(c.getName());
+        UUID companyId = c.getCompanyId() != null ? c.getCompanyId() : com.fashionerp.common.TenantContext.getCompanyId();
+        List<Design> designs = designRepository.findByCompanyIdAndCollectionIgnoreCase(companyId, c.getName());
+        List<Order> orders = orderRepository.findByCompanyIdAndCollectionIgnoreCase(companyId, c.getName());
 
         long garmentsCount = !orders.isEmpty() ? orders.size() : designs.size();
 

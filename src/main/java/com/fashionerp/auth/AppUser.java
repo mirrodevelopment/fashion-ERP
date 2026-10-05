@@ -23,6 +23,9 @@ public class AppUser {
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

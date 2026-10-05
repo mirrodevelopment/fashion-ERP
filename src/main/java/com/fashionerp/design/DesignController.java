@@ -1,5 +1,6 @@
 package com.fashionerp.design;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,8 @@ public class DesignController {
         if ("all".equalsIgnoreCase(status)) {
             status = null;
         }
-        return designRepository.search(search, status, pageable);
+        UUID companyId = TenantContext.getCompanyId();
+        return designRepository.search(companyId, search, status, pageable);
     }
 
     /* ------------------------------------------------------------------
@@ -42,7 +44,8 @@ public class DesignController {
      * ------------------------------------------------------------------ */
     @GetMapping("/{id}")
     public Design getById(@PathVariable UUID id) {
-        return designRepository.findById(id)
+        UUID companyId = TenantContext.getCompanyId();
+        return designRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Design not found: " + id));
     }
 
@@ -52,6 +55,8 @@ public class DesignController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Design create(@RequestBody Design design) {
+        UUID companyId = TenantContext.getCompanyId();
+        design.setCompanyId(companyId);
         if (design.getDesignCode() == null || design.getDesignCode().isBlank()) {
             design.setDesignCode("DES-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
         }
@@ -69,7 +74,8 @@ public class DesignController {
      * ------------------------------------------------------------------ */
     @PutMapping("/{id}")
     public Design update(@PathVariable UUID id, @RequestBody Design updated) {
-        Design d = designRepository.findById(id)
+        UUID companyId = TenantContext.getCompanyId();
+        Design d = designRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Design not found: " + id));
 
         // Original fields
@@ -112,10 +118,10 @@ public class DesignController {
      * ------------------------------------------------------------------ */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!designRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Design not found: " + id);
-        }
-        designRepository.deleteById(id);
+        UUID companyId = TenantContext.getCompanyId();
+        Design d = designRepository.findByIdAndCompanyId(id, companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Design not found: " + id));
+        designRepository.delete(d);
         return ResponseEntity.noContent().build();
     }
 
@@ -124,17 +130,18 @@ public class DesignController {
      * ------------------------------------------------------------------ */
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        long total      = designRepository.count();
-        long approved   = designRepository.countByStatus("APPROVED");
-        long inReview   = designRepository.countByStatus("IN_REVIEW");
-        long draft      = designRepository.countByStatus("DRAFT");
-        long archived   = designRepository.countByStatus("ARCHIVED");
-        long totalUsed  = designRepository.sumTimesUsed();
-        BigDecimal avgPrice = designRepository.avgSuggestedPrice()
+        UUID companyId  = TenantContext.getCompanyId();
+        long total      = designRepository.countByCompanyId(companyId);
+        long approved   = designRepository.countByStatusAndCompanyId("APPROVED", companyId);
+        long inReview   = designRepository.countByStatusAndCompanyId("IN_REVIEW", companyId);
+        long draft      = designRepository.countByStatusAndCompanyId("DRAFT", companyId);
+        long archived   = designRepository.countByStatusAndCompanyId("ARCHIVED", companyId);
+        long totalUsed  = designRepository.sumTimesUsed(companyId);
+        BigDecimal avgPrice = designRepository.avgSuggestedPrice(companyId)
                                               .setScale(0, RoundingMode.HALF_UP);
 
         // Category breakdown
-        List<Object[]> catRows = designRepository.countByGarmentType();
+        List<Object[]> catRows = designRepository.countByGarmentType(companyId);
         String popularCategory = "N/A";
         long popularCategoryCount = 0;
         List<Map<String, Object>> categoryBreakdown = new ArrayList<>();
@@ -155,12 +162,12 @@ public class DesignController {
         }
 
         // Top collection & distinct collections count
-        List<Object[]> collRows = designRepository.topCollections();
+        List<Object[]> collRows = designRepository.topCollections(companyId);
         String topCollection = collRows.isEmpty() ? "N/A" : (String) collRows.get(0)[0];
-        long activeCollections = designRepository.distinctCollections().size();
+        long activeCollections = designRepository.distinctCollections(companyId).size();
 
         // Most used fabric
-        List<Object[]> fabricRows = designRepository.topFabrics();
+        List<Object[]> fabricRows = designRepository.topFabrics(companyId);
         String mostUsedFabric = "N/A";
         long mostUsedFabricCount = 0;
         if (!fabricRows.isEmpty()) {
@@ -168,7 +175,7 @@ public class DesignController {
             mostUsedFabricCount = ((Number) fabricRows.get(0)[1]).longValue();
         }
 
-        long designsToProd = designRepository.countByProductionStatus("Active");
+        long designsToProd = designRepository.countByProductionStatusAndCompanyId("Active", companyId);
         if (designsToProd == 0) {
             designsToProd = approved;
         }
@@ -199,11 +206,13 @@ public class DesignController {
      * ------------------------------------------------------------------ */
     @GetMapping("/collections")
     public List<String> collections() {
-        return designRepository.distinctCollections();
+        UUID companyId = TenantContext.getCompanyId();
+        return designRepository.distinctCollections(companyId);
     }
 
     @GetMapping("/occasions")
     public List<String> occasions() {
-        return designRepository.distinctOccasions();
+        UUID companyId = TenantContext.getCompanyId();
+        return designRepository.distinctOccasions(companyId);
     }
 }

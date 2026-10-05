@@ -18,11 +18,24 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(UUID userId, String username, String role) {
-        return Jwts.builder()
+    public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName) {
+        if (userId == null || username == null || role == null) {
+            throw new IllegalArgumentException("userId, username, and role must not be null");
+        }
+
+        var builder = Jwts.builder()
                 .subject(username)
                 .claim("userId", userId.toString())
-                .claim("role", role)
+                .claim("role", role);
+
+        if (companyId != null) {
+            builder.claim("companyId", companyId.toString());
+        }
+        if (companyName != null && !companyName.isBlank()) {
+            builder.claim("companyName", companyName);
+        }
+
+        return builder
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRY_MS))
                 .signWith(key)
@@ -49,5 +62,21 @@ public class JwtUtil {
 
     public String getRole(String token) {
         return parseToken(token).get("role", String.class);
+    }
+
+    public UUID getCompanyId(String token) {
+        Claims claims = parseToken(token);
+        String cid = claims.get("companyId", String.class);
+        if (cid != null && !cid.isBlank()) {
+            try {
+                return UUID.fromString(cid);
+            } catch (IllegalArgumentException ignored) {}
+        }
+        return null;
+    }
+
+    public String getCompanyName(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("companyName", String.class);
     }
 }

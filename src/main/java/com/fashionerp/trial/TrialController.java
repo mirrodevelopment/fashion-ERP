@@ -111,7 +111,8 @@ public class TrialController {
     @GetMapping("/orders-for-trial")
     public List<Map<String, Object>> getOrdersForTrial(@RequestParam(required = false) String search) {
         Pageable pageable = PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Order> page = orderRepository.search(search, null, pageable);
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        Page<Order> page = orderRepository.search(companyId, search, null, pageable);
         return page.getContent().stream().map(o -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", o.getId());

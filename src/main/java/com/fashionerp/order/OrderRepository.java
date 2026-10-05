@@ -14,12 +14,17 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Optional<Order> findByOrderCode(String orderCode);
 
+    Optional<Order> findByOrderCodeAndCompanyId(String orderCode, UUID companyId);
+
+    Optional<Order> findByIdAndCompanyId(UUID id, UUID companyId);
+
     boolean existsByOrderCode(String orderCode);
 
     @Query(value = """
         SELECT o FROM Order o
         LEFT JOIN FETCH o.customer c
-        WHERE (:search IS NULL OR :search = '' OR
+        WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND (:search IS NULL OR :search = '' OR
                LOWER(o.orderCode)    LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(o.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(c.name)         LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -31,7 +36,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         countQuery = """
         SELECT COUNT(o) FROM Order o
         LEFT JOIN o.customer c
-        WHERE (:search IS NULL OR :search = '' OR
+        WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND (:search IS NULL OR :search = '' OR
                LOWER(o.orderCode)    LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(o.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(c.name)         LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -39,37 +45,44 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
                LOWER(o.garmentType)  LIKE LOWER(CONCAT('%', :search, '%')))
           AND (:status IS NULL OR o.status = :status)
         """)
-    Page<Order> search(@Param("search") String search,
+    Page<Order> search(@Param("companyId") UUID companyId,
+                       @Param("search") String search,
                        @Param("status") OrderStatus status,
                        Pageable pageable);
 
     long countByStatus(OrderStatus status);
 
-    @Query("SELECT COUNT(o) FROM Order o WHERE o.customer.mobileNumber = :customerMobile")
-    long countByCustomerMobile(@Param("customerMobile") String customerMobile);
+    long countByCompanyId(UUID companyId);
 
-    @Query("SELECT o FROM Order o WHERE o.customer.mobileNumber = :customerMobile ORDER BY o.orderDate DESC, o.createdAt DESC")
-    java.util.List<Order> findByCustomerMobile(@Param("customerMobile") String customerMobile);
+    long countByCompanyIdAndStatus(UUID companyId, OrderStatus status);
 
-    java.util.List<Order> findByCollectionIgnoreCase(String collection);
+    @Query("SELECT COUNT(o) FROM Order o WHERE (:companyId IS NULL OR o.companyId = :companyId) AND o.customer.mobileNumber = :customerMobile")
+    long countByCustomerMobile(@Param("companyId") UUID companyId, @Param("customerMobile") String customerMobile);
 
-    @Query("SELECT o FROM Order o WHERE LOWER(o.collection) IN :collections")
-    java.util.List<Order> findByCollectionInIgnoreCase(@Param("collections") java.util.Collection<String> collections);
+    @Query("SELECT o FROM Order o WHERE (:companyId IS NULL OR o.companyId = :companyId) AND o.customer.mobileNumber = :customerMobile ORDER BY o.orderDate DESC, o.createdAt DESC")
+    java.util.List<Order> findByCustomerMobile(@Param("companyId") UUID companyId, @Param("customerMobile") String customerMobile);
 
-    long countByCollectionIgnoreCase(String collection);
+    java.util.List<Order> findByCompanyIdAndCollectionIgnoreCase(UUID companyId, String collection);
+
+    @Query("SELECT o FROM Order o WHERE (:companyId IS NULL OR o.companyId = :companyId) AND LOWER(o.collection) IN :collections")
+    java.util.List<Order> findByCollectionInIgnoreCase(@Param("companyId") UUID companyId, @Param("collections") java.util.Collection<String> collections);
+
+    long countByCompanyIdAndCollectionIgnoreCase(UUID companyId, String collection);
 
     @Query("""
         SELECT UPPER(TRIM(o.currentStage)), COUNT(o)
         FROM Order o
-        WHERE o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
+        WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
         GROUP BY UPPER(TRIM(o.currentStage))
         """)
-    java.util.List<Object[]> countActiveOrdersGroupedByStage();
+    java.util.List<Object[]> countActiveOrdersGroupedByStage(@Param("companyId") UUID companyId);
 
     @Query("""
         SELECT COUNT(o) FROM Order o
-        WHERE UPPER(TRIM(o.currentStage)) IN ('QC', 'QUALITY', 'QUALITY_CONTROL')
+        WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND UPPER(TRIM(o.currentStage)) IN ('QC', 'QUALITY', 'QUALITY_CONTROL')
           AND o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
         """)
-    long countOrdersAwaitingQc();
+    long countOrdersAwaitingQc(@Param("companyId") UUID companyId);
 }

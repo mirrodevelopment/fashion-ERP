@@ -20,7 +20,10 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "supplier_code", nullable = false, unique = true, length = 20)
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(name = "supplier_code", nullable = false, length = 20)
     private String supplierCode;
 
     @Column(nullable = false, length = 200)
@@ -47,4 +50,11 @@ public class Supplier {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

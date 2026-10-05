@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "customers")
@@ -18,6 +19,9 @@ public class Customer {
     @Id
     @Column(name = "mobile_number", nullable = false, length = 30)
     private String mobileNumber;
+
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
 
     @Column(nullable = false, length = 150)
     private String name;
@@ -147,5 +151,12 @@ public class Customer {
 
     public String getCustomerCode() {
         return mobileNumber;
+    }
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
     }
 }

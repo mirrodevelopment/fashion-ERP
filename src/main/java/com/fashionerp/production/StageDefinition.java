@@ -27,8 +27,11 @@ public class StageDefinition {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     /** Immutable machine key — e.g. DESIGNING, HAND_WORK, QC */
-    @Column(name = "stage_key", nullable = false, unique = true, length = 50)
+    @Column(name = "stage_key", nullable = false, length = 50)
     private String stageKey;
 
     /** User-editable display label — e.g. "Designing", "Hand Work" */
@@ -72,4 +75,11 @@ public class StageDefinition {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

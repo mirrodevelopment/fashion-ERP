@@ -1,25 +1,27 @@
 package com.fashionerp.company;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class CompanySettingsService {
-
-    private static final String DEFAULT_COMPANY_NAME  = "Haulo Designs";
-    private static final String DEFAULT_SHORT_NAME    = "HAULO";
-    private static final String DEFAULT_TAGLINE       = "Bespoke Couture · Luxury Tailoring";
-    private static final String DEFAULT_BUSINESS_TYPE = "Bespoke Atelier";
-    private static final String DEFAULT_COUNTRY       = "India";
 
     private final CompanySettingsRepository repository;
 
     /* ── Is Configured (used by status endpoint) ── */
     @Transactional(readOnly = true)
     public boolean isConfigured() {
-        return repository.findFirstByOrderByCreatedAtAsc()
+        UUID companyId = TenantContext.getCompanyId();
+        var companyOpt = companyId != null
+            ? repository.findById(companyId)
+            : repository.findFirstByOrderByCreatedAtAsc();
+
+        return companyOpt
             .map(s -> (s.getPrimaryPhone() != null && !s.getPrimaryPhone().isBlank())
                    || (s.getEmail() != null && !s.getEmail().isBlank())
                    || (s.getStreetAddress() != null && !s.getStreetAddress().isBlank())
@@ -27,19 +29,28 @@ public class CompanySettingsService {
             .orElse(false);
     }
 
-    /* ── Get (singleton) ── */
+    /* ── Get (current tenant company) ── */
     @Transactional(readOnly = true)
     public CompanySettingsDto.Response get() {
-        CompanySettings settings = repository.findFirstByOrderByCreatedAtAsc()
-            .orElseGet(this::buildDefault);
+        UUID companyId = TenantContext.getCompanyId();
+        CompanySettings settings = (companyId != null
+            ? repository.findById(companyId)
+            : repository.findFirstByOrderByCreatedAtAsc())
+            .orElseGet(() -> CompanySettings.builder()
+                .companyName("Fashion ERP Boutique")
+                .country("India")
+                .build());
         return CompanySettingsDto.Response.from(settings);
     }
 
-    /* ── Update ── */
+    /* ── Update current tenant company ── */
     @Transactional
     public CompanySettingsDto.Response update(CompanySettingsDto.Request req) {
-        CompanySettings settings = repository.findFirstByOrderByCreatedAtAsc()
-            .orElseGet(this::buildDefault);
+        UUID companyId = TenantContext.getCompanyId();
+        CompanySettings settings = (companyId != null
+            ? repository.findById(companyId)
+            : repository.findFirstByOrderByCreatedAtAsc())
+            .orElseGet(() -> CompanySettings.builder().build());
 
         if (req.getCompanyName() != null && !req.getCompanyName().isBlank()) {
             settings.setCompanyName(clean(req.getCompanyName()));
@@ -49,11 +60,9 @@ public class CompanySettingsService {
         }
         settings.setTagline(clean(req.getTagline()));
         settings.setOwnerName(clean(req.getOwnerName()));
-        settings.setBusinessType(
-            req.getBusinessType() != null && !req.getBusinessType().isBlank()
-                ? clean(req.getBusinessType())
-                : DEFAULT_BUSINESS_TYPE
-        );
+        if (req.getBusinessType() != null && !req.getBusinessType().isBlank()) {
+            settings.setBusinessType(clean(req.getBusinessType()));
+        }
         settings.setGstin(clean(req.getGstin()));
         settings.setPanNumber(clean(req.getPanNumber()));
         settings.setPrimaryPhone(clean(req.getPrimaryPhone()));
@@ -64,28 +73,15 @@ public class CompanySettingsService {
         settings.setCity(clean(req.getCity()));
         settings.setState(clean(req.getState()));
         settings.setPinCode(clean(req.getPinCode()));
-        settings.setCountry(
-            req.getCountry() != null && !req.getCountry().isBlank()
-                ? clean(req.getCountry())
-                : DEFAULT_COUNTRY
-        );
+        if (req.getCountry() != null && !req.getCountry().isBlank()) {
+            settings.setCountry(clean(req.getCountry()));
+        }
         // logo is large — only update if explicitly provided
         if (req.getLogoBase64() != null) {
             settings.setLogoBase64(req.getLogoBase64().isBlank() ? null : req.getLogoBase64());
         }
 
         return CompanySettingsDto.Response.from(repository.save(settings));
-    }
-
-    /* ── Private: build transient default entity without saving ── */
-    private CompanySettings buildDefault() {
-        return CompanySettings.builder()
-            .companyName(DEFAULT_COMPANY_NAME)
-            .shortName(DEFAULT_SHORT_NAME)
-            .tagline(DEFAULT_TAGLINE)
-            .businessType(DEFAULT_BUSINESS_TYPE)
-            .country(DEFAULT_COUNTRY)
-            .build();
     }
 
     /* ── Private: trim and strip unsafe chars ── */

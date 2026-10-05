@@ -4,6 +4,7 @@ import com.fashionerp.appointment.Appointment;
 import com.fashionerp.appointment.AppointmentRepository;
 import com.fashionerp.appointment.AppointmentStatus;
 import com.fashionerp.appointment.AppointmentType;
+import com.fashionerp.common.TenantContext;
 import com.fashionerp.customer.Customer;
 import com.fashionerp.customer.CustomerRepository;
 import com.fashionerp.order.Order;
@@ -41,19 +42,27 @@ public class TrialService {
     private final AppointmentRepository appointmentRepository;
 
     public Page<TrialDto.Response> list(String search, String status, String fitStatus, LocalDate date, Pageable pageable) {
-        return trialRepository.search(search, status, fitStatus, date, pageable).map(TrialDto.Response::from);
+        UUID companyId = TenantContext.getCompanyId();
+        return trialRepository.search(companyId, search, status, fitStatus, date, pageable).map(TrialDto.Response::from);
     }
 
     public TrialDto.Response getById(UUID id) {
-        return trialRepository.findById(id)
-                .map(TrialDto.Response::from)
+        Trial trial = trialRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Trial not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(trial.getCompanyId())) {
+            throw new IllegalArgumentException("Trial not found: " + id);
+        }
+        return TrialDto.Response.from(trial);
     }
 
     public TrialDto.Response getByCode(String trialCode) {
-        return trialRepository.findByTrialCode(trialCode)
-                .map(TrialDto.Response::from)
+        UUID companyId = TenantContext.getCompanyId();
+        Trial trial = (companyId != null
+                ? trialRepository.findByTrialCodeAndCompanyId(trialCode, companyId)
+                : trialRepository.findByTrialCode(trialCode))
                 .orElseThrow(() -> new IllegalArgumentException("Trial not found with code: " + trialCode));
+        return TrialDto.Response.from(trial);
     }
 
     @Transactional

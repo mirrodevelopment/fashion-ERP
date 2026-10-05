@@ -21,6 +21,9 @@ public class PurchaseOrderItem {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "po_id", nullable = false)
@@ -48,4 +51,11 @@ public class PurchaseOrderItem {
     @Column(name = "received_qty", nullable = false, precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal receivedQty = BigDecimal.ZERO;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }

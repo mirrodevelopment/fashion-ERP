@@ -21,6 +21,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
@@ -67,6 +70,9 @@ public class Payment {
 
     @PrePersist @PreUpdate
     public void computeStatus() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
         if (paidAmount.compareTo(BigDecimal.ZERO) == 0) {
             this.status = dueDate != null && LocalDate.now().isAfter(dueDate)
                     ? PaymentStatus.OVERDUE : PaymentStatus.PENDING;

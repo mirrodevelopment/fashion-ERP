@@ -1,5 +1,6 @@
 package com.fashionerp.inventory;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +20,18 @@ public class InventoryService {
     public Page<InventoryDto.Response> list(String search, String category, String status, Pageable pageable) {
         InventoryStatus statusEnum = (status != null && !status.isBlank())
                 ? InventoryStatus.valueOf(status.toUpperCase().replace('-', '_')) : null;
-        return inventoryRepository.search(search, category, statusEnum, pageable).map(InventoryDto.Response::from);
+        UUID companyId = TenantContext.getCompanyId();
+        return inventoryRepository.search(companyId, search, category, statusEnum, pageable).map(InventoryDto.Response::from);
     }
 
     public InventoryDto.Response getById(UUID id) {
-        return inventoryRepository.findById(id)
-                .map(InventoryDto.Response::from)
+        InventoryItem item = inventoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(item.getCompanyId())) {
+            throw new IllegalArgumentException("Item not found: " + id);
+        }
+        return InventoryDto.Response.from(item);
     }
 
     @Transactional

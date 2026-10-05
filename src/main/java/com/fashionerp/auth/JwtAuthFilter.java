@@ -24,17 +24,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            if (jwtUtil.isValid(token)) {
-                String username = jwtUtil.getUsername(token);
-                String role = jwtUtil.getRole(token);
-                var auth = new UsernamePasswordAuthenticationToken(
-                        username, null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role)));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+        try {
+            if (header != null && header.startsWith("Bearer ")) {
+                String token = header.substring(7);
+                if (jwtUtil.isValid(token)) {
+                    String username = jwtUtil.getUsername(token);
+                    String role = jwtUtil.getRole(token);
+                    java.util.UUID companyId = jwtUtil.getCompanyId(token);
+                    com.fashionerp.common.TenantContext.setCompanyId(companyId);
+
+                    var auth = new UsernamePasswordAuthenticationToken(
+                            username, null,
+                            List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
+            chain.doFilter(request, response);
+        } finally {
+            com.fashionerp.common.TenantContext.clear();
         }
-        chain.doFilter(request, response);
     }
 }

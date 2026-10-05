@@ -1,5 +1,6 @@
 package com.fashionerp.payment;
 
+import com.fashionerp.common.TenantContext;
 import com.fashionerp.customer.CustomerRepository;
 import com.fashionerp.order.Order;
 import com.fashionerp.order.OrderRepository;
@@ -27,19 +28,27 @@ public class PaymentService {
     public Page<PaymentDto.Response> list(String search, String status, Pageable pageable) {
         PaymentStatus statusEnum = (status != null && !status.isBlank())
                 ? PaymentStatus.valueOf(status.toUpperCase().replace('-', '_')) : null;
-        return paymentRepository.search(search, statusEnum, pageable).map(PaymentDto.Response::from);
+        UUID companyId = TenantContext.getCompanyId();
+        return paymentRepository.search(companyId, search, statusEnum, pageable).map(PaymentDto.Response::from);
     }
 
     @Transactional(readOnly = true)
     public PaymentDto.Response getById(UUID id) {
-        return paymentRepository.findById(id)
-                .map(PaymentDto.Response::from)
+        Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(payment.getCompanyId())) {
+            throw new IllegalArgumentException("Payment not found: " + id);
+        }
+        return PaymentDto.Response.from(payment);
     }
 
     @Transactional(readOnly = true)
     public Optional<PaymentDto.Response> getByOrderId(UUID orderId) {
-        return paymentRepository.findByOrderId(orderId)
+        UUID companyId = TenantContext.getCompanyId();
+        return (companyId != null
+                ? paymentRepository.findByOrderIdAndCompanyId(orderId, companyId)
+                : paymentRepository.findByOrderId(orderId))
                 .map(PaymentDto.Response::from);
     }
 

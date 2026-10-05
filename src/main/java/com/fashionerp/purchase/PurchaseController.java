@@ -1,5 +1,6 @@
 package com.fashionerp.purchase;
 
+import com.fashionerp.common.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,13 +33,19 @@ public class PurchaseController {
         if ("all".equalsIgnoreCase(status)) {
             status = null;
         }
-        return purchaseOrderRepository.search(search, status, pageable);
+        UUID companyId = TenantContext.getCompanyId();
+        return purchaseOrderRepository.search(companyId, search, status, pageable);
     }
 
     @GetMapping("/purchases/{id}")
     public PurchaseOrder getPurchaseById(@PathVariable UUID id) {
-        return purchaseOrderRepository.findById(id)
+        PurchaseOrder po = purchaseOrderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase Order not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(po.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase Order not found: " + id);
+        }
+        return po;
     }
 
     @PostMapping("/purchases")
@@ -60,6 +67,10 @@ public class PurchaseController {
     public PurchaseOrder updatePurchase(@PathVariable UUID id, @RequestBody PurchaseOrder updated) {
         PurchaseOrder existing = purchaseOrderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase Order not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase Order not found: " + id);
+        }
 
         if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
         if (updated.getExpectedDate() != null) existing.setExpectedDate(updated.getExpectedDate());
@@ -73,29 +84,35 @@ public class PurchaseController {
 
     @DeleteMapping("/purchases/{id}")
     public ResponseEntity<Void> deletePurchase(@PathVariable UUID id) {
-        if (!purchaseOrderRepository.existsById(id)) {
+        PurchaseOrder existing = purchaseOrderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase Order not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase Order not found: " + id);
         }
-        purchaseOrderRepository.deleteById(id);
+        purchaseOrderRepository.delete(existing);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/purchases/kpis")
     public Map<String, Object> purchaseKpis() {
-        long totalPos = purchaseOrderRepository.count();
-        BigDecimal totalValue = purchaseOrderRepository.sumTotalAmount();
-        long received = purchaseOrderRepository.countByStatus("RECEIVED");
-        long sent = purchaseOrderRepository.countByStatus("SENT");
-        long partiallyReceived = purchaseOrderRepository.countByStatus("PARTIALLY_RECEIVED");
-        long ordered = purchaseOrderRepository.countByStatus("ORDERED");
-        long draft = purchaseOrderRepository.countByStatus("DRAFT");
+        UUID companyId = TenantContext.getCompanyId();
+        long totalPos = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "all") : purchaseOrderRepository.count();
+        if (totalPos == 0 && companyId == null) totalPos = purchaseOrderRepository.count();
+        BigDecimal totalValue = companyId != null ? purchaseOrderRepository.sumTotalAmount(companyId) : purchaseOrderRepository.sumTotalAmount();
+        long received = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "RECEIVED") : purchaseOrderRepository.countByStatus("RECEIVED");
+        long sent = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "SENT") : purchaseOrderRepository.countByStatus("SENT");
+        long partiallyReceived = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "PARTIALLY_RECEIVED") : purchaseOrderRepository.countByStatus("PARTIALLY_RECEIVED");
+        long ordered = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "ORDERED") : purchaseOrderRepository.countByStatus("ORDERED");
+        long draft = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "DRAFT") : purchaseOrderRepository.countByStatus("DRAFT");
 
         long pendingDeliveries = sent + partiallyReceived + ordered;
         long activeSuppliers = supplierRepository.count();
 
         List<Map<String, Object>> topSuppliers = new ArrayList<>();
         BigDecimal totalValSafe = totalValue != null && totalValue.compareTo(BigDecimal.ZERO) > 0 ? totalValue : BigDecimal.ONE;
-        for (Object[] row : purchaseOrderRepository.findTopSuppliers()) {
+        var topSuppList = companyId != null ? purchaseOrderRepository.findTopSuppliers(companyId) : purchaseOrderRepository.findTopSuppliers();
+        for (Object[] row : topSuppList) {
             String name = (String) row[0];
             BigDecimal val = (BigDecimal) row[1];
             int pct = val.multiply(BigDecimal.valueOf(100)).divide(totalValSafe, 0, java.math.RoundingMode.HALF_UP).intValue();
@@ -107,7 +124,8 @@ public class PurchaseController {
         }
 
         List<Map<String, Object>> monthlyData = new ArrayList<>();
-        for (Object[] row : purchaseOrderRepository.findMonthlySpend()) {
+        var monthlyList = companyId != null ? purchaseOrderRepository.findMonthlySpend(companyId) : purchaseOrderRepository.findMonthlySpend();
+        for (Object[] row : monthlyList) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("month", row[0]);
             m.put("total", row[1]);
@@ -131,13 +149,19 @@ public class PurchaseController {
     public Page<Supplier> listSuppliers(
             @RequestParam(required = false) String search,
             @PageableDefault(size = 50, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-        return supplierRepository.search(search, pageable);
+        UUID companyId = TenantContext.getCompanyId();
+        return supplierRepository.search(companyId, search, pageable);
     }
 
     @GetMapping("/suppliers/{id}")
     public Supplier getSupplierById(@PathVariable UUID id) {
-        return supplierRepository.findById(id)
+        Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(supplier.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id);
+        }
+        return supplier;
     }
 
     @PostMapping("/suppliers")
@@ -153,6 +177,10 @@ public class PurchaseController {
     public Supplier updateSupplier(@PathVariable UUID id, @RequestBody Supplier updated) {
         Supplier existing = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id);
+        }
 
         if (updated.getName() != null) existing.setName(updated.getName());
         if (updated.getContactPerson() != null) existing.setContactPerson(updated.getContactPerson());

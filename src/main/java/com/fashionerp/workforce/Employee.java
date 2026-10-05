@@ -21,7 +21,10 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "employee_code", nullable = false, unique = true, length = 20)
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(name = "employee_code", nullable = false, length = 20)
     private String employeeCode;
 
     @Column(nullable = false, length = 150)
@@ -58,4 +61,11 @@ public class Employee {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void assignTenant() {
+        if (this.companyId == null) {
+            this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+    }
 }
