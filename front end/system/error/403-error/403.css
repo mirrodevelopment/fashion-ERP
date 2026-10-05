@@ -1,0 +1,808 @@
+/* =======================================================================
+   HAULO BOUTIQUE ERP — 403 ACCESS DENIED STYLESHEET (PURE CSS/SVG)
+   Path: front end/system/error/403-error/403.css
+   ======================================================================= */
+
+@import url('../../../fragments/font/font.css');
+
+:root {
+  --bg-light: #fbf8f3;
+  --bg-gradient: radial-gradient(circle at 65% 20%, #ffffff 0%, #faf5ee 45%, #f1e9dd 100%);
+  --gold-primary: #be934c;
+  --gold-dark: #9c7333;
+  --gold-light: #dfb76c;
+  --gold-pale: #f7ebcf;
+  --gold-glow: rgba(190, 147, 76, 0.35);
+  
+  --rose-velvet: #c98888;
+  --rose-dark: #7a464c;
+  --rose-pale: #fae8e8;
+
+  --marble-base: #ffffff;
+  --marble-vein: #e6dacb;
+
+  --text-dark: #1b191c;
+  --text-secondary: #5e5960;
+  --text-muted: #8c8690;
+  --text-dim: #b5b0b8;
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-light);
+  font-family: var(--font-sans);
+  color: var(--text-dark);
+  background: var(--bg-gradient);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Outer Page Wrapper ── */
+.error-page-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 36px 20px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ── Atmospheric Ambient Sunlight & Interior French Boiserie Wall Moldings ── */
+.ambient-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Soft Sunlight Windows Glow & Marble Floor Caustics */
+.sunlight-beam {
+  position: absolute;
+  top: -50px;
+  right: 15%;
+  width: 600px;
+  height: 900px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 248, 235, 0.25) 45%, transparent 75%);
+  filter: blur(40px);
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.marble-floor-reflection {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.45) 50%, rgba(238, 228, 215, 0.65) 100%);
+  pointer-events: none;
+}
+
+/* Elegant Wall Panel Moldings (Boiserie) */
+.boiserie-panel-left {
+  position: absolute;
+  top: 40px;
+  left: 310px;
+  width: 80px;
+  height: 600px;
+  border: 1px solid rgba(190, 147, 76, 0.15);
+  box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.8), 1px 1px 3px rgba(0, 0, 0, 0.03);
+  pointer-events: none;
+}
+
+.boiserie-panel-right {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  width: 140px;
+  height: 600px;
+  border: 1px solid rgba(190, 147, 76, 0.15);
+  box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.8), 1px 1px 3px rgba(0, 0, 0, 0.03);
+  pointer-events: none;
+}
+
+/* ── Centered Brand Header at Top Apex ── */
+.brand-center-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  margin-bottom: 2px;
+}
+
+.brand-center-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.25s ease;
+}
+
+.brand-center-link:hover {
+  transform: translateY(-2px);
+}
+
+.brand-logo-h {
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 4px 12px rgba(190, 147, 76, 0.35));
+  margin-bottom: 3px;
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: #171518;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.brand-subtitle {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  color: #8c8270;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+/* ── Main Layout: Atelier Stage & Permission Lock Showcase ── */
+.error-main-stage {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1240px;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: auto 0;
+  user-select: none;
+}
+
+/* ── Left Atelier Scene: Wardrobe, Mannequin, Ottoman & Marble Counter ── */
+.atelier-scene-left {
+  position: relative;
+  width: 460px;
+  height: 510px;
+  flex-shrink: 0;
+}
+
+/* 1. Golden Arched Closet / Wardrobe */
+.closet-arch-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 175px;
+  height: 480px;
+  z-index: 1;
+}
+
+.closet-arch-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.08));
+}
+
+/* 2. Haute Couture Mannequin with Pink Silk Draping */
+.mannequin-atelier-wrapper {
+  position: absolute;
+  top: 45px;
+  left: 105px;
+  width: 175px;
+  height: 390px;
+  z-index: 3;
+}
+
+.mannequin-atelier-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 15px 30px rgba(70, 50, 40, 0.18));
+}
+
+/* 3. Velvet Round Ottoman / Vanity Stool */
+.ottoman-wrapper {
+  position: absolute;
+  bottom: 45px;
+  left: 235px;
+  width: 105px;
+  height: 125px;
+  z-index: 2;
+}
+
+.ottoman-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.12));
+}
+
+/* 4. Foreground White Calacatta Marble Counter with Vase, Fabrics & Shears */
+.marble-counter-wrapper {
+  position: absolute;
+  bottom: -10px;
+  left: -20px;
+  width: 320px;
+  height: 250px;
+  z-index: 5;
+}
+
+.marble-counter-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.14));
+}
+
+/* ── Right Content Area: Luxury Lock Diorama, 403, Headline & Buttons ── */
+.forbidden-content-right {
+  position: relative;
+  width: calc(100% - 480px);
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-left: auto;
+  padding-right: 40px;
+}
+
+/* =======================================================================
+   LUXURY LOCK & PEDESTAL DIORAMA (PURE CSS / SVG)
+   ======================================================================= */
+.lock-diorama-container {
+  position: relative;
+  width: 380px;
+  height: 215px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.lock-diorama-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 15px 35px rgba(190, 147, 76, 0.18));
+}
+
+/* Interactive Floating Shield Animation */
+@keyframes shieldFloat {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(1deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.floating-shield-group {
+  animation: shieldFloat 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Lock Shackle Gleam */
+@keyframes shackleGleam {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.shackle-highlight {
+  animation: shackleGleam 3s ease-in-out infinite;
+}
+
+/* ── Typography & Text ── */
+.error-num-403 {
+  font-family: var(--font-serif);
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold-primary);
+  background: linear-gradient(135deg, #be934c 0%, #9c7333 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+
+.error-title {
+  font-family: var(--font-serif);
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+.highlight-gold {
+  color: var(--gold-primary);
+  background: linear-gradient(135deg, #c5974e 0%, #9a7233 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.error-subtitle {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 520px;
+  margin-bottom: 24px;
+}
+
+/* ── Action Buttons Row: [Go Back] & [Go to Dashboard] ── */
+.action-buttons-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+/* Button 1: Go Back (Soft warm cream pill button with subtle gold border) */
+.btn-go-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(190, 147, 76, 0.45);
+  color: #2b2520;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 13px 34px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+}
+
+.btn-go-back:hover {
+  background: #ffffff;
+  border-color: var(--gold-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(190, 147, 76, 0.2);
+}
+
+.btn-go-back:active {
+  transform: translateY(0);
+}
+
+.arrow-icon-svg {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.25s ease;
+}
+
+.btn-go-back:hover .arrow-icon-svg {
+  transform: translateX(-3px);
+}
+
+/* Button 2: Log In (Soft luxury cream pill button with gold border & accent) */
+.btn-login-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(190, 147, 76, 0.45);
+  color: #2b2520;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 13px 30px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+}
+
+.btn-login-pill:hover {
+  background: #ffffff;
+  border-color: var(--gold-primary);
+  color: #8c672f;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(190, 147, 76, 0.22);
+}
+
+.btn-login-pill:active {
+  transform: translateY(0);
+}
+
+.login-icon-svg {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.25s ease;
+}
+
+.btn-login-pill:hover .login-icon-svg {
+  transform: translateX(2px);
+}
+
+/* Button 3: Go to Dashboard (Warm golden bronze solid pill button) */
+.btn-dashboard-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #be934c 0%, #9e7534 100%);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 13px 34px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(158, 117, 52, 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.btn-dashboard-gold:hover {
+  background: linear-gradient(135deg, #cb9f54 0%, #ab803d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(158, 117, 52, 0.48);
+}
+
+.btn-dashboard-gold:active {
+  transform: translateY(0);
+}
+
+.home-icon-svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ── Bottom Footer Area ── */
+.error-footer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1240px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+}
+
+.footer-left-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-dash {
+  width: 20px;
+  height: 2px;
+  background-color: var(--gold-primary);
+  border-radius: 2px;
+}
+
+.footer-caption {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.footer-center-copyright {
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+/* Contact Admin Pill Button */
+.btn-support-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(190, 147, 76, 0.28);
+  border-radius: 18px;
+  padding: 6px 14px 6px 10px;
+  color: var(--text-dark);
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.btn-support-pill:hover {
+  background: #ffffff;
+  border-color: var(--gold-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(190, 147, 76, 0.2);
+}
+
+.support-headset-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--gold-primary);
+}
+
+.support-pill-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.support-pill-label {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+.support-pill-action {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.support-chevron-svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.btn-support-pill:hover .support-chevron-svg {
+  transform: translateX(3px);
+  color: var(--gold-primary);
+}
+
+/* ── Admin Contact Modal Dialog ── */
+.support-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 16, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.support-modal-backdrop.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.support-modal-card {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border: 1px solid rgba(190, 147, 76, 0.25);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15), 0 0 40px rgba(190, 147, 76, 0.1);
+  transform: translateY(20px) scale(0.96);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.support-modal-backdrop.is-active .support-modal-card {
+  transform: translateY(0) scale(1);
+}
+
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.modal-close-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-dark);
+}
+
+.support-channels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 18px 0 20px;
+}
+
+.support-channel-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #fdfaf6;
+  border: 1px solid rgba(190, 147, 76, 0.15);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.support-channel-item:hover {
+  background: #f8f2e7;
+  border-color: var(--gold-primary);
+}
+
+.channel-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--gold-primary);
+}
+
+.channel-info {
+  flex: 1;
+}
+
+.channel-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.channel-val {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.btn-copy-diagnostics {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(190, 147, 76, 0.1);
+  border: 1px solid rgba(190, 147, 76, 0.3);
+  color: var(--gold-dark);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-copy-diagnostics:hover {
+  background: rgba(190, 147, 76, 0.18);
+}
+
+/* Dynamic Toast Notification */
+.toast-notice {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: #25201a;
+  border: 1px solid var(--gold-primary);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-notice.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Responsive Adaptations ── */
+@media (max-width: 1024px) {
+  .error-main-stage {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+  }
+
+  .atelier-scene-left {
+    transform: scale(0.85);
+    margin-bottom: -50px;
+  }
+
+  .forbidden-content-right {
+    width: 100%;
+    max-width: 580px;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .error-page-wrapper {
+    padding: 16px 20px;
+  }
+
+  .atelier-scene-left {
+    transform: scale(0.68);
+    margin-bottom: -110px;
+  }
+
+  .error-num-403 {
+    font-size: 54px;
+  }
+
+  .error-title {
+    font-size: 34px;
+  }
+
+  .error-subtitle {
+    font-size: 14px;
+  }
+
+  .action-buttons-group {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .btn-go-back,
+  .btn-login-pill,
+  .btn-dashboard-gold {
+    width: 100%;
+  }
+
+  .error-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}

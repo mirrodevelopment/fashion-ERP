@@ -32,6 +32,35 @@ public class AppUser {
     @Builder.Default
     private Boolean active = true;
 
+    @Column(length = 150)
+    private String email;
+
+    @Column(length = 30)
+    private String phone;
+
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+
+    @Column(length = 100)
+    private String designation;
+
+    @Column(length = 100)
+    private String department;
+
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    @Column(name = "assigned_branch", length = 150)
+    private String assignedBranch;
+
+    /**
+     * JSON array of module key strings the user may access.
+     * e.g. ["dashboard","customers","orders","garments"]
+     * NULL means: apply role-based defaults at login time (ADMIN = unrestricted).
+     */
+    @Column(name = "allowed_modules", columnDefinition = "TEXT")
+    private String allowedModules;
+
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
@@ -40,5 +69,6 @@ public class AppUser {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

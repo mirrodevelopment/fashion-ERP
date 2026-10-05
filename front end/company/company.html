@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Company Details">Company Details</title>
+  <meta name="description" content="Manage your boutique company details — name, contact, address and legal information that appear across all pages." />
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared Fragments -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="company.css" />
+  <script>
+    window.FRAGMENT_BASE = '../fragments/';
+  </script>
+  <script src="../fragments/company-bridge.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+</head>
+<body data-module="company">
+
+  <!-- Background -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+
+      <!-- Navbar -->
+      <div id="navbarSlot"></div>
+
+      <!-- Company Details Content -->
+      <main class="company-root" id="companyRoot">
+
+        <!-- Breadcrumb -->
+        <nav class="co-breadcrumb" aria-label="Breadcrumb">
+          <a href="../settings/settings.html">
+            <i data-lucide="settings" style="width:13px;height:13px;display:inline-block;vertical-align:-1px;margin-right:4px;"></i>Settings
+          </a>
+          <span class="co-breadcrumb-sep">/</span>
+          <span class="co-breadcrumb-current">Company Details</span>
+        </nav>
+
+        <!-- Page Header -->
+        <header class="co-header">
+          <div class="co-header-left">
+            <div class="co-header-icon">
+              <i data-lucide="building-2" style="width:22px;height:22px;"></i>
+            </div>
+            <div>
+              <h1 class="co-title">Company Details</h1>
+              <p class="co-subtitle">Manage your boutique's identity, contact and legal information — changes apply across all pages.</p>
+            </div>
+          </div>
+          <button class="co-btn-save" id="coBtnSave" onclick="Company.save()">
+            <i data-lucide="save" style="width:14px;height:14px;"></i>
+            Save Changes
+          </button>
+        </header>
+
+        <!-- ── SECTION 1: Logo & Identity ── -->
+        <div class="co-card" id="coCardLogo">
+          <h2 class="co-card-title">
+            <span class="co-card-title-icon">
+              <i data-lucide="image" style="width:13px;height:13px;"></i>
+            </span>
+            Logo &amp; Brand Identity
+          </h2>
+          <div class="co-logo-row">
+            <div class="co-logo-preview" id="coLogoPreview"
+                 onclick="document.getElementById('coLogoInput').click()"
+                 title="Click to upload logo">
+              <span class="co-logo-initials" id="coLogoInitials">—</span>
+              <div class="co-logo-overlay">
+                <i data-lucide="camera" style="width:18px;height:18px;"></i>
+              </div>
+            </div>
+            <div class="co-logo-info">
+              <p class="co-logo-label">Company Logo</p>
+              <p class="co-logo-hint">PNG, JPG, SVG or WEBP · Max 20 MB · Recommended 200×200 px</p>
+              <div class="co-logo-btns">
+                <button class="co-btn-outline" onclick="document.getElementById('coLogoInput').click()">
+                  <i data-lucide="upload" style="width:12px;height:12px;"></i>
+                  Upload Logo
+                </button>
+                <button class="co-btn-ghost" onclick="Company.removeLogo()">
+                  <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
+                  Remove
+                </button>
+              </div>
+              <input type="file" id="coLogoInput" accept="image/*"
+                     onchange="Company.handleLogoUpload(event)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 2: Business Details ── -->
+        <div class="co-card" id="coCardBusiness">
+          <h2 class="co-card-title">
+            <span class="co-card-title-icon">
+              <i data-lucide="briefcase" style="width:13px;height:13px;"></i>
+            </span>
+            Business Details
+          </h2>
+          <div class="co-form-grid">
+            <div class="co-form-group">
+              <label class="co-label" for="coName">
+                Company Name <span class="co-label-req">*</span>
+              </label>
+              <input type="text" class="co-input" id="coName"
+                     placeholder="Enter boutique / company name"
+                     maxlength="150" autocomplete="organization" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coShortName">
+                Short Name <span class="co-label-req">*</span>
+              </label>
+              <input type="text" class="co-input" id="coShortName"
+                     placeholder="Enter short code (max 8 chars)" maxlength="8" />
+              <span class="co-hint">Shown in the sidebar logo area (max 8 chars)</span>
+            </div>
+            <div class="co-form-group co-form-group-full">
+              <label class="co-label" for="coTagline">Tagline</label>
+              <input type="text" class="co-input" id="coTagline"
+                     placeholder="Enter boutique tagline or slogan"
+                     maxlength="255" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coOwnerName">Owner / Director Name</label>
+              <input type="text" class="co-input" id="coOwnerName"
+                     placeholder="Enter owner or director full name" maxlength="150" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coBusinessType">Business Type</label>
+              <select class="co-select" id="coBusinessType">
+                <!-- Populated dynamically by company.js -->
+              </select>
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coGstin">GSTIN</label>
+              <input type="text" class="co-input" id="coGstin"
+                     placeholder="Enter 15-digit GSTIN" maxlength="20" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coPan">PAN Number</label>
+              <input type="text" class="co-input" id="coPan"
+                     placeholder="Enter 10-digit PAN" maxlength="15" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 3: Contact & Address ── -->
+        <div class="co-card" id="coCardContact">
+          <h2 class="co-card-title">
+            <span class="co-card-title-icon">
+              <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
+            </span>
+            Contact &amp; Address
+          </h2>
+          <div class="co-form-grid">
+            <div class="co-form-group">
+              <label class="co-label" for="coPhone">Primary Phone</label>
+              <input type="tel" class="co-input" id="coPhone"
+                     placeholder="+91 XXXXX XXXXX" data-brand-placeholder="phone" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coWhatsapp">WhatsApp Number</label>
+              <input type="tel" class="co-input" id="coWhatsapp"
+                     placeholder="+91 XXXXX XXXXX" data-brand-placeholder="whatsapp" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coEmail">Email Address</label>
+              <input type="email" class="co-input" id="coEmail"
+                     placeholder="info@yourdomain.com" data-brand-placeholder="generalEmail" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coWebsite">Website</label>
+              <input type="url" class="co-input" id="coWebsite"
+                     placeholder="https://yourdomain.com" data-brand-placeholder="website" />
+            </div>
+            <div class="co-form-group co-form-group-full">
+              <label class="co-label" for="coStreet">Street Address</label>
+              <input type="text" class="co-input" id="coStreet"
+                     placeholder="Enter street, building, area" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coCity">City</label>
+              <input type="text" class="co-input" id="coCity" placeholder="Enter city" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coState">State</label>
+              <input type="text" class="co-input" id="coState" placeholder="Enter state / province" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coPinCode">PIN Code</label>
+              <input type="text" class="co-input" id="coPinCode"
+                     placeholder="Enter postal / PIN code" maxlength="10" />
+            </div>
+            <div class="co-form-group">
+              <label class="co-label" for="coCountry">Country</label>
+              <select class="co-select" id="coCountry">
+                <!-- Populated by company.js -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 4: Live Preview ── -->
+        <div class="co-card" id="coCardPreview">
+          <h2 class="co-card-title">
+            <span class="co-card-title-icon">
+              <i data-lucide="eye" style="width:13px;height:13px;"></i>
+            </span>
+            Live Preview
+          </h2>
+          <div class="co-preview-inner">
+            <!-- Mini Sidebar preview -->
+            <div class="co-preview-sidebar">
+              <div class="co-preview-logo-wrap">
+                <div class="co-preview-logo-icon">
+                  <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                    <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+                    <circle cx="6" cy="18.5" r="2.5" fill="#a3e635"/>
+                    <circle cx="18" cy="5.5" r="2.5" fill="#a3e635"/>
+                    <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="co-preview-brand-name" id="previewBrandName">—</div>
+                  <div class="co-preview-brand-sub" id="previewBrandSub">—</div>
+                </div>
+              </div>
+              <div class="co-preview-nav-item co-preview-nav-item-active"></div>
+              <div class="co-preview-nav-item" style="width:85%;"></div>
+              <div class="co-preview-nav-item" style="width:60%;"></div>
+              <div class="co-preview-nav-item" style="width:75%;"></div>
+              <div class="co-preview-nav-item" style="width:50%;"></div>
+            </div>
+            <!-- Navbar chip preview -->
+            <div class="co-preview-navbar">
+              <div class="co-preview-branch-chip">
+                <i data-lucide="building-2" style="width:11px;height:11px;opacity:0.6;"></i>
+                <span class="co-preview-branch-name" id="previewBranchName">—</span>
+              </div>
+              <div class="co-preview-dots">
+                <div class="co-preview-dot"></div>
+                <div class="co-preview-dot"></div>
+                <div class="co-preview-dot"></div>
+              </div>
+            </div>
+          </div>
+          <p class="co-preview-note">
+            <i data-lucide="info" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;opacity:0.5;"></i>
+            This preview updates as you type. Changes take effect on all pages after saving.
+          </p>
+        </div>
+
+      </main>
+
+      <!-- Footer / Status Bar Slot -->
+      <div id="footerSlot"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="co-toast" id="coToast" role="status" aria-live="polite">
+    <span id="coToastMsg"></span>
+  </div>
+
+  <script src="company.js"></script>
+</body>
+</html>

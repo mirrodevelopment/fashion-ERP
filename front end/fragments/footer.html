@@ -4,13 +4,39 @@
      Path: front end/fragments/footer.html
      ===================================================== -->
 <footer class="status-bar" id="appFooter">
+  <!-- Left: Client / Customer Boutique Identity (Dynamic via CompanyBridge) -->
   <div class="status-bar-left">
-    <strong>HAULO</strong> &nbsp;|&nbsp; Intelligent Operations. Inspired Fashion.
+    <strong class="footer-company-name" data-company="shortName"></strong>
+    <span class="status-bar-sep">|</span>
+    <span id="footerTagline" data-company="tagline"></span>
   </div>
+
+  <!-- Center: Platform Brand Identity (Our Software Platform via BrandIdentity) -->
+  <div class="status-bar-center">
+    <div class="footer-platform-badge" title="Haulo Boutique ERP — Luxury Fashion Operating System">
+      <span class="platform-prefix">Powered by</span>
+      <span class="platform-monogram" data-brand="monogram"></span>
+      <strong class="platform-brand-title" data-brand="shortName"></strong>
+      <span class="platform-system-sub" data-brand="systemSub"></span>
+      <span class="platform-version-badge" data-brand="version"></span>
+    </div>
+  </div>
+
+  <!-- Right: System Telemetry, Internet Speed & Live Sync Status -->
   <div class="status-bar-right">
-    <div class="live-dot"></div>
+    <div class="live-dot" title="System Operational"></div>
     <span>Live Data</span>
     <span class="status-bar-sep">|</span>
-    <span id="lastUpdated"></span>
+    <div class="wifi-speed-badge" id="wifiSpeedBadge" title="Internet Connection Speed (Click to refresh)">
+      <svg class="wifi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 20h.01"/>
+        <path d="M2 8.82a15 15 0 0 1 20 0"/>
+        <path d="M5 12.86a10 10 0 0 1 14 0"/>
+        <path d="M8.5 16.43a5 5 0 0 1 7 0"/>
+      </svg>
+      <span class="wifi-speed-val" id="wifiSpeedVal">-- Mbps</span>
+    </div>
+    <span class="status-bar-sep">|</span>
+    <span id="lastUpdated" title="Live System Time"></span>
   </div>
 </footer>

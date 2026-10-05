@@ -24,7 +24,6 @@ import java.util.UUID;
 public class TrialController {
 
     private final TrialService trialService;
-    private final TrialRepository trialRepository;
     private final OrderRepository orderRepository;
 
     @GetMapping
@@ -69,34 +68,24 @@ public class TrialController {
     public TrialDto.Response toggleAlteration(
             @PathVariable UUID trialId,
             @PathVariable UUID altId,
-            @RequestParam(required = false) Boolean completed) {
-        return trialService.toggleAlteration(trialId, altId, completed);
+            @RequestParam(required = false) Boolean completed,
+            @RequestParam(required = false) String completedBy) {
+        return trialService.toggleAlteration(trialId, altId, completed, completedBy);
+    }
+
+    @PostMapping("/{trialId}/alterations")
+    public TrialDto.Response addAlteration(@PathVariable UUID trialId, @RequestBody TrialDto.AlterationItem item) {
+        return trialService.addAlteration(trialId, item);
+    }
+
+    @DeleteMapping("/{trialId}/alterations/{altId}")
+    public TrialDto.Response deleteAlteration(@PathVariable UUID trialId, @PathVariable UUID altId) {
+        return trialService.deleteAlteration(trialId, altId);
     }
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        Map<String, Object> m = new LinkedHashMap<>();
-        long total = trialRepository.count();
-        long today = trialRepository.countByStatusIgnoreCase("TODAY");
-        long upcoming = trialRepository.countByStatusIgnoreCase("UPCOMING");
-        long completed = trialRepository.countByStatusIgnoreCase("COMPLETED");
-        long overdue = trialRepository.countByStatusIgnoreCase("OVERDUE");
-
-        long perfect = trialRepository.countByFitStatusIgnoreCase("PERFECT");
-        long minor = trialRepository.countByFitStatusIgnoreCase("MINOR");
-        long major = trialRepository.countByFitStatusIgnoreCase("MAJOR");
-        long retrial = trialRepository.countByFitStatusIgnoreCase("RETRIAL");
-
-        m.put("total", total);
-        m.put("today", today);
-        m.put("upcoming", upcoming);
-        m.put("completed", completed);
-        m.put("overdue", overdue);
-        m.put("perfect", perfect);
-        m.put("minor", minor);
-        m.put("major", major);
-        m.put("retrial", retrial);
-        return m;
+        return trialService.getKpis();
     }
 
     @PostMapping("/from-order/{orderId}")
@@ -106,8 +95,10 @@ public class TrialController {
     }
 
     @PostMapping("/{id}/complete-and-advance")
-    public TrialDto.Response completeAndAdvance(@PathVariable UUID id) {
-        return trialService.completeAndAdvance(id);
+    public TrialDto.Response completeAndAdvance(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String completedBy) {
+        return trialService.completeAndAdvance(id, completedBy);
     }
 
     @PostMapping("/{id}/schedule-retrial")
@@ -135,7 +126,7 @@ public class TrialController {
             item.put("status", o.getStatus() != null ? o.getStatus().name() : "");
             item.put("deliveryDate", o.getExpectedDeliveryDate() != null ? o.getExpectedDeliveryDate() : o.getDueDate());
             item.put("totalAmount", o.getTotalAmount());
-            long count = trialRepository.countByOrderCode(o.getOrderCode());
+            long count = trialService.countByOrderCode(o.getOrderCode());
             item.put("trialCount", count);
             return item;
         }).toList();

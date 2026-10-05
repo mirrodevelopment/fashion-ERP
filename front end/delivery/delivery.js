@@ -10,6 +10,8 @@
 (function () {
   'use strict';
 
+  const FALLBACK_GARMENT_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
+
   /* ────────────────────────────────────────────────────────────
      1. CENTRALIZED STATE & DATA MODEL
      ──────────────────────────────────────────────────────────── */
@@ -181,7 +183,7 @@
             size: o.size || '—',
             colour: o.colour || '—',
             quantity: o.quantity || 1,
-            image: (o.referenceImages && o.referenceImages.length > 0) ? o.referenceImages[0] : '../assets/designs/zari-bloom-front.jpg'
+            image: (o.referenceImages && o.referenceImages.length > 0) ? o.referenceImages[0] : (o.designImageUrl || o.imageUrl || FALLBACK_GARMENT_SVG)
           },
           delivery: {
             method: method,
@@ -347,13 +349,11 @@
     const cReady = document.getElementById('countReady');
     const cOut = document.getElementById('countOut');
     const cDel = document.getElementById('countDelivered');
-    const cOverdue = document.getElementById('countOverdue');
 
     if (cAll) cAll.textContent = `(${STATE.orders.length})`;
     if (cReady) cReady.textContent = `(${STATE.kpis.ready})`;
     if (cOut) cOut.textContent = `(${STATE.kpis.out + STATE.kpis.overdue})`;
     if (cDel) cDel.textContent = `(${STATE.kpis.delivered})`;
-    if (cOverdue) cOverdue.textContent = `(${STATE.kpis.overdue})`;
   }
 
   /* ────────────────────────────────────────────────────────────
@@ -704,7 +704,7 @@
     if (garmentImg) {
       garmentImg.style.display = '';
       garmentImg.src = order.garment.image;
-      garmentImg.onerror = () => { garmentImg.src = '../assets/designs/zari-bloom-front.jpg'; };
+      garmentImg.onerror = () => { garmentImg.src = FALLBACK_GARMENT_SVG; };
     }
 
     // Hero Order ID
@@ -934,7 +934,7 @@
       if (thumb) {
         thumb.style.display = '';
         thumb.src = order.garment.image;
-        thumb.onerror = () => { thumb.src = '../assets/designs/zari-bloom-front.jpg'; };
+        thumb.onerror = () => { thumb.src = FALLBACK_GARMENT_SVG; };
       }
       const title = document.getElementById('tabItemTitle');
       if (title) title.textContent = order.garment.type;
@@ -1445,17 +1445,18 @@
 
     if (msg) {
       const st = order.delivery.status;
+      const coName = (typeof CompanyBridge !== 'undefined' ? CompanyBridge.get().companyName : null) || 'our boutique';
       let message = '';
 
       if (st === 'Delivered') {
-        message = `Dear ${order.customer.name},\n\nWe are delighted to confirm that your order (${order.id}) has been successfully delivered! 🎉\n\nGarment: ${order.garment.type} (${order.garment.collection})\nDelivered on: ${order.delivery.deliveredDate || 'Today'}\nOrder Total: ₹${order.payment.total.toLocaleString('en-IN')}\n\nThank you for choosing Haulo Boutique. We hope you love your bespoke piece!`;
+        message = `Dear ${order.customer.name},\n\nWe are delighted to confirm that your order (${order.id}) has been successfully delivered! 🎉\n\nGarment: ${order.garment.type} (${order.garment.collection})\nDelivered on: ${order.delivery.deliveredDate || 'Today'}\nOrder Total: ₹${order.payment.total.toLocaleString('en-IN')}\n\nThank you for choosing ${coName}. We hope you love your bespoke piece!`;
       } else if (st === 'Out for Delivery') {
-        message = `Dear ${order.customer.name},\n\nGreat news! Your order (${order.id}) is now out for delivery and on its way to you. 🚚\n\nGarment: ${order.garment.type} (${order.garment.collection})\nExpected Delivery: ${order.delivery.expectedDate}\nDelivery Method: ${order.delivery.method}\n${order.delivery.trackingNumber ? `Tracking: ${order.delivery.trackingNumber}` : ''}\n\nHaulo Boutique — your bespoke journey continues!`;
+        message = `Dear ${order.customer.name},\n\nGreat news! Your order (${order.id}) is now out for delivery and on its way to you. 🚚\n\nGarment: ${order.garment.type} (${order.garment.collection})\nExpected Delivery: ${order.delivery.expectedDate}\nDelivery Method: ${order.delivery.method}\n${order.delivery.trackingNumber ? `Tracking: ${order.delivery.trackingNumber}` : ''}\n\n${coName} — your bespoke journey continues!`;
       } else if (st === 'Overdue') {
-        message = `Dear ${order.customer.name},\n\nThis is a gentle reminder that your order (${order.id}) is ready and awaiting pickup at Haulo Boutique. 📦\n\nGarment: ${order.garment.type} (${order.garment.collection})\nReady Since: ${order.delivery.readySince}\n\nPlease arrange for pickup at your earliest convenience. We look forward to presenting your bespoke creation!\n\nFor any queries, please don't hesitate to contact us.`;
+        message = `Dear ${order.customer.name},\n\nThis is a gentle reminder that your order (${order.id}) is ready and awaiting pickup at ${coName}. 📦\n\nGarment: ${order.garment.type} (${order.garment.collection})\nReady Since: ${order.delivery.readySince}\n\nPlease arrange for pickup at your earliest convenience. We look forward to presenting your bespoke creation!\n\nFor any queries, please don't hesitate to contact us.`;
       } else {
         // Ready
-        message = `Dear ${order.customer.name},\n\nYour order (${order.id}) is prepared and ready for ${order.delivery.method === 'Customer Pickup' ? 'pickup' : 'delivery'}! ✨\n\nGarment: ${order.garment.type} (${order.garment.collection})\nOrder Total: ₹${order.payment.total.toLocaleString('en-IN')}\nStatus: Ready for ${order.delivery.method === 'Customer Pickup' ? 'Pickup' : 'Delivery'}\n\nHaulo Boutique looks forward to presenting your bespoke piece!`;
+        message = `Dear ${order.customer.name},\n\nYour order (${order.id}) is prepared and ready for ${order.delivery.method === 'Customer Pickup' ? 'pickup' : 'delivery'}! ✨\n\nGarment: ${order.garment.type} (${order.garment.collection})\nOrder Total: ₹${order.payment.total.toLocaleString('en-IN')}\nStatus: Ready for ${order.delivery.method === 'Customer Pickup' ? 'Pickup' : 'Delivery'}\n\n${coName} looks forward to presenting your bespoke piece!`;
       }
 
       msg.value = message;

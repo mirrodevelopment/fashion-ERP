@@ -1073,7 +1073,7 @@ body[data-module="designs"] .sidebar-slot {
 
 /* Design ID Pill */
 .table-id-pill {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace, sans-serif;
+  font-family: var(--font-mono);
   font-size: 11.5px;
   font-weight: 700;
   color: var(--accent-lime);
@@ -2609,7 +2609,7 @@ body[data-module="designs"] .sidebar-slot {
 
 .auto-code-input-wrap input {
   padding-right: 38px !important;
-  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--accent-lime, #B8FF2C) !important;

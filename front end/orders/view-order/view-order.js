@@ -684,7 +684,7 @@
       const cancelledBanner = document.getElementById('orderCancelledBanner');
       if (cancelledBanner) {
         const frozenStageName = orderState.stages[curIdx]?.name || 'Current Stage';
-        cancelledBanner.innerHTML = `<span style="font-weight:700;color:#f87171;font-size:12.5px;letter-spacing:0.3px;">cancaled at ${frozenStageName}</span>`;
+        cancelledBanner.innerHTML = `<span style="font-weight:700;color:#f87171;font-size:12.5px;letter-spacing:0.3px;">Cancelled at ${frozenStageName}</span>`;
         cancelledBanner.style.display = 'flex';
       }
     } else {
@@ -709,7 +709,7 @@
           // The current stage where production halted/froze turns RED!
           stageClass = 'current frozen-cancelled';
           circleContent = '<span class="step-halt-x">✕</span>';
-          labelExtra = '<span class="step-freeze-tag">cancaled at this stage</span>';
+          labelExtra = '<span class="step-freeze-tag">Cancelled at this stage</span>';
         } else {
           stageClass = 'upcoming locked-cancelled';
           circleContent = '<span class="step-lock-dot"></span>';
@@ -2135,6 +2135,46 @@
     const moreMenu = document.getElementById('moreDropdownMenu');
     if (moreMenu) moreMenu.classList.remove('open');
 
+    // ── Populate Payment Summary ──────────────────────────────────────────
+    const fin = orderState.financials || {};
+    const orderValue  = Number(fin.orderValue  || fin.totalAmount || 0);
+    const paidAmount  = Number(fin.paidAmount  || fin.advancePaid || 0);
+    const balanceAmt  = Number(fin.balanceAmount != null ? fin.balanceAmount : (orderValue - paidAmount));
+
+    const fmt = (n) => '\u20B9\u00A0' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+    const setEl = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+    setEl('cmOrderValue',    fmt(orderValue));
+    setEl('cmPaidAmount',    fmt(paidAmount));
+    setEl('cmBalanceAmount', fmt(Math.max(0, balanceAmt)));
+
+    // Show transaction count if available
+    const txCount = (fin.paymentLogs && fin.paymentLogs.length) || (fin.transactionCount || 0);
+    const txRow   = document.getElementById('cmTxCountRow');
+    if (txCount > 0 && txRow) {
+      setEl('cmTxCount', txCount + ' payment' + (txCount > 1 ? 's recorded' : ' recorded'));
+      txRow.style.display = 'flex';
+    } else if (txRow) {
+      txRow.style.display = 'none';
+    }
+
+    // ── Reset Refund Fields to defaults ──────────────────────────────────
+    const policyEl    = document.getElementById('cancelRefundPolicy');
+    const deductEl    = document.getElementById('cancelDeductionInput');
+    const methodEl    = document.getElementById('cancelRefundMethod');
+    const refEl       = document.getElementById('cancelRefundRef');
+    if (policyEl)  policyEl.value  = 'full';
+    if (deductEl)  deductEl.value  = '0';
+    if (methodEl)  methodEl.value  = 'CASH';
+    if (refEl)     refEl.value     = '';
+
+    // Store resolved amounts for helpers to use
+    window._cancelModalPaid    = paidAmount;
+    window._cancelModalOrdVal  = orderValue;
+
+    // Trigger initial calculation
+    if (typeof window.handleCancelRefundPolicyChange === 'function') window.handleCancelRefundPolicyChange();
+
     const modal = document.getElementById('cancelOrderModal');
     const codeEl = document.getElementById('cancelModalOrderCode');
     if (codeEl) codeEl.textContent = orderState.orderId || 'this order';
@@ -2147,10 +2187,83 @@
     if (modal) modal.style.display = 'none';
   };
 
+  // ── Refund Policy Preset Handler ─────────────────────────────────────────
+  window.handleCancelRefundPolicyChange = function () {
+    const policy   = (document.getElementById('cancelRefundPolicy')?.value) || 'full';
+    const paid     = Number(window._cancelModalPaid   || 0);
+    const ordVal   = Number(window._cancelModalOrdVal || 0);
+    const deductEl = document.getElementById('cancelDeductionInput');
+    const methodEl = document.getElementById('cancelRefundMethod');
+
+    let deduction = 0;
+    switch (policy) {
+      case 'full':      deduction = 0;                          break;
+      case 'partial25': deduction = Math.round(ordVal * 0.25); break;
+      case 'partial50': deduction = Math.round(ordVal * 0.50); break;
+      case 'norefund':  deduction = paid;                      break;
+      case 'custom':    /* leave user's value untouched */      break;
+    }
+
+    if (policy !== 'custom' && deductEl) deductEl.value = deduction;
+
+    // Auto-suggest refund method for no-refund
+    if (policy === 'norefund' && methodEl) methodEl.value = 'NA';
+    else if (policy !== 'custom' && methodEl && methodEl.value === 'NA') methodEl.value = 'CASH';
+
+    window.recalcCancelRefund();
+  };
+
+  // ── Live Refund Recalculator ──────────────────────────────────────────────
+  window.recalcCancelRefund = function () {
+    const paid      = Number(window._cancelModalPaid || 0);
+    const deduction = Math.max(0, Number(document.getElementById('cancelDeductionInput')?.value || 0));
+    const refund    = Math.max(0, paid - deduction);
+
+    const fmt = (n) => '\u20B9\u00A0' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+    const amountEl  = document.getElementById('cancelRefundAmount');
+    const formulaEl = document.getElementById('cancelRefundFormula');
+    const boxEl     = document.getElementById('cancelRefundResultBox');
+
+    if (amountEl)  amountEl.textContent  = fmt(refund);
+    if (formulaEl) formulaEl.textContent = `= Advance ${fmt(paid)} \u2212 Deduction ${fmt(deduction)}`;
+
+    // Colour the result box: green = has refund, amber = partial, red = zero
+    if (boxEl) {
+      boxEl.classList.remove('refund-box-green', 'refund-box-amber', 'refund-box-zero');
+      if (refund === 0)      boxEl.classList.add('refund-box-zero');
+      else if (deduction > 0) boxEl.classList.add('refund-box-amber');
+      else                    boxEl.classList.add('refund-box-green');
+    }
+  };
+
   window.submitConfirmCancelOrder = async function () {
     const btn = document.getElementById('btnConfirmCancelOrder');
-    const reasonSelect = document.getElementById('cancelReasonSelect');
-    const reason = reasonSelect ? reasonSelect.value : 'Client Cancellation Request';
+    const reasonSelect  = document.getElementById('cancelReasonSelect');
+    const policySelect  = document.getElementById('cancelRefundPolicy');
+    const methodSelect  = document.getElementById('cancelRefundMethod');
+    const deductInput   = document.getElementById('cancelDeductionInput');
+    const refInput      = document.getElementById('cancelRefundRef');
+
+    const reason        = reasonSelect?.value  || 'Client Cancellation Request';
+    const refundPolicy  = policySelect?.value  || 'full';
+    const refundMethod  = methodSelect?.value  || 'CASH';
+    const refundRef     = (refInput?.value     || '').trim();
+    const deduction     = Math.max(0, Number(deductInput?.value || 0));
+    const paidAmount    = Number(window._cancelModalPaid   || orderState.financials?.paidAmount || 0);
+    const netRefund     = Math.max(0, paidAmount - deduction);
+
+    // Human-readable policy label for notes/timeline
+    const policyLabels = {
+      full:      'Full Refund',
+      partial25: 'Partial Refund (25% Deduction)',
+      partial50: 'Partial Refund (50% Deduction)',
+      norefund:  'No Refund',
+      custom:    'Custom Refund'
+    };
+    const policyLabel = policyLabels[refundPolicy] || refundPolicy;
+
+    const fmt = (n) => '\u20B9' + Number(n).toLocaleString('en-IN');
 
     try {
       if (btn) {
@@ -2183,32 +2296,54 @@
         throw new Error('Order identifier not found. Please refresh and try again.');
       }
 
-      // 1. Call Backend REST API to persist CANCELLED status in PostgreSQL
+      // Build cancellation notes string
+      const refundLine = netRefund > 0
+        ? `Refund: ${fmt(netRefund)} via ${refundMethod}${refundRef ? ' (' + refundRef + ')' : ''}`
+        : 'No refund issued';
+      const cancelNote = `[Cancelled: ${reason} | ${policyLabel} | ${refundLine}]`;
+
+      // 1. Persist CANCELLED status + full settlement data to backend
       if (api && api.orders && api.orders.update) {
         await api.orders.update(targetId, {
-          status: 'CANCELLED',
-          totalAmount: orderState.financials.orderValue,
-          advancePaid: orderState.financials.paidAmount,
-          balanceAmount: orderState.financials.balanceAmount,
-          notes: (orderState.customer.notes ? orderState.customer.notes + '\n' : '') + `[Cancelled: ${reason}]`
+          status:           'CANCELLED',
+          totalAmount:      orderState.financials.orderValue,
+          advancePaid:      paidAmount,
+          balanceAmount:    orderState.financials.balanceAmount,
+          cancellationFee:  deduction,
+          refundAmount:     netRefund,
+          refundMethod:     refundMethod,
+          refundReference:  refundRef || null,
+          refundPolicy:     refundPolicy.toUpperCase(),
+          notes:            (orderState.customer.notes ? orderState.customer.notes + '\n' : '') + cancelNote
         });
       }
 
       // 2. Update local centralized state
       orderState.status = 'CANCELLED';
 
-      // 3. Record real-time session activity for the timeline
-      const nowParts = formatDateTimeParts(new Date().toISOString());
+      // 3. Record detailed timeline activity
+      const nowParts  = formatDateTimeParts(new Date().toISOString());
       const staffName = getCurrentStaffName();
+
+      const timelineDesc = [
+        staffName ? `Cancelled by ${staffName}` : 'Order cancelled',
+        `Reason: ${reason}`,
+        `Settlement: ${policyLabel}`,
+        netRefund > 0
+          ? `Refund: ${fmt(netRefund)} via ${refundMethod}${refundRef ? ' · Ref: ' + refundRef : ''}`
+          : 'No refund issued',
+        deduction > 0 ? `Deduction/Fee: ${fmt(deduction)}` : null
+      ].filter(Boolean).join(' · ');
+
       orderState.sessionActivities.push({
-        date: nowParts.date,
-        time: nowParts.time,
+        date:    nowParts.date,
+        time:    nowParts.time,
         rawTime: nowParts.rawTime,
-        title: 'Order Cancelled',
-        user: staffName ? `Cancelled by ${staffName} (${reason})` : `Order cancelled (${reason})`,
-        dot: 'red',
-        status: 'completed',
-        stage: 'Cancelled'
+        title:   'Order Cancelled & Refund Settled',
+        user:    timelineDesc,
+        dot:     'red',
+        status:  'completed',
+        stage:   'Cancelled'
       });
 
       // 4. Update Header status pill, collection, and banner
@@ -2229,7 +2364,13 @@
       refreshLucideIcons();
 
       closeCancelOrderModal();
-      showToast(`Order ${orderState.orderId} cancelled. Production is frozen.`, 'success');
+
+      // Show a toast that includes refund amount
+      const toastMsg = netRefund > 0
+        ? `Order ${orderState.orderId} cancelled. Refund ${fmt(netRefund)} via ${refundMethod}.`
+        : `Order ${orderState.orderId} cancelled. No refund issued.`;
+      showToast(toastMsg, 'success');
+
     } catch (err) {
       console.error('[ViewOrder] Cancel order failed:', err);
       showToast('Failed to cancel order: ' + (err.message || 'Server error'), 'error');

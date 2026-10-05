@@ -110,9 +110,10 @@ public class OrderDto {
                     .balanceAmount(bal)
                     .amount(tot)
                     .status(o.getStatus())
-                    .progressStages(o.getProgressStages().stream()
-                            .map(s -> s.getStage().name().toLowerCase())
-                            .toList())
+                    .progressStages(o.getProgressStages() != null ? o.getProgressStages().stream()
+                            .map(ps -> ps != null ? ps.getStage() : null)
+                            .filter(java.util.Objects::nonNull)
+                            .toList() : java.util.Collections.emptyList())
                     .notes(o.getNotes())
                     .currentStage(o.getCurrentStage())
                     .referenceImages(o.getReferenceImageList())
@@ -121,12 +122,5 @@ public class OrderDto {
                     .createdAt(o.getCreatedAt())
                     .build();
         }
-    }
-
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-    public static class ProgressUpdate {
-        private ProgressStage stage;
-        private String completedBy;
-        private String notes;
     }
 }

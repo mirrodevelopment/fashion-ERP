@@ -1064,14 +1064,14 @@
           <div style="height:1px;background:var(--border-card);margin:4px 0;"></div>
 
           <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:10px;font-size:11.5px;">
-            <div><span style="color:var(--text-muted);">Order Ref:</span> <strong style="color:var(--lime);">${apt.orderNumber || 'None'}</strong></div>
-            <div><span style="color:var(--text-muted);">Garment:</span> <strong style="color:var(--text-primary);">${apt.garment || 'Boutique Collection'}</strong></div>
-            <div><span style="color:var(--text-muted);">Assigned Staff:</span> <strong style="color:var(--text-primary);">${apt.staff}</strong></div>
-            <div><span style="color:var(--text-muted);">Location:</span> <strong style="color:var(--text-primary);">Fitting Suite A</strong></div>
+            <div><span style="color:var(--text-muted);">Order Ref:</span> <strong style="color:var(--lime);">${apt.orderNumber || '—'}</strong></div>
+            <div><span style="color:var(--text-muted);">Garment:</span> <strong style="color:var(--text-primary);">${apt.garment || '—'}</strong></div>
+            <div><span style="color:var(--text-muted);">Assigned Staff:</span> <strong style="color:var(--text-primary);">${apt.staff || '—'}</strong></div>
+            <div><span style="color:var(--text-muted);">Location:</span> <strong style="color:var(--text-primary);">${apt.location || '—'}</strong></div>
           </div>
 
           <div style="margin-top:6px;font-size:11px;color:var(--text-secondary);background:var(--bg-input);padding:8px;border-radius:6px;">
-            ${apt.notes || 'No special requirements noted for this session.'}
+            ${apt.notes || 'No special requirements noted.'}
           </div>
         </div>
       `;
@@ -1080,11 +1080,19 @@
     window.openModal('appointmentDetailModal');
   };
 
-  window.handleCancelAppointment = function () {
+  window.handleCancelAppointment = async function () {
     const apt = APPOINTMENTS.find(a => a.id === state.selectedAppointmentId);
     if (!apt) return;
 
     if (confirm(`Are you sure you want to cancel the appointment for ${apt.customer}?`)) {
+      try {
+        const { default: api } = await import('../api.js');
+        if (apt.id && !String(apt.id).startsWith('APT-')) {
+          await api.appointments.updateStatus(apt.id, 'CANCELLED');
+        }
+      } catch (err) {
+        console.warn('[Appointments] Remote status update warning:', err.message);
+      }
       apt.status = 'Cancelled';
       window.closeModal('appointmentDetailModal');
       renderKpiSummary();
@@ -1119,7 +1127,7 @@
     if (endInp) endInp.value = apt.endTime;
   };
 
-  window.handleSaveReschedule = function (e) {
+  window.handleSaveReschedule = async function (e) {
     e.preventDefault();
     const apt = APPOINTMENTS.find(a => a.id === state.selectedAppointmentId);
     if (!apt) return;
@@ -1133,10 +1141,28 @@
       return;
     }
 
+    try {
+      const { default: api } = await import('../api.js');
+      const scheduledAtIso = `${newDate}T${newStart}:00`;
+      const [sh, sm] = newStart.split(':').map(Number);
+      const [eh, em] = newEnd.split(':').map(Number);
+      const durationMins = (eh * 60 + em) - (sh * 60 + sm);
+
+      if (apt.id && !String(apt.id).startsWith('APT-')) {
+        await api.appointments.reschedule(apt.id, {
+          scheduledAt: scheduledAtIso,
+          durationMinutes: durationMins > 0 ? durationMins : 60,
+          status: 'CONFIRMED'
+        });
+      }
+    } catch (err) {
+      console.warn('[Appointments] Remote reschedule warning:', err.message);
+    }
+
     apt.date = newDate;
     apt.startTime = newStart;
     apt.endTime = newEnd;
-    apt.status = 'Rescheduled';
+    apt.status = 'Confirmed';
 
     state.selectedDate = newDate;
     window.closeModal('rescheduleModal');
@@ -1153,7 +1179,7 @@
     window.openModal('walkInModal');
   };
 
-  window.handleSaveWalkIn = function (e) {
+  window.handleSaveWalkIn = async function (e) {
     e.preventDefault();
     const name = document.getElementById('walkInName').value;
     const phone = document.getElementById('walkInPhone').value;
@@ -1164,8 +1190,35 @@
     const now = new Date();
     const curHour = String(now.getHours()).padStart(2, '0');
     const endHour = String(Math.min(now.getHours() + 1, 23)).padStart(2, '0');
+    const startIso = `${state.selectedDate}T${curHour}:00:00`;
 
-    const nextId = `APT-2026-${String(APPOINTMENTS.length + 1).padStart(4, '0')}`;
+    let serverApptId = null;
+    try {
+      const { default: api } = await import('../api.js');
+      let apiType = 'CONSULTATION';
+      const tl = (type || '').toLowerCase();
+      if (tl.includes('measur')) apiType = 'MEASUREMENT';
+      else if (tl.includes('trial') || tl.includes('fitting')) apiType = 'TRIAL';
+      else if (tl.includes('deliv') || tl.includes('pickup')) apiType = 'DELIVERY';
+      else if (tl.includes('follow')) apiType = 'FOLLOW_UP';
+
+      const created = await api.appointments.create({
+        customerMobile: phone,
+        customerName: name,
+        apptType: apiType,
+        scheduledAt: startIso,
+        durationMinutes: 60,
+        staffAssigned: staff,
+        notes: `Walk-in intake: ${notes}`
+      });
+      if (created && created.id) {
+        serverApptId = created.id;
+      }
+    } catch (err) {
+      console.warn('[Appointments] Failed to save walk-in to database:', err.message);
+    }
+
+    const nextId = serverApptId || `APT-2026-${String(APPOINTMENTS.length + 1).padStart(4, '0')}`;
     APPOINTMENTS.push({
       id: nextId,
       customer: name,
@@ -1186,7 +1239,7 @@
     renderKpiSummary();
     renderMainCalendar();
     renderTodaysSchedulePanel();
-    showToast(`Walk-in customer ${name} registered into today's calendar!`, 'success');
+    showToast(`Walk-in customer ${name} registered and saved!`, 'success');
   };
 
   // 5. Send Reminder Modal

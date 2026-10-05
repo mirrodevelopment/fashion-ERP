@@ -81,15 +81,4 @@ public class GarmentController {
     ) {
         return ResponseEntity.ok(garmentService.update(id, req));
     }
-
-    /**
-     * PATCH /api/v1/garments/{id}/stage
-     */
-    @PatchMapping("/{id}/stage")
-    public ResponseEntity<GarmentDto.SummaryResponse> updateStage(
-            @PathVariable UUID id,
-            @RequestBody GarmentDto.StageUpdateRequest req
-    ) {
-        return ResponseEntity.ok(garmentService.updateStage(id, req));
-    }
 }

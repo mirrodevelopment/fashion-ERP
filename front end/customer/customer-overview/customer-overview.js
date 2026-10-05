@@ -8,27 +8,15 @@
 // ── API Integration ──────────────────────────────────────────
 import api, { Auth } from '../../api.js';
 if (!Auth.isLoggedIn()) {
-  try {
-    const authRes = await api.auth.login('admin', 'Admin@123');
-    if (authRes && authRes.token) {
-      Auth.setToken(authRes.token, true);
-      Auth.setUser({
-        userId: authRes.userId,
-        username: authRes.username,
-        fullName: authRes.fullName,
-        role: authRes.role
-      });
-    }
-  } catch (_) {
-    window.location.href = '../../login/login.html';
-  }
+  window.location.href = '../../login/login.html';
 }
 
 // Maps API tier enum to display label used in the rest of this file
 function mapTier(t) {
   if (!t) return 'Regular';
-  if (t === 'VIP_PLATINUM') return 'VIP Platinum';
-  if (t === 'VIP_GOLD')     return 'VIP Gold';
+  const upper = String(t).toUpperCase();
+  if (upper === 'VIP_PLATINUM' || upper === 'PREMIUM') return 'VIP Platinum';
+  if (upper === 'VIP_GOLD' || upper === 'VIP')     return 'VIP Gold';
   return 'Regular';
 }
 
@@ -115,7 +103,7 @@ function cacheDom() {
    HELPERS & FORMATTERS
    ──────────────────────────────────────────────────────────── */
 function fmtAmt(n) {
-  return 'GHS ' + Number(n).toLocaleString('en-GH');
+  return '₹' + Number(n).toLocaleString('en-IN');
 }
 
 function fmtDate(str) {
@@ -191,7 +179,7 @@ function animateNum(el, target, prefix = '', suffix = '') {
   function step(now) {
     const pct = Math.min((now - startTime) / dur, 1);
     const val = Math.round(pct * target);
-    el.textContent = prefix + val.toLocaleString('en-GH') + suffix;
+    el.textContent = prefix + val.toLocaleString('en-IN') + suffix;
     if (pct < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
@@ -207,8 +195,8 @@ function updateKPIs() {
 
   animateNum(els.kpiTotal,   totalClients);
   animateNum(els.kpiActive,  inProcessJobs);
-  animateNum(els.kpiRevenue, totalRevenue, 'GHS ');
-  animateNum(els.kpiBalance, totalBalance, 'GHS ');
+  animateNum(els.kpiRevenue, totalRevenue, '₹ ');
+  animateNum(els.kpiBalance, totalBalance, '₹ ');
   animateNum(els.kpiVip,     vipCount);
 }
 
@@ -664,7 +652,7 @@ function bindEvents() {
   if (els.btnExport) {
     els.btnExport.addEventListener('click', () => {
       const rows = [
-        ['Customer ID', 'Full Name', 'Phone', 'Email', 'Tier', 'Preferred Garment', 'Total Orders', 'In-Process', 'Total Spend (GHS)', 'Balance Due (GHS)', 'Location', 'Last Order Date'],
+        ['Customer ID', 'Full Name', 'Phone', 'Email', 'Tier', 'Preferred Garment', 'Total Orders', 'In-Process', 'Total Spend (₹)', 'Balance Due (₹)', 'Location', 'Last Order Date'],
         ...state.filtered.map(c => [
           c.id,
           c.name,
@@ -684,8 +672,8 @@ function bindEvents() {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `haulo-client-directory-${new Date().toISOString().slice(0, 10)}.csv`;
+      const bSlug = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('shortName').toLowerCase()) || 'client';
+      a.download = `${bSlug}-client-directory-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -723,6 +711,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     state.customers = merged;
     state.filtered  = [...merged];
+
+    // Enrich customer records with live order counts
+    try {
+      const ordRes = await api.orders.list({ page: 0, size: 500 }).catch(() => []);
+      const orders = Array.isArray(ordRes) ? ordRes : (ordRes && ordRes.content ? ordRes.content : []);
+      if (orders.length > 0) {
+        const orderCountsByMobile = {};
+        const inProcessCountsByMobile = {};
+        orders.forEach(o => {
+          const m = (o.customerMobile || '').replace(/\D/g, '');
+          if (m) {
+            orderCountsByMobile[m] = (orderCountsByMobile[m] || 0) + 1;
+            const st = (o.status || '').toUpperCase();
+            if (st === 'IN_PRODUCTION' || st === 'IN_PROGRESS' || st === 'PENDING') {
+              inProcessCountsByMobile[m] = (inProcessCountsByMobile[m] || 0) + 1;
+            }
+          }
+        });
+        state.customers.forEach(c => {
+          const m = (c.mobileNumber || c.phone || '').replace(/\D/g, '');
+          if (orderCountsByMobile[m] !== undefined) {
+            c.totalOrders = orderCountsByMobile[m];
+          }
+          if (inProcessCountsByMobile[m] !== undefined) {
+            c.ordersInProcess = inProcessCountsByMobile[m];
+          }
+        });
+      }
+    } catch (ordErr) {
+      console.warn('[CustomerOverview] Could not enrich with orders:', ordErr);
+    }
   } catch (err) {
     console.error('[CustomerOverview] Failed to load customers from backend:', err.message);
     const localRaw = localStorage.getItem('haulo_registered_customers');

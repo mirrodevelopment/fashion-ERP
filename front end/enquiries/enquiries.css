@@ -33,7 +33,7 @@ html {
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', var(--font-main), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body);
   color: var(--text-primary, #ffffff);
   height: 100vh;
   min-height: 100vh;
@@ -151,7 +151,7 @@ body {
 }
 
 .decorative-quote {
-  font-family: Georgia, 'Playfair Display', serif;
+  font-family: var(--font-serif);
   font-style: italic;
   font-size: 10.5px;
   color: rgba(235, 220, 205, 0.75);

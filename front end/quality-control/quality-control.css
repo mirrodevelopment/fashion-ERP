@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    HAULO BOUTIQUE ERP ? Quality Control & Final Inspection CSS
    Pixel-Accurate Glassmorphic Split Layout (Fully Visible & Compact)
    Path: front end/quality-control/quality-control.css
@@ -802,7 +802,7 @@ body {
   font-size: 9.5px;
   font-weight: 700;
   color: var(--text-primary);
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .row-customer {
@@ -1079,7 +1079,7 @@ body {
   font-size: 10.5px;
   font-weight: 800;
   color: var(--text-primary);
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .soh-customer {

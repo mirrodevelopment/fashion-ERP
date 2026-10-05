@@ -41,6 +41,32 @@
     document.head.appendChild(ns);
   }
 
+  // Auto-load brand identity controller if not already present
+  if (!window.BrandIdentity && !document.querySelector('script[src*="brand-identity.js"]')) {
+    const bis = document.createElement('script');
+    bis.src = BASE + 'brand-identity/brand-identity.js';
+    bis.onload = () => {
+      if (window.BrandIdentity && typeof window.BrandIdentity.applyToDOM === 'function') {
+        window.BrandIdentity.applyToDOM();
+      }
+    };
+    document.head.appendChild(bis);
+  }
+
+  // Auto-load company bridge controller if not already present
+  if (!window.CompanyBridge && !document.querySelector('script[src*="company-bridge.js"]')) {
+    const cs = document.createElement('script');
+    cs.src = BASE + 'company-bridge.js';
+    document.head.appendChild(cs);
+  }
+
+  // Auto-load system bridge controller if not already present
+  if (!window.HauloSystem && !document.querySelector('script[src*="system-bridge.js"]')) {
+    const sysScript = document.createElement('script');
+    sysScript.src = BASE + 'system-bridge.js';
+    document.head.appendChild(sysScript);
+  }
+
   /* â”€â”€ Load a fragment and inject into a slot â”€â”€
      Priority: 1) window.FRAGMENT_HTML inline bundle (works on file://)
                2) fetch from server (works when served via http)
@@ -68,6 +94,114 @@
     }
   }
 
+  /* ── Canonicalize Module Key ── */
+  function canonicalize(m) {
+    const s = (m || '').toLowerCase().trim();
+    if (s === 'company') return 'settings';
+    if (s === 'production-floor' || s === 'production' || s === 'production-room') return 'production-room';
+    if (s === 'design-studio' || s === 'designs') return 'designs';
+    if (s === 'collections') return 'collections';
+    if (s === 'garment' || s === 'garments') return 'garments';
+    if (s === 'workforce' || s === 'employees') return 'employees';
+    if (s === 'inventory' || s === 'stock') return 'stock';
+    if (s === 'packages' || s === 'dispatch' || s === 'delivery') return 'delivery';
+    if (s === 'finance' || s === 'payments') return 'payments';
+    if (s === 'customer' || s === 'customers') return 'customers';
+    if (s === 'order' || s === 'orders') return 'orders';
+    if (s === 'measurement' || s === 'measurements' || s === 'measurement360' || s === 'measurement-overview') return 'measurements';
+    if (s === 'trial' || s === 'trials' || s === 'alterations' || s === 'trials-alterations') return 'trials-alterations';
+    if (s === 'qc' || s === 'quality' || s === 'quality-control') return 'quality-control';
+    if (s === 'procurement' || s === 'purchases' || s === 'purchase') return 'purchases';
+    if (s === 'users-roles' || s === 'users' || s === 'roles') return 'users-roles';
+    return s;
+  }
+
+  /* ── Module Access Permissions Enforcement ── */
+  async function applyModuleAccessPolicy() {
+    const isLogin = window.location.pathname.includes('/login/');
+    const isSetup = window.location.pathname.includes('/setup/');
+    if (isLogin || isSetup) return;
+
+    // ── Company Setup Guard ──────────────────────────────────────────────────
+    // If the company has not yet been configured and the user is authenticated,
+    // redirect them to the setup wizard before anything else loads.
+    try {
+      const setupRes = await fetch('http://localhost:8080/api/v1/company/status');
+      if (setupRes.ok) {
+        const statusData = await setupRes.json();
+        if (!statusData.configured) {
+          // Only redirect authenticated users — guests should see the login page
+          const tokenKeys = ['erp_token', 'haulo_token', 'fashion_erp_token'];
+          const hasToken = tokenKeys.some(k => !!(sessionStorage.getItem(k) || localStorage.getItem(k)));
+          if (hasToken) {
+            const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
+            window.location.replace(`${prefix}company/setup/setup.html`);
+            return;
+          }
+        }
+      }
+    } catch (_) {
+      // Server unreachable — don't block navigation
+    }
+
+    let allowedModules = null;
+    try {
+      const cached = sessionStorage.getItem('erp_allowed_modules');
+      if (cached) {
+        allowedModules = JSON.parse(cached);
+      } else if (window.api && window.api.auth && typeof window.api.auth.me === 'function') {
+        const me = await window.api.auth.me();
+        if (me) {
+          allowedModules = me.allowedModules || null;
+          if (allowedModules) {
+            sessionStorage.setItem('erp_allowed_modules', JSON.stringify(allowedModules));
+          }
+          sessionStorage.setItem('erp_user', JSON.stringify(me));
+        }
+      }
+    } catch (err) {
+      console.warn('[Fragments] Unable to fetch user module policy:', err);
+    }
+
+    // If allowedModules is null, user is unrestricted (e.g. ADMIN)
+    if (!allowedModules || !Array.isArray(allowedModules)) {
+      return;
+    }
+
+    const allowedSet = new Set(allowedModules.map(m => m.toLowerCase().trim()));
+
+    // Hide sidebar links not in allowedModules
+    document.querySelectorAll('#appSidebar .nav-item[data-module]').forEach(item => {
+      const rawMod = item.getAttribute('data-module') || '';
+      const mod = canonicalize(rawMod);
+      if (mod && mod !== 'dashboard' && !allowedSet.has(mod)) {
+        item.classList.add('nav-item-hidden');
+      }
+    });
+
+    // Hide any nav-section whose items are all hidden
+    document.querySelectorAll('#appSidebar .nav-section').forEach(sec => {
+      const allItems = sec.querySelectorAll('.nav-item');
+      if (allItems.length > 0) {
+        const allHidden = Array.from(allItems).every(i => i.classList.contains('nav-item-hidden'));
+        if (allHidden) {
+          sec.classList.add('nav-section-hidden');
+        }
+      }
+    });
+
+    // Client-side page navigation gate
+    const currentModule = (document.body && (document.body.dataset.module || document.body.getAttribute('data-module'))) || '';
+    if (currentModule) {
+      const canonical = canonicalize(currentModule);
+      if (canonical && canonical !== 'dashboard' && canonical !== 'profile' && !allowedSet.has(canonical)) {
+        console.warn(`[Fragments] Access to module '${canonical}' is not permitted for this account.`);
+        const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
+        window.location.replace(`${prefix}dashboard/dashboard.html?denied=${encodeURIComponent(canonical)}`);
+      }
+    }
+  }
+
   /* ── Mark the active nav item ── */
   function markActiveNav() {
     let currentModule = (document.body && (document.body.dataset.module || document.body.getAttribute('data-module'))) || '';
@@ -83,6 +217,7 @@
       else if (path.includes('/designstudio') || path.includes('/design-studio')) currentModule = 'designs';
       else if (path.includes('/measurements') || path.includes('/measurement360') || path.includes('/measurement-overview')) currentModule = 'measurements';
       else if (path.includes('/fabrics-materials') || path.includes('/fabrics')) currentModule = 'fabrics';
+      else if (path.includes('/collections')) currentModule = 'collections';
       else if (path.includes('/production')) currentModule = 'production-room';
       else if (path.includes('/trials-alterations') || path.includes('/trial')) currentModule = 'trials-alterations';
       else if (path.includes('/quality-control') || path.includes('/qc')) currentModule = 'quality-control';
@@ -90,30 +225,17 @@
       else if (path.includes('/purchases')) currentModule = 'purchases';
       else if (path.includes('/delivery') || path.includes('/dispatch')) currentModule = 'delivery';
       else if (path.includes('/workforcemanagement') || path.includes('/workforce') || path.includes('/employee')) currentModule = 'employees';
+      else if (path.includes('/branches')) currentModule = 'branches';
+      else if (path.includes('/profile')) currentModule = 'profile';
+      else if (path.includes('/users-roles')) currentModule = 'users-roles';
+      else if (path.includes('/company')) currentModule = 'settings';
+      else if (path.includes('/settings')) currentModule = 'settings';
       else if (path.includes('order')) currentModule = 'orders';
       else currentModule = 'dashboard';
     }
 
-    function canonicalize(m) {
-      const s = (m || '').toLowerCase().trim();
-      if (s === 'production-floor' || s === 'production' || s === 'production-room') return 'production-room';
-      if (s === 'design-studio' || s === 'designs') return 'designs';
-      if (s === 'collections') return 'collections';
-      if (s === 'garment' || s === 'garments') return 'garments';
-      if (s === 'workforce' || s === 'employees') return 'employees';
-      if (s === 'inventory' || s === 'stock') return 'stock';
-      if (s === 'packages' || s === 'dispatch' || s === 'delivery') return 'delivery';
-      if (s === 'finance' || s === 'payments') return 'payments';
-      if (s === 'customer' || s === 'customers') return 'customers';
-      if (s === 'order' || s === 'orders') return 'orders';
-      if (s === 'measurement' || s === 'measurements' || s === 'measurement360' || s === 'measurement-overview') return 'measurements';
-      if (s === 'trial' || s === 'trials' || s === 'alterations' || s === 'trials-alterations') return 'trials-alterations';
-      if (s === 'qc' || s === 'quality' || s === 'quality-control') return 'quality-control';
-      if (s === 'procurement' || s === 'purchases' || s === 'purchase') return 'purchases';
-      return s;
-    }
-
     const activeMod = canonicalize(currentModule);
+    let matchedItem = null;
     document.querySelectorAll('.nav-item').forEach(item => {
       const itemMod = canonicalize(item.dataset.module || item.getAttribute('data-module') || '');
       const itemId = (item.id || '').toLowerCase().trim();
@@ -121,6 +243,7 @@
       const isMatch = (
         (itemMod && itemMod === activeMod) ||
         (itemId && itemId === `nav-${activeMod}`) ||
+        (activeMod === 'collections' && (itemId === 'nav-collections' || itemMod === 'collections' || tooltip.includes('collection'))) ||
         (activeMod === 'garments' && (itemId === 'nav-garments' || itemMod === 'garments' || tooltip.includes('garment'))) ||
         (activeMod === 'production-room' && (itemId === 'nav-production-room' || itemMod === 'production-room' || tooltip.includes('production'))) ||
         (activeMod === 'designs' && (itemId === 'nav-designs' || itemMod === 'designs' || tooltip.includes('design'))) ||
@@ -137,15 +260,27 @@
         (activeMod === 'stock' && (itemId === 'nav-stock' || itemMod === 'stock' || tooltip.includes('stock') || tooltip.includes('inventory'))) ||
         (activeMod === 'purchases' && (itemId === 'nav-purchases' || itemMod === 'purchases' || tooltip.includes('purchase'))) ||
         (activeMod === 'delivery' && (itemId === 'nav-packages' || itemId === 'nav-delivery' || itemMod === 'delivery' || tooltip.includes('delivery'))) ||
-        (activeMod === 'employees' && (itemId === 'nav-employees' || itemId === 'nav-workforce' || itemMod === 'employees' || tooltip.includes('employee')))
+        (activeMod === 'employees' && (itemId === 'nav-employees' || itemId === 'nav-workforce' || itemMod === 'employees' || tooltip.includes('employee'))) ||
+        (activeMod === 'branches' && (itemId === 'nav-branches' || itemMod === 'branches' || tooltip.includes('branch'))) ||
+        (activeMod === 'users-roles' && (itemId === 'nav-users-roles' || itemMod === 'users-roles' || tooltip.includes('users') || tooltip.includes('roles'))) ||
+        (activeMod === 'settings' && (itemId === 'nav-settings' || itemMod === 'settings' || tooltip.includes('setting')))
       );
       item.classList.toggle('active', Boolean(isMatch));
+      if (isMatch) matchedItem = item;
     });
+
+    if (matchedItem) {
+      setTimeout(() => {
+        try {
+          matchedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } catch (_) {}
+      }, 100);
+    }
   }
 
-  /* â”€â”€ Tag uncompleted nav items with red glow â”€â”€ */
+  /* ── Tag uncompleted nav items with red glow ── */
   function markUncompletedNav() {
-    const uncompletedList = ['job-cards', 'suppliers', 'reports', 'expenses', 'profitability', 'whatsapp', 'campaigns', 'branches', 'users-roles', 'settings'];
+    const uncompletedList = ['job-cards', 'suppliers', 'reports', 'expenses', 'profitability', 'whatsapp', 'campaigns'];
     document.querySelectorAll('.nav-item').forEach(item => {
       const href = item.getAttribute('href');
       const mod = item.dataset.module;
@@ -173,22 +308,328 @@
     } catch (_) { }
   }
 
-  /* â”€â”€ Main bootstrap â”€â”€ */
+  // ── Helper to read a valid JWT token ──
+  function _fragmentsGetToken() {
+    const keys = ['erp_token', 'haulo_token', 'fashion_erp_token'];
+    for (const k of keys) {
+      const t = sessionStorage.getItem(k) || localStorage.getItem(k);
+      if (t) {
+        try {
+          const p = JSON.parse(atob(t.split('.')[1]));
+          if (!p.exp || p.exp * 1000 > Date.now()) return t;
+        } catch (_) {}
+      }
+    }
+    return null;
+  }
+
+  // ── Fetch company settings from backend API and hydrate sidebar & navbar ──
+  async function _fetchCompanyAndHydrate() {
+    try {
+      const token = _fragmentsGetToken();
+      if (!token) return;
+      const res = await fetch('http://localhost:8080/api/v1/company', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const co = await res.json();
+      if (!co) return;
+
+      // Update sidebar brand text
+      const brandNameEl = document.querySelector('.brand-name');
+      const brandSubEl  = document.querySelector('.brand-sub');
+      if (brandNameEl && co.shortName)   brandNameEl.textContent = co.shortName;
+      if (brandSubEl  && co.companyName) brandSubEl.textContent  = co.companyName;
+
+      // Update navbar branch selector prefix
+      const selText = document.querySelector('#branchSelText, .branch-sel-text');
+      if (selText && co.companyName) {
+        const savedBranch = localStorage.getItem('haulo_active_branch') || 'Main Branch';
+        selText.textContent = `${co.companyName} — ${savedBranch}`;
+      }
+
+      if (window.CompanyBridge && typeof window.CompanyBridge.applyToDOM === 'function') {
+        window.CompanyBridge.applyToDOM();
+      }
+      if (window.BrandIdentity && typeof window.BrandIdentity.applyToDOM === 'function') {
+        window.BrandIdentity.applyToDOM();
+      }
+    } catch (_) {
+      // silently ignore
+    }
+  }
+
+  // Listen for company updates in case company details are saved on this page
+  document.addEventListener('haulo:company-updated', (e) => {
+    const co = e.detail;
+    if (!co) return;
+    const brandNameEl = document.querySelector('.brand-name');
+    const brandSubEl  = document.querySelector('.brand-sub');
+    if (brandNameEl && co.shortName)   brandNameEl.textContent = co.shortName;
+    if (brandSubEl  && co.companyName) brandSubEl.textContent  = co.companyName;
+    const selText = document.querySelector('#branchSelText, .branch-sel-text');
+    if (selText && co.companyName) {
+      const savedBranch = localStorage.getItem('haulo_active_branch') || 'Main Branch';
+      selText.textContent = `${co.companyName} — ${savedBranch}`;
+    }
+    if (window.CompanyBridge && typeof window.CompanyBridge.applyToDOM === 'function') {
+      window.CompanyBridge.applyToDOM();
+    }
+    if (window.BrandIdentity && typeof window.BrandIdentity.applyToDOM === 'function') {
+      window.BrandIdentity.applyToDOM();
+    }
+  });
+
+  // Listen for branch changes across components
+  document.addEventListener('haulo:branch-changed', (e) => {
+    const branch = e.detail;
+    if (!branch || !branch.name) return;
+    const selText = document.querySelector('#branchSelText, .branch-sel-text');
+    if (selText) {
+      if (window.CompanyBridge && typeof window.CompanyBridge.formatBranch === 'function') {
+        selText.textContent = window.CompanyBridge.formatBranch(branch.name);
+      } else {
+        const brandSub = document.querySelector('.brand-sub')?.textContent || 'Haulo Designs';
+        selText.textContent = `${brandSub} — ${branch.name}`;
+      }
+    }
+    if (window.CompanyBridge && typeof window.CompanyBridge.applyToDOM === 'function') {
+      window.CompanyBridge.applyToDOM();
+    }
+  });
+
+  let _footerClockTimer = null;
+  function _updateFooterClock() {
+    const el = document.getElementById('lastUpdated');
+    if (!el) return;
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const m = months[now.getMonth()];
+    const y = now.getFullYear();
+    let h = now.getHours();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    const min = String(now.getMinutes()).padStart(2, '0');
+    el.textContent = `${d} ${m} ${y}, ${String(h).padStart(2, '0')}:${min} ${ampm}`;
+  }
+
+  function _initFooterTimestamp() {
+    _updateFooterClock();
+    if (!_footerClockTimer) {
+      _footerClockTimer = setInterval(_updateFooterClock, 1000);
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+          _updateFooterClock();
+        }
+      });
+    }
+  }
+
+  /* ── Network Speed & Telemetry Monitor (Real Benchmark Engine) ── */
+  function _initNetworkSpeedMonitor() {
+    const badge = document.getElementById('wifiSpeedBadge');
+    const speedVal = document.getElementById('wifiSpeedVal');
+    if (!badge || !speedVal) return;
+
+    let probeTimer = null;
+    let isProbing = false;
+
+    // High-performance public CDN test endpoints with open CORS (Access-Control-Allow-Origin: *)
+    const TEST_ENDPOINTS = [
+      { url: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', name: 'Cloudflare Edge' },
+      { url: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', name: 'jsDelivr Global' },
+      { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/330px-Image_created_with_a_mobile_phone.png', name: 'Wikimedia CDN' }
+    ];
+
+    function formatSpeed(mbps) {
+      if (typeof mbps !== 'number' || isNaN(mbps) || mbps <= 0) return 'Offline';
+      if (mbps >= 100) return `${Math.round(mbps)} Mbps`;
+      if (mbps >= 10) return `${mbps.toFixed(1)} Mbps`;
+      if (mbps >= 1) return `${mbps.toFixed(1)} Mbps`;
+      return `${Math.round(mbps * 1000)} Kbps`;
+    }
+
+    function applyTierStyle(mbps, latencyMs, details) {
+      badge.classList.remove('speed-offline', 'speed-slow', 'speed-good', 'speed-excellent');
+      if (typeof mbps !== 'number' || isNaN(mbps) || mbps <= 0) {
+        badge.classList.add('speed-offline');
+        badge.title = details || 'Network: Offline (No internet connection)';
+        speedVal.textContent = 'Offline';
+        return;
+      }
+
+      const formatted = formatSpeed(mbps);
+      speedVal.textContent = formatted;
+
+      if (mbps >= 25 || (latencyMs && latencyMs < 50)) {
+        badge.classList.add('speed-excellent');
+      } else if (mbps >= 10 || (latencyMs && latencyMs < 120)) {
+        badge.classList.add('speed-good');
+      } else {
+        badge.classList.add('speed-slow');
+      }
+
+      badge.title = details || `Internet Speed: ${formatted} | Latency: ${latencyMs ? latencyMs + 'ms' : 'Normal'} | Click to re-test`;
+    }
+
+    async function measureRealInternetSpeed() {
+      if (isProbing) return;
+      isProbing = true;
+
+      // 1. Check if browser detects offline
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        applyTierStyle(0, null, 'Network: Offline (No internet connection)');
+        isProbing = false;
+        return;
+      }
+
+      // 2. Perform live download speed test across CDN endpoints
+      let measuredResult = null;
+
+      for (const ep of TEST_ENDPOINTS) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        try {
+          const cacheBuster = `_cb=${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+          const separator = ep.url.includes('?') ? '&' : '?';
+          const targetUrl = `${ep.url}${separator}${cacheBuster}`;
+
+          const tStart = performance.now();
+          const response = await fetch(targetUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            mode: 'cors',
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (!response.ok) continue;
+
+          const blob = await response.blob();
+          const tEnd = performance.now();
+
+          const durationSec = (tEnd - tStart) / 1000;
+          if (durationSec <= 0.005) continue; // Ignore cached/abnormal anomaly
+
+          const bytes = blob.size;
+          if (bytes < 1000) continue;
+
+          // Mathematical formula: (Bytes * 8 bits) / seconds / 1,000,000 = true Mbps
+          const bits = bytes * 8;
+          const trueMbps = (bits / durationSec) / 1000000;
+          const latencyMs = Math.round(tEnd - tStart);
+
+          measuredResult = {
+            mbps: trueMbps,
+            latencyMs: latencyMs,
+            bytes: bytes,
+            durationMs: Math.round(tEnd - tStart),
+            provider: ep.name
+          };
+          break; // Test successful
+        } catch (_) {
+          clearTimeout(timeoutId);
+          continue;
+        }
+      }
+
+      if (measuredResult) {
+        const kbSize = Math.round(measuredResult.bytes / 1024);
+        const tooltip = `Internet Speed: ${formatSpeed(measuredResult.mbps)} | Transferred: ${kbSize} KB in ${measuredResult.durationMs}ms | Latency: ${measuredResult.latencyMs}ms | Verified via ${measuredResult.provider} | Click to re-test`;
+        applyTierStyle(measuredResult.mbps, measuredResult.latencyMs, tooltip);
+        isProbing = false;
+        return;
+      }
+
+      // 3. Fallback: Browser Network Information API (hardware link bandwidth)
+      const conn = (typeof navigator !== 'undefined') && 
+        (navigator.connection || navigator.mozConnection || navigator.webkitConnection);
+
+      if (conn && typeof conn.downlink === 'number' && conn.downlink > 0) {
+        const rtt = typeof conn.rtt === 'number' ? conn.rtt : null;
+        const tooltip = `Internet Speed: ${formatSpeed(conn.downlink)} | Type: ${conn.effectiveType || 'Network'} | RTT: ${rtt ? rtt + 'ms' : 'Normal'} | Via Browser Link Telemetry | Click to re-test`;
+        applyTierStyle(conn.downlink, rtt, tooltip);
+        isProbing = false;
+        return;
+      }
+
+      // 4. If all external tests failed and no connection telemetry is available
+      applyTierStyle(0, null, 'Network: No internet connection detected | Click to retry');
+      isProbing = false;
+    }
+
+    // Fast initial check with browser link speed while measurement starts
+    const initialConn = (typeof navigator !== 'undefined') && 
+      (navigator.connection || navigator.mozConnection || navigator.webkitConnection);
+    if (initialConn && typeof initialConn.downlink === 'number' && initialConn.downlink > 0) {
+      applyTierStyle(initialConn.downlink, initialConn.rtt, 'Testing live internet speed...');
+    }
+
+    // Run real download benchmark
+    measureRealInternetSpeed();
+
+    // Event listeners
+    window.addEventListener('online', () => measureRealInternetSpeed());
+    window.addEventListener('offline', () => applyTierStyle(0, null, 'Network: Offline'));
+
+    if (initialConn && typeof initialConn.addEventListener === 'function') {
+      initialConn.addEventListener('change', () => measureRealInternetSpeed());
+    }
+
+    // Periodic benchmark every 35 seconds
+    if (!probeTimer) {
+      probeTimer = setInterval(measureRealInternetSpeed, 35000);
+    }
+
+    // On-demand click benchmark
+    badge.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      speedVal.textContent = 'Measuring...';
+      badge.classList.remove('speed-offline', 'speed-slow', 'speed-good', 'speed-excellent');
+      setTimeout(measureRealInternetSpeed, 100);
+    });
+  }
+
+  /* ── Main bootstrap ── */
   async function bootstrap() {
     await Promise.all([
       loadFragment('sidebarSlot', 'sidebar.html'),
       loadFragment('navbarSlot', 'navbar.html'),
       loadFragment('footerSlot', 'footer.html'),
     ]);
+    if (window.BrandIdentity && typeof window.BrandIdentity.applyToDOM === 'function') {
+      window.BrandIdentity.applyToDOM();
+    }
     markActiveNav();
     markUncompletedNav();
     restoreSidebarState();
+    await applyModuleAccessPolicy();
 
-    // Auto-resolve avatar image path based on page depth
+    // Auto-resolve avatar image path based on page depth and custom avatar
     const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
+    const customAvatar = localStorage.getItem('erp_user_avatar');
     document.querySelectorAll('.u-avatar-img').forEach(img => {
-      img.src = `${prefix}assets/user_avatar.jpg`;
+      if (customAvatar && customAvatar.trim() !== '') {
+        img.src = customAvatar;
+        img.style.display = 'block';
+      } else {
+        img.src = `${prefix}assets/user_avatar.jpg`;
+      }
     });
+
+    // Auto-resolve user name and role from session
+    try {
+      const storedUser = JSON.parse(sessionStorage.getItem('erp_user') || localStorage.getItem('erp_user') || 'null');
+      if (storedUser && storedUser.fullName) {
+        document.querySelectorAll('.u-name').forEach(el => el.textContent = storedUser.fullName);
+      }
+      if (storedUser && storedUser.role) {
+        document.querySelectorAll('.u-role').forEach(el => el.textContent = storedUser.role);
+      }
+    } catch (_) {}
 
     // Ensure searchOverlay is attached to body for proper fixed positioning and z-indexing
     const overlay = document.getElementById('searchOverlay');
@@ -203,6 +644,11 @@
     } else if (topBar) {
       wireNavbarFallback(topBar);
     }
+
+    // Hydrate company details from API across all pages
+    _fetchCompanyAndHydrate();
+    _initFooterTimestamp();
+    _initNetworkSpeedMonitor();
 
     // Wire topbar toggle button after navbar is injected
     const toggleBtn = document.getElementById('topbarToggleBtn');
@@ -318,19 +764,16 @@
         e.stopPropagation();
         const isOpen = branchDd.classList.contains('open');
         closeDropdowns();
-        if (!isOpen) branchDd.classList.add('open');
+        if (!isOpen) {
+          branchDd.classList.add('open');
+          branchSel.classList.add('active');
+          branchSel.setAttribute('aria-expanded', 'true');
+        }
       });
-      branchDd.querySelectorAll('.dd-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          e.stopPropagation();
-          branchDd.querySelectorAll('.dd-item').forEach(i => i.classList.remove('active'));
-          item.classList.add('active');
-          const name = item.dataset.branch || item.textContent.trim();
-          const textEl = branchSel.querySelector('.branch-sel-text, #branchSelText');
-          if (textEl) textEl.textContent = `Haulo Designs — ${name}`;
-          closeDropdowns();
-        });
-      });
+
+      if (window.Nav && typeof window.Nav.syncNavbarBranches === 'function') {
+        window.Nav.syncNavbarBranches(topBar);
+      }
     }
 
     // Notifications Integration with Dynamic NotificationCenter
@@ -428,6 +871,11 @@ window.toggleSidebar = toggleSidebar;
 /** Navigate from sidebar â€” pages can override this */
 function navNavigate(module, event) {
   if (event) event.preventDefault();
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const clickedItem = event && (event.currentTarget || (event.target && event.target.closest('.nav-item')));
+  if (clickedItem && clickedItem.classList) {
+    clickedItem.classList.add('active');
+  }
 
   const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
 
@@ -465,9 +913,11 @@ function navNavigate(module, event) {
     'employees': `${prefix}WorkforceManagement/workforce.html`,
     'attendance': `${prefix}WorkforceManagement/workforce.html`,
     'workforce': `${prefix}WorkforceManagement/workforce.html`,
-    'branches': null,
-    'users-roles': null,
-    'settings': null,
+    'branches': `${prefix}branches/branches.html`,
+    'company': `${prefix}company/company.html`,
+    'profile': `${prefix}profile/profile.html`,
+    'users-roles': `${prefix}users-roles/users-roles.html`,
+    'settings': `${prefix}settings/settings.html`,
   };
 
   const labelMap = {
@@ -499,6 +949,7 @@ function navNavigate(module, event) {
     'campaigns': 'Campaigns',
     'employees': 'Employees',
     'branches': 'Branches',
+    'company': 'Company Details',
     'users-roles': 'Users & Roles',
     'settings': 'Settings'
   };
@@ -508,7 +959,7 @@ function navNavigate(module, event) {
     window.location.href = url;
   } else {
     const title = labelMap[module] || module.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    showInProcessToast(`${title} â€” This page is in process`);
+    showInProcessToast(`${title} — This page is in process`);
   }
 }
 
@@ -528,7 +979,7 @@ function showInProcessToast(message) {
   }
 
   const toast = document.createElement('div');
-  toast.style.cssText = 'background:rgba(36,28,24,0.96);backdrop-filter:blur(18px);color:#fff;border:1px solid rgba(255,255,255,0.18);border-left:4px solid #38bdf8;border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;box-shadow:0 12px 36px rgba(0,0,0,0.5);display:flex;align-items:center;gap:10px;pointer-events:auto;font-family:\'Plus Jakarta Sans\',system-ui,sans-serif;';
+  toast.style.cssText = 'background:rgba(36,28,24,0.96);backdrop-filter:blur(18px);color:#fff;border:1px solid rgba(255,255,255,0.18);border-left:4px solid #38bdf8;border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;box-shadow:0 12px 36px rgba(0,0,0,0.5);display:flex;align-items:center;gap:10px;pointer-events:auto;font-family:var(--font-sans);';
   toast.innerHTML = `
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
     <span>${message}</span>

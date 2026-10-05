@@ -10,6 +10,7 @@
 // ==========================================================================
 const STORAGE_KEY_PROFILE = 'haulo_c360_profile';
 const STORAGE_KEY_NOTES = 'haulo_c360_notes';
+const NEUTRAL_GARMENT_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
 
 // ==========================================================================
 // 2. CUSTOMER DATA (DYNAMIC STATE — POPULATED EXCLUSIVELY FROM DATABASE)
@@ -219,13 +220,9 @@ async function loadCustomerFromApi() {
             const adv = Number(o.advancePaid) || 0;
             const bal = Number(o.balanceAmount !== undefined ? o.balanceAmount : (tot - adv)) || 0;
             const expDeliv = o.expectedDeliveryDate || o.dueDate ? String(o.expectedDeliveryDate || o.dueDate) : 'Soon';
-            const gType = (o.garmentType || '').toLowerCase();
-            let thumb = '../../assets/designs/zari-bloom-front.jpg';
-            if (gType.includes('blouse')) thumb = '../../assets/designs/zari-bloom-front.jpg';
-            else if (gType.includes('lehenga')) thumb = '../../assets/designs/lehenga-stage.png';
-            else if (gType.includes('kurti') || gType.includes('chudi')) thumb = '../../assets/designs/noor-angrakha.jpg';
-            else if (gType.includes('gown') || gType.includes('anarkali')) thumb = '../../assets/designs/celestial-gown.jpg';
-            else if (gType.includes('saree')) thumb = '../../assets/designs/regal-drape.jpg';
+            const thumb = (o.referenceImages && o.referenceImages.length > 0)
+              ? o.referenceImages[0]
+              : (o.designImageUrl || o.thumbnailUrl || o.imageUrl || NEUTRAL_GARMENT_SVG);
 
             const stageKey = String(o.currentStage || '').toUpperCase().trim();
             const dynArt = liveStageArtMap[stageKey] ||
@@ -264,7 +261,7 @@ async function loadCustomerFromApi() {
             status: o.status || 'DELIVERED',
             statusClass: (o.status || 'delivered').toLowerCase().replace(/\s+/g, '-')
           }));
-          renderOrderHistory();
+          renderRecentOrdersTable(custOrders);
           renderCustomerValueBreakdown(custOrders);
           renderOrderHistoryBars(custOrders);
 
@@ -750,7 +747,7 @@ function renderActiveOrders() {
     return `
       <div class="active-order-row" tabindex="0" data-order-id="${order.id}">
         <div class="order-thumb-wrap">
-          <img src="${order.thumb}" alt="${order.garment}" onerror="this.src='../../assets/designs/zari-bloom-front.jpg';" />
+          <img src="${order.thumb}" alt="${order.garment}" onerror="this.src='${NEUTRAL_GARMENT_SVG}';" />
         </div>
         <div class="order-info-group">
           <span class="order-num-text">${order.id}</span>
@@ -779,42 +776,6 @@ function renderActiveOrders() {
   });
 }
 
-/**
- * Renders Card 3 Order History table
- */
-function renderOrderHistory() {
-  const subEl = document.getElementById('orderHistoryCountSub');
-  if (subEl) subEl.textContent = `${orderHistoryData.length} total orders`;
-
-  const tbody = document.getElementById('orderHistoryTbody');
-  if (!tbody) return;
-
-  if (orderHistoryData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:12.5px;">No orders recorded</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = orderHistoryData.map(item => `
-    <tr tabindex="0" data-garment="${item.garment}">
-      <td class="oh-date">${item.date}</td>
-      <td class="oh-garment">${item.garment}</td>
-      <td class="oh-amt">${item.amount}</td>
-      <td class="oh-status"><span class="status-pill ${item.statusClass}">${item.status.replace(/_/g, ' ')}</span></td>
-      <td class="oh-arrow"><i data-lucide="chevron-right" style="width:13px;height:13px;"></i></td>
-    </tr>
-  `).join('');
-
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons({ root: tbody });
-  }
-
-  tbody.querySelectorAll('tr').forEach(tr => {
-    tr.addEventListener('click', () => {
-      const garment = tr.getAttribute('data-garment');
-      showToast(`Order details for ${garment} opened`);
-    });
-  });
-}
 
 /**
  * Renders Card 6 Upcoming Appointments
@@ -1154,7 +1115,7 @@ function renderRecentOrdersTable(orders) {
  * Helper to resolve design image URLs reliably without relative path bugs
  */
 function resolveDesignImgUrl(url) {
-  if (!url) return '../../assets/designs/zari-bloom-front.jpg';
+  if (!url) return NEUTRAL_GARMENT_SVG;
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
   if (url.startsWith('../assets/')) return '../../' + url.slice(3);
   if (url.startsWith('/front end/')) return url;
@@ -1182,7 +1143,7 @@ function renderDesignMosaic() {
     const isFourth = idx === 3;
     return `
       <div class="mosaic-cell" tabindex="0" data-design-id="${d.id || ''}" onclick="openDesignLightbox('${d.id || ''}')">
-        <img src="${imgSrc}" alt="${title}" onerror="this.src='../../assets/designs/zari-bloom-front.jpg'" />
+        <img src="${imgSrc}" alt="${title}" onerror="this.src='${NEUTRAL_GARMENT_SVG}'" />
         ${isFourth ? '<div class="mosaic-overlay-more">+12</div>' : ''}
       </div>
     `;
@@ -1266,34 +1227,14 @@ window.handleSaveNote = handleSaveNote;
 window.openAddNoteModal = () => openModal('addNoteModal');
 
 /**
- * Renders Card 9 Outstanding Payments
+ * Renders outstanding payment modal stats
  */
 function renderOutstandingPayments() {
   const balance = Number(customerData.balance || 0);
   const totalSpend = Number(String(customerData.totalSpent || '').replace(/[^0-9.]/g, '')) || 0;
   const totalPaid = Math.max(0, totalSpend - balance);
-  const paidPct = totalSpend > 0 ? Math.min(100, Math.round((totalPaid / totalSpend) * 100)) : 100;
 
-  const donutBalEl = document.getElementById('c360DonutBalance');
-  const donutSubEl = document.getElementById('c360DonutSub');
-  const totalPaidEl = document.getElementById('c360TotalPaidVal');
-  const pendingBalEl = document.getElementById('c360PendingBalanceVal');
-  const donutRing = document.getElementById('c360DonutRing');
-
-  if (donutBalEl) donutBalEl.textContent = '₹' + balance.toLocaleString('en-IN');
-  if (donutSubEl) donutSubEl.textContent = balance > 0 ? 'Pending' : 'Settled';
-  if (totalPaidEl) totalPaidEl.textContent = '₹' + totalPaid.toLocaleString('en-IN');
-  if (pendingBalEl) pendingBalEl.textContent = '₹' + balance.toLocaleString('en-IN');
-
-  if (donutRing) {
-    if (balance > 0) {
-      donutRing.style.background = `conic-gradient(#B8FF2C 0% ${paidPct}%, #E8D17A ${paidPct}% 100%)`;
-    } else {
-      donutRing.style.background = `conic-gradient(#B8FF2C 0% 100%, #E8D17A 100% 100%)`;
-    }
-  }
-
-  // Update modal values as well
+  // Update modal values
   const psBilled = document.getElementById('psTotalBilled');
   const psRecv = document.getElementById('psTotalReceived');
   const psBal = document.getElementById('psBalancePending');
@@ -1795,7 +1736,7 @@ function renderDesignsSubPage() {
   }
 
   grid.innerHTML = designs.map(d => {
-    const imgUrl = d.imageUrl || d.thumb || '../../assets/designs/zari-bloom-front.jpg';
+    const imgUrl = d.imageUrl || d.thumb || NEUTRAL_GARMENT_SVG;
     const title = d.title || d.name || 'Bespoke Couture Design';
     const garment = d.garmentType || 'Blouse';
     const fabric = d.fabric || 'Raw Silk / Zari';
@@ -1804,7 +1745,7 @@ function renderDesignsSubPage() {
     return `
       <div class="sub-design-card">
         <div class="sub-design-img-box">
-          <img src="${imgUrl}" alt="${title}" class="sub-design-img" onerror="this.src='../../assets/designs/zari-bloom-front.jpg'" />
+          <img src="${imgUrl}" alt="${title}" class="sub-design-img" onerror="this.src='${NEUTRAL_GARMENT_SVG}'" />
         </div>
         <div class="sub-design-info">
           <div class="sub-design-title-row">
@@ -2360,9 +2301,9 @@ function renderCommunicationSubPage() {
       date: new Date(e.createdAt || e.enquiryDate || 0),
       channel: 'Inquiry & Consultation',
       icon: 'message-circle',
-      title: `Client Inquiry: ${e.subject || e.garmentType || 'Bridal Couture'}`,
-      desc: e.notes || e.message || 'Discussion regarding fabric selection and delivery timeline.',
-      staff: e.assignedTo || 'Lead Stylist'
+      title: `Client Inquiry: ${e.subject || e.garmentType || 'General Inquiry'}`,
+      desc: e.notes || e.message || '—',
+      staff: e.assignedTo || '—'
     });
   });
 
@@ -2708,7 +2649,7 @@ function openDesignLightbox(designId) {
 
   const title = design.designName || design.name || design.garmentType || 'Design Reference';
   const imgSrc = design.mainImageUrl || design.imageUrl || design.thumbnailUrl || design.referenceImageUrl
-    || '../../assets/designs/zari-bloom-front.jpg';
+    || NEUTRAL_GARMENT_SVG;
   const garment = design.garmentType || design.category || '—';
   const savedDate = design.createdAt ? new Date(design.createdAt).toLocaleDateString('en-IN') : '—';
   const tags = [design.garmentType, design.fabric, design.occasion].filter(Boolean);

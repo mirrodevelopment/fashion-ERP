@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.fashionerp.order.OrderRepository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,6 +31,8 @@ public class StageDefinitionService {
     private final StageDefinitionRepository stageDefRepo;
     private final StageDefinitionEmployeeRepository stageDefEmpRepo;
     private final EmployeeRepository employeeRepository;
+    private final OrderRepository orderRepository;
+    private final ProductionStageRepository productionStageRepository;
 
     // ─── Self-Healing System Boundary Stages ─────────────────────────────────
 
@@ -64,6 +68,31 @@ public class StageDefinitionService {
                     .build();
             stageDefRepo.save(rd);
         }
+        if (!stageDefRepo.existsByStageKey("QC")) {
+            // Position QC just before READY_TO_DELIVER
+            int qcOrder = 2;
+            java.util.Optional<StageDefinition> rdOpt = stageDefRepo.findByStageKey("READY_TO_DELIVER");
+            if (rdOpt.isPresent() && rdOpt.get().getSortOrder() != null) {
+                qcOrder = rdOpt.get().getSortOrder();
+                // Shift READY_TO_DELIVER up by one to make room
+                rdOpt.get().setSortOrder(qcOrder + 1);
+                stageDefRepo.save(rdOpt.get());
+            } else {
+                qcOrder = Math.max(2, (int) stageDefRepo.count() + 1);
+            }
+            StageDefinition qc = StageDefinition.builder()
+                    .stageKey("QC")
+                    .displayName("Quality Control")
+                    .description("Final inspection before dispatch: stitching, measurements, finishing, and fabric quality verified by QC team.")
+                    .requiredRole("SUPERVISOR")
+                    .deptLabel("Quality Control & Inspection")
+                    .colorClass("stage-gold")
+                    .sortOrder(qcOrder)
+                    .active(true)
+                    .imageUrl(null)
+                    .build();
+            stageDefRepo.save(qc);
+        }
     }
 
     // ─── List ─────────────────────────────────────────────────────────────────
@@ -72,13 +101,15 @@ public class StageDefinitionService {
     public List<StageDefinitionDto.Response> listActive() {
         List<StageDefinition> list = stageDefRepo.findAllByActiveTrueOrderBySortOrderAsc();
         if (list.stream().noneMatch(s -> "ORDER_TAKEN".equalsIgnoreCase(s.getStageKey()))
-                || list.stream().noneMatch(s -> "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey()))) {
+                || list.stream().noneMatch(s -> "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey()))
+                || list.stream().noneMatch(s -> "QC".equalsIgnoreCase(s.getStageKey()))) {
             ensureBoundaryStagesExist();
             list = stageDefRepo.findAllByActiveTrueOrderBySortOrderAsc();
         }
+        Map<String, Long> activeCounts = getActiveOrderCountsMap();
         return enforceBoundarySort(list)
                 .stream()
-                .map(this::toResponse)
+                .map(s -> toResponse(s, activeCounts))
                 .collect(Collectors.toList());
     }
 
@@ -86,13 +117,15 @@ public class StageDefinitionService {
     public List<StageDefinitionDto.Response> listAll() {
         List<StageDefinition> list = stageDefRepo.findAllByOrderBySortOrderAsc();
         if (list.stream().noneMatch(s -> "ORDER_TAKEN".equalsIgnoreCase(s.getStageKey()))
-                || list.stream().noneMatch(s -> "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey()))) {
+                || list.stream().noneMatch(s -> "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey()))
+                || list.stream().noneMatch(s -> "QC".equalsIgnoreCase(s.getStageKey()))) {
             ensureBoundaryStagesExist();
             list = stageDefRepo.findAllByOrderBySortOrderAsc();
         }
+        Map<String, Long> activeCounts = getActiveOrderCountsMap();
         return enforceBoundarySort(list)
                 .stream()
-                .map(this::toResponse)
+                .map(s -> toResponse(s, activeCounts))
                 .collect(Collectors.toList());
     }
 
@@ -106,7 +139,7 @@ public class StageDefinitionService {
     @Transactional
     public StageDefinitionDto.Response create(StageDefinitionDto.Request req) {
         String key = toKey(req.getDisplayName());
-        if ("ORDER_TAKEN".equals(key) || "READY_TO_DELIVER".equals(key) || "READY".equals(key)) {
+        if ("ORDER_TAKEN".equals(key) || "READY_TO_DELIVER".equals(key) || "READY".equals(key) || "QC".equals(key)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cannot create stage with reserved system key '" + key + "'.");
         }
@@ -115,10 +148,23 @@ public class StageDefinitionService {
                     "A stage with key '" + key + "' already exists. Choose a different name.");
         }
 
-        // Auto-set sort order to the end if not provided, but before READY_TO_DELIVER if present
+        // Auto-set sort order to the end if not provided, but before QC and READY_TO_DELIVER
+        java.util.Optional<StageDefinition> qcOpt = stageDefRepo.findByStageKey("QC");
         java.util.Optional<StageDefinition> readyStageOpt = stageDefRepo.findByStageKey("READY_TO_DELIVER");
         int sortOrder;
-        if (readyStageOpt.isPresent()) {
+
+        if (qcOpt.isPresent()) {
+            StageDefinition qc = qcOpt.get();
+            sortOrder = qc.getSortOrder() != null ? qc.getSortOrder() : Math.max(2, (int) stageDefRepo.count());
+            // Shift QC and READY_TO_DELIVER after the new stage
+            qc.setSortOrder(sortOrder + 1);
+            stageDefRepo.save(qc);
+            if (readyStageOpt.isPresent()) {
+                StageDefinition ready = readyStageOpt.get();
+                ready.setSortOrder(sortOrder + 2);
+                stageDefRepo.save(ready);
+            }
+        } else if (readyStageOpt.isPresent()) {
             StageDefinition readyStage = readyStageOpt.get();
             sortOrder = readyStage.getSortOrder() != null ? readyStage.getSortOrder() : (int) stageDefRepo.count() + 1;
             // Shift READY_TO_DELIVER after the new stage
@@ -250,12 +296,16 @@ public class StageDefinitionService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Fixed system stage (" + def.getDisplayName() + ") is required by the ERP and cannot be deleted.");
         }
-        long linked = stageDefRepo.countLinkedProductionStages(def.getStageKey());
-        if (linked > 0) {
+        long activeOrders = getActiveOrderCountForStage(def.getStageKey());
+        if (activeOrders > 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Cannot delete — " + linked + " production stage records reference '"
-                            + def.getStageKey() + "'. Deactivate instead.");
+                    "Cannot delete — " + activeOrders + " active order" + (activeOrders != 1 ? "s are" : " is")
+                            + " currently in this stage. Please move or complete them first, or deactivate the stage.");
         }
+
+        // Clean up linked pinned employees and placeholder records before removing definition
+        stageDefEmpRepo.deleteAllByStageDefId(def.getId());
+        productionStageRepository.deleteByStageName(def.getStageKey());
         stageDefRepo.delete(def);
     }
 
@@ -267,15 +317,18 @@ public class StageDefinitionService {
             return listAll();
         }
 
-        // Find stage definitions for orderedIds to locate ORDER_TAKEN and READY_TO_DELIVER
+        // Find stage definitions for orderedIds to locate ORDER_TAKEN, QC, and READY_TO_DELIVER
         List<StageDefinition> stages = stageDefRepo.findAllById(orderedIds);
         UUID orderTakenId = null;
+        UUID qcId = null;
         UUID readyToDeliverId = null;
 
         for (StageDefinition s : stages) {
             String key = s.getStageKey() != null ? s.getStageKey().toUpperCase().trim() : "";
             if ("ORDER_TAKEN".equals(key)) {
                 orderTakenId = s.getId();
+            } else if ("QC".equals(key)) {
+                qcId = s.getId();
             } else if ("READY_TO_DELIVER".equals(key)) {
                 readyToDeliverId = s.getId();
             }
@@ -283,15 +336,23 @@ public class StageDefinitionService {
 
         List<UUID> sanitizedIds = new ArrayList<>(orderedIds);
 
-        // 1. Enforce ORDER_TAKEN is strictly at index 0 (Stage 1)
+        // Remove fixed boundary IDs first so intermediate items can be arranged freely
+        if (orderTakenId != null) sanitizedIds.remove(orderTakenId);
+        if (qcId != null) sanitizedIds.remove(qcId);
+        if (readyToDeliverId != null) sanitizedIds.remove(readyToDeliverId);
+
+        // 1. Enforce ORDER_TAKEN strictly at index 0 (Stage 1)
         if (orderTakenId != null) {
-            sanitizedIds.remove(orderTakenId);
             sanitizedIds.add(0, orderTakenId);
         }
 
-        // 2. Enforce READY_TO_DELIVER is strictly at the final index (Last Stage)
+        // 2. Enforce QC strictly at index (N - 2) (Stage N - 1, immediately before READY_TO_DELIVER)
+        if (qcId != null) {
+            sanitizedIds.add(qcId);
+        }
+
+        // 3. Enforce READY_TO_DELIVER strictly at final index (Stage N)
         if (readyToDeliverId != null) {
-            sanitizedIds.remove(readyToDeliverId);
             sanitizedIds.add(readyToDeliverId);
         }
 
@@ -338,14 +399,52 @@ public class StageDefinitionService {
     }
 
     private StageDefinitionDto.Response toResponse(StageDefinition def) {
+        return toResponse(def, getActiveOrderCountsMap());
+    }
+
+    private StageDefinitionDto.Response toResponse(StageDefinition def, Map<String, Long> activeCounts) {
         StageDefinitionDto.Response r = StageDefinitionDto.Response.from(def);
-        r.setLinkedOrderCount(stageDefRepo.countLinkedProductionStages(def.getStageKey()));
+        String key = def.getStageKey() != null ? def.getStageKey().toUpperCase().trim() : "";
+        long count = activeCounts != null ? activeCounts.getOrDefault(key, 0L) : 0L;
+        if (count == 0 && "READY_TO_DELIVER".equals(key) && activeCounts != null) {
+            count = activeCounts.getOrDefault("READY", 0L);
+        } else if (count == 0 && "ORDER_TAKEN".equals(key) && activeCounts != null) {
+            count = activeCounts.getOrDefault("ORDER", 0L);
+        }
+        r.setLinkedOrderCount(count);
 
         List<StageDefinitionEmployee> links = stageDefEmpRepo.findByStageDefId(def.getId());
         r.setPinnedEmployees(links.stream()
                 .map(l -> EmployeeDto.Response.from(l.getEmployee()))
                 .collect(Collectors.toList()));
         return r;
+    }
+
+    private Map<String, Long> getActiveOrderCountsMap() {
+        try {
+            return orderRepository.countActiveOrdersGroupedByStage().stream()
+                    .filter(row -> row != null && row.length >= 2 && row[0] != null)
+                    .collect(Collectors.toMap(
+                            row -> ((String) row[0]).toUpperCase().trim(),
+                            row -> ((Number) row[1]).longValue(),
+                            (a, b) -> a + b
+                    ));
+        } catch (Exception e) {
+            return Collections.emptyMap();
+        }
+    }
+
+    private long getActiveOrderCountForStage(String stageKey) {
+        if (stageKey == null || stageKey.isBlank()) return 0L;
+        Map<String, Long> counts = getActiveOrderCountsMap();
+        String key = stageKey.toUpperCase().trim();
+        long count = counts.getOrDefault(key, 0L);
+        if (count == 0 && "READY_TO_DELIVER".equals(key)) {
+            count = counts.getOrDefault("READY", 0L);
+        } else if (count == 0 && "ORDER_TAKEN".equals(key)) {
+            count = counts.getOrDefault("ORDER", 0L);
+        }
+        return count;
     }
 
     /** Converts display name to uppercase stage key: "Hand Work" → "HAND_WORK" */
@@ -362,15 +461,17 @@ public class StageDefinitionService {
         if (def == null) return false;
         String k = def.getStageKey() != null ? def.getStageKey().toUpperCase().trim() : "";
         String name = def.getDisplayName() != null ? def.getDisplayName().toUpperCase().trim() : "";
-        return "ORDER_TAKEN".equals(k) || "READY_TO_DELIVER".equals(k) || "READY".equals(k)
-                || "ORDER TAKEN".equals(name) || "READY TO DELIVER".equals(name) || "READY FOR DELIVERY".equals(name);
+        return "ORDER_TAKEN".equals(k) || "READY_TO_DELIVER".equals(k) || "READY".equals(k) || "QC".equals(k)
+                || "ORDER TAKEN".equals(name) || "READY TO DELIVER".equals(name) || "READY FOR DELIVERY".equals(name)
+                || "QUALITY CONTROL".equals(name);
     }
 
     /**
      * Enforces the business boundary:
      * - ORDER_TAKEN is strictly at index 0 (sort_order = 1)
+     * - QC is strictly at index N-2 (sort_order = N-1)
      * - READY_TO_DELIVER is strictly at the final index (sort_order = N)
-     * - Intermediate stages maintain relative sorting between index 1 and N-2
+     * - Intermediate stages maintain relative sorting between index 1 and N-3
      */
     private List<StageDefinition> enforceBoundarySort(List<StageDefinition> list) {
         if (list == null || list.size() <= 1) {
@@ -378,6 +479,7 @@ public class StageDefinitionService {
         }
 
         StageDefinition orderTaken = null;
+        StageDefinition qc = null;
         StageDefinition readyToDeliver = null;
         List<StageDefinition> intermediates = new ArrayList<>();
 
@@ -385,6 +487,8 @@ public class StageDefinitionService {
             String key = def.getStageKey() != null ? def.getStageKey().toUpperCase().trim() : "";
             if ("ORDER_TAKEN".equals(key)) {
                 orderTaken = def;
+            } else if ("QC".equals(key)) {
+                qc = def;
             } else if ("READY_TO_DELIVER".equals(key)) {
                 readyToDeliver = def;
             } else {
@@ -406,6 +510,10 @@ public class StageDefinitionService {
             StageDefinition inter = intermediates.get(i);
             inter.setSortOrder(i + 2);
             sorted.add(inter);
+        }
+        if (qc != null) {
+            qc.setSortOrder(sorted.size() + 1);
+            sorted.add(qc);
         }
         if (readyToDeliver != null) {
             readyToDeliver.setSortOrder(sorted.size() + 1);

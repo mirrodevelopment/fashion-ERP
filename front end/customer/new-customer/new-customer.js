@@ -58,6 +58,7 @@ const customerState = {
 
 // City to State & Locality Presets
 const INDIAN_CITY_PRESETS = {
+  Coimbatore: { state: 'Tamil Nadu', locality: 'Gandhipuram', pincode: '641012' },
   Chennai: { state: 'Tamil Nadu', locality: 'T. Nagar', pincode: '600017' },
   Mumbai: { state: 'Maharashtra', locality: 'Bandra West', pincode: '400050' },
   Bengaluru: { state: 'Karnataka', locality: 'Indiranagar', pincode: '560038' },
@@ -77,11 +78,6 @@ function cacheDom() {
     form: document.getElementById('newCustomerForm'),
     stepper: document.getElementById('workflowStepper'),
     // Step 1
-    avatarImg: document.getElementById('avatarPreviewImg'),
-    avatarFallback: document.getElementById('avatarFallback'),
-    avatarInitials: document.getElementById('avatarInitials'),
-    avatarFileInput: document.getElementById('avatarFileInput'),
-    btnRemoveAvatar: document.getElementById('btnRemoveAvatar'),
     salutationSelect: document.getElementById('salutationSelect'),
     firstNameInput: document.getElementById('firstNameInput'),
     lastNameInput: document.getElementById('lastNameInput'),
@@ -91,7 +87,6 @@ function cacheDom() {
     // Step 2
     primaryMobileInput: document.getElementById('primaryMobileInput'),
     whatsappToggle: document.getElementById('whatsappToggle'),
-    whatsappTag: document.getElementById('whatsappTag'),
     altPhoneInput: document.getElementById('altPhoneInput'),
     emailInput: document.getElementById('emailInput'),
     instagramInput: document.getElementById('instagramInput'),
@@ -118,47 +113,18 @@ function cacheDom() {
     unitCmBtn: document.getElementById('unitCmBtn'),
     standardSizeView: document.getElementById('standardSizeView'),
     measurementsGrid: document.getElementById('measurementsGrid'),
-    measBust: document.getElementById('measBust'),
-    measUnderbust: document.getElementById('measUnderbust'),
-    measWaist: document.getElementById('measWaist'),
-    measHighHip: document.getElementById('measHighHip'),
-    measLowHip: document.getElementById('measLowHip'),
-    measShoulder: document.getElementById('measShoulder'),
-    measFrontNeck: document.getElementById('measFrontNeck'),
-    measBackNeck: document.getElementById('measBackNeck'),
-    measArmhole: document.getElementById('measArmhole'),
-    measFullLength: document.getElementById('measFullLength'),
-    // Step 6
-    assignedStylistSelect: document.getElementById('assignedStylistSelect'),
-    referralSelect: document.getElementById('referralSelect'),
-    openingCreditInput: document.getElementById('openingCreditInput'),
-    creditLimitInput: document.getElementById('creditLimitInput'),
     // Right Preview Card
     sumAvatarImg: document.getElementById('sumAvatarImg'),
     sumAvatarFallback: document.getElementById('sumAvatarFallback'),
-    sumAvatarInitials: document.getElementById('sumAvatarInitials'),
     sumClientName: document.getElementById('sumClientName'),
     sumTierBadge: document.getElementById('sumTierBadge'),
-    sumClientId: document.getElementById('sumClientId'),
     sumPhone: document.getElementById('sumPhone'),
-    sumWhatsappBadge: document.getElementById('sumWhatsappBadge'),
     sumEmail: document.getElementById('sumEmail'),
     sumLocation: document.getElementById('sumLocation'),
     sumStyleTags: document.getElementById('sumStyleTags'),
     sumColorTags: document.getElementById('sumColorTags'),
     sumMeasStatus: document.getElementById('sumMeasStatus'),
     sumMeasDims: document.getElementById('sumMeasDims'),
-    sumStylist: document.getElementById('sumStylist'),
-    sumVipIcon: document.getElementById('sumVipIcon'),
-    // Readiness
-    readinessPercent: document.getElementById('readinessPercent'),
-    readinessBar: document.getElementById('readinessBar'),
-    chkIdentity: document.getElementById('chkIdentity'),
-    chkContact: document.getElementById('chkContact'),
-    chkAddress: document.getElementById('chkAddress'),
-    chkStyle: document.getElementById('chkStyle'),
-    chkMeasurements: document.getElementById('chkMeasurements'),
-    chkAccount: document.getElementById('chkAccount'),
     // Action Buttons
     btnSaveDraft: document.getElementById('btnSaveDraft'),
     btnRegisterCustomer: document.getElementById('btnRegisterCustomer'),
@@ -545,13 +511,9 @@ function syncCustomerPreview() {
   // 1. Name & Primary Mobile Identity
   if (dom.sumClientName) dom.sumClientName.textContent = fullName;
   const rawPhone = dom.primaryMobileInput ? dom.primaryMobileInput.value.trim() : '';
-  const displayMobile = rawPhone ? `+91 ${rawPhone}` : (customerState.phone ? `+91 ${customerState.phone}` : '—');
-  if (dom.sumClientId) dom.sumClientId.textContent = displayMobile;
 
   // 2. Avatar Ring & Initials Fallback
   const initials = hasName ? ((firstName.charAt(0) || '') + (lastName.charAt(0) || '')).toUpperCase() : '—';
-  if (dom.avatarInitials) dom.avatarInitials.textContent = initials;
-  if (dom.sumAvatarInitials) dom.sumAvatarInitials.textContent = initials;
   const fallbackEl = document.getElementById('sumAvatarFallback');
   if (fallbackEl) {
     fallbackEl.innerHTML = `<span style="font-size:20px;font-weight:800;color:${hasName ? '#ffffff' : 'rgba(255,255,255,0.4)'}">${initials}</span>`;
@@ -576,22 +538,10 @@ function syncCustomerPreview() {
     dom.sumTierBadge.className = `preview-tier-badge ${tierClass}`;
     if (window.lucide) window.lucide.createIcons({ root: dom.sumTierBadge });
   }
-  if (dom.sumVipIcon) {
-    dom.sumVipIcon.textContent = customerState.tier === 'VIP Platinum' ? '👑' : customerState.tier === 'VIP Gold' ? '⭐' : '';
-    dom.sumVipIcon.style.display = customerState.tier === 'Regular' ? 'none' : 'block';
-  }
 
   // 4. Contact Details
   if (dom.sumPhone) {
     dom.sumPhone.textContent = rawPhone ? `+91 ${rawPhone}` : '—';
-  }
-
-  const isWhatsapp = dom.whatsappToggle ? dom.whatsappToggle.checked : true;
-  if (dom.sumWhatsappBadge) {
-    dom.sumWhatsappBadge.style.display = isWhatsapp ? 'inline-flex' : 'none';
-  }
-  if (dom.whatsappTag) {
-    dom.whatsappTag.style.display = isWhatsapp ? 'inline-flex' : 'none';
   }
 
   const email = dom.emailInput ? dom.emailInput.value.trim() : '';
@@ -667,48 +617,11 @@ function syncCustomerPreview() {
     if (window.lucide) window.lucide.createIcons({ root: dom.sumMeasStatus });
   }
 
-  // 8. Assigned Stylist
-  const stylist = dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0].trim() : '';
-  if (dom.sumStylist) dom.sumStylist.textContent = stylist || '—';
-
-  updateReadinessProgress();
 }
 
 // ─── Dynamic Onboarding Readiness Checklist ───
 function updateReadinessProgress() {
-  let score = 0;
-  const total = 5;
-
-  // 1. Identity Check (Personal Details & Membership Tier)
-  const hasName = dom.firstNameInput && dom.firstNameInput.value.trim() !== '' && dom.lastNameInput && dom.lastNameInput.value.trim() !== '' && !!customerState.tier;
-  if (hasName) score++;
-  if (dom.chkIdentity) dom.chkIdentity.classList.toggle('completed', hasName);
-
-  // 2. Contact Check
-  const rawPhone = dom.primaryMobileInput ? dom.primaryMobileInput.value.replace(/[^\d]/g, '') : '';
-  const hasPhone = rawPhone.length === 10;
-  if (hasPhone) score++;
-  if (dom.chkContact) dom.chkContact.classList.toggle('completed', hasPhone);
-
-  // 3. Address Check
-  const hasAddress = dom.streetAddressInput && dom.streetAddressInput.value.trim() !== '' && dom.localityInput && dom.localityInput.value.trim() !== '';
-  if (hasAddress) score++;
-  if (dom.chkAddress) dom.chkAddress.classList.toggle('completed', hasAddress);
-
-  // 4. Style DNA Check
-  const hasStyles = customerState.styles && customerState.styles.length > 0;
-  if (hasStyles) score++;
-  if (dom.chkStyle) dom.chkStyle.classList.toggle('completed', hasStyles);
-
-  // 5. Measurements Check
-  const hasMeas = parseFloat(getDynamicMeas('bust', '0')) > 0 || parseFloat(getDynamicMeas('shoulder', '0')) > 0;
-  if (hasMeas) score++;
-  if (dom.chkMeasurements) dom.chkMeasurements.classList.toggle('completed', hasMeas);
-
-  // Progress Bar & Percentage
-  const percent = Math.round((score / total) * 100);
-  if (dom.readinessPercent) dom.readinessPercent.textContent = `${percent}%`;
-  if (dom.readinessBar) dom.readinessBar.style.width = `${percent}%`;
+  // Left for backward compatibility; readiness elements not present in current form markup
 }
 
 // ─── Draft Management (LocalStorage) ───
@@ -737,13 +650,13 @@ function saveCustomerDraft() {
     landmark: dom.landmarkInput ? dom.landmarkInput.value : '',
     styles: customerState.styles,
     colors: customerState.colors,
-    fit: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : 'Structured Corseted',
+    fit: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : '',
     allergies: dom.fabricAllergyInput ? dom.fabricAllergyInput.value : '',
-    tier: customerState.tier,
+    tier: customerState.tier || 'Regular',
     stylist: dom.assignedStylistSelect ? dom.assignedStylistSelect.value : '',
     referral: dom.referralSelect ? dom.referralSelect.value : '',
     openingCredit: dom.openingCreditInput ? dom.openingCreditInput.value : 0,
-    creditLimit: dom.creditLimitInput ? dom.creditLimitInput.value : 25000,
+    creditLimit: dom.creditLimitInput ? dom.creditLimitInput.value : 0,
     timestamp: new Date().toISOString(),
   };
 
@@ -872,10 +785,10 @@ async function handleCustomerSubmit(event) {
       lastName: lastName,
       avatar: customerState.avatarDataUrl || '',
       avatarUrl: customerState.avatarDataUrl || '',
-      tier: customerState.tier || 'VIP Platinum',
+      tier: customerState.tier || 'Regular',
       phone: mobileKey,
       altPhone: dom.altPhoneInput ? dom.altPhoneInput.value.trim() : '',
-      email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+      email: email || '',
       instagramHandle: dom.instagramInput ? dom.instagramInput.value.trim() : '',
       preferredChannel: (dom.prefChannelInput || dom.prefChannelSelect) ? (dom.prefChannelInput || dom.prefChannelSelect).value.trim() : 'WhatsApp',
       location: fullLocation,
@@ -890,13 +803,13 @@ async function handleCustomerSubmit(event) {
       totalSpend: openingBalance,
       balance: 0,
       lastOrderDate: new Date().toISOString().slice(0, 10),
-      favoriteGarment: customerState.styles.length > 0 ? customerState.styles.join(', ') : 'Bridal Couture',
-      fitPreference: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : 'Structured Corseted',
+      favoriteGarment: customerState.styles.length > 0 ? customerState.styles.join(', ') : '',
+      fitPreference: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : '',
       fabricAllergies: dom.fabricAllergyInput ? dom.fabricAllergyInput.value.trim() : '',
       preferredNeck: dom.prefNeckSelect ? dom.prefNeckSelect.value : '',
       preferredSleeve: dom.prefSleeveSelect ? dom.prefSleeveSelect.value : '',
       preferredOccasions: dom.prefOccasionsInput ? dom.prefOccasionsInput.value.trim() : '',
-      deliveryPreference: dom.prefDeliverySelect ? dom.prefDeliverySelect.value : 'Standard Boutique Pickup',
+      deliveryPreference: dom.prefDeliverySelect ? dom.prefDeliverySelect.value : '',
       measurementsOnFile: true,
       gender: customerState.gender || 'Female',
       dob: dom.dobInput ? dom.dobInput.value : '',
@@ -938,22 +851,9 @@ async function handleCustomerSubmit(event) {
     // ─── 2. Persist to Backend API ───
     try {
       const { default: api, Auth } = await import('../../api.js');
-      // If not logged in, auto-login with default admin credentials
       if (Auth && !Auth.isLoggedIn()) {
-        try {
-          const authRes = await api.auth.login('admin', 'Admin@123');
-          if (authRes && authRes.token) {
-            Auth.setToken(authRes.token, true);
-            Auth.setUser({
-              userId: authRes.userId,
-              username: authRes.username,
-              fullName: authRes.fullName,
-              role: authRes.role
-            });
-          }
-        } catch (authErr) {
-          console.warn('[New Customer] Background authentication check:', authErr.message);
-        }
+        window.location.href = '../../login/login.html';
+        return;
       }
 
       if (Auth && Auth.isLoggedIn()) {
@@ -967,7 +867,7 @@ async function handleCustomerSubmit(event) {
           gender: customerState.gender || 'Female',
           phone: mobileKey,
           altPhone: dom.altPhoneInput ? dom.altPhoneInput.value.trim() : '',
-          email: email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+          email: email || '',
           instagramHandle: dom.instagramInput ? dom.instagramInput.value.trim() : '',
           preferredChannel: dom.prefChannelSelect ? dom.prefChannelSelect.value : 'WhatsApp',
           dob: dom.dobInput?.value || null,
@@ -981,13 +881,13 @@ async function handleCustomerSubmit(event) {
           landmark: dom.landmarkInput ? dom.landmarkInput.value.trim() : '',
           creditLimit: creditLimit,
           notes: dom.clientNotesInput ? dom.clientNotesInput.value.trim() : '',
-          favoriteGarment: customerState.styles.length > 0 ? customerState.styles.join(', ') : 'Bridal Couture',
-          fitPreference: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : 'Structured Corseted',
+          favoriteGarment: customerState.styles.length > 0 ? customerState.styles.join(', ') : '',
+          fitPreference: dom.fitPreferenceSelect ? dom.fitPreferenceSelect.value : '',
           fabricAllergies: dom.fabricAllergyInput ? dom.fabricAllergyInput.value.trim() : '',
           preferredNeck: dom.prefNeckSelect ? dom.prefNeckSelect.value : '',
           preferredSleeve: dom.prefSleeveSelect ? dom.prefSleeveSelect.value : '',
           preferredOccasions: dom.prefOccasionsInput ? dom.prefOccasionsInput.value.trim() : '',
-          deliveryPreference: dom.prefDeliverySelect ? dom.prefDeliverySelect.value : 'Standard Boutique Pickup',
+          deliveryPreference: dom.prefDeliverySelect ? dom.prefDeliverySelect.value : '',
           measurementsOnFile: true
         });
         console.log('[New Customer] Successfully synchronized client profile to backend database.');
@@ -1020,11 +920,12 @@ async function handleCustomerSubmit(event) {
     } catch (_) {}
 
     // ─── 4. Populate & Display Success Modal ───
+    const coName = (typeof CompanyBridge !== 'undefined' ? CompanyBridge.get().companyName : null) || 'our boutique';
     if (dom.modalCustomerSubtitle) {
-      dom.modalCustomerSubtitle.textContent = `${fullName} (${mobileKey}) is now registered in the Haulo Boutique Atelier.`;
+      dom.modalCustomerSubtitle.textContent = `${fullName} (${mobileKey}) is now registered in ${coName}.`;
     }
     if (dom.modalCustomerSummary) {
-      const stylistName = dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0].trim() : 'Haulo Specialist';
+      const stylistName = dom.assignedStylistSelect ? dom.assignedStylistSelect.value.split('(')[0].trim() : 'Lead Specialist';
       dom.modalCustomerSummary.innerHTML = `
         <div class="m-row"><span class="m-lbl">Client Name</span><span class="m-val">${fullName}</span></div>
         <div class="m-row"><span class="m-lbl">Primary Mobile</span><span class="m-val" style="color:var(--lime,#d4ff32);font-weight:700;">${mobileKey}</span></div>

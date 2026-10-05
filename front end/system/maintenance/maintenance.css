@@ -1,0 +1,1078 @@
+/* =======================================================================
+   HAULO BOUTIQUE ERP — SYSTEM UNDER MAINTENANCE STYLESHEET (PURE CSS/SVG)
+   Path: front end/system/maintenance/maintenance.css
+   ======================================================================= */
+
+@import url('../../fragments/font/font.css');
+
+:root {
+  --bg-dark: #080c10;
+  --bg-gradient: radial-gradient(ellipse at 50% 28%, #141f17 0%, #0b1116 48%, #06090d 100%);
+  --neon-lime: #a3e635;
+  --neon-lime-hover: #bbf43d;
+  --neon-lime-glow: rgba(163, 230, 53, 0.5);
+  --neon-lime-soft: rgba(163, 230, 53, 0.15);
+  --lime-dark: #1a2e05;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.74);
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-dim: rgba(255, 255, 255, 0.28);
+  --divider-color: rgba(255, 255, 255, 0.12);
+  
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  background: var(--bg-gradient);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Outer Page Wrapper ── */
+.maintenance-page-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 36px 30px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ── Atmospheric Ambient Glowing Background ── */
+.ambient-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.glow-orb-top {
+  width: 680px;
+  height: 480px;
+  top: -140px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(163, 230, 53, 0.18) 0%, rgba(34, 197, 94, 0.08) 50%, transparent 75%);
+  animation: pulseTopGlow 8s ease-in-out infinite alternate;
+}
+
+.glow-orb-pedestal {
+  width: 520px;
+  height: 300px;
+  top: 170px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(163, 230, 53, 0.22) 0%, rgba(16, 185, 129, 0.06) 60%, transparent 80%);
+}
+
+.glow-orb-side-left {
+  width: 440px;
+  height: 440px;
+  top: 18%;
+  left: -160px;
+  background: radial-gradient(circle, rgba(163, 230, 53, 0.10) 0%, transparent 70%);
+}
+
+.glow-orb-side-right {
+  width: 440px;
+  height: 440px;
+  top: 18%;
+  right: -160px;
+  background: radial-gradient(circle, rgba(163, 230, 53, 0.10) 0%, transparent 70%);
+}
+
+/* ── Top Header Navigation ── */
+.maintenance-header {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1240px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.status-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--neon-lime);
+  box-shadow: 0 0 10px var(--neon-lime);
+  animation: pulseDot 2s infinite;
+}
+
+/* ── Central Main Showcase ── */
+.maintenance-main {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 760px;
+  margin: auto 0;
+}
+
+/* =======================================================================
+   PURE CSS/SVG 3D DIORAMA STAGE
+   ======================================================================= */
+.css-diorama-stage {
+  position: relative;
+  width: 100%;
+  max-width: 660px;
+  height: 310px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* ── 1. The Glowing Circular Pedestal Platform ── */
+.pedestal-platform {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 480px;
+  height: 76px;
+  z-index: 1;
+}
+
+.pedestal-rim {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, #18231c 0%, #10171a 50%, #090e12 100%);
+  border: 2px solid var(--neon-lime);
+  box-shadow: 
+    0 0 35px var(--neon-lime-glow),
+    0 0 75px rgba(163, 230, 53, 0.3),
+    inset 0 2px 14px rgba(163, 230, 53, 0.45),
+    inset 0 -4px 12px rgba(0, 0, 0, 0.85);
+  position: relative;
+  overflow: hidden;
+}
+
+.pedestal-specular {
+  position: absolute;
+  top: 6px;
+  left: 15%;
+  width: 70%;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.pedestal-floor-reflection {
+  position: absolute;
+  bottom: -22px;
+  left: 10%;
+  width: 80%;
+  height: 45px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(163, 230, 53, 0.35) 0%, rgba(163, 230, 53, 0.1) 45%, transparent 75%);
+  filter: blur(14px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 2. The Dark Console Screen Card ── */
+.console-screen-card {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 215px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #1b242a 0%, #121820 60%, #0c1015 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  z-index: 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.console-screen-header {
+  height: 32px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.screen-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--neon-lime);
+  box-shadow: 0 0 8px var(--neon-lime);
+}
+
+.screen-dot-2 {
+  opacity: 0.85;
+}
+
+.screen-dot-3 {
+  opacity: 0.7;
+}
+
+.console-screen-body {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(circle at 50% 60%, rgba(163, 230, 53, 0.08) 0%, rgba(10, 14, 18, 0.6) 80%);
+}
+
+/* ── 3. Floating Glass Badges with Circuit Lines ── */
+.circuit-branch {
+  position: absolute;
+  z-index: 4;
+}
+
+.branch-left {
+  left: 65px;
+  top: 75px;
+}
+
+.branch-right {
+  right: 65px;
+  top: 75px;
+}
+
+.circuit-wire-svg {
+  position: absolute;
+  top: 0;
+  width: 150px;
+  height: 120px;
+  pointer-events: none;
+}
+
+.branch-left .circuit-wire-svg {
+  left: 20px;
+}
+
+.branch-right .circuit-wire-svg {
+  right: 20px;
+  transform: scaleX(-1);
+}
+
+.circuit-path {
+  stroke: var(--neon-lime);
+  stroke-width: 1.8;
+  opacity: 0.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.circuit-dot {
+  fill: var(--neon-lime);
+  filter: drop-shadow(0 0 6px var(--neon-lime));
+}
+
+.floating-tile {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: rgba(20, 27, 35, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(163, 230, 53, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  animation: floatTile 5s ease-in-out infinite alternate;
+}
+
+.branch-right .floating-tile {
+  animation-delay: -2.5s;
+}
+
+.floating-tile:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.75), 0 0 25px var(--neon-lime-glow);
+  border-color: rgba(163, 230, 53, 0.4);
+}
+
+.tile-icon {
+  width: 28px;
+  height: 28px;
+  color: #ffffff;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
+}
+
+/* ── 4. The Big Vibrant 3D Lime Green Gear ── */
+.gear-3d-wrapper {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 135px;
+  height: 135px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.8));
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gear-3d-wrapper:hover {
+  transform: translateX(-50%) rotate(45deg) scale(1.04);
+}
+
+.gear-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── 5. The Metallic Chrome Wrench ── */
+.wrench-3d-wrapper {
+  position: absolute;
+  bottom: 50px;
+  left: 52%;
+  transform: rotate(-38deg);
+  width: 95px;
+  height: 40px;
+  z-index: 6;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.85));
+  pointer-events: none;
+}
+
+.wrench-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── 6. The Striped Construction Barricade ── */
+.barricade-3d-wrapper {
+  position: absolute;
+  bottom: 24px;
+  left: 125px;
+  width: 140px;
+  height: 85px;
+  z-index: 7;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.75));
+}
+
+.barricade-beam {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  width: 100%;
+  height: 32px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--neon-lime),
+    var(--neon-lime) 13px,
+    #14171a 13px,
+    #14171a 26px
+  );
+  border: 1.5px solid #0f1214;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+.barricade-legs {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.barricade-a-frame {
+  position: absolute;
+  bottom: 0;
+  width: 14px;
+  height: 70px;
+}
+
+.frame-left {
+  left: 16px;
+}
+
+.frame-right {
+  right: 16px;
+}
+
+.a-leg {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 70px;
+  background: linear-gradient(180deg, #333d45 0%, #151a1e 100%);
+  border-radius: 3px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+}
+
+.a-leg-1 {
+  left: 0;
+  transform: rotate(-12deg);
+  transform-origin: top center;
+}
+
+.a-leg-2 {
+  right: 0;
+  transform: rotate(12deg);
+  transform-origin: top center;
+}
+
+/* ── 7. The Striped Traffic Cone ── */
+.traffic-cone-3d-wrapper {
+  position: absolute;
+  bottom: 22px;
+  right: 135px;
+  width: 58px;
+  height: 82px;
+  z-index: 7;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.8));
+}
+
+.traffic-cone-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Haulo Brand Mark & Name ── */
+.brand-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.brand-block:hover {
+  transform: translateY(-2px);
+}
+
+.brand-logo-h {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 14px var(--neon-lime-glow));
+}
+
+.brand-text-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 2px;
+}
+
+/* ── Main Two-Tone Headline ── */
+.maintenance-title {
+  font-family: var(--font-serif);
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+.highlight-lime {
+  color: var(--neon-lime);
+  text-shadow: 0 0 25px rgba(163, 230, 53, 0.35);
+  font-style: normal;
+}
+
+/* ── Subtitle Message ── */
+.maintenance-subtitle {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 530px;
+  margin-bottom: 26px;
+}
+
+/* ── Action Buttons Row: [Go Back] & [Refresh Page] ── */
+.action-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+/* Button 1: Go Back */
+.btn-go-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 13px 28px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-decoration: none;
+}
+
+.btn-go-back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.btn-go-back:active {
+  transform: translateY(0);
+}
+
+.arrow-icon-svg {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.25s ease;
+}
+
+.btn-go-back:hover .arrow-icon-svg {
+  transform: translateX(-3px);
+}
+
+.btn-refresh-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--neon-lime);
+  color: #080f02;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 13px 28px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 24px var(--neon-lime-glow);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-refresh-page:hover {
+  background-color: var(--neon-lime-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(163, 230, 53, 0.6);
+}
+
+.btn-refresh-page:active {
+  transform: translateY(0);
+}
+
+.btn-refresh-page.is-loading {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.refresh-icon-svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-refresh-page:hover .refresh-icon-svg {
+  transform: rotate(180deg);
+}
+
+.btn-refresh-page.is-loading .refresh-icon-svg {
+  animation: spinIcon 1s linear infinite;
+}
+
+/* ── Horizontal Divider with Crossed Tools ── */
+.divider-row {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--divider-color) 30%, var(--divider-color) 70%, transparent);
+}
+
+.divider-icon-wrap {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.divider-row:hover .divider-icon-wrap {
+  color: var(--neon-lime);
+  transform: rotate(15deg);
+}
+
+.divider-tools-svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── "Thank you for your patience." ── */
+.patience-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ── Secondary Support Text Link ── */
+.secondary-support-hint {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-top: 14px;
+}
+
+.support-inline-link {
+  background: none;
+  border: none;
+  color: var(--neon-lime);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: opacity 0.2s ease;
+}
+
+.support-inline-link:hover {
+  opacity: 0.8;
+}
+
+/* ── Bottom Footer Area ── */
+.maintenance-footer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1240px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+}
+
+.footer-left-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-dash {
+  width: 20px;
+  height: 2px;
+  background-color: var(--neon-lime);
+  border-radius: 2px;
+}
+
+.footer-caption {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+}
+
+.footer-center-copyright {
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+/* ── Bottom Right Need Help / Contact Support Pill Button ── */
+.btn-support-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 8px 16px 8px 12px;
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-support-pill:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(163, 230, 53, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.support-headset-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--neon-lime);
+  filter: drop-shadow(0 0 6px var(--neon-lime-glow));
+}
+
+.support-pill-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.support-pill-label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.support-pill-action {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.support-chevron-svg {
+  width: 15px;
+  height: 15px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform 0.25s ease;
+}
+
+.btn-support-pill:hover .support-chevron-svg {
+  transform: translateX(3px);
+  color: var(--neon-lime);
+}
+
+/* ── Support Help Modal Dialog ── */
+.support-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 12, 0.84);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.support-modal-backdrop.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.support-modal-card {
+  width: 100%;
+  max-width: 520px;
+  background: #0d1520;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 35px 90px rgba(0, 0, 0, 0.8), 0 0 40px rgba(163, 230, 53, 0.1);
+  transform: translateY(20px) scale(0.96);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.support-modal-backdrop.is-active .support-modal-card {
+  transform: translateY(0) scale(1);
+}
+
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.support-channels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 20px 0 24px;
+}
+
+.support-channel-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.support-channel-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(163, 230, 53, 0.3);
+}
+
+.channel-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--neon-lime);
+}
+
+.channel-info {
+  flex: 1;
+}
+
+.channel-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.channel-val {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.maintenance-window-box {
+  background: rgba(163, 230, 53, 0.08);
+  border: 1px solid rgba(163, 230, 53, 0.2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.window-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--neon-lime);
+  flex-shrink: 0;
+}
+
+.window-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.btn-copy-diagnostics {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(163, 230, 53, 0.12);
+  border: 1px solid rgba(163, 230, 53, 0.3);
+  color: var(--neon-lime);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-copy-diagnostics:hover {
+  background: rgba(163, 230, 53, 0.22);
+}
+
+/* ── Dynamic Toast Notice ── */
+.toast-notice {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: #152232;
+  border: 1px solid rgba(163, 230, 53, 0.4);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-notice.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Animations ── */
+@keyframes floatTile {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+@keyframes pulseTopGlow {
+  0% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0.8; transform: translateX(-50%) scale(1.08); }
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(163, 230, 53, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(163, 230, 53, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(163, 230, 53, 0); }
+}
+
+@keyframes spinIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive Adaptations ── */
+@media (max-width: 768px) {
+  .maintenance-page-wrapper {
+    padding: 20px 18px 20px;
+  }
+
+  .css-diorama-stage {
+    transform: scale(0.85);
+    margin-bottom: -15px;
+  }
+
+  .maintenance-title {
+    font-size: 32px;
+  }
+
+  .maintenance-subtitle {
+    font-size: 14.5px;
+    padding: 0 12px;
+  }
+
+  .maintenance-footer {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 520px) {
+  .css-diorama-stage {
+    transform: scale(0.70);
+    margin-bottom: -35px;
+  }
+
+  .maintenance-title {
+    font-size: 26px;
+  }
+
+  .divider-row {
+    max-width: 290px;
+  }
+}

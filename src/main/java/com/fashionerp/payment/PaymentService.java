@@ -166,8 +166,9 @@ public class PaymentService {
                     
                     // Ensure paidAmount is at least the sum of transactions
                     BigDecimal txSum = payment.getTransactions().stream()
-                            .map(PaymentTransaction::getAmount)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                            .map(t -> t != null ? t.getAmount() : BigDecimal.ZERO)
+                            .filter(java.util.Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
                     if (payment.getPaidAmount().compareTo(txSum) < 0) {
                         payment.setPaidAmount(txSum);
                     }

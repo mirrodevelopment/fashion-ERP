@@ -3,13 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>New Customer — Haulo Boutique ERP</title>
+  <title data-brand-title="New Customer">New Customer</title>
   <meta name="description" content="Register a new bespoke clientele profile, capture sizing, Indian contacts, and fashion DNA." />
-
-  <!-- Google Fonts: Plus Jakarta Sans, Playfair Display & Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -303,7 +300,8 @@
                     <label class="form-label" for="citySelect">City / Metro <span class="req-star">*</span></label>
                     <div class="select-wrapper">
                       <select id="citySelect" class="form-select" onchange="handleCityChange(this.value)">
-                        <option value="Chennai" selected>Chennai</option>
+                        <option value="Coimbatore" selected>Coimbatore</option>
+                        <option value="Chennai">Chennai</option>
                         <option value="Mumbai">Mumbai</option>
                         <option value="Bengaluru">Bengaluru</option>
                         <option value="New Delhi">New Delhi</option>
@@ -457,8 +455,8 @@
                     <label class="form-label" for="fitPreferenceSelect">Fit Preference</label>
                     <div class="select-wrapper">
                       <select id="fitPreferenceSelect" class="form-select">
-                        <option value="" disabled>Select fit preference</option>
-                        <option value="Structured Corseted" selected>Structured Corseted</option>
+                        <option value="" disabled selected>Select fit preference</option>
+                        <option value="Structured Corseted">Structured Corseted</option>
                         <option value="Classic Tailored">Classic Tailored</option>
                         <option value="Relaxed Flowing">Relaxed &amp; Flowing</option>
                         <option value="Skin-Fit Saree Blouse">Skin-Fit Saree Blouse</option>
@@ -470,8 +468,8 @@
                     <label class="form-label" for="fabricAllergyInput">Fabric Sensitivities</label>
                     <div class="select-wrapper">
                       <select id="fabricAllergyInput" class="form-select" onchange="updateReadinessProgress()">
-                        <option value="" disabled>Select sensitivities</option>
-                        <option value="Pure cotton lining only" selected>Pure cotton lining only</option>
+                        <option value="" disabled selected>Select sensitivities</option>
+                        <option value="Pure cotton lining only">Pure cotton lining only</option>
                         <option value="Sensitive to polyester">Sensitive to polyester</option>
                         <option value="Skin allergies to metallic zips">Skin allergies to metallic zips</option>
                         <option value="None">None</option>
@@ -528,8 +526,8 @@
                     <label class="form-label" for="prefDeliverySelect">Delivery Preference</label>
                     <div class="select-wrapper">
                       <select id="prefDeliverySelect" class="form-select">
-                        <option value="" disabled>Select delivery preference</option>
-                        <option value="Standard Boutique Pickup" selected>Standard Boutique Pickup</option>
+                        <option value="" disabled selected>Select delivery preference</option>
+                        <option value="Standard Boutique Pickup">Standard Boutique Pickup</option>
                         <option value="Home Delivery">Home Delivery</option>
                         <option value="Evening Atelier Delivery">Evening Atelier Delivery</option>
                         <option value="Express Atelier Delivery">Express Atelier Delivery</option>
@@ -727,7 +725,7 @@
           </div>
           <div>
             <h3 class="modal-title">Customer Registered Successfully!</h3>
-            <p class="modal-subtitle" id="modalCustomerSubtitle">Profile saved to Haulo Atelier client directory.</p>
+            <p class="modal-subtitle" id="modalCustomerSubtitle">Profile saved to <span data-company="companyName">Boutique</span> client directory.</p>
           </div>
         </div>
         <button type="button" class="modal-close-btn" onclick="closeSuccessModal()">&times;</button>
@@ -751,6 +749,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts: Inline Fragment Definitions + Fragments Loader + Page Controller -->
+  <script src="../../fragments/company-bridge.js"></script>
   <script src="../../fragments/fragments-inline.js"></script>
   <script src="../../fragments/fragments.js"></script>
   <script src="new-customer.js"></script>

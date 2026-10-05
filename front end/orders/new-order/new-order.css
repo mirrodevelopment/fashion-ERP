@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    HAULO BOUTIQUE ERP � NEW ORDER WORKSPACE STYLESHEET
    Path: frontend/orders/new-order/new-order.css
    Visual Source of Truth: media_1789115972191.png
@@ -14,7 +14,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-main), 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-body-gradient);
   background-attachment: fixed;
   color: var(--text-primary);

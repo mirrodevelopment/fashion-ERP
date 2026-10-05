@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-brand-title="Executive Profile">Executive Profile</title>
+  <meta name="description" content="Complete Executive Profile, Identity, Security, and System Settings.">
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared & Customer 360 Style Architecture -->
+  <link rel="stylesheet" href="../fragments/fragments.css">
+  <link rel="stylesheet" href="../fragments/nav.css">
+  <link rel="stylesheet" href="../customer/Customer360/customer360.css">
+  <link rel="stylesheet" href="profile.css">
+
+  <script src="../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+</head>
+<body data-module="profile">
+
+  <!-- Full-screen Blurred Fashion Boutique Background Matching Customer 360 -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-gradient-overlay"></div>
+  </div>
+
+  <!-- Main Floating Glass Application Shell -->
+  <main class="app-shell" id="appShell">
+    <!-- Dynamic Sidebar Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-area" id="mainArea">
+      <!-- Dynamic Top Navbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- ======= EXECUTIVE PROFILE WORKSPACE (Matching Customer 360) ======= -->
+      <div class="customer360-workspace profile-workspace">
+
+        <!-- Top Breadcrumb & Actions Bar Matching c360-top-bar -->
+        <div class="c360-top-bar">
+          <div class="breadcrumb-nav">
+            <a href="../dashboard/dashboard.html" class="bc-link">Dashboard</a>
+            <span class="bc-sep">&rsaquo;</span>
+            <span class="bc-current" id="bcProfileName">Executive Profile</span>
+          </div>
+
+          <div class="c360-top-actions">
+            <button type="button" class="btn-new-order" id="topSaveBtn" onclick="handleTopAction()">
+              <i data-lucide="edit-3" id="topActionIcon"></i>
+              <span id="topSaveBtnText">Edit Profile</span>
+            </button>
+            <button type="button" class="btn-top-glass" id="topUploadPhotoBtn" onclick="triggerAvatarUpload()">
+              <i data-lucide="camera"></i>
+              <span>Upload Photo (20MB)</span>
+            </button>
+            <button type="button" class="btn-top-glass" id="topChangePasswordBtn" onclick="switchProfileTab('security')">
+              <i data-lucide="key"></i>
+              <span>Change Password</span>
+            </button>
+            <button type="button" class="btn-top-glass icon-only" onclick="if(window.HauloTheme)window.HauloTheme.toggle();" title="Toggle Theme">
+              <i data-lucide="moon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Full-Width Luxury Executive Profile Banner Matching c360-profile-banner -->
+        <div class="c360-profile-banner">
+          <!-- Left: Avatar & Identity -->
+          <div class="profile-banner-left">
+            <div class="profile-avatar-wrap avatar-interactive-wrap" id="c360ProfileAvatarWrap" onclick="triggerAvatarUpload()" title="Click to upload profile photo (up to 20MB)">
+              <img src="" alt="Profile Avatar" class="profile-avatar-img" id="heroAvatarImg" style="display:none;" onerror="this.style.display='none';document.getElementById('customerAvatarInitials').style.display='flex';" />
+              <div class="haulo-patron-avatar-initials haulo-avatar-xl" id="customerAvatarInitials" style="display:flex;">--</div>
+              <div class="avatar-hover-overlay">
+                <i data-lucide="camera"></i>
+                <span>Change</span>
+              </div>
+              <!-- Hidden File Input for Avatar (Max 20MB) -->
+              <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFileSelect(event)" />
+            </div>
+
+            <div class="profile-info-block">
+              <div class="profile-name-badges">
+                <h1 class="profile-name" id="profileName">Loading Profile...</h1>
+                <span class="badge-vip" id="profileBadge">
+                  <i data-lucide="crown"></i>
+                  <span id="profileRoleBadge">—</span>
+                </span>
+                <span class="badge-active">
+                  <i data-lucide="check"></i>
+                  <span>Active</span>
+                </span>
+                <span class="badge-clearance">
+                  <i data-lucide="shield-check"></i>
+                  <span id="profileClearanceBadge">—</span>
+                </span>
+              </div>
+
+              <div class="profile-contacts">
+                <span class="p-contact"><i data-lucide="at-sign"></i><span id="profileUsername">@—</span></span>
+                <span class="p-contact"><i data-lucide="phone"></i><span id="profilePhone">—</span></span>
+                <span class="p-contact"><i data-lucide="mail"></i><span id="profileEmail">—</span></span>
+                <span class="p-contact"><i data-lucide="map-pin"></i><span id="profileBranch">—</span></span>
+              </div>
+
+              <div class="profile-quote-line">
+                <span class="quote-text" id="profileQuote">&ldquo;—&rdquo;</span>
+                <span class="quote-author" id="profileQuoteAuthor">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: 4 Luxury Stat Cards Matching Customer 360 -->
+          <div class="profile-banner-metrics">
+            <!-- 1. Member Tenure -->
+            <div class="stat-card">
+              <div class="stat-icon-box calendar-box">
+                <i data-lucide="calendar"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Member Since</span>
+                <span class="stat-value" id="statMemberSince">—</span>
+                <span class="stat-sub" id="statTenureTier">—</span>
+              </div>
+            </div>
+
+            <!-- 2. Last Active -->
+            <div class="stat-card">
+              <div class="stat-icon-box rupee-box">
+                <i data-lucide="clock"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Last Active</span>
+                <span class="stat-value" id="statLastLogin">—</span>
+                <span class="stat-sub positive" id="statLastLoginSub">—</span>
+              </div>
+            </div>
+
+            <!-- 3. System Clearance -->
+            <div class="stat-card">
+              <div class="stat-icon-box bag-box">
+                <i data-lucide="shield-check"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">System Role</span>
+                <span class="stat-value" id="statRoleValue">—</span>
+                <span class="stat-sub" id="statPrivilegesSummary">—</span>
+              </div>
+            </div>
+
+            <!-- 4. Security Status -->
+            <div class="stat-card">
+              <div class="stat-icon-box card-box">
+                <i data-lucide="lock"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Security</span>
+                <span class="stat-value" id="statSecurityValue">—</span>
+                <span class="stat-sub positive" id="statSessionLifetime">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horizontal Navigation Tabs Bar Matching c360-nav-tabs -->
+        <nav class="c360-nav-tabs">
+          <button type="button" class="tab-pill active" data-tab="overview" onclick="switchProfileTab('overview', this)">Personal &amp; Contact</button>
+          <button type="button" class="tab-pill" data-tab="security" onclick="switchProfileTab('security', this)">Security &amp; Passwords</button>
+          <button type="button" class="tab-pill" data-tab="roles" onclick="switchProfileTab('roles', this)">Roles &amp; Privileges</button>
+          <button type="button" class="tab-pill" data-tab="preferences" onclick="switchProfileTab('preferences', this)">Workspace Preferences</button>
+          <button type="button" class="tab-pill" data-tab="activity" onclick="switchProfileTab('activity', this)">Activity &amp; Sessions</button>
+        </nav>
+
+        <!-- =========================================================
+             1. TAB VIEW: OVERVIEW (3-Column Luxury Dashboard Grid)
+             ========================================================= -->
+        <div class="c360-tab-view active" id="tabView-overview">
+          <div class="c360-dashboard-grid">
+
+            <!-- COLUMN 1: Account Information & Philosophy -->
+            <div class="c360-grid-col col-left">
+
+              <!-- Card: Account & Contact Details -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="user" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Account &amp; Contact Information</h3>
+                  </div>
+                  <div class="card-header-actions">
+                    <span class="badge-active" style="font-size:10px;">Primary Profile</span>
+                    <button type="button" class="btn-header-edit" id="btnHeaderEdit" onclick="toggleEditMode()" title="Click to edit profile details">
+                      <i data-lucide="edit-3" id="iconHeaderEdit" style="width:13px;height:13px;"></i>
+                      <span id="btnHeaderEditText">Edit</span>
+                    </button>
+                  </div>
+                </div>
+
+                <form id="formPersonal" onsubmit="event.preventDefault(); savePersonalDetails();">
+                  <div class="c360-form-stack">
+                    <div class="form-group-c360">
+                      <label for="inputFullName" class="form-label-c360">Full Name <span class="required">*</span></label>
+                      <div class="input-with-icon-wrap">
+                        <i data-lucide="user" class="input-icon-svg"></i>
+                        <input type="text" id="inputFullName" class="c360-input is-view-mode" placeholder="e.g. Super Administrator" required readonly />
+                      </div>
+                    </div>
+
+                    <div class="form-group-c360">
+                      <label for="inputUsername" class="form-label-c360">Username <span class="input-locked-badge"><i data-lucide="lock" style="width:10px;height:10px;"></i> System Locked</span></label>
+                      <div class="input-with-icon-wrap">
+                        <i data-lucide="at-sign" class="input-icon-svg"></i>
+                        <input type="text" id="inputUsername" class="c360-input input-readonly" readonly disabled />
+                      </div>
+                    </div>
+
+                    <div class="form-row-2-c360">
+                      <div class="form-group-c360">
+                        <label for="inputEmail" class="form-label-c360">Email Address</label>
+                        <div class="input-with-icon-wrap">
+                          <i data-lucide="mail" class="input-icon-svg"></i>
+                          <input type="email" id="inputEmail" class="c360-input is-view-mode" placeholder="e.g. name@yourdomain.com" readonly data-brand-placeholder="employeeEmail" />
+                        </div>
+                      </div>
+                      <div class="form-group-c360">
+                        <label for="inputPhone" class="form-label-c360">Phone / Mobile</label>
+                        <div class="input-with-icon-wrap">
+                          <i data-lucide="phone" class="input-icon-svg"></i>
+                          <input type="tel" id="inputPhone" class="c360-input is-view-mode" placeholder="e.g. +91 XXXXX XXXXX" readonly data-brand-placeholder="phone" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-row-2-c360">
+                      <div class="form-group-c360">
+                        <label for="inputDesignation" class="form-label-c360">Professional Designation</label>
+                        <div class="input-with-icon-wrap">
+                          <i data-lucide="briefcase" class="input-icon-svg"></i>
+                          <input type="text" id="inputDesignation" class="c360-input is-view-mode" placeholder="e.g. Master Tailor, Stylist" readonly />
+                        </div>
+                      </div>
+                      <div class="form-group-c360">
+                        <label for="inputDepartment" class="form-label-c360">Department</label>
+                        <div class="input-with-icon-wrap">
+                          <i data-lucide="building" class="input-icon-svg"></i>
+                          <input type="text" id="inputDepartment" class="c360-input is-view-mode" placeholder="e.g. Atelier Operations, Cutting" readonly />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group-c360">
+                      <label for="inputAssignedBranch" class="form-label-c360">Assigned Primary Branch</label>
+                      <div class="input-with-icon-wrap">
+                        <i data-lucide="map-pin" class="input-icon-svg"></i>
+                        <select id="inputAssignedBranch" class="c360-input c360-select is-view-mode" disabled>
+                          <option value="">Select Primary Branch</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- View Mode Action Bar -->
+                    <div class="form-actions-c360" id="formViewActions">
+                      <button type="button" class="btn-new-order" id="btnStartEdit" onclick="enableEditMode()">
+                        <i data-lucide="edit-3"></i>
+                        <span>Edit Profile</span>
+                      </button>
+                    </div>
+
+                    <!-- Edit Mode Action Bar -->
+                    <div class="form-actions-c360" id="formEditActions" style="display: none;">
+                      <button type="submit" class="btn-new-order" id="btnSavePersonal">
+                        <i data-lucide="check"></i>
+                        <span>Save Profile Changes</span>
+                      </button>
+                      <button type="button" class="btn-top-glass" id="btnCancelPersonal" onclick="cancelEditMode()">
+                        <i data-lucide="x"></i>
+                        <span>Cancel</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Card: Personal Bio & Notes -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="quote" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Personal Bio &amp; Philosophy</h3>
+                  </div>
+                </div>
+                <div class="c360-form-stack">
+                  <textarea id="inputBio" class="c360-input c360-textarea is-view-mode" rows="3" placeholder="Add a brief description about your role, background, or atelier responsibilities..." readonly></textarea>
+                  <div class="c360-quote-preview">
+                    <span class="preview-badge">Live Topbar Quote Preview:</span>
+                    <p id="bioPreviewText">&ldquo;—&rdquo;</p>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /col-left -->
+
+            <!-- COLUMN 2: Avatar Manager & Atelier Studio -->
+            <div class="c360-grid-col col-middle">
+
+              <!-- Card: Profile Avatar Studio (Max 20MB) -->
+              <div class="dash-card card-avatar-studio">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="camera" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Avatar Studio</h3>
+                  </div>
+                  <span class="badge-vip" style="font-size:10px;">Max 20 MB</span>
+                </div>
+
+                <div class="avatar-studio-body">
+                  <div class="avatar-preview-frame">
+                    <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2224%22 height=%2224%22 fill=%22none%22 stroke=%22%2394a3b8%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2%22/%3E%3Ccircle cx=%2212%22 cy=%227%22 r=%224%22/%3E%3C/svg%3E" alt="Preview Avatar" class="studio-avatar-img" id="sideAvatarImg" />
+                    <div class="studio-avatar-overlay" onclick="triggerAvatarUpload()">
+                      <i data-lucide="upload-cloud"></i>
+                      <span>Change Photo</span>
+                    </div>
+                  </div>
+
+                  <div class="avatar-studio-controls">
+                    <button type="button" class="btn-new-order" onclick="triggerAvatarUpload()" style="width:100%;justify-content:center;">
+                      <i data-lucide="upload"></i>
+                      <span>Upload New Image</span>
+                    </button>
+                    <button type="button" class="btn-top-glass" onclick="removeCustomAvatar()" style="width:100%;justify-content:center;color:#f87171;">
+                      <i data-lucide="trash-2"></i>
+                      <span>Reset to Default</span>
+                    </button>
+                  </div>
+
+                  <div class="avatar-specs-box">
+                    <div class="specs-row"><i data-lucide="check-circle" style="color:#b8ff3d;"></i> Max Size: <strong>20 MB</strong> supported</div>
+                    <div class="specs-row"><i data-lucide="check-circle" style="color:#b8ff3d;"></i> Formats: <strong>PNG, JPG, WEBP, SVG</strong></div>
+                    <div class="specs-row"><i data-lucide="check-circle" style="color:#b8ff3d;"></i> Syncs instantly to topbar &amp; session</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card: Atelier Responsibilities & Highlights -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="scissors" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Atelier Responsibilities</h3>
+                  </div>
+                </div>
+                <div class="atelier-resp-list">
+                  <div class="resp-item">
+                    <div class="resp-icon purple"><i data-lucide="award"></i></div>
+                    <div class="resp-info">
+                      <strong id="respTitle">—</strong>
+                      <span id="respDept">—</span>
+                    </div>
+                  </div>
+                  <div class="resp-item">
+                    <div class="resp-icon lime"><i data-lucide="clock"></i></div>
+                    <div class="resp-info">
+                      <strong id="respShift">—</strong>
+                      <span id="respBranch">—</span>
+                    </div>
+                  </div>
+                  <div class="resp-item">
+                    <div class="resp-icon gold"><i data-lucide="phone-call"></i></div>
+                    <div class="resp-info">
+                      <strong>Emergency Contact</strong>
+                      <span id="respEmergency">—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /col-middle -->
+
+            <!-- COLUMN 3: Privileges & Security Overview -->
+            <div class="c360-grid-col col-right">
+
+              <!-- Card: System Access Clearance -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="shield" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">System Clearance Level</h3>
+                  </div>
+                  <button type="button" class="header-arrow-circle" onclick="switchProfileTab('roles')" aria-label="View Roles">
+                    <i data-lucide="arrow-right"></i>
+                  </button>
+                </div>
+
+                <div class="clearance-badge-card">
+                  <div class="clearance-icon-wrap"><i data-lucide="shield-check"></i></div>
+                  <div class="clearance-text-wrap">
+                    <span class="clearance-title" id="clearanceTitle">—</span>
+                    <span class="clearance-sub" id="clearanceSub">—</span>
+                  </div>
+                </div>
+
+                <div class="privilege-mini-matrix">
+                  <div class="matrix-pill active"><i data-lucide="check"></i> <span id="pillModules">—</span></div>
+                  <div class="matrix-pill active"><i data-lucide="check"></i> Database Read / Write</div>
+                  <div class="matrix-pill active"><i data-lucide="check"></i> Financial PO Sign-off</div>
+                  <div class="matrix-pill active"><i data-lucide="check"></i> Branch Configuration</div>
+                </div>
+              </div>
+
+              <!-- Card: Account Metadata & Security Snapshot -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="fingerprint" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Account Security Snapshot</h3>
+                  </div>
+                  <button type="button" class="header-arrow-circle" onclick="switchProfileTab('security')" aria-label="Security Settings">
+                    <i data-lucide="arrow-right"></i>
+                  </button>
+                </div>
+
+                <div class="meta-table-c360">
+                  <div class="meta-row-c360">
+                    <span class="meta-key">User ID</span>
+                    <span class="meta-val mono" id="metaUserId">—</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Profile Record ID</span>
+                    <span class="meta-val mono" id="metaProfileId">—</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Password Encryption</span>
+                    <span class="meta-val positive" id="metaSecurityStatus">—</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Session Lifetime</span>
+                    <span class="meta-val" id="metaSessionLifetime">—</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Work Shift</span>
+                    <span class="meta-val" id="metaWorkShift">—</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Account Status</span>
+                    <span class="meta-val positive" id="metaAccountStatus">—</span>
+                  </div>
+                </div>
+
+                <button type="button" class="btn-top-glass" onclick="switchProfileTab('security')" style="width:100%;justify-content:center;margin-top:6px;">
+                  <i data-lucide="key"></i>
+                  <span>Change Password</span>
+                </button>
+              </div>
+
+            </div><!-- /col-right -->
+
+          </div><!-- /c360-dashboard-grid -->
+        </div><!-- /tabView-overview -->
+
+
+        <!-- =========================================================
+             2. TAB VIEW: SECURITY & PASSWORD
+             ========================================================= -->
+        <div class="c360-tab-view" id="tabView-security" style="display:none;">
+          <div class="c360-dashboard-grid">
+
+            <!-- Col 1 & 2 Combined (Left): Change Password Form -->
+            <div class="c360-grid-col col-left" style="grid-column: span 2;">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="key-round" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Change Password</h3>
+                  </div>
+                  <span class="badge-vip" style="font-size:10px;">BCrypt Salted</span>
+                </div>
+
+                <form id="formPassword" onsubmit="event.preventDefault(); changePassword();">
+                  <div class="c360-form-stack">
+
+                    <!-- Current Password -->
+                    <div class="form-group-c360">
+                      <label for="inputCurrentPassword" class="form-label-c360">Current Password <span class="required">*</span></label>
+                      <div class="input-with-icon-wrap">
+                        <i data-lucide="lock" class="input-icon-svg"></i>
+                        <input type="password" id="inputCurrentPassword" class="c360-input" placeholder="Enter current password" required />
+                        <button type="button" class="eye-toggle-btn" onclick="togglePasswordVisibility('inputCurrentPassword', this)" title="Show/Hide Password">
+                          <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- New Password -->
+                    <div class="form-group-c360">
+                      <label for="inputNewPassword" class="form-label-c360">New Password <span class="required">*</span></label>
+                      <div class="input-with-icon-wrap">
+                        <i data-lucide="key" class="input-icon-svg"></i>
+                        <input type="password" id="inputNewPassword" class="c360-input" placeholder="At least 6 characters" required oninput="evaluatePasswordStrength(this.value)" />
+                        <button type="button" class="eye-toggle-btn" onclick="togglePasswordVisibility('inputNewPassword', this)" title="Show/Hide Password">
+                          <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                        </button>
+                      </div>
+                      <!-- Password Strength Meter -->
+                      <div class="strength-meter-wrap" id="strengthMeterWrap" style="display:none;">
+                        <div class="strength-bar-bg">
+                          <div class="strength-bar-fill" id="strengthBarFill"></div>
+                        </div>
+                        <span class="strength-text" id="strengthText">Strength: Weak</span>
+                      </div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="form-group-c360">
+                      <label for="inputConfirmPassword" class="form-label-c360">Confirm New Password <span class="required">*</span></label>
+                      <div class="input-with-icon-wrap">
+                        <i data-lucide="check-circle" class="input-icon-svg"></i>
+                        <input type="password" id="inputConfirmPassword" class="c360-input" placeholder="Re-enter new password" required oninput="checkPasswordMatch()" />
+                        <button type="button" class="eye-toggle-btn" onclick="togglePasswordVisibility('inputConfirmPassword', this)" title="Show/Hide Password">
+                          <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                        </button>
+                      </div>
+                      <span class="match-feedback" id="matchFeedback"></span>
+                    </div>
+
+                    <!-- Recommendations Box -->
+                    <div class="password-guidelines-box">
+                      <span class="guideline-heading">Password Security Requirements:</span>
+                      <ul class="guideline-list">
+                        <li id="ruleLength"><i data-lucide="circle" style="width:12px;height:12px;"></i> Minimum of 6 characters in length</li>
+                        <li id="ruleCase"><i data-lucide="circle" style="width:12px;height:12px;"></i> Combination of uppercase &amp; lowercase letters</li>
+                        <li id="ruleNumber"><i data-lucide="circle" style="width:12px;height:12px;"></i> Contains at least one digit or special symbol</li>
+                      </ul>
+                    </div>
+
+                    <div class="form-actions-c360">
+                      <button type="submit" class="btn-new-order" id="btnUpdatePassword">
+                        <i data-lucide="check"></i>
+                        <span>Update Password</span>
+                      </button>
+                      <button type="button" class="btn-top-glass" onclick="document.getElementById('formPassword').reset()">
+                        <span>Clear</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Col 3 (Right): Cryptography & Session Status -->
+            <div class="c360-grid-col col-right">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="shield" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Security Governance</h3>
+                  </div>
+                </div>
+
+                <div class="security-feature-item">
+                  <div class="sec-icon green"><i data-lucide="lock"></i></div>
+                  <div>
+                    <strong>BCrypt Salt Hashing</strong>
+                    <p>Passwords are salted with 12 rounds of cryptographic BCrypt encoding before saving to PostgreSQL.</p>
+                  </div>
+                </div>
+
+                <div class="security-feature-item">
+                  <div class="sec-icon purple"><i data-lucide="clock"></i></div>
+                  <div>
+                    <strong>Stateless JWT Authentication</strong>
+                    <p>Secure signed HMAC-SHA256 tokens valid for 24 hours of session activity.</p>
+                  </div>
+                </div>
+
+                <div class="security-feature-item">
+                  <div class="sec-icon gold"><i data-lucide="globe"></i></div>
+                  <div>
+                    <strong>Brute-Force Attack Shield</strong>
+                    <p>In-memory sliding window rate limiter protects against unauthorized password attempts.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /tabView-security -->
+
+
+        <!-- =========================================================
+             3. TAB VIEW: ROLES & PRIVILEGES
+             ========================================================= -->
+        <div class="c360-tab-view" id="tabView-roles" style="display:none;">
+          <div class="c360-dashboard-grid">
+
+            <div class="c360-grid-col col-left">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="users" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">CRM &amp; Client Privileges</h3>
+                  </div>
+                  <span class="badge-active">Full Control</span>
+                </div>
+                <div class="privilege-checklist">
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Customer 360 &amp; Profiles (Read/Write)</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Client Enquiries &amp; Appointments (Full Access)</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Customer Ledger &amp; Payments (Create &amp; Settle)</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> WhatsApp Messaging Campaigns (Send &amp; Schedule)</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="c360-grid-col col-middle">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="sparkles" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Atelier &amp; Production Privileges</h3>
+                  </div>
+                  <span class="badge-active">Full Control</span>
+                </div>
+                <div class="privilege-checklist">
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Design Studio &amp; Silhouette Library</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> 360° Body Measurement Entry &amp; Calibration</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Production Floor &amp; Job Card Assignment</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Quality Control Inspection &amp; Sign-off</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="c360-grid-col col-right">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="sliders" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Enterprise System Privileges</h3>
+                  </div>
+                  <span class="badge-active">Full Control</span>
+                </div>
+                <div class="privilege-checklist">
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Branch Management &amp; Stock Allocations</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Company Settings &amp; Legal Entity Branding</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Workforce Attendance &amp; Payroll Management</div>
+                  <div class="check-row"><i data-lucide="check" class="check-lime"></i> Database Migrations &amp; Security Configuration</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /tabView-roles -->
+
+
+        <!-- =========================================================
+             4. TAB VIEW: WORKSPACE PREFERENCES
+             ========================================================= -->
+        <div class="c360-tab-view" id="tabView-preferences" style="display:none;">
+          <div class="c360-dashboard-grid">
+
+            <div class="c360-grid-col col-left" style="grid-column: span 2;">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="palette" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Display &amp; Interface Preferences</h3>
+                  </div>
+                </div>
+                <div class="pref-items-wrap">
+                  <div class="pref-row">
+                    <div>
+                      <strong>ERP Interface Theme</strong>
+                      <p>Toggle between Classic Warm Glass and Modern Dark Mode.</p>
+                    </div>
+                    <button type="button" class="btn-top-glass" onclick="if(window.HauloTheme) window.HauloTheme.toggle();">
+                      <i data-lucide="moon"></i>
+                      <span>Switch Theme</span>
+                    </button>
+                  </div>
+                  <div class="pref-divider"></div>
+                  <div class="pref-row">
+                    <div>
+                      <strong>Desktop Notification Alerts</strong>
+                      <p>Receive live notifications for order completions and client trials.</p>
+                    </div>
+                    <label class="c360-toggle">
+                      <input type="checkbox" id="prefNotifications" checked />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="pref-divider"></div>
+                  <div class="pref-row">
+                    <div>
+                      <strong>Audio Feedback &amp; Cues</strong>
+                      <p>Play subtle audio cues when action items or orders complete.</p>
+                    </div>
+                    <label class="c360-toggle">
+                      <input type="checkbox" id="prefSounds" checked />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="c360-grid-col col-right">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="command" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Keyboard Shortcuts</h3>
+                  </div>
+                </div>
+                <div class="shortcuts-list">
+                  <div class="shortcut-item">
+                    <span>Global Command Search</span>
+                    <kbd class="kbd-pill">⌘ K</kbd>
+                  </div>
+                  <div class="shortcut-item">
+                    <span>Toggle Sidebar Collapse</span>
+                    <kbd class="kbd-pill">⌘ B</kbd>
+                  </div>
+                  <div class="shortcut-item">
+                    <span>Close Active Modal</span>
+                    <kbd class="kbd-pill">ESC</kbd>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /tabView-preferences -->
+
+
+        <!-- =========================================================
+             5. TAB VIEW: ACTIVITY & SESSIONS
+             ========================================================= -->
+        <div class="c360-tab-view" id="tabView-activity" style="display:none;">
+          <div class="c360-dashboard-grid">
+
+            <div class="c360-grid-col col-left" style="grid-column: span 2;">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="activity" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Recent Administrative Activity</h3>
+                  </div>
+                </div>
+                <div class="activity-timeline-wrap">
+                  <div class="activity-timeline-item">
+                    <div class="timeline-dot-lime"></div>
+                    <div class="timeline-content">
+                      <span class="timeline-title">Profile Authenticated</span>
+                      <span class="timeline-desc">Signed in with administrative credentials from local host.</span>
+                      <span class="timeline-time">Today, Just now</span>
+                    </div>
+                  </div>
+                  <div class="activity-timeline-item">
+                    <div class="timeline-dot-purple"></div>
+                    <div class="timeline-content">
+                      <span class="timeline-title">Executive Profile Hydrated</span>
+                      <span class="timeline-desc">Loaded user details from PostgreSQL database table <code>user_profiles</code>.</span>
+                      <span class="timeline-time">Session active</span>
+                    </div>
+                  </div>
+                  <div class="activity-timeline-item">
+                    <div class="timeline-dot-gold"></div>
+                    <div class="timeline-content">
+                      <span class="timeline-title">Avatar Image Synchronized</span>
+                      <span class="timeline-desc">Propagated avatar URL to topbar header components.</span>
+                      <span class="timeline-time">Automatic</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="c360-grid-col col-right">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <div class="dash-header-left">
+                    <i data-lucide="laptop" class="header-icon-bullet"></i>
+                    <h3 class="dash-card-title">Active Session Info</h3>
+                  </div>
+                </div>
+                <div class="meta-table-c360">
+                  <div class="meta-row-c360">
+                    <span class="meta-key">IP Address</span>
+                    <span class="meta-val">127.0.0.1</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Client Host</span>
+                    <span class="meta-val">localhost:8080</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Token Type</span>
+                    <span class="meta-val">Bearer JWT</span>
+                  </div>
+                  <div class="meta-row-c360">
+                    <span class="meta-key">Token Expiry</span>
+                    <span class="meta-val positive">24 Hours</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /tabView-activity -->
+
+      </div><!-- /customer360-workspace -->
+
+      <!-- Universal Status Bar / Footer Slot -->
+      <div id="footerSlot"></div>
+    </div><!-- /main-area -->
+  </main><!-- /app-shell -->
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Core Scripts & Shared Fragments Matching Customer 360 Architecture -->
+  <script src="../fragments/company-bridge.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+  <script type="module" src="profile.js"></script>
+</body>
+</html>

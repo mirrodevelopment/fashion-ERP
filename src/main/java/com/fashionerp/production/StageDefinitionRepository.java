@@ -28,7 +28,7 @@ public interface StageDefinitionRepository extends JpaRepository<StageDefinition
     boolean existsByStageKey(String stageKey);
 
     /** Batch update sort_order — used by the reorder endpoint */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE StageDefinition s SET s.sortOrder = :sortOrder WHERE s.id = :id")
     void updateSortOrder(UUID id, int sortOrder);
 

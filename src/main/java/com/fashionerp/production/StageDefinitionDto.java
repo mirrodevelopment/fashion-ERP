@@ -85,7 +85,9 @@ public class StageDefinitionDto {
             r.sortOrder    = s.getSortOrder() != null ? s.getSortOrder() : 0;
             r.active       = Boolean.TRUE.equals(s.getActive());
             r.imageUrl     = s.getImageUrl();
-            r.systemFixed  = "ORDER_TAKEN".equalsIgnoreCase(s.getStageKey()) || "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey());
+            r.systemFixed  = "ORDER_TAKEN".equalsIgnoreCase(s.getStageKey())
+                           || "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey())
+                           || "QC".equalsIgnoreCase(s.getStageKey());
             r.createdAt    = s.getCreatedAt();
             r.updatedAt    = s.getUpdatedAt();
             return r;

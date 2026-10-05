@@ -1064,4 +1064,43 @@ body {
   }
 }
 
+/* ── 13. Auth Tab Toggle (Sign In / Create Account) ───────────────────── */
+.auth-tab-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 20px;
+  width: 100%;
+}
 
+.auth-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  font-family: var(--font-main, 'Outfit', sans-serif);
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.22s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.auth-tab.active {
+  background: rgba(183, 255, 60, 0.12);
+  color: #B7FF3C;
+  box-shadow: 0 0 0 1px rgba(183, 255, 60, 0.25), inset 0 1px 0 rgba(183, 255, 60, 0.12);
+}
+
+.auth-tab:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+}

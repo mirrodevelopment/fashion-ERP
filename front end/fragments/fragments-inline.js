@@ -22,8 +22,8 @@ window.FRAGMENT_HTML = {
       </svg>
     </div>
     <div class="logo-text">
-      <span class="brand-name">HAULO</span>
-      <span class="brand-sub">BOUTIQUE ERP</span>
+      <span class="brand-name" data-company="shortName"></span>
+      <span class="brand-sub" data-company="businessType"></span>
     </div>
     <button class="sidebar-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Collapse sidebar" aria-label="Collapse sidebar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -170,15 +170,15 @@ window.FRAGMENT_HTML = {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span>Employees</span>
       </a>
-      <a href="#" class="nav-item uncompleted" id="nav-branches" data-tooltip="Branches (In Progress)" data-module="branches" onclick="navNavigate('branches',event)">
+      <a href="../branches/branches.html" class="nav-item" id="nav-branches" data-tooltip="Branches" data-module="branches" onclick="navNavigate('branches',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         <span>Branches</span>
       </a>
-      <a href="#" class="nav-item uncompleted" id="nav-users-roles" data-tooltip="Users &amp; Roles (In Progress)" data-module="users-roles" onclick="navNavigate('users-roles',event)">
+      <a href="../users-roles/users-roles.html" class="nav-item" id="nav-users-roles" data-tooltip="Users &amp; Roles" data-module="users-roles" onclick="navNavigate('users-roles',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span>Users &amp; Roles</span>
       </a>
-      <a href="#" class="nav-item uncompleted" id="nav-settings" data-tooltip="Settings (In Progress)" data-module="settings" onclick="navNavigate('settings',event)">
+      <a href="../settings/settings.html" class="nav-item" id="nav-settings" data-tooltip="Settings" data-module="settings" onclick="navNavigate('settings',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
         <span>Settings</span>
       </a>
@@ -206,22 +206,17 @@ window.FRAGMENT_HTML = {
     <!-- Branch Selector Dropdown -->
     <div class="branch-sel" id="branchSel" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" title="Switch Branch">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:0.75;"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-      <span class="branch-sel-text" id="branchSelText">Haulo Designs &mdash; Main Branch</span>
+      <span class="branch-sel-text" id="branchSelText" data-company="branchTitle">Loading branch...</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-chevron" style="width:11px;height:11px;opacity:0.6;"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="branch-dd dd-panel" id="branchDd">
         <div class="dd-panel-header">Active Branch</div>
-        <div class="dd-item active" data-branch="Main Branch">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Main Branch (Haulo Designs)</span>
+        <div class="branch-dd-list" id="branchDdList">
+          <div class="branch-empty-state">Loading branches...</div>
         </div>
-        <div class="dd-item" data-branch="Boutique Studio">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:0;"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Boutique Studio &mdash; Flagship</span>
-        </div>
-        <div class="dd-item" data-branch="Couture Workshop">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:0;"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Couture Workshop &mdash; Unit 2</span>
-        </div>
+        <a href="../branches/branches.html" class="branch-dd-footer" id="branchManageLink">
+          <span>Manage Branches</span>
+          <span>&rarr;</span>
+        </a>
       </div>
     </div>
 
@@ -264,6 +259,10 @@ window.FRAGMENT_HTML = {
         <div class="dd-item" id="navDdDashboard" onclick="navNavigate('dashboard',event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;margin-right:8px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
           Dashboard
+        </div>
+        <div class="dd-item" id="navDdProfile" onclick="navNavigate('profile',event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;margin-right:8px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          My Profile
         </div>
         <div class="dd-item" id="navDdSettings" onclick="navNavigate('settings',event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;margin-right:8px;"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -356,12 +355,38 @@ window.FRAGMENT_HTML = {
 </div>`,
 
   footer: `<footer class="status-bar" id="appFooter">
+  <!-- Left: Client / Customer Boutique Identity (Dynamic via CompanyBridge) -->
   <div class="status-bar-left">
-    <strong>HAULO</strong> &nbsp;|&nbsp; Intelligent Operations. Inspired Fashion.
+    <strong class="footer-company-name" data-company="shortName"></strong>
+    <span class="status-bar-sep">|</span>
+    <span id="footerTagline" data-company="tagline"></span>
   </div>
+
+  <!-- Center: Platform Brand Identity (Our Software Platform via BrandIdentity) -->
+  <div class="status-bar-center">
+    <div class="footer-platform-badge" title="Haulo Boutique ERP — Luxury Fashion Operating System">
+      <span class="platform-prefix">Powered by</span>
+      <span class="platform-monogram" data-brand="monogram"></span>
+      <strong class="platform-brand-title" data-brand="shortName"></strong>
+      <span class="platform-system-sub" data-brand="systemSub"></span>
+      <span class="platform-version-badge" data-brand="version"></span>
+    </div>
+  </div>
+
+  <!-- Right: System Telemetry, Internet Speed & Live Sync Status -->
   <div class="status-bar-right">
-    <div class="live-dot"></div>
+    <div class="live-dot" title="System Operational"></div>
     <span>Live Data</span>
+    <span class="status-bar-sep">|</span>
+    <div class="wifi-speed-badge" id="wifiSpeedBadge" title="Internet Connection Speed (Click to refresh)">
+      <svg class="wifi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 20h.01"/>
+        <path d="M2 8.82a15 15 0 0 1 20 0"/>
+        <path d="M5 12.86a10 10 0 0 1 14 0"/>
+        <path d="M8.5 16.43a5 5 0 0 1 7 0"/>
+      </svg>
+      <span class="wifi-speed-val" id="wifiSpeedVal">-- Mbps</span>
+    </div>
     <span class="status-bar-sep">|</span>
     <span id="lastUpdated"></span>
   </div>

@@ -60,7 +60,7 @@ public class ProductionController {
     }
 
     @PatchMapping("/stages/{id}/assign")
-    public ProductionStage assignEmployee(
+    public ProductionStage assignEmployeeToProductionStage(
             @PathVariable UUID id,
             @RequestParam(required = false) UUID employeeId) {
         ProductionStage stage = stageRepository.findById(id)
@@ -220,7 +220,7 @@ public class ProductionController {
      * Pins an employee to a stage definition.
      */
     @PostMapping("/stage-definitions/{id}/employees/{empId}")
-    public StageDefinitionDto.Response assignEmployee(
+    public StageDefinitionDto.Response assignEmployeeToStageDefinition(
             @PathVariable UUID id,
             @PathVariable UUID empId) {
         return stageDefinitionService.assignEmployee(id, empId);
@@ -247,7 +247,4 @@ public class ProductionController {
             @RequestParam("file") MultipartFile file) {
         return stageDefinitionService.uploadImage(id, file);
     }
-
-    // Note: /api/v1/production/stage-definitions/preset-images endpoint removed.
-    // Stage artwork is fully user-managed — users upload custom images via the Stage Management UI.
 }

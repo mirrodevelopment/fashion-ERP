@@ -48,12 +48,6 @@ public class OrderController {
         return orderService.update(id, req);
     }
 
-    @PatchMapping("/{id}/progress")
-    public OrderDto.Response addProgress(@PathVariable UUID id,
-                                         @RequestBody OrderDto.ProgressUpdate req) {
-        return orderService.addProgress(id, req);
-    }
-
     /**
      * POST /api/v1/orders/{id}/reference-images/{slot}
      * Upload a reference image for slot 1-5.

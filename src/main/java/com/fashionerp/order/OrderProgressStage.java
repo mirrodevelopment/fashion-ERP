@@ -19,9 +19,8 @@ public class OrderProgressStage {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private Order order;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ProgressStage stage;
+    @Column(name = "stage", nullable = false, length = 50)
+    private String stage;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;

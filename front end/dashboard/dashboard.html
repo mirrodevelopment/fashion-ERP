@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard — Haulo Boutique ERP</title>
-  <meta name="description" content="Haulo Boutique ERP — Luxury Executive Operating System for Fashion Houses"/>
-  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display for quotes -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title data-brand-title="Dashboard">Dashboard</title>
+  <meta name="description" content="Luxury Executive Operating System for Fashion Houses"/>
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
   <!-- Shared fragments styles (sidebar + footer) -->
   <link rel="stylesheet" href="../fragments/fragments.css"/>
   <link rel="stylesheet" href="../fragments/nav.css" />
@@ -43,7 +41,7 @@
       <!-- ── Welcome Row ── -->
       <section class="welcome-section">
         <div class="welcome-left">
-          <h1 class="welcome-greeting">Good <span id="timeOfDay">evening</span>, <span id="greetName">Pranesh</span> 👋</h1>
+          <h1 class="welcome-greeting"><span class="welcome-greeting-text">Good <span id="timeOfDay">morning</span>, <span id="greetName">Pranesh</span></span> <span class="welcome-wave">👋</span></h1>
           <p class="welcome-sub" id="welcomeSub">Your boutique is on track. 6 orders need your attention today.</p>
         </div>
         <div class="welcome-right">
@@ -277,7 +275,9 @@
 <!-- Fragments JS (wires up toggleSidebar(), navNavigate(), active item) -->
 <script>
   window.FRAGMENT_BASE = '../fragments/';
-</script>  <script src="../fragments/fragments-inline.js"></script>
+</script>
+<script src="../fragments/company-bridge.js"></script>
+<script src="../fragments/fragments-inline.js"></script>
 <script src="../fragments/fragments.js"></script>
 <!-- Dashboard Controller JS (ES module for api.js import) -->
 <script type="module" src="dashboard.js?v=8"></script>

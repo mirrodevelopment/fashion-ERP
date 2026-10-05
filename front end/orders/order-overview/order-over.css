@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    HAULO BOUTIQUE ERP � ORDER OVERVIEW
    order-over.css � Card-based order list redesign
    ============================================================ */
@@ -8,7 +8,7 @@
 /* -- Reset & Utilities -- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: var(--font-main), sans-serif;
+  font-family: var(--font-body);
   color: var(--text-primary, var(--text-1));
   min-height: 100vh;
   overflow: hidden;
@@ -266,7 +266,7 @@ body {
 }
 .card-order-id {
   font-size: 10.5px; color: var(--lime); font-weight: 600;
-  font-family: 'Courier New', monospace; letter-spacing: 0.5px; margin-top: 2px;
+  font-family: var(--font-mono); letter-spacing: 0.5px; margin-top: 2px;
 }
 
 /* Status Badge */
@@ -442,7 +442,7 @@ body {
   padding: 20px 22px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
 .drawer-title-group    { display: flex; align-items: center; gap: 10px; }
-.drawer-order-id       { font-size: 14px; font-weight: 700; font-family: monospace; color: var(--lime); }
+.drawer-order-id       { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--lime); }
 .drawer-header-actions { display: flex; align-items: center; gap: 8px; }
 .drawer-view-full {
   display: flex; align-items: center; gap: 5px; font-size: 12px;

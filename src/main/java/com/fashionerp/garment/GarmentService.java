@@ -162,16 +162,6 @@ public class GarmentService {
         return toSummaryResponse(saved);
     }
 
-    @Transactional
-    public GarmentDto.SummaryResponse updateStage(UUID id, GarmentDto.StageUpdateRequest req) {
-        Garment g = garmentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Garment not found with id: " + id));
-        if (req.getProductionStage() != null) g.setProductionStage(req.getProductionStage());
-        if (req.getStatus() != null) g.setStatus(req.getStatus());
-        Garment saved = garmentRepository.save(g);
-        return toSummaryResponse(saved);
-    }
-
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private GarmentDto.SummaryResponse toSummaryResponse(Garment g) {

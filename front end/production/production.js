@@ -4,25 +4,8 @@
  * Path: front end/production/production.js
  */
 
-// Fallback image in case any image fails to load
-const FALLBACK_IMAGE = '../assets/designs/blouse-stage.png';
-
-// Local Garment Images
-const GARMENT_IMAGES = {
-  Blouse: '../assets/designs/blouse-stage.png',
-  'Bridal Blouse': '../assets/designs/zari-bloom-front.jpg',
-  Saree: '../assets/designs/saree-stage.png',
-  'Silk Saree Work': '../assets/designs/saree-stage.png',
-  Lehenga: '../assets/designs/lehenga-stage.png',
-  'Designer Lehenga': '../assets/designs/lehenga-mannequin.png',
-  Chudi: '../assets/designs/chudi-stage.png',
-  'Chudi Set': '../assets/designs/chudi-stage.png',
-  Gown: '../assets/designs/gown-stage.png',
-  'Reception Gown': '../assets/designs/gown-mannequin.png',
-  Kurti: '../assets/designs/kurti-stage.png',
-  'Anarkali Kurti': '../assets/designs/kurti-mannequin.png',
-  default: '../assets/designs/blouse-stage.png'
-};
+// Neutral SVG silhouette in case any image fails to load
+const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
 
 // Available Stages — populated from stage_definitions table on load.
 // STAGES_FALLBACK contains strictly the 2 fixed system stages used as a safety net
@@ -341,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dueLabel: isCancelled ? 'Frozen (Cancelled)' : (isFinalStage(stage) ? 'Completed' : (isDelayed ? `Overdue (${dueDateStr})` : `Due: ${dueDateStr}`)),
             delayed: isDelayed,
             qcReworkCount: Number(o.qcReworkCount) || 0,
-            image: GARMENT_IMAGES[o.garmentType] || GARMENT_IMAGES.default
+            image: (o.referenceImages && o.referenceImages.length > 0) ? o.referenceImages[0] : (o.designImageUrl || o.imageUrl || FALLBACK_IMAGE)
           };
         });
 
@@ -522,7 +505,7 @@ function createOrderCardElement(order) {
     <div class="kc-header">
       <div class="kc-thumb-wrap">
         <img 
-          src="${order.image || GARMENT_IMAGES.default}" 
+          src="${order.image || FALLBACK_IMAGE}" 
           alt="${order.garment}" 
           class="kc-thumb-img" 
           loading="lazy"
@@ -621,20 +604,40 @@ function handleDrop(e, targetStage) {
 }
 
 /**
- * Mapping of boutique production stages to department specializations & roles
+ * Mapping of boutique production stages to department specializations & roles.
+ * NOTE: This static map is a fallback only — the primary source is the live STAGES
+ * array populated from the database (each stage has deptLabel + requiredRole).
  */
 const STAGE_DEPARTMENT_MAP = {
-  'ordertaken': { roles: ['STYLIST', 'DESIGNER', 'MANAGER'], label: 'Order Intake & Reception' },
-  'designing': { roles: ['DESIGNER'], label: 'Design Studio' },
-  'lining': { roles: ['FINISHER'], label: 'Finishing & Lining' },
-  'handwork': { roles: ['EMBROIDERER'], label: 'Embroidery & Maggam' },
-  'cutting': { roles: ['CUTTER'], label: 'Master Cutting' },
-  'stitching': { roles: ['TAILOR'], label: 'Tailoring & Stitching' },
-  'trial': { roles: ['SUPERVISOR', 'TAILOR'], label: 'Fitting & Trial' },
-  'qc': { roles: ['MANAGER', 'SUPERVISOR'], label: 'Quality Control' },
-  'readytodeliver': { roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' },
-  'ready': { roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' }
+  'ordertaken':    { roles: ['STYLIST', 'DESIGNER', 'MANAGER'], label: 'Order Intake & Reception' },
+  'designing':     { roles: ['DESIGNER'], label: 'Design Studio' },
+  'lining':        { roles: ['FINISHER'], label: 'Finishing & Lining' },
+  'handwork':      { roles: ['EMBROIDERER'], label: 'Embroidery & Maggam' },
+  'cutting':       { roles: ['CUTTER'], label: 'Master Cutting' },
+  'stitching':     { roles: ['TAILOR'], label: 'Tailoring & Stitching' },
+  'trial':         { roles: ['SUPERVISOR', 'TAILOR'], label: 'Fitting & Trial' },
+  'qc':            { roles: ['MANAGER', 'SUPERVISOR'], label: 'Quality Control' },
+  'readytodeliver':{ roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' },
+  'ready':         { roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' }
 };
+
+/**
+ * Get stage department info, preferring the live STAGES array's deptLabel/requiredRole
+ * over the static STAGE_DEPARTMENT_MAP. Works for all user-defined custom stages.
+ */
+function getStageDeptInfo(stageId) {
+  // Primary: lookup from live STAGES (populated from DB — includes user-created stages)
+  const liveStage = STAGES.find(s => s.id === stageId);
+  if (liveStage) {
+    const label = liveStage.deptLabel || liveStage.name || 'Production Team';
+    const roles = liveStage.requiredRole
+      ? [String(liveStage.requiredRole).toUpperCase()]
+      : [];
+    return { label, roles };
+  }
+  // Fallback: static map for recognized system stages
+  return STAGE_DEPARTMENT_MAP[stageId] || { roles: [], label: 'Production Specialists' };
+}
 
 /**
  * Open Stage Transition & Specialist Assignment Modal
@@ -672,7 +675,8 @@ function openStageTransitionModal(order, targetStage) {
   if (errorMsg) errorMsg.style.display = 'none';
   if (notesInput) notesInput.value = '';
 
-  const recDept = STAGE_DEPARTMENT_MAP[targetStage] || { roles: [], role: '', label: 'Production Specialists' };
+  // Use live STAGES-aware dept lookup so user-created stages show correct dept name
+  const recDept = getStageDeptInfo(targetStage);
   if (deptHint) deptHint.textContent = `Target Dept: ${recDept.label}`;
 
   if (employeeSelect) {
@@ -1182,20 +1186,16 @@ function updateTeamPerformance(empList) {
   }
 
   const colors = ['fill-purple', 'fill-lime', 'fill-cyan', 'fill-green', 'fill-pink'];
-  const roleToStageMap = {
-    'DESIGNER': 'designing',
-    'CUTTER': 'cutting',
-    'TAILOR': 'stitching',
-    'FINISHER': 'lining',
-    'EMBROIDERER': 'handwork',
-    'SUPERVISOR': 'trial',
-    'MANAGER': 'qc'
-  };
 
   const topEmps = empList.slice(0, 5);
   perfList.innerHTML = topEmps.map((e, idx) => {
-    const stageKey = roleToStageMap[e.role] || 'stitching';
-    const count = productionOrders.filter(o => o.stage === stageKey).length;
+    // Dynamically find the stage this employee's role matches in the live STAGES array
+    const roleUpper = String(e.role || '').toUpperCase();
+    const matchedStage = STAGES.find(s =>
+      s.requiredRole && String(s.requiredRole).toUpperCase() === roleUpper
+    );
+    const stageId = matchedStage ? matchedStage.id : null;
+    const count = stageId ? productionOrders.filter(o => o.stage === stageId).length : 0;
     const widthPct = Math.min(100, Math.max(30, count * 12));
     return `
       <div class="team-perf-row" title="${e.name} — ${e.role} (${e.specialization || ''})">
@@ -1307,7 +1307,7 @@ async function handleCreateOrderSubmit(e) {
     dueDate,
     dueLabel: isFinalStage(stage) ? 'Completed' : (isDelayed ? `Overdue (${dueDate})` : `Due: ${dueDate}`),
     delayed: isDelayed,
-    image: GARMENT_IMAGES[garment] || GARMENT_IMAGES.default
+    image: FALLBACK_IMAGE
   };
 
   productionOrders.unshift(newOrder);
@@ -1340,7 +1340,7 @@ function openOrderDetails(orderId) {
     if (order.isCancelled) {
       advanceBtn.style.display = 'inline-flex';
       advanceBtn.disabled = true;
-      advanceBtn.innerHTML = `Production Frozen (cancaled at ${stageName})`;
+      advanceBtn.innerHTML = `Production Frozen (cancelled at ${stageName})`;
       advanceBtn.style.background = '#dc2626';
       advanceBtn.style.cursor = 'not-allowed';
       advanceBtn.style.opacity = '0.75';
@@ -1362,7 +1362,7 @@ function openOrderDetails(orderId) {
 
   const cancelledBannerHtml = order.isCancelled ? `
     <div style="background:rgba(239,68,68,0.16);border:1px solid rgba(239,68,68,0.55);color:#fca5a5;padding:8px 14px;border-radius:8px;margin-bottom:14px;font-size:12.5px;font-weight:700;">
-      cancaled at ${stageName}
+      Cancelled at ${stageName}
     </div>
   ` : '';
 
@@ -1370,7 +1370,7 @@ function openOrderDetails(orderId) {
     ${cancelledBannerHtml}
     <div class="od-hero">
       <img 
-        src="${order.image || GARMENT_IMAGES.default}" 
+        src="${order.image || FALLBACK_IMAGE}" 
         alt="${order.garment}" 
         class="od-image"
         onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';"
@@ -1437,8 +1437,9 @@ function handleAssignStageChange() {
     }
   }
 
-  const recDept = STAGE_DEPARTMENT_MAP[stage] || { roles: [], label: 'Specialists' };
-  const targetRoles = (recDept.roles || (recDept.role ? [recDept.role] : [])).map(r => String(r || '').toUpperCase());
+  // Use live STAGES-aware dept lookup so user-created stages show correct department & specialist filter
+  const recDept = getStageDeptInfo(stage);
+  const targetRoles = (recDept.roles || []).map(r => String(r || '').toUpperCase());
 
   const categoryEmployees = cachedEmployees.filter(e => {
     const empRole = String(e.role || '').toUpperCase();
@@ -1479,7 +1480,10 @@ function submitTeamAssignment() {
     renderKanban();
   }
 
-  showToast(`Assigned ${specialist || 'specialist'} to lead ${stage.toUpperCase()} stage!`);
+  // Show display name in toast, not raw stage id
+  const assignedStageObj = STAGES.find(s => s.id === stage);
+  const assignedStageName = assignedStageObj ? assignedStageObj.name : stage;
+  showToast(`Assigned ${specialist || 'specialist'} to lead ${assignedStageName} stage!`);
   closeModal('assignTeamModal');
 }
 

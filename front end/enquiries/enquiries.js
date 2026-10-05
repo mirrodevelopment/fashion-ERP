@@ -211,17 +211,8 @@ function mapEnquiryRecord(e) {
 }
 
 function getAvatarInfo(name, avatarUrl) {
-  const photoMap = {
-    'avatar-ps': '../assets/employees/lakshmi-priya.jpg',
-    'avatar-ri': '../assets/employees/meena-r.jpg',
-    'avatar-kn': '../assets/employees/kavitha-m.jpg',
-    'avatar-sv': '../assets/employees/anitha-r.jpg'
-  };
-
   let validPhoto = null;
-  if (avatarUrl && photoMap[avatarUrl]) {
-    validPhoto = photoMap[avatarUrl];
-  } else if (avatarUrl && !avatarUrl.includes('user_avatar.jpg') && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/') || avatarUrl.startsWith('../'))) {
+  if (avatarUrl && !avatarUrl.includes('user_avatar.jpg') && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/') || avatarUrl.startsWith('../'))) {
     validPhoto = avatarUrl;
   }
 
@@ -950,8 +941,8 @@ function initKeyboardShortcuts() {
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      const globalSearch = document.getElementById('globalSearchInput');
-      if (globalSearch) globalSearch.focus();
+      const searchInput = document.getElementById('tableSearchInput') || document.getElementById('globalSearchInput');
+      if (searchInput) searchInput.focus();
     }
   });
 }

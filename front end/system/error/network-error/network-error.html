@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Network Error">Network Error</title>
+  <meta name="description" content="We're unable to connect to the server. Please check your internet connection and try again." />
+  <link rel="icon" type="image/x-icon" href="../../../favicon.ico" />
+  <link rel="stylesheet" href="network-error.css" />
+</head>
+<body>
+
+  <div class="network-error-wrapper">
+
+    <!-- Atmospheric Sunlight & Boutique Interior Elements -->
+    <div class="ambient-bg" aria-hidden="true">
+      <div class="sunlight-beam"></div>
+      <div class="marble-floor-reflection"></div>
+      <div class="french-window-left"></div>
+      <div class="atelier-rug-right"></div>
+
+      <!-- Foreground Botanical Plant Leaf Silhouette (Bottom-Left) -->
+      <svg viewBox="0 0 190 220" fill="none" class="foreground-plant-leaf" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-20 220C-10 160 30 110 90 90C110 84 140 82 170 90C140 120 110 160 100 220H-20Z" fill="#2d3b2a"/>
+        <path d="M-20 220C20 170 80 140 145 135C125 160 100 190 85 220H-20Z" fill="#3c4e38"/>
+        <path d="M-20 220C-5 130 50 70 120 40C105 75 90 125 75 180L-20 220Z" fill="#243222"/>
+      </svg>
+    </div>
+
+    <!-- Main Two-Column Stage -->
+    <main class="network-main-stage">
+
+      <!-- ===================================================================
+           LEFT COLUMN: BRAND, HEADLINE, SUBTITLE, BUTTONS & TROUBLESHOOTING
+           =================================================================== -->
+      <section class="network-info-left">
+
+        <!-- Brand Block -->
+        <a href="../../../dashboard/dashboard.html" class="brand-block" id="brandLink">
+          <!-- Brand Logo Mark -->
+          <span class="brand-logo-mark-wrap" data-brand="logoMarkGold">
+            <svg viewBox="0 0 36 36" fill="none" class="brand-logo-h" xmlns="http://www.w3.org/2000/svg" aria-label="Brand Logo">
+              <defs>
+                <linearGradient id="goldBrandH" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#fae2b3"/>
+                  <stop offset="50%" stop-color="#be934c"/>
+                  <stop offset="100%" stop-color="#8c672f"/>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="4" width="7" height="28" rx="3.5" fill="url(#goldBrandH)"/>
+              <rect x="23" y="4" width="7" height="28" rx="3.5" fill="url(#goldBrandH)"/>
+              <path d="M12 18H24" stroke="url(#goldBrandH)" stroke-width="4.5" stroke-linecap="round"/>
+              <circle cx="18" cy="18" r="2" fill="#ffffff" opacity="0.8"/>
+            </svg>
+          </span>
+          <span class="brand-title" data-brand="shortName"></span>
+          <span class="brand-subtitle" data-brand="systemSub"></span>
+        </a>
+
+        <!-- Eyebrow Tagline -->
+        <div class="eyebrow-tag">
+          <span class="eyebrow-dash"></span>
+          <span class="eyebrow-text">Stay Connected, Create Beauty</span>
+        </div>
+
+        <!-- Headline: Network Error -->
+        <h1 class="network-title">
+          <span class="network-word-1">Network</span>
+          <span class="network-word-2">Error</span>
+        </h1>
+
+        <!-- Subtitle Paragraph -->
+        <p class="network-subtitle">
+          We&rsquo;re unable to connect to the server.<br />
+          Please check your internet connection and try again.
+        </p>
+
+        <!-- Action Buttons: [Try Again] & [Go Back] -->
+        <div class="action-buttons-group">
+          <!-- 1. Try Again Pill Button (Solid Golden Bronze) -->
+          <button type="button" class="btn-try-again" id="btnTryAgain" title="Retry network connection">
+            <!-- Refresh Counter-Clockwise Double Arrows SVG -->
+            <svg viewBox="0 0 24 24" fill="none" class="retry-icon-svg" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+            </svg>
+            <span id="btnTryAgainText">Try Again</span>
+          </button>
+
+          <!-- 2. Go Back Pill Button (Always navigates to last visited page) -->
+          <button type="button" class="btn-go-back" id="btnGoBack" title="Return to previous ERP page">
+            <!-- Left Arrow Icon SVG -->
+            <svg viewBox="0 0 24 24" fill="none" class="arrow-icon-svg" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Go Back</span>
+          </button>
+        </div>
+
+        <!-- 3-Column Glass Troubleshooting Card -->
+        <div class="troubleshooting-card" role="region" aria-label="Network Troubleshooting Tips">
+          <!-- Step 1: Wi-Fi -->
+          <div class="trouble-col">
+            <svg viewBox="0 0 24 24" fill="none" class="trouble-icon" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20" stroke-width="3"/>
+            </svg>
+            <div class="trouble-text">Check your<br>Internet Connection</div>
+          </div>
+
+          <!-- Step 2: Router -->
+          <div class="trouble-col">
+            <svg viewBox="0 0 24 24" fill="none" class="trouble-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="14" width="20" height="8" rx="2"/>
+              <path d="M6 18h.01M10 18h.01"/>
+              <path d="M6 14V6M18 14V6"/>
+              <circle cx="6" cy="5" r="1.5" fill="currentColor"/>
+              <circle cx="18" cy="5" r="1.5" fill="currentColor"/>
+            </svg>
+            <div class="trouble-text">Ensure your<br>network is stable</div>
+          </div>
+
+          <!-- Step 3: Refresh Cycle -->
+          <div class="trouble-col">
+            <svg viewBox="0 0 24 24" fill="none" class="trouble-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+            </svg>
+            <div class="trouble-text">Try again<br>in a few moments</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================
+           RIGHT COLUMN: 3D ATELIER DIORAMA (PURE CSS / SVG - NO RASTER IMAGES)
+           Featuring: Glowing Wall Arch, Fluted Panel, Pendant Lamp,
+           Tiered Marble Pedestal, 3D Blush Wi-Fi Icon with Red Error Badge,
+           Flower Vase, Thread Spool, Draped Silk & Tailor's Mannequin
+           =================================================================== -->
+      <section class="diorama-stage-right" aria-label="Atelier 3D Network Diorama">
+        <svg viewBox="0 0 660 520" fill="none" class="diorama-svg-main" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Gold Metallic Gradients -->
+            <linearGradient id="goldArchGrad" x1="0" y1="0" x2="450" y2="450" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fff5db"/>
+              <stop offset="25%" stop-color="#fae2b3"/>
+              <stop offset="55%" stop-color="#dfb76c"/>
+              <stop offset="85%" stop-color="#be934c"/>
+              <stop offset="100%" stop-color="#73521e"/>
+            </linearGradient>
+
+            <!-- Marble Podium Gradients -->
+            <linearGradient id="marblePedestalTop" x1="120" y1="280" x2="480" y2="340" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="50%" stop-color="#f8f2e9"/>
+              <stop offset="100%" stop-color="#e9ddcd"/>
+            </linearGradient>
+
+            <linearGradient id="marblePedestalFront" x1="120" y1="320" x2="480" y2="400" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f6ece0"/>
+              <stop offset="60%" stop-color="#ebddcd"/>
+              <stop offset="100%" stop-color="#d5c4b0"/>
+            </linearGradient>
+
+            <!-- 3D Ceramic Blush/Rose Wi-Fi Gradient -->
+            <linearGradient id="wifiCeramicGrad" x1="200" y1="120" x2="400" y2="300" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fff5f5"/>
+              <stop offset="30%" stop-color="#f6d5d5"/>
+              <stop offset="70%" stop-color="#e6b4b4"/>
+              <stop offset="100%" stop-color="#ba7d7d"/>
+            </linearGradient>
+
+            <linearGradient id="wifi3dDepth" x1="220" y1="140" x2="420" y2="320" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#c98e8e"/>
+              <stop offset="100%" stop-color="#804a4a"/>
+            </linearGradient>
+
+            <!-- Red Error Badge Gradient -->
+            <linearGradient id="redBadgeGrad" x1="370" y1="220" x2="440" y2="290" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ff7373"/>
+              <stop offset="40%" stop-color="#d94b4b"/>
+              <stop offset="100%" stop-color="#992626"/>
+            </linearGradient>
+
+            <!-- Haute Couture Silk Draping Gradient -->
+            <linearGradient id="roseSilkCascade" x1="420" y1="180" x2="620" y2="480" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f7bebe"/>
+              <stop offset="35%" stop-color="#d99a9a"/>
+              <stop offset="75%" stop-color="#b06f75"/>
+              <stop offset="100%" stop-color="#5a2b30"/>
+            </linearGradient>
+
+            <!-- Linen Mannequin Gradient -->
+            <linearGradient id="linenTorso" x1="460" y1="120" x2="560" y2="320" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="40%" stop-color="#f9f3eb"/>
+              <stop offset="85%" stop-color="#ebd8c3"/>
+              <stop offset="100%" stop-color="#beaa94"/>
+            </linearGradient>
+
+            <!-- Fluted Vase Gold Gradient -->
+            <linearGradient id="goldVaseGrad" x1="170" y1="280" x2="230" y2="360" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fae2b3"/>
+              <stop offset="50%" stop-color="#be934c"/>
+              <stop offset="100%" stop-color="#73521e"/>
+            </linearGradient>
+          </defs>
+
+          <!-- 1. Background Vertical Wall Fluting -->
+          <g opacity="0.3">
+            <line x1="420" y1="10" x2="420" y2="280" stroke="#be934c" stroke-width="1.5"/>
+            <line x1="435" y1="10" x2="435" y2="280" stroke="#be934c" stroke-width="1.5"/>
+            <line x1="450" y1="10" x2="450" y2="280" stroke="#be934c" stroke-width="1.5"/>
+            <line x1="465" y1="10" x2="465" y2="280" stroke="#be934c" stroke-width="1.5"/>
+            <line x1="480" y1="10" x2="480" y2="280" stroke="#be934c" stroke-width="1.5"/>
+          </g>
+
+          <!-- 2. Hanging Brass Pendant Lamp with Luminous Globe -->
+          <line x1="475" y1="0" x2="475" y2="72" stroke="url(#goldArchGrad)" stroke-width="2.5"/>
+          <circle cx="475" cy="88" r="16" fill="rgba(255, 255, 255, 0.9)" stroke="url(#goldArchGrad)" stroke-width="2.5"/>
+          <circle cx="475" cy="88" r="8" fill="#fff5d6" filter="drop-shadow(0 0 12px rgba(255, 235, 170, 0.9))"/>
+
+          <!-- 3. Large Illuminated Architectural Wall Arch Framing the Scene -->
+          <path d="M190 340V160C190 85 245 25 320 25C395 25 450 85 450 160V340"
+                stroke="url(#goldArchGrad)" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.95"
+                filter="drop-shadow(0 0 25px rgba(223, 183, 108, 0.45))"/>
+          <path d="M198 340V162C198 90 250 35 320 35C390 35 442 90 442 162V340"
+                stroke="rgba(255, 255, 255, 0.6)" stroke-width="1.8" fill="none"/>
+
+          <!-- 4. Wardrobe Closet on Far Right (Dim Silhouette with Hanging Clothes) -->
+          <g transform="translate(530, 20)">
+            <path d="M10 420V90C10 40 35 15 70 15C105 15 130 40 130 90V420"
+                  stroke="url(#goldArchGrad)" stroke-width="4.5" fill="#221b18" opacity="0.9"/>
+            <line x1="20" y1="140" x2="120" y2="140" stroke="#dfb76c" stroke-width="2.5"/>
+            <!-- Hanging Garments -->
+            <path d="M35 142L25 165V350H55V165L45 142Z" fill="#c88789" opacity="0.85"/>
+            <path d="M65 142L55 168V370H85V168L75 142Z" fill="#ede4d4" opacity="0.9"/>
+            <path d="M95 142L85 165V340H115V165L105 142Z" fill="#a46c76" opacity="0.85"/>
+          </g>
+
+          <!-- 5. Tiered Calacatta Marble Podium Platform -->
+          <!-- Step 1 (Lower Tier) -->
+          <ellipse cx="330" cy="385" rx="195" ry="38" fill="url(#marblePedestalTop)" stroke="#e4d6c4" stroke-width="1.5"/>
+          <path d="M135 385V405C135 425 220 442 330 442C440 442 525 425 525 405V385"
+                fill="url(#marblePedestalFront)" stroke="#d5c4b0" stroke-width="1.5"/>
+          <!-- Glowing Gold Rim Accent on Lower Tier Base -->
+          <path d="M135 405C135 425 220 442 330 442C440 442 525 425 525 405"
+                stroke="url(#goldArchGrad)" stroke-width="4" fill="none"/>
+
+          <!-- Step 2 (Upper Tier) -->
+          <ellipse cx="330" cy="360" rx="155" ry="30" fill="url(#marblePedestalTop)" stroke="#e4d6c4" stroke-width="1.5"/>
+          <path d="M175 360V378C175 394 245 408 330 408C415 408 485 394 485 378V360"
+                fill="url(#marblePedestalFront)" stroke="#d5c4b0" stroke-width="1.5"/>
+          <path d="M175 378C175 394 245 408 330 408C415 408 485 394 485 378"
+                stroke="url(#goldArchGrad)" stroke-width="3" fill="none"/>
+
+          <!-- Marble Veins Across Platform -->
+          <path d="M220 355C260 350 310 365 350 358C390 352 420 362 450 356" stroke="#d5c4b0" stroke-width="1.2" opacity="0.6"/>
+          <path d="M250 395C290 410 340 405 380 418" stroke="#bead98" stroke-width="1" opacity="0.5"/>
+
+          <!-- 6. Golden Fluted Vase with White Baby's Breath Flowers (Left Step) -->
+          <g>
+            <!-- Delicate Stems & Blossoms -->
+            <path d="M205 285C200 245 190 215 174 185" stroke="#688258" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M208 280C215 240 228 215 245 180" stroke="#688258" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M206 275C206 235 208 205 210 170" stroke="#688258" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M195 235C182 222 168 212 155 205" stroke="#688258" stroke-width="1" stroke-linecap="round"/>
+            <path d="M218 230C234 218 252 210 268 204" stroke="#688258" stroke-width="1" stroke-linecap="round"/>
+
+            <!-- Pearl White Flowers -->
+            <circle cx="174" cy="185" r="3.4" fill="#ffffff" filter="drop-shadow(0 0 3px rgba(255,255,255,0.9))"/>
+            <circle cx="162" cy="195" r="2.8" fill="#fff9ea"/>
+            <circle cx="154" cy="205" r="3.0" fill="#ffffff"/>
+            <circle cx="186" cy="178" r="2.7" fill="#fff9ea"/>
+            <circle cx="210" cy="170" r="3.6" fill="#ffffff" filter="drop-shadow(0 0 3px rgba(255,255,255,0.9))"/>
+            <circle cx="226" cy="165" r="2.8" fill="#fff9ea"/>
+            <circle cx="245" cy="180" r="3.2" fill="#ffffff"/>
+            <circle cx="258" cy="192" r="2.6" fill="#fff9ea"/>
+            <circle cx="268" cy="204" r="3.0" fill="#ffffff"/>
+            <circle cx="196" cy="205" r="2.8" fill="#ffffff"/>
+            <circle cx="230" cy="202" r="2.6" fill="#fff9ea"/>
+
+            <!-- Fluted Golden Vase Body -->
+            <path d="M194 285H218L224 330C226 348 218 358 206 358C194 358 186 348 188 330L194 285Z"
+                  fill="url(#goldVaseGrad)" stroke="rgba(255, 255, 255, 0.4)" stroke-width="1"/>
+            <ellipse cx="206" cy="285" rx="12" ry="4.5" fill="#fae2b3"/>
+            <line x1="200" y1="288" x2="196" y2="352" stroke="#fff4db" stroke-width="1.2" opacity="0.6"/>
+            <line x1="206" y1="288" x2="206" y2="356" stroke="#fff4db" stroke-width="1.5" opacity="0.75"/>
+            <line x1="212" y1="288" x2="216" y2="352" stroke="#fff4db" stroke-width="1.2" opacity="0.6"/>
+          </g>
+
+          <!-- 7. Spool of Wound Dusty Rose Silk Thread with Gold Core -->
+          <g transform="translate(235, 305)">
+            <ellipse cx="16" cy="18" rx="14" ry="5" fill="url(#goldArchGrad)"/>
+            <ellipse cx="16" cy="54" rx="14" ry="5" fill="url(#goldArchGrad)"/>
+            <!-- Wound Pink Thread Cylinder -->
+            <rect x="3" y="20" width="26" height="32" rx="2" fill="#d99a9a"/>
+            <line x1="3" y1="26" x2="29" y2="26" stroke="#f6c2c2" stroke-width="1"/>
+            <line x1="3" y1="32" x2="29" y2="32" stroke="#a06066" stroke-width="1"/>
+            <line x1="3" y1="38" x2="29" y2="38" stroke="#f6c2c2" stroke-width="1"/>
+            <line x1="3" y1="44" x2="29" y2="44" stroke="#a06066" stroke-width="1"/>
+            <ellipse cx="16" cy="18" rx="5" ry="2" fill="#503518"/>
+          </g>
+
+          <!-- 8. Large 3D Ceramic Blush/Rose Wi-Fi Signal with Red Error Badge -->
+          <g class="wifi-symbol-group" filter="drop-shadow(0 15px 30px rgba(130, 80, 80, 0.28))">
+            <!-- 3D Perspective Extrusion Depth Layer (Darker Rose) -->
+            <!-- Outer Arc Depth -->
+            <path d="M228 175C270 135 345 135 388 175L402 188C350 140 265 140 214 188L228 175Z" fill="url(#wifi3dDepth)"/>
+            <path d="M388 175L400 186L382 204L370 193L388 175Z" fill="url(#wifi3dDepth)"/>
+
+            <!-- Middle Arc Depth -->
+            <path d="M252 208C280 180 335 180 364 208L376 220C340 184 276 184 240 220L252 208Z" fill="url(#wifi3dDepth)"/>
+
+            <!-- Inner Arc Depth -->
+            <path d="M276 242C294 225 322 225 340 242L350 252C326 228 290 228 266 252L276 242Z" fill="url(#wifi3dDepth)"/>
+
+            <!-- Front Ceramic Blush Faces -->
+            <!-- Outer Arc -->
+            <path d="M214 188C265 140 350 140 402 188L382 206C340 168 276 168 234 206L214 188Z"
+                  fill="url(#wifiCeramicGrad)" stroke="#ffffff" stroke-width="1.5"/>
+            <!-- Outer Arc Highlight -->
+            <path d="M220 186C268 144 346 144 396 186" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+
+            <!-- Middle Arc -->
+            <path d="M240 220C276 184 340 184 376 220L358 238C330 210 286 210 258 238L240 220Z"
+                  fill="url(#wifiCeramicGrad)" stroke="#ffffff" stroke-width="1.5"/>
+
+            <!-- Inner Arc -->
+            <path d="M266 252C290 228 326 228 350 252L334 268C320 254 296 254 282 268L266 252Z"
+                  fill="url(#wifiCeramicGrad)" stroke="#ffffff" stroke-width="1.5"/>
+
+            <!-- Center Broadcast Dot -->
+            <circle cx="308" cy="285" r="16" fill="url(#wifiCeramicGrad)" stroke="#ffffff" stroke-width="1.5"/>
+
+            <!-- Radiating Spark Dashes at Top-Right of Wi-Fi -->
+            <line x1="412" y1="140" x2="426" y2="128" stroke="#be934c" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="428" y1="156" x2="444" y2="152" stroke="#be934c" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="418" y1="172" x2="432" y2="178" stroke="#be934c" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- Red Circular Error Badge with Bold White ✕ Symbol -->
+            <g transform="translate(385, 260)" filter="drop-shadow(0 6px 16px rgba(184, 50, 50, 0.45))">
+              <!-- Red Badge Outer Circle -->
+              <circle cx="0" cy="0" r="28" fill="url(#redBadgeGrad)" stroke="#ffffff" stroke-width="2.5"/>
+              <!-- Inner Rim Gleam -->
+              <circle cx="0" cy="0" r="24" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" fill="none"/>
+              <!-- Bold White ✕ Cross -->
+              <line x1="-10" y1="-10" x2="10" y2="10" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round"/>
+              <line x1="10" y1="-10" x2="-10" y2="10" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round"/>
+            </g>
+          </g>
+
+          <!-- 9. Tailor's Dress Form Mannequin on Right with Draped Silk -->
+          <g>
+            <!-- Mannequin Stand Pole & Base -->
+            <line x1="485" y1="210" x2="485" y2="350" stroke="url(#goldArchGrad)" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="485" cy="350" r="6" fill="url(#goldArchGrad)"/>
+
+            <!-- Torso Form (Cream Linen) -->
+            <path d="M465 150C465 150 475 154 485 154C495 154 505 150 505 150C515 162 518 182 512 210C506 230 508 260 515 292C502 296 485 298 465 294C458 272 460 232 458 210C455 182 458 162 465 150Z"
+                  fill="url(#linenTorso)" stroke="rgba(190, 147, 76, 0.3)" stroke-width="1.2"/>
+            <path d="M475 155C473 190 474 240 471 292" stroke="rgba(190, 160, 130, 0.4)" stroke-width="1" stroke-dasharray="2 2"/>
+            <path d="M495 155C497 190 496 240 499 292" stroke="rgba(190, 160, 130, 0.4)" stroke-width="1" stroke-dasharray="2 2"/>
+
+            <!-- Gold Neck Finial Cap -->
+            <ellipse cx="485" cy="148" rx="8" ry="4" fill="url(#goldArchGrad)"/>
+            <path d="M485 132C489 138 491 142 485 146C479 142 481 138 485 132Z" fill="url(#goldArchGrad)"/>
+            <circle cx="485" cy="130" r="3" fill="url(#goldArchGrad)"/>
+
+            <!-- Tailor's Measuring Tape Draped Around Neck -->
+            <path d="M472 150C478 166 482 192 484 222C486 250 486 275 488 300"
+                  stroke="#fdf5da" stroke-width="3" stroke-linecap="round"/>
+            <path d="M498 150C494 166 491 187 489 210"
+                  stroke="#fdf5da" stroke-width="3" stroke-linecap="round"/>
+            <path d="M482 175L486 175M483 195L487 195M484 215L488 215M485 235L489 235M486 255L490 255M487 275L491 275"
+                  stroke="#5e4921" stroke-width="0.75"/>
+
+            <!-- 10. Haute Couture Dusty Rose Silk Draping Cascading Down Podium Steps onto Floor -->
+            <!-- Torso Drape Section -->
+            <path d="M465 152C470 162 480 178 488 198C498 220 504 250 512 284C518 310 528 340 538 370C522 374 502 368 492 358C498 335 500 305 496 278C492 250 484 222 476 195C470 175 466 160 465 152Z"
+                  fill="url(#roseSilkCascade)"/>
+
+            <!-- Cascading Drape Sweeping Down Pedestal Steps and Pooling on Marble Floor -->
+            <path d="M510 320C528 340 545 350 558 375C572 402 555 425 540 445C515 470 485 460 460 442C445 432 440 420 445 410C455 400 480 415 505 420C525 424 540 415 532 395C524 378 505 362 485 348C480 340 485 328 510 320Z"
+                  fill="url(#roseSilkCascade)" filter="drop-shadow(0 10px 25px rgba(120, 60, 60, 0.28))"/>
+
+            <!-- Silk Fold Highlights & Luster Lines -->
+            <path d="M468 158C478 182 490 220 502 262C510 292 522 332 534 370"
+                  stroke="#fbe0e0" stroke-width="1.6" stroke-linecap="round" opacity="0.8"/>
+            <path d="M488 205C496 235 504 275 510 315C520 350 535 385 545 415"
+                  stroke="#fbe0e0" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+            <path d="M500 365C520 380 538 402 546 428"
+                  stroke="#fbe0e0" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+            <path d="M455 418C475 428 505 435 528 432"
+                  stroke="#fbe0e0" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+          </g>
+        </svg>
+      </section>
+
+    </main>
+
+    <!-- Bottom Page Footer -->
+    <footer class="network-footer">
+      <div class="footer-left-info">
+        <span class="footer-dash"></span>
+        <span class="footer-caption"><span data-brand="shortName"></span> Continuous Connectivity Protocol</span>
+      </div>
+
+      <div class="footer-center-copyright">
+        <span data-brand="copyright"></span>
+      </div>
+
+      <!-- Network Support Pill Trigger -->
+      <button type="button" class="btn-support-pill" id="btnOpenSupport" aria-haspopup="dialog" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" class="support-headset-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <div class="support-pill-text">
+          <span class="support-pill-label">Connection Problem?</span>
+          <span class="support-pill-action">Network Diagnostics</span>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" class="support-chevron-svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- Network Diagnostics Modal Dialog -->
+  <div class="support-modal-backdrop" id="supportModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="support-modal-card">
+      <div class="modal-header-row">
+        <h2 class="modal-title" id="modalTitle"><span data-brand="shortName"></span> Network Diagnostics</h2>
+        <button type="button" class="modal-close-btn" id="closeSupportModal" aria-label="Close modal">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+        Your connection to the <span data-brand="shortName"></span> cloud servers timed out. Check your local Wi-Fi or router connection. You may also contact IT support below.
+      </p>
+
+      <div class="support-channels-list">
+        <!-- Channel 1: Email Support -->
+        <a href="#" class="support-channel-item" data-brand-href="supportEmail">
+          <svg viewBox="0 0 24 24" fill="none" class="channel-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">Atelier Network Support</div>
+            <div class="channel-val" data-brand="supportEmail"></div>
+          </div>
+        </a>
+
+        <!-- Channel 2: Telephone Hotline -->
+        <a href="#" class="support-channel-item" data-brand-href="phone">
+          <svg viewBox="0 0 24 24" fill="none" class="channel-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">Emergency IT Hotline</div>
+            <div class="channel-val" data-brand="phone"></div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Copy Network Diagnostic Log Button -->
+      <button type="button" class="btn-copy-diagnostics" id="btnCopyDiag">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span>Copy Network Telemetry Log</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Notification -->
+  <div class="toast-notice" id="toastNotice" role="alert" aria-live="polite">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#be934c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastNoticeMsg">Telemetry log copied to clipboard!</span>
+  </div>
+
+  <!-- Central Brand Identity & Universal Hydrator -->
+  <script src="../../../fragments/brand-identity/brand-identity.js"></script>
+  <!-- Brand & Universal Sync Bridge -->
+  <script src="../../../fragments/company-bridge.js"></script>
+  <!-- Controller Script -->
+  <script src="network-error.js"></script>
+</body>
+</html>

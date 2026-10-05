@@ -5,6 +5,9 @@
 
 import api, { Auth } from '../api.js';
 
+const FALLBACK_GARMENT_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
+const FALLBACK_FABRIC_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='6' y='6' width='36' height='36' rx='4'/%3E%3Cpath d='M6 18h36M6 30h36M18 6v36M30 6v36' stroke-dasharray='2 2'/%3E%3C/svg%3E";
+
 // ─── Module State ──────────────────────────────────────────────────────────
 let dynamicStageDefs = [];
 
@@ -27,8 +30,8 @@ const state = {
   pagination: {
     page: 0,
     size: 10,
-    totalElements: 248,
-    totalPages: 25,
+    totalElements: 0,
+    totalPages: 0,
   },
   activeTab: 'overview',
   loading: false,
@@ -55,16 +58,6 @@ function cacheDOM() {
     deltaReady: document.getElementById('deltaReady'),
     valDelivered: document.getElementById('valDelivered'),
     deltaDelivered: document.getElementById('deltaDelivered'),
-
-    // Stage Pills Badges
-    badgeStageAll: document.getElementById('badgeStageAll'),
-    badgeStageDesigning: document.getElementById('badgeStageDesigning'),
-    badgeStageInProduction: document.getElementById('badgeStageInProduction'),
-    badgeStageTrial: document.getElementById('badgeStageTrial'),
-    badgeStageQc: document.getElementById('badgeStageQc'),
-    badgeStageReady: document.getElementById('badgeStageReady'),
-    badgeStageDelivered: document.getElementById('badgeStageDelivered'),
-    badgeStageOnHold: document.getElementById('badgeStageOnHold'),
 
     // Filters
     searchGarments: document.getElementById('searchGarments'),
@@ -105,6 +98,10 @@ function cacheDOM() {
     detAssigned: document.getElementById('detAssigned'),
 
     // Inspector Panes
+    paneOverview: document.getElementById('paneOverview'),
+    paneMaterials: document.getElementById('paneMaterials'),
+    paneMeasurements: document.getElementById('paneMeasurements'),
+    paneTimeline: document.getElementById('paneTimeline'),
     inspectorMaterialsList: document.getElementById('inspectorMaterialsList'),
     inspectorMeasurementsList: document.getElementById('inspectorMeasurementsList'),
     inspectorTimelineList: document.getElementById('inspectorTimelineList'),
@@ -275,11 +272,15 @@ function renderTable() {
   if (state.garments.length === 0) {
     DOM.garmentsTableBody.innerHTML = '';
     if (DOM.emptyState) DOM.emptyState.style.display = 'flex';
+    if (DOM.garmentInspector) DOM.garmentInspector.style.display = 'none';
     renderEmptyInspector();
     return;
   }
 
   if (DOM.emptyState) DOM.emptyState.style.display = 'none';
+  if (state.selectedGarment && DOM.garmentInspector) {
+    DOM.garmentInspector.style.display = 'flex';
+  }
 
   DOM.garmentsTableBody.innerHTML = state.garments.map(g => {
     const isSelected = state.selectedGarment && state.selectedGarment.id === g.id;
@@ -295,7 +296,7 @@ function renderTable() {
       ? `<span class="days-left-badge days-left-red">${Math.abs(g.daysRemaining)} days overdue</span>`
       : `<span class="days-left-badge days-left-green">${g.daysRemaining} days</span>`;
 
-    const imgThumb = g.imageUrl || '../assets/designs/zari-bloom-front.jpg';
+    const imgThumb = g.imageUrl || FALLBACK_GARMENT_SVG;
 
     return `
       <tr class="${isSelected ? 'selected' : ''}" onclick="window.selectGarment('${g.id}')">
@@ -304,7 +305,7 @@ function renderTable() {
         </td>
         <td>
           <div class="cell-garment-info">
-            <img class="garment-thumb-img" src="${imgThumb}" alt="${escapeHTML(g.title)}" onerror="this.src='../assets/designs/zari-bloom-front.jpg'" />
+            <img class="garment-thumb-img" src="${imgThumb}" alt="${escapeHTML(g.title)}" onerror="this.src='${FALLBACK_GARMENT_SVG}'" />
             <div class="garment-texts">
               <span class="garment-code-title">
                 ${escapeHTML(g.garmentCode)} &bull; ${escapeHTML(g.title)}
@@ -447,7 +448,7 @@ window.selectGarment = selectGarment;
 
 function renderInspectorBasics(g) {
   if (DOM.inspectorHeroImg) {
-    DOM.inspectorHeroImg.src = g.imageUrl || '../assets/designs/zari-bloom-back.jpg';
+    DOM.inspectorHeroImg.src = g.imageUrl || FALLBACK_GARMENT_SVG;
     DOM.inspectorHeroImg.style.opacity = '1';
   }
   if (DOM.inspectorCode) DOM.inspectorCode.textContent = g.garmentCode;
@@ -493,7 +494,7 @@ function renderInspectorPanes(g) {
     const mats = g.materials || [];
     DOM.inspectorMaterialsList.innerHTML = mats.map(m => `
       <div class="material-card-row">
-        <img src="${m.imageUrl || '../assets/fabrics/silk.jpg'}" alt="${escapeHTML(m.name)}" onerror="this.src='../assets/fabrics/silk.jpg'" />
+        <img src="${m.imageUrl || FALLBACK_FABRIC_SVG}" alt="${escapeHTML(m.name)}" onerror="this.src='${FALLBACK_FABRIC_SVG}'" />
         <div style="flex:1;">
           <div style="font-size:12px;font-weight:600;color:var(--text-primary);">${escapeHTML(m.name)}</div>
           <div style="font-size:10.5px;color:var(--text-muted);">${escapeHTML(m.variant)} &bull; ${escapeHTML(m.meters)}</div>
@@ -532,15 +533,15 @@ function renderInspectorPanes(g) {
 function renderEmptyInspector() {
   state.selectedGarment = null;
   if (DOM.inspectorHeroImg) {
-    DOM.inspectorHeroImg.src = '../assets/designs/zari-bloom-front.jpg';
-    DOM.inspectorHeroImg.style.opacity = '0.25';
+    DOM.inspectorHeroImg.src = '';
+    DOM.inspectorHeroImg.style.opacity = '0';
   }
-  if (DOM.inspectorCode) DOM.inspectorCode.textContent = 'NO SELECTION';
-  if (DOM.inspectorTitle) DOM.inspectorTitle.textContent = 'No Garments Available';
+  if (DOM.inspectorCode) DOM.inspectorCode.textContent = '—';
+  if (DOM.inspectorTitle) DOM.inspectorTitle.textContent = 'No Garment Selected';
 
   if (DOM.inspectorStatusBadge) {
     DOM.inspectorStatusBadge.className = 'badge-status-capsule capsule-gray';
-    DOM.inspectorStatusBadge.innerHTML = `<span class="status-dot"></span> Empty`;
+    DOM.inspectorStatusBadge.innerHTML = `<span class="status-dot"></span> —`;
   }
 
   // 2-Column Details
@@ -549,11 +550,12 @@ function renderEmptyInspector() {
   if (DOM.detType) DOM.detType.textContent = '—';
   if (DOM.detCollection) DOM.detCollection.textContent = '—';
   if (DOM.detDesign) DOM.detDesign.textContent = '—';
-  if (DOM.detStage) DOM.detStage.textContent = '—';
+  if (DOM.detDueDate) DOM.detDueDate.textContent = '—';
   if (DOM.detPriority) DOM.detPriority.textContent = '—';
-  if (DOM.detDue) DOM.detDue.textContent = '—';
-  if (DOM.detDesigner) DOM.detDesigner.textContent = '—';
+  if (DOM.detMaterialStatus) DOM.detMaterialStatus.textContent = '—';
+  if (DOM.detTrial) DOM.detTrial.textContent = '—';
   if (DOM.detPayment) DOM.detPayment.textContent = '—';
+  if (DOM.detAssigned) DOM.detAssigned.textContent = '—';
 
   // Secondary tabs
   if (DOM.paneOverview) {
@@ -561,7 +563,7 @@ function renderEmptyInspector() {
       <div style="padding:28px 16px;text-align:center;color:var(--text-muted);">
         <i data-lucide="package-open" style="width:36px;height:36px;margin:0 auto 8px auto;opacity:0.6;display:block;"></i>
         <div style="font-size:13px;font-weight:500;color:var(--text-secondary);">No Garment Selected</div>
-        <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;">Add a garment or adjust filters to view details.</div>
+        <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;">Select a garment from the list to view its real database details.</div>
       </div>
     `;
   }

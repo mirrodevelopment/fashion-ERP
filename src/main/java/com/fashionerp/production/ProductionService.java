@@ -130,6 +130,26 @@ public class ProductionService {
             }
         }
 
+        boolean stageFound = stages.stream()
+                .anyMatch(s -> s.getStageName() != null &&
+                        (s.getStageName().equalsIgnoreCase(stUpper) ||
+                         (s.getStageName().equalsIgnoreCase("READY_TO_DELIVER") && "READY".equals(stUpper)) ||
+                         (s.getStageName().equalsIgnoreCase("READY") && "READY_TO_DELIVER".equals(stUpper))));
+
+        if (!stageFound) {
+            ProductionStage newStage = ProductionStage.builder()
+                    .order(order)
+                    .stageName(stUpper)
+                    .sortOrder(targetSortOrder)
+                    .status("READY".equals(stUpper) || "READY_TO_DELIVER".equals(stUpper) ? "COMPLETED" : "IN_PROGRESS")
+                    .startedAt(LocalDateTime.now())
+                    .completedAt("READY".equals(stUpper) || "READY_TO_DELIVER".equals(stUpper) ? LocalDateTime.now() : null)
+                    .assignedTo(employee)
+                    .notes(notes)
+                    .build();
+            stages.add(newStage);
+        }
+
         for (ProductionStage stage : stages) {
             int so = stage.getSortOrder() != null ? stage.getSortOrder() : 0;
             if (so < targetSortOrder) {

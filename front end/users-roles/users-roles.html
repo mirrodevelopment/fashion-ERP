@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Users &amp; Roles">Users &amp; Roles</title>
+  <meta name="description" content="Manage system users, assign roles, and control access permissions across the boutique ERP platform." />
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared Fragments CSS -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="users-roles.css" />
+
+  <!-- Fragment base path (one level up from users-roles/) -->
+  <script>
+    window.FRAGMENT_BASE = '../fragments/';
+  </script>
+  <script src="../fragments/company-bridge.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+</head>
+
+<!--
+  data-module="users-roles" — picked up by fragments.js to highlight the correct
+  sidebar nav link and by nav.js highlightActiveRoute().
+-->
+<body data-module="users-roles">
+
+  <!-- Background gradient layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell — sidebar + main-wrapper side by side -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar injected by fragments.js -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Wrapper: navbar on top, content below -->
+    <div class="main-wrapper" id="mainWrapper">
+
+      <!-- Top navbar injected by fragments.js -->
+      <div id="navbarSlot"></div>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           PAGE CONTENT
+      ═══════════════════════════════════════════════════════════ -->
+      <main class="ur-root" id="urRoot">
+
+        <!-- Page Header -->
+        <div class="ur-page-header">
+          <div class="ur-page-header-left">
+            <h1 class="ur-page-title">
+              <i data-lucide="shield" class="ur-title-icon"></i>
+              Users &amp; Roles
+            </h1>
+            <p class="ur-page-subtitle">Manage system users and control access permissions</p>
+          </div>
+          <div class="ur-page-header-right">
+            <a href="create-user/create-user.html" class="ur-btn-add" id="btnAddUser" style="text-decoration:none;">
+              <i data-lucide="user-plus"></i>
+              <span>Add User</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- KPI Stats Row — values injected by renderStats(), not hardcoded -->
+        <div class="ur-stats-row" id="statsRow">
+          <div class="ur-stat-card" id="statCardTotal">
+            <div class="ur-stat-icon">
+              <i data-lucide="users"></i>
+            </div>
+            <div class="ur-stat-body">
+              <span class="ur-stat-value" id="statTotal">—</span>
+              <span class="ur-stat-label">Total Users</span>
+            </div>
+          </div>
+          <!-- Per-role cards rendered by JS into #dynamicRoleCards -->
+          <div id="dynamicRoleCards" style="display:contents;"></div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="ur-toolbar" id="toolbar">
+          <div class="ur-search-wrap">
+            <i data-lucide="search" class="ur-search-icon"></i>
+            <input
+              type="text"
+              id="searchInput"
+              class="ur-search-input"
+              placeholder="Search by name, username or email…"
+              autocomplete="off"
+              oninput="applyFilters()"
+            />
+          </div>
+          <div class="ur-filter-group">
+            <!-- Role filter — options populated by JS from API data -->
+            <select id="roleFilter" class="ur-filter-select" onchange="applyFilters()">
+              <option value="">All Roles</option>
+            </select>
+            <select id="activeFilter" class="ur-filter-select" onchange="applyFilters()">
+              <option value="">All Status</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="ur-table-container" id="tableContainer">
+          <table class="ur-table" id="usersTable">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Branch</th>
+                <th>Last Login</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- Rows injected by renderTable() -->
+            </tbody>
+          </table>
+
+          <!-- Empty state -->
+          <div class="ur-empty-state" id="emptyState" style="display:none;">
+            <i data-lucide="user-x" class="ur-empty-icon"></i>
+            <p class="ur-empty-title">No users found</p>
+            <p class="ur-empty-sub">Try adjusting your search or filters</p>
+          </div>
+
+          <!-- Loading state -->
+          <div class="ur-loading-state" id="loadingState">
+            <div class="ur-spinner"></div>
+            <p>Loading users…</p>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- Footer / Status Bar Slot -->
+      <div id="footerSlot"></div>
+    </div><!-- /main-wrapper -->
+  </div><!-- /app-shell -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SLIDE-IN DRAWER (Create / Edit)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="ur-drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <aside class="ur-drawer" id="userDrawer" aria-label="User form panel">
+
+    <div class="ur-drawer-header">
+      <h2 class="ur-drawer-title" id="drawerTitle">Add User</h2>
+      <button class="ur-drawer-close" id="btnDrawerClose" onclick="closeDrawer()" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <form class="ur-drawer-form" id="userForm" onsubmit="handleSave(event)">
+
+      <div class="ur-form-section-label">Identity</div>
+
+      <div class="ur-form-row">
+        <div class="ur-form-group">
+          <label for="fUsername">Username <span class="ur-required">*</span></label>
+          <input type="text" id="fUsername" name="username" class="ur-form-input"
+                 placeholder="e.g. priya.sharma" required autocomplete="off" />
+        </div>
+        <div class="ur-form-group">
+          <label for="fFullName">Full Name <span class="ur-required">*</span></label>
+          <input type="text" id="fFullName" name="fullName" class="ur-form-input"
+                 placeholder="e.g. Priya Sharma" required />
+        </div>
+      </div>
+
+      <div class="ur-form-group" style="grid-column:1/-1">
+        <label for="fPassword">
+          Password
+          <span class="ur-required" id="passwordRequired">*</span>
+          <span class="ur-form-hint" id="passwordHint" style="display:none;">Leave blank to keep current password</span>
+        </label>
+        <input type="password" id="fPassword" name="password" class="ur-form-input"
+               placeholder="Min 6 characters" autocomplete="new-password" />
+      </div>
+
+      <div class="ur-form-section-label">Role &amp; Access</div>
+
+      <div class="ur-form-row">
+        <div class="ur-form-group">
+          <label for="fRole">Role <span class="ur-required">*</span></label>
+          <select id="fRole" name="role" class="ur-form-input" required></select>
+        </div>
+        <div class="ur-form-group">
+          <label for="fBranch">Assigned Branch</label>
+          <input type="text" id="fBranch" name="assignedBranch" class="ur-form-input"
+                 placeholder="e.g. Main Flagship" />
+        </div>
+      </div>
+
+      <div class="ur-form-section-label">Professional Details</div>
+
+      <div class="ur-form-row">
+        <div class="ur-form-group">
+          <label for="fDesignation">Designation</label>
+          <input type="text" id="fDesignation" name="designation" class="ur-form-input"
+                 placeholder="e.g. Senior Tailor" />
+        </div>
+        <div class="ur-form-group">
+          <label for="fDepartment">Department</label>
+          <input type="text" id="fDepartment" name="department" class="ur-form-input"
+                 placeholder="e.g. Atelier" />
+        </div>
+      </div>
+
+      <div class="ur-form-section-label">Contact</div>
+
+      <div class="ur-form-row">
+        <div class="ur-form-group">
+          <label for="fEmail">Email</label>
+          <input type="email" id="fEmail" name="email" class="ur-form-input"
+                 placeholder="user@yourdomain.com" data-brand-placeholder="employeeEmail" />
+        </div>
+        <div class="ur-form-group">
+          <label for="fPhone">Phone</label>
+          <input type="tel" id="fPhone" name="phone" class="ur-form-input"
+                 placeholder="+91 XXXXX XXXXX" data-brand-placeholder="phone" />
+        </div>
+      </div>
+
+      <div class="ur-drawer-actions">
+        <button type="button" class="ur-btn-cancel" onclick="closeDrawer()">Cancel</button>
+        <button type="submit" class="ur-btn-save" id="btnSave">
+          <i data-lucide="save"></i>
+          <span id="btnSaveLabel">Save User</span>
+        </button>
+      </div>
+
+    </form>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CONFIRMATION MODAL (Toggle Active)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="ur-modal-overlay" id="confirmModalOverlay" style="display:none;">
+    <div class="ur-confirm-modal" id="confirmModal" role="dialog" aria-modal="true">
+      <div class="ur-confirm-icon" id="confirmIcon">
+        <i data-lucide="alert-triangle"></i>
+      </div>
+      <h3 class="ur-confirm-title" id="confirmTitle">Confirm Action</h3>
+      <p class="ur-confirm-body" id="confirmBody">Are you sure?</p>
+      <div class="ur-confirm-actions">
+        <button class="ur-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+        <button class="ur-btn-confirm" id="btnConfirmAction">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification container -->
+  <div class="ur-toast-container" id="toastContainer"></div>
+
+  <!-- Page script -->
+  <script type="module" src="users-roles.js"></script>
+
+</body>
+</html>

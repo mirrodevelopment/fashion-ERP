@@ -24,17 +24,6 @@
     notifyChannel: 'whatsapp'
   };
 
-  const BODY_CHECKPOINTS = [
-    'Neck',
-    'Chest / Bust',
-    'Waist',
-    'Hip',
-    'Shoulders',
-    'Armhole',
-    'Sleeves',
-    'Total Length'
-  ];
-
   function parseFitCheckpoints(raw) {
     const defaultCheckpoints = {
       "Neck": "PERFECT",
@@ -446,24 +435,26 @@
         <div class="trial-item ${isSelected ? 'selected' : ''}" 
              data-trial-code="${item.trialCode || ''}" 
              onclick="window.selectTrial('${item.id}')">
-          <div class="trial-item-left">
-            <div class="trial-avatar-box" style="display:inline-flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;border:none;">
-              ${typeof window.renderPatronAvatarHtml === 'function'
-                ? window.renderPatronAvatarHtml(item.customer.name, item.customer.image, 'haulo-avatar-sm', 'width:36px;height:36px;border-radius:9px;')
-                : `<div class="haulo-patron-avatar-initials haulo-avatar-sm">${typeof window.getPatronInitials === 'function' ? window.getPatronInitials(item.customer.name) : 'CU'}</div>`}
-            </div>
-            <div class="trial-info-text">
-              <span class="trial-customer-name">${item.customer.name}</span>
-              <span class="trial-garment-name">${item.garment.type}</span>
-              <span class="trial-order-id">${item.orderId}</span>
-            </div>
+          <div class="trial-item-avatar-col">
+            ${typeof window.renderPatronAvatarHtml === 'function'
+              ? window.renderPatronAvatarHtml(item.customer.name, item.customer.image, 'haulo-avatar-sm', 'width:38px;height:38px;border-radius:10px;')
+              : `<div class="haulo-patron-avatar-initials haulo-avatar-sm" style="width:38px;height:38px;border-radius:10px;">${typeof window.getPatronInitials === 'function' ? window.getPatronInitials(item.customer.name) : 'CU'}</div>`}
           </div>
-          <div class="trial-item-right">
-            <div class="trial-datetime-group">
-              <span class="trial-date-text">${item.trial.date}</span>
-              <span class="trial-time-text">${item.trial.time}</span>
+          <div class="trial-item-body">
+            <div class="trial-row-top">
+              <span class="trial-customer-name" title="${item.customer.name}">${item.customer.name}</span>
+              <span class="status-badge-sm ${statusClass}">${item.trial.status}</span>
             </div>
-            <span class="status-badge-sm ${statusClass}">${item.trial.status}</span>
+            <div class="trial-row-garment" title="${item.garment.type}">${item.garment.type}</div>
+            <div class="trial-row-meta">
+              <span class="trial-order-chip">${item.orderId}</span>
+              <span class="trial-meta-dot">&bull;</span>
+              <span class="trial-schedule-info">
+                <i data-lucide="clock" class="mini-icon"></i>
+                <span>${item.trial.date}</span>
+                <span class="trial-schedule-time">${item.trial.time}</span>
+              </span>
+            </div>
           </div>
         </div>
       `;
@@ -493,8 +484,7 @@
         'detailOrderId', 'detailGarment', 'detailTrialDate', 'detailDeliveryDate',
         'detailDesigner', 'detailStage', 'specNeck', 'specSleeve', 'specLining',
         'specEmbroidery', 'specFabric', 'specSpecialNotes', 'stepSendProd',
-        'stepExpectedComp', 'stepNextTrial', 'stepFinalDeliv', 'detailAttemptNumber',
-        'detailAlterationCounter', 'detailFitSummaryPill'
+        'stepExpectedComp', 'stepNextTrial', 'stepFinalDeliv'
       ];
       ids.forEach(id => {
         const el = document.getElementById(id);
@@ -521,28 +511,6 @@
       if (histContainer) histContainer.innerHTML = '<div style="color:rgba(255,255,255,0.45);font-size:12px;padding:8px 0;">No trial selected.</div>';
       document.querySelectorAll('.fit-option').forEach(opt => opt.classList.remove('active'));
       return;
-    }
-
-    // 0. Hero Trial Counter Badge Strip
-    const attemptEl = document.getElementById('detailAttemptNumber');
-    if (attemptEl) {
-      const att = trial.trialAttempt || 1;
-      attemptEl.textContent = `🎯 Trial Attempt #${att} ${att > 1 ? `(Re-trial ×${att - 1})` : '(First Fitting)'}`;
-    }
-    const altCountEl = document.getElementById('detailAlterationCounter');
-    if (altCountEl) {
-      const cnt = trial.alterationCount != null ? trial.alterationCount : (trial.alterations ? trial.alterations.length : 0);
-      altCountEl.textContent = `✂️ Alteration Round ${cnt}`;
-    }
-    const fitPill = document.getElementById('detailFitSummaryPill');
-    if (fitPill) {
-      const fitMap = {
-        'perfect': 'PERFECT FIT (VERIFIED)',
-        'minor': 'MINOR ADJUSTMENTS',
-        'major': 'MAJOR ALTERATIONS',
-        'retrial': 'RE-TRIAL SCHEDULED'
-      };
-      fitPill.textContent = fitMap[trial.trial.fitStatus] || (trial.trial.status || 'SCHEDULED').toUpperCase();
     }
 
     // 1. Customer Card & Order Meta (Universal Patron Engine)
@@ -618,10 +586,8 @@
     renderNotesTab(trial);
     renderHistoryTab(trial);
 
-    // 4. Fit Assessment & Consumer Feedback
+    // 4. Fit Assessment
     updateFitAssessmentUI(trial.trial.fitStatus);
-    renderConsumerFeedback(trial);
-    renderCheckpointsGrid(trial);
 
     // 5. Alterations Checklist
     renderAlterationsChecklist(trial);
@@ -847,129 +813,6 @@
     `).join('');
   }
 
-  // ── Consumer Feedback Card Rendering & Handlers ──
-  function renderConsumerFeedback(trial) {
-    const rating = trial.customerRating != null ? trial.customerRating : 5;
-    window.setCustomerRating(rating, false);
-
-    const pref = trial.fitPreference || 'Comfort / Regular Fit';
-    window.setFitPreference(pref, false);
-
-    const notesEl = document.getElementById('customerFeedbackNotes');
-    if (notesEl) {
-      notesEl.value = trial.customerFeedback || '';
-      notesEl.oninput = (e) => {
-        trial.customerFeedback = e.target.value;
-      };
-    }
-  }
-
-  window.setCustomerRating = function (rating, shouldSave = true) {
-    const trial = getActiveTrial();
-    if (!trial) return;
-    trial.customerRating = rating;
-
-    const ratingLabels = {
-      1: '1.0 / 5.0 (Poor Fit)',
-      2: '2.0 / 5.0 (Needs Alterations)',
-      3: '3.0 / 5.0 (Acceptable Fit)',
-      4: '4.0 / 5.0 (Very Good Fit)',
-      5: '5.0 / 5.0 (Excellent Fit)'
-    };
-    const textEl = document.getElementById('feedbackRatingValueText');
-    if (textEl) textEl.textContent = ratingLabels[rating] || `${rating}.0 / 5.0`;
-
-    const subText = document.getElementById('starRatingSubtext');
-    if (subText) subText.textContent = `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} ${rating} Star${rating > 1 ? 's' : ''}`;
-
-    const starBtns = document.querySelectorAll('#starRatingRow .star-btn');
-    starBtns.forEach(btn => {
-      const r = parseInt(btn.getAttribute('data-rating'), 10);
-      btn.classList.toggle('active', r <= rating);
-    });
-
-    if (shouldSave) {
-      showToast(`Client rating set to ${rating} star${rating > 1 ? 's' : ''}`, 'info');
-    }
-  };
-
-  window.setFitPreference = function (pref, shouldSave = true) {
-    const trial = getActiveTrial();
-    if (!trial) return;
-    trial.fitPreference = pref;
-
-    const pills = document.querySelectorAll('#fitPreferencePills .pref-pill');
-    pills.forEach(p => {
-      p.classList.toggle('active', p.getAttribute('data-pref') === pref);
-    });
-
-    if (shouldSave) {
-      showToast(`Fit preference: ${pref}`, 'info');
-    }
-  };
-
-  // ── 8-Point Body Checkpoint Evaluation ──
-  function renderCheckpointsGrid(trial) {
-    const grid = document.getElementById('checkpointsGrid');
-    if (!grid) return;
-
-    const checkpoints = trial.fitCheckpoints || {};
-
-    grid.innerHTML = BODY_CHECKPOINTS.map(point => {
-      const current = (checkpoints[point] || 'PERFECT').toUpperCase();
-      const dotClass = current === 'TIGHT' ? 'tight' : (current === 'LOOSE' ? 'loose' : '');
-
-      return `
-        <div class="checkpoint-row">
-          <div class="checkpoint-label">
-            <span class="checkpoint-status-dot ${dotClass}"></span>
-            <span>${point}</span>
-          </div>
-          <div class="checkpoint-actions">
-            <button type="button" 
-                    class="checkpoint-btn ${current === 'TIGHT' ? 'active tight' : ''}" 
-                    onclick="window.setCheckpointStatus('${point}', 'TIGHT')">
-              Tight
-            </button>
-            <button type="button" 
-                    class="checkpoint-btn ${current === 'PERFECT' ? 'active perfect' : ''}" 
-                    onclick="window.setCheckpointStatus('${point}', 'PERFECT')">
-              Perfect
-            </button>
-            <button type="button" 
-                    class="checkpoint-btn ${current === 'LOOSE' ? 'active loose' : ''}" 
-                    onclick="window.setCheckpointStatus('${point}', 'LOOSE')">
-              Loose
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    const issues = Object.values(checkpoints).filter(v => (v || '').toUpperCase() === 'TIGHT' || (v || '').toUpperCase() === 'LOOSE').length;
-    const summaryEl = document.getElementById('checkpointSummaryCounter');
-    if (summaryEl) {
-      summaryEl.textContent = issues === 0 ? 'All 8 Checkpoints Perfect' : `${issues} Checkpoint${issues > 1 ? 's' : ''} Need Adjusting`;
-      summaryEl.style.color = issues === 0 ? '#4ade80' : '#fbbf24';
-    }
-  }
-
-  window.setCheckpointStatus = function (point, status) {
-    const trial = getActiveTrial();
-    if (!trial) return;
-    if (!trial.fitCheckpoints) trial.fitCheckpoints = {};
-    trial.fitCheckpoints[point] = status;
-
-    // Auto-assist overall fit recommendation if needed
-    const issues = Object.values(trial.fitCheckpoints).filter(v => (v || '').toUpperCase() === 'TIGHT' || (v || '').toUpperCase() === 'LOOSE').length;
-    if (issues >= 3 && trial.trial.fitStatus === 'perfect') {
-      window.selectFitStatus('major');
-    } else if (issues > 0 && trial.trial.fitStatus === 'perfect') {
-      window.selectFitStatus('minor');
-    }
-
-    renderCheckpointsGrid(trial);
-  };
 
   // ── Fit Assessment Interaction ──
   window.selectFitStatus = function (fitKey) {
@@ -1050,13 +893,16 @@
               </div>
             </div>
           </div>
-          <span class="alt-badge ${catClass}">${alt.category || 'General'}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="alt-badge ${catClass}">${alt.category || 'General'}</span>
+            <button type="button" class="btn-alt-delete" onclick="window.deleteAlterationItem('${alt.id}')" title="Delete alteration" style="background:transparent;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:16px;line-height:1;padding:2px 5px;border-radius:4px;transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">&times;</button>
+          </div>
         </div>
       `;
     }).join('');
   }
 
-  window.toggleAlterationCheck = function (altId, isChecked) {
+  window.toggleAlterationCheck = async function (altId, isChecked) {
     const trial = getActiveTrial();
     if (!trial) return;
     const item = (trial.alterations || []).find(a => a.id === altId);
@@ -1065,16 +911,43 @@
       renderAlterationsChecklist(trial);
       updateKPIs();
 
-      (async () => {
-        try {
-          const { default: api } = await import('../api.js');
-          if (trial.id && item.dbId) {
-            await api.trials.toggleAlteration(trial.id, item.dbId, isChecked);
-          }
-        } catch (err) {
-          console.warn('[TrialsAlterations] Failed to toggle alteration on backend:', err.message);
+      try {
+        const { default: api } = await import('../api.js');
+        if (trial.id && item.dbId) {
+          const authUser = window.Auth?.getUser?.();
+          const staffName = authUser?.fullName || authUser?.username || 'Master Tailor';
+          await api.trials.toggleAlteration(trial.id, item.dbId, isChecked, staffName);
         }
-      })();
+      } catch (err) {
+        console.warn('[TrialsAlterations] Failed to toggle alteration on backend:', err.message);
+      }
+    }
+  };
+
+  window.deleteAlterationItem = async function (altId) {
+    const trial = getActiveTrial();
+    if (!trial) return;
+    const item = (trial.alterations || []).find(a => a.id === altId);
+    if (!item) return;
+
+    if (!confirm(`Delete alteration item: "${item.desc}"?`)) return;
+
+    try {
+      const { default: api } = await import('../api.js');
+      if (trial.id && item.dbId) {
+        await api.trials.deleteAlteration(trial.id, item.dbId);
+        await loadTrialsFromApi();
+        if (trial.id) window.selectTrial(trial.id);
+      } else {
+        trial.alterations = (trial.alterations || []).filter(a => a.id !== altId);
+        trial.alterationCount = trial.alterations.length;
+        renderAlterationsChecklist(trial);
+        renderTrialDetails();
+        updateKPIs();
+      }
+      showToast('Alteration item deleted', 'info');
+    } catch (err) {
+      showToast('Failed to delete alteration: ' + err.message, 'warn');
     }
   };
 
@@ -1124,9 +997,12 @@
               completed: a.checked,
               assignedTailor: a.assignedTailor,
               priority: a.priority,
-              targetDate: a.targetDate
+              targetDate: (a.targetDate && typeof a.targetDate === 'string' && a.targetDate.trim().length > 0) ? a.targetDate.trim() : null,
+              tailorNotes: a.tailorNotes || ''
             }))
           });
+          await loadTrialsFromApi();
+          if (trial.id) window.selectTrial(trial.id);
         }
       } catch (err) {
         console.warn('[TrialsAlterations] Failed to persist alterations to backend:', err.message);
@@ -1148,7 +1024,7 @@
     openModal('addAlterationModal');
   };
 
-  window.submitAddAlteration = function () {
+  window.submitAddAlteration = async function () {
     const desc = document.getElementById('modalAltDesc').value.trim();
     const cat = document.getElementById('modalAltCat').value;
     const priority = document.getElementById('modalAltPriority').value;
@@ -1162,31 +1038,49 @@
     }
 
     const trial = getActiveTrial();
-    if (!trial.alterations) trial.alterations = [];
+    if (!trial) return;
 
-    const newAlt = {
-      id: `ALT-${Date.now()}`,
-      dbId: null,
-      desc: desc,
-      category: cat,
-      priority: priority || 'Normal',
-      assignedTailor: tailor || (trial.designer && trial.designer !== '—' ? trial.designer : 'Master Tailor'),
-      targetDate: targetDate || '',
-      tailorNotes: notes,
-      checked: false
-    };
+    try {
+      const { default: api } = await import('../api.js');
+      const itemData = {
+        description: desc,
+        category: cat,
+        priority: priority || 'Normal',
+        assignedTailor: tailor || (trial.designer && trial.designer !== '—' ? trial.designer : 'Master Tailor'),
+        targetDate: (targetDate && targetDate.trim()) ? targetDate.trim() : null,
+        tailorNotes: notes,
+        completed: false
+      };
 
-    trial.alterations.push(newAlt);
-    trial.alterationCount = (trial.alterationCount || 0) + 1;
+      if (trial.id) {
+        await api.trials.addAlteration(trial.id, itemData);
+        await loadTrialsFromApi();
+        if (trial.id) window.selectTrial(trial.id);
+      } else {
+        const newAlt = {
+          id: `ALT-${Date.now()}`,
+          dbId: null,
+          desc: desc,
+          category: cat,
+          priority: priority || 'Normal',
+          assignedTailor: tailor || 'Master Tailor',
+          targetDate: targetDate || '',
+          tailorNotes: notes,
+          checked: false
+        };
+        trial.alterations = trial.alterations || [];
+        trial.alterations.push(newAlt);
+        trial.alterationCount = trial.alterations.length;
+        renderAlterationsChecklist(trial);
+        renderTrialDetails();
+        updateKPIs();
+      }
 
-    renderAlterationsChecklist(trial);
-    renderTrialDetails();
-    updateKPIs();
-    closeModal('addAlterationModal');
-    showToast(`Added alteration item (Round #${trial.alterationCount})`, 'success');
-
-    // Auto-save to backend
-    window.handleSaveAlterations();
+      closeModal('addAlterationModal');
+      showToast(`Added alteration ticket`, 'success');
+    } catch (err) {
+      showToast('Failed to add alteration: ' + err.message, 'warn');
+    }
   };
 
   // ── Advance to QC ──
@@ -1197,18 +1091,20 @@
     try {
       const { default: api } = await import('../api.js');
       showToast('Advancing order to Quality Check (QC)...', 'info');
-      await api.trials.completeAndAdvance(trial.id);
+      const authUser = window.Auth?.getUser?.();
+      const staffName = authUser?.fullName || authUser?.username || 'Staff';
+      await api.trials.completeAndAdvance(trial.id, staffName);
 
       trial.trial.status = 'Completed';
       trial.trial.fitStatus = 'perfect';
       trial.history.unshift({
         action: `Passed Fitting (Attempt #${trial.trialAttempt || 1}) — Advanced to Quality Check (QC)`,
         time: 'Just now',
-        staff: (trial.designer && trial.designer !== '—') ? trial.designer : 'Staff'
+        staff: staffName
       });
 
-      renderTrialDetails();
-      renderTrialList();
+      await loadTrialsFromApi();
+      if (trial.id) window.selectTrial(trial.id);
       updateKPIs();
       showToast(`Order ${trial.orderId} verified & advanced to Quality Check (QC)!`, 'success');
     } catch (err) {
@@ -1249,24 +1145,11 @@
         notes: notes
       });
 
-      trial.trialAttempt = resp?.trialAttempt || ((trial.trialAttempt || 1) + 1);
-      trial.nextTrialDate = date;
-      trial.trial.date = date;
-      trial.trial.time = time;
-      trial.trial.status = 'Upcoming';
-      trial.trial.fitStatus = 'retrial';
-
-      trial.history.unshift({
-        action: `Re-trial Scheduled (Attempt #${trial.trialAttempt}) for ${date} at ${time}`,
-        time: 'Just now',
-        staff: staff || ((trial.designer && trial.designer !== '—') ? trial.designer : 'Staff')
-      });
-
-      renderTrialDetails();
-      renderTrialList();
-      updateKPIs();
       closeModal('scheduleRetrialModal');
-      showToast(`Re-trial (Attempt #${trial.trialAttempt}) scheduled for ${date}`, 'success');
+      await loadTrialsFromApi();
+      if (trial.id) window.selectTrial(trial.id);
+      updateKPIs();
+      showToast(`Re-trial (Attempt #${resp?.trialAttempt || ((trial.trialAttempt || 1) + 1)}) scheduled for ${date}`, 'success');
     } catch (err) {
       showToast('Failed to schedule re-trial: ' + err.message, 'warn');
     }
@@ -1297,6 +1180,7 @@
   };
   window.openSelectOrderModal = window.openOrderPickerModal;
 
+  let orderPickerSearchTimer = null;
   window.handleOrderPickerSearch = function (e) {
     const q = (e.target.value || '').toLowerCase().trim();
     if (!q) {
@@ -1311,6 +1195,17 @@
              (o.currentStage || '').toLowerCase().includes(q);
     });
     renderOrderPickerList(filtered);
+
+    clearTimeout(orderPickerSearchTimer);
+    orderPickerSearchTimer = setTimeout(async () => {
+      try {
+        const { default: api } = await import('../api.js');
+        const serverOrders = await api.trials.ordersForTrial({ search: q }).catch(() => []);
+        if (Array.isArray(serverOrders) && serverOrders.length > 0) {
+          renderOrderPickerList(serverOrders);
+        }
+      } catch (_) {}
+    }, 300);
   };
 
   function renderOrderPickerList(orders) {
@@ -1381,7 +1276,8 @@
 
     const messageText = document.getElementById('notifyMessageText');
     if (messageText) {
-      messageText.value = `Dear ${trial.customer.name}, your dress trial for order ${trial.orderId} (${trial.garment.type}) is scheduled on ${trial.trial.date} at ${trial.trial.time} at Haulo Boutique. We look forward to fitting you!`;
+      const coName = (typeof CompanyBridge !== 'undefined' ? CompanyBridge.get().companyName : null) || 'our boutique';
+      messageText.value = `Dear ${trial.customer.name}, your dress trial for order ${trial.orderId} (${trial.garment.type}) is scheduled on ${trial.trial.date} at ${trial.trial.time} at ${coName}. We look forward to fitting you!`;
     }
 
     openModal('notifyCustomerModal');
@@ -1402,8 +1298,22 @@
 
   window.submitNotification = function () {
     const trial = getActiveTrial();
+    const recipient = document.getElementById('notifyRecipient')?.value || trial?.customer?.phone || '';
+    const message = document.getElementById('notifyMessageText')?.value || '';
+
     closeModal('notifyCustomerModal');
-    showToast(`Notification sent to ${trial.customer.name} via ${state.notifyChannel.toUpperCase()}`, 'success');
+
+    if (state.notifyChannel === 'whatsapp') {
+      let cleanPhone = recipient.replace(/[^0-9]/g, '');
+      if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+      if (cleanPhone) {
+        const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+        showToast(`Opened WhatsApp chat for ${trial.customer.name}`, 'success');
+        return;
+      }
+    }
+    showToast(`Notification queued for ${trial.customer.name} via ${state.notifyChannel.toUpperCase()}`, 'success');
   };
 
   // ── Print Trial Slip ──
@@ -1489,22 +1399,34 @@
   };
   window.openMarkCompletedModal = window.handleMarkCompletedClick;
 
-  window.confirmMarkCompleted = function () {
+  window.confirmMarkCompleted = async function () {
     const trial = getActiveTrial();
-    trial.trial.status = 'Completed';
-    trial.trial.fitStatus = 'perfect';
+    if (!trial) return;
 
-    trial.history.unshift({
-      action: 'Trial Session Marked as Completed (Fit Approved)',
-      time: 'Just now',
-      staff: (trial.designer && trial.designer !== '—') ? trial.designer : 'Staff'
-    });
+    try {
+      const { default: api } = await import('../api.js');
+      showToast('Marking trial as completed and advancing order to QC...', 'info');
+      const authUser = window.Auth?.getUser?.();
+      const staffName = authUser?.fullName || authUser?.username || 'Boutique Manager';
+      await api.trials.completeAndAdvance(trial.id, staffName);
 
-    closeModal('markCompletedModal');
-    renderTrialDetails();
-    renderTrialList();
-    updateKPIs();
-    showToast(`Order ${trial.orderId} marked as Completed!`, 'success');
+      trial.trial.status = 'Completed';
+      trial.trial.fitStatus = 'perfect';
+
+      trial.history.unshift({
+        action: 'Trial Session Marked as Completed (Fit Approved & Advanced to QC)',
+        time: 'Just now',
+        staff: staffName
+      });
+
+      closeModal('markCompletedModal');
+      await loadTrialsFromApi();
+      if (trial.id) window.selectTrial(trial.id);
+      updateKPIs();
+      showToast(`Order ${trial.orderId} marked as Completed & advanced to QC!`, 'success');
+    } catch (err) {
+      showToast('Failed to complete trial: ' + err.message, 'warn');
+    }
   };
 
   // ── Lightbox Gallery ──
@@ -1585,6 +1507,7 @@
     let pendingAlts = 0;
     let retrials = 0;
     let readyDelivery = 0;
+    let fromBackend = false;
 
     try {
       const { default: api } = await import('../api.js');
@@ -1592,29 +1515,30 @@
       if (kpis) {
         upcoming = kpis.upcoming != null ? kpis.upcoming : 0;
         today = kpis.today != null ? kpis.today : 0;
-        retrials = kpis.retrial != null ? kpis.retrial : 0;
+        retrials = kpis.retrialsRequired != null ? kpis.retrialsRequired : (kpis.retrial != null ? kpis.retrial : 0);
+        pendingAlts = kpis.pendingAlterations != null ? kpis.pendingAlterations : 0;
         readyDelivery = kpis.completed != null ? kpis.completed : 0;
+        fromBackend = true;
       }
     } catch (err) {
       console.warn('[TrialsAlterations] KPI fetch error:', err.message);
     }
 
-    // Dynamic fallbacks from loaded trials
-    if (upcoming === 0 && TRIALS_DATA.length > 0) {
-      upcoming = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'upcoming' || (t.trial.status || '').toLowerCase() === 'scheduled').length;
-    }
-    if (today === 0 && TRIALS_DATA.length > 0) {
-      today = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'today').length;
-    }
-
-    // Count pending alterations directly from live trial data
-    pendingAlts = TRIALS_DATA.reduce((acc, t) => acc + (t.alterations || []).filter(a => !a.checked).length, 0);
-
-    if (retrials === 0 && TRIALS_DATA.length > 0) {
-      retrials = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase().includes('retrial') || t.trial.fitStatus === 'retrial').length;
-    }
-    if (readyDelivery === 0 && TRIALS_DATA.length > 0) {
-      readyDelivery = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'completed' || t.trial.fitStatus === 'perfect').length;
+    // Dynamic fallbacks only if backend call failed
+    if (!fromBackend) {
+      if (upcoming === 0 && TRIALS_DATA.length > 0) {
+        upcoming = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'upcoming' || (t.trial.status || '').toLowerCase() === 'scheduled').length;
+      }
+      if (today === 0 && TRIALS_DATA.length > 0) {
+        today = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'today').length;
+      }
+      pendingAlts = TRIALS_DATA.reduce((acc, t) => acc + (t.alterations || []).filter(a => !a.checked).length, 0);
+      if (retrials === 0 && TRIALS_DATA.length > 0) {
+        retrials = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase().includes('retrial') || t.trial.fitStatus === 'retrial' || (t.trialAttempt || 1) > 1).length;
+      }
+      if (readyDelivery === 0 && TRIALS_DATA.length > 0) {
+        readyDelivery = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'completed' || t.trial.fitStatus === 'perfect').length;
+      }
     }
 
     // Bind values and meaningful subtexts

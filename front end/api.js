@@ -38,8 +38,14 @@ const Auth = {
   clear: () => {
     sessionStorage.removeItem('erp_token');
     sessionStorage.removeItem('erp_user');
+    sessionStorage.removeItem('erp_allowed_modules');
+    sessionStorage.removeItem('haulo_session_start');
+    sessionStorage.removeItem('haulo_last_activity');
     localStorage.removeItem('erp_token');
     localStorage.removeItem('erp_user');
+    localStorage.removeItem('erp_allowed_modules');
+    localStorage.removeItem('haulo_session_start');
+    localStorage.removeItem('haulo_last_activity');
   },
   isLoggedIn: () => {
     const t = Auth.getToken();
@@ -107,36 +113,93 @@ async function request(method, path, body = null, params = {}) {
     res = await fetch(url.toString(), options);
   } catch (netErr) {
     if (!base.startsWith('http://localhost:8080')) {
-      const fallbackUrl = new URL('http://localhost:8080/api/v1' + path);
-      Object.entries(params).forEach(([k, v]) => {
-        if (v !== null && v !== undefined && v !== '') fallbackUrl.searchParams.set(k, v);
-      });
-      res = await fetch(fallbackUrl.toString(), options);
+      try {
+        const fallbackUrl = new URL('http://localhost:8080/api/v1' + path);
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== null && v !== undefined && v !== '') fallbackUrl.searchParams.set(k, v);
+        });
+        res = await fetch(fallbackUrl.toString(), options);
+      } catch (fallbackErr) {
+        handleNetworkFailure(path, method, fallbackErr);
+        throw fallbackErr;
+      }
     } else {
+      handleNetworkFailure(path, method, netErr);
       throw netErr;
     }
   }
 
-  // If unauthorized or forbidden, clear token and redirect to login
-  if ((res.status === 401 || res.status === 403) && !path.startsWith('/auth/')) {
+  // 1. Session Expired (401 Unauthorized)
+  if (res.status === 401 && !path.startsWith('/auth/')) {
     Auth.clear();
-    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('login.html')) {
-      const isFrontEnd = window.location.pathname.includes('/front end/');
-      const loginUrl = isFrontEnd
-        ? window.location.pathname.replace(/\/front end\/.*$/, '/front end/login/login.html')
-        : '/front end/login/login.html';
-      window.location.href = loginUrl;
+    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('session-expired') && !window.location.pathname.includes('login.html')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toSessionExpired === 'function') {
+        window.HauloSystem.toSessionExpired({ reason: 'unauthorized', returnUrl: window.location.href });
+      } else {
+        const loginUrl = window.location.pathname.includes('/front end/')
+          ? window.location.pathname.replace(/\/front end\/.*$/, '/front end/login/login.html')
+          : '/front end/login/login.html';
+        window.location.href = loginUrl;
+      }
     }
     return null;
   }
 
+  // 2. Forbidden / Access Denied (403)
+  if (res.status === 403 && !path.startsWith('/auth/')) {
+    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('403.html')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toForbidden === 'function') {
+        window.HauloSystem.toForbidden({ feature: path, requiredRole: 'Privileged Staff / Admin' });
+        return null;
+      }
+    }
+    const err = await res.json().catch(() => ({ message: 'Access Denied: Forbidden action' }));
+    throw new Error(err.message || 'HTTP 403 Forbidden');
+  }
+
+  // 3. Maintenance Mode (503 Service Unavailable)
+  if (res.status === 503) {
+    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('maintenance')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toMaintenance === 'function') {
+        window.HauloSystem.toMaintenance({ estMinutes: 35 });
+        return null;
+      }
+    }
+  }
+
+  // 4. Server Fault (500 / 502 / 504)
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    const errorMsg = err.message || `HTTP ${res.status}`;
+
+    if (res.status >= 500 && !params.silent && typeof window !== 'undefined' && window.location && !window.location.pathname.includes('/system/') && !window.location.pathname.includes('/error/')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toServerError === 'function') {
+        window.HauloSystem.toServerError({ status: res.status, message: errorMsg });
+        return null;
+      }
+    }
+    throw new Error(errorMsg);
   }
 
   if (res.status === 204) return null;
   return res.json();
+}
+
+/**
+ * Handle network exceptions (browser offline or backend unreachable)
+ */
+function handleNetworkFailure(path, method, error) {
+  if (typeof window === 'undefined' || !window.location) return;
+  const isSysPage = window.location.pathname.includes('/system/') || window.location.pathname.includes('/error/');
+  if (isSysPage) return;
+
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    if (window.HauloSystem && typeof window.HauloSystem.toOffline === 'function') {
+      window.HauloSystem.toOffline();
+    }
+  } else if (window.HauloSystem && typeof window.HauloSystem.toNetworkError === 'function') {
+    window.HauloSystem.toNetworkError({ endpoint: path, method });
+  }
 }
 
 const get    = (path, params = {})       => request('GET',    path, null, params);
@@ -158,11 +221,61 @@ async function uploadFile(path, file, field = 'file') {
   if (token) headers['Authorization'] = 'Bearer ' + token;
   const formData = new FormData();
   formData.append(field, file);
-  const res = await fetch(base + path, { method: 'POST', headers, body: formData });
+
+  let res;
+  try {
+    res = await fetch(base + path, { method: 'POST', headers, body: formData });
+  } catch (netErr) {
+    handleNetworkFailure(path, 'POST', netErr);
+    throw netErr;
+  }
+
+  // 1. Session Expired (401)
+  if (res.status === 401) {
+    Auth.clear();
+    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('session-expired') && !window.location.pathname.includes('login.html')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toSessionExpired === 'function') {
+        window.HauloSystem.toSessionExpired({ reason: 'unauthorized', returnUrl: window.location.href });
+      }
+    }
+    return null;
+  }
+
+  // 2. Forbidden (403)
+  if (res.status === 403) {
+    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('403.html')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toForbidden === 'function') {
+        window.HauloSystem.toForbidden({ feature: path, requiredRole: 'Privileged Staff / Admin' });
+        return null;
+      }
+    }
+    const err = await res.json().catch(() => ({ message: 'Access Denied: Forbidden action' }));
+    throw new Error(err.message || 'HTTP 403 Forbidden');
+  }
+
+  // 3. Maintenance Mode (503)
+  if (res.status === 503) {
+    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('maintenance')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toMaintenance === 'function') {
+        window.HauloSystem.toMaintenance({ estMinutes: 35 });
+        return null;
+      }
+    }
+  }
+
+  // 4. Server Fault (500+)
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    const errorMsg = err.message || `HTTP ${res.status}`;
+    if (res.status >= 500 && typeof window !== 'undefined' && window.location && !window.location.pathname.includes('/system/') && !window.location.pathname.includes('/error/')) {
+      if (window.HauloSystem && typeof window.HauloSystem.toServerError === 'function') {
+        window.HauloSystem.toServerError({ status: res.status, message: errorMsg });
+        return null;
+      }
+    }
+    throw new Error(errorMsg);
   }
+
   return res.json();
 }
 
@@ -177,6 +290,7 @@ function unwrapList(res) {
 const api = {
   auth: {
     login: (username, password) => post('/auth/login', { username, password }),
+    me:    ()                    => get('/auth/me'),
   },
 
   dashboard: {
@@ -187,8 +301,6 @@ const api = {
     list: async (params = {}) => unwrapList(await get('/customers', params)),
     page: (params = {}) => get('/customers', params),
     get: (mobile) => get(`/customers/${encodeURIComponent(mobile)}`),
-    getByMobile: (mobile) => get(`/customers/${encodeURIComponent(mobile)}`),
-    getByCode: (mobile) => get(`/customers/${encodeURIComponent(mobile)}`),
     create: (data) => post('/customers', data),
     update: (mobile, data) => put(`/customers/${encodeURIComponent(mobile)}`, data),
     uploadAvatar: (mobile, file) => uploadFile(`/customers/${encodeURIComponent(mobile)}/avatar`, file),
@@ -218,7 +330,6 @@ const api = {
     get: (id) => get(`/orders/${id}`),
     create: (data) => post('/orders', data),
     update: (id, data) => put(`/orders/${id}`, data),
-    addProgress: (id, data) => patch(`/orders/${id}/progress`, data),
     kpis: () => get('/orders/kpis'),
     /**
      * Upload a reference image for a slot (1-5).
@@ -283,6 +394,7 @@ const api = {
     },
     create: (data) => post('/appointments', data),
     updateStatus: (id, status) => patch(`/appointments/${id}/status?status=${status}`, {}),
+    reschedule: (id, data) => patch(`/appointments/${id}/reschedule`, data),
     kpis: () => get('/appointments/kpis'),
   },
 
@@ -374,19 +486,10 @@ const api = {
       removeEmployee: (stageId, empId) => del(`/production/stage-definitions/${stageId}/employees/${empId}`),
       /** Upload artwork/photo for a stage definition */
       uploadImage: (id, file) => uploadFile(`/production/stage-definitions/${id}/image`, file),
-      // presets() endpoint was removed from backend — do not call it
     },
   },
 
-
   qc: {
-    checklists: (params = {}) => get('/qc/checklists', params),
-    updateChecklist: (id, result, remarks) => {
-      let qs = '';
-      if (result) qs += `result=${encodeURIComponent(result)}&`;
-      if (remarks) qs += `remarks=${encodeURIComponent(remarks)}&`;
-      return patch(`/qc/checklists/${id}?${qs}`, {});
-    },
     getNextAfterQc: () => get('/production/qc/next-stage'),
     pass: (orderId, notes) => {
       let qs = `orderId=${encodeURIComponent(orderId)}`;
@@ -446,7 +549,6 @@ const api = {
     update:     (id, data) => put(`/collections/${id}`, data),
     /** Toggle archive/unarchive */
     archive:       (id) => patch(`/collections/${id}/archive`, {}),
-    toggleArchive: (id) => patch(`/collections/${id}/archive`, {}),
     delete:        (id) => del(`/collections/${id}`),
   },
 
@@ -508,14 +610,131 @@ const api = {
      */
     update: async (id, data) => {
       return put(`/garments/${id}`, data);
-    },
-
-    /**
-     * Update Garment stage
-     */
-    updateStage: async (id, data) => {
-      return patch(`/garments/${id}/stage`, data);
     }
+  },
+
+  trials: {
+    list: async (params = {}) => {
+      const res = await get('/trials', params);
+      return res || { content: [], totalElements: 0, totalPages: 0, number: 0 };
+    },
+    getById: async (id) => {
+      return get(`/trials/${id}`);
+    },
+    create: async (data) => {
+      return post('/trials', data);
+    },
+    update: async (id, data) => {
+      return put(`/trials/${id}`, data);
+    },
+    updateFitStatus: async (id, fitStatus) => {
+      return patch(`/trials/${id}/fit-status?fitStatus=${encodeURIComponent(fitStatus)}`);
+    },
+    toggleAlteration: async (trialId, altId, completed, completedBy) => {
+      const params = new URLSearchParams();
+      if (completed !== undefined && completed !== null) params.append('completed', completed);
+      if (completedBy) params.append('completedBy', completedBy);
+      const qs = params.toString() ? `?${params.toString()}` : '';
+      return patch(`/trials/${trialId}/alterations/${altId}${qs}`);
+    },
+    addAlteration: async (trialId, data) => {
+      return post(`/trials/${trialId}/alterations`, data);
+    },
+    deleteAlteration: async (trialId, altId) => {
+      return del(`/trials/${trialId}/alterations/${altId}`);
+    },
+    kpis: async () => {
+      return get('/trials/kpis');
+    },
+    createFromOrder: async (orderId) => {
+      return post(`/trials/from-order/${orderId}`);
+    },
+    completeAndAdvance: async (id, completedBy) => {
+      const qs = completedBy ? `?completedBy=${encodeURIComponent(completedBy)}` : '';
+      return post(`/trials/${id}/complete-and-advance${qs}`);
+    },
+    scheduleRetrial: async (id, data) => {
+      return post(`/trials/${id}/schedule-retrial`, data);
+    },
+    ordersForTrial: async (params = {}) => {
+      return get('/trials/orders-for-trial', params);
+    }
+  },
+  profile: {
+    get: async () => get('/profile'),
+    update: async (data) => put('/profile', data),
+    uploadAvatar: async (formData) => {
+      const token = Auth.getToken();
+      const res = await fetch(`${getApiBase()}/profile/avatar`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Avatar upload failed');
+      }
+      return res.json();
+    },
+    uploadAvatarBase64: async (avatarBase64) => post('/profile/avatar-base64', { avatarBase64 }),
+    changePassword: async (data) => post('/profile/change-password', data)
+  },
+
+  // ─── Users & Roles ────────────────────────────────────────────
+  users: {
+    /**
+     * List all users. Optional params: search (string), role (UserRole enum name), active (boolean).
+     * Role filter value must match a valid UserRole enum name — e.g. 'ADMIN', 'STAFF'.
+     */
+    list:         (params = {}) => get('/users', params),
+    /**
+     * Get a single user by UUID.
+     */
+    getById:      (id)          => get(`/users/${id}`),
+    /**
+     * Create a new user. Required fields: username, fullName, password, role.
+     * Role must be a valid UserRole enum name.
+     */
+    create:       (data)        => post('/users', data),
+    /**
+     * Update an existing user by UUID. Password is optional — omit or null = no change.
+     * Role must be a valid UserRole enum name if provided.
+     */
+    update:       (id, data)    => put(`/users/${id}`, data),
+    /**
+     * Toggle active status of a user by UUID.
+     * Service guards against deactivating the last active ADMIN.
+     */
+    toggleActive: (id)          => patch(`/users/${id}/toggle-active`),
+    /**
+     * Fetch all available UserRoles and metadata from backend.
+     */
+    roles:        ()            => get('/users/roles'),
+    /**
+     * Fetch all available ERP modules and metadata from backend.
+     */
+    modules:      ()            => get('/users/modules'),
+  },
+
+  // ─── Branches ─────────────────────────────────────────────────
+  branches: {
+    list: async (params = {}) => unwrapList(await get('/branches', params)),
+    page: (params = {}) => get('/branches', params),
+    get:  (id) => get(`/branches/${id}`),
+  },
+
+  // ─── Inventory ────────────────────────────────────────────────
+  inventory: {
+    list:             (params = {}) => get('/inventory', params),
+    getById:          (id)          => get(`/inventory/${id}`),
+    create:           (data)        => post('/inventory', data),
+    update:           (id, data)    => put(`/inventory/${id}`, data),
+    adjust:           (id, data)    => patch(`/inventory/${id}/adjust`, data),
+    adjustStock:      (id, data)    => patch(`/inventory/${id}/adjust`, data),
+    delete:           (id)          => del(`/inventory/${id}`),
+    allMovements:     (params = {}) => get('/inventory/movements', params),
+    movementsForItem: (id)          => get(`/inventory/${id}/movements`),
+    kpis:             ()            => get('/inventory/kpis'),
   }
 };
 
@@ -524,5 +743,9 @@ if (typeof window !== 'undefined') {
   window.Auth = Auth;
 }
 
-export { Auth };
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { api, Auth, default: api };
+}
+
 export default api;
+export { Auth, api };

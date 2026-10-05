@@ -16,8 +16,8 @@
       </svg>
     </div>
     <div class="logo-text">
-      <span class="brand-name">HAULO</span>
-      <span class="brand-sub">BOUTIQUE ERP</span>
+      <span class="brand-name" data-company="shortName"></span>
+      <span class="brand-sub" data-company="businessType"></span>
     </div>
     <button class="sidebar-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Collapse sidebar" aria-label="Collapse sidebar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -164,15 +164,15 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span>Employees</span>
       </a>
-      <a href="#" class="nav-item uncompleted" id="nav-branches" data-tooltip="Branches (In Progress)" data-module="branches" onclick="navNavigate('branches',event)">
+      <a href="../branches/branches.html" class="nav-item" id="nav-branches" data-tooltip="Branches" data-module="branches" onclick="navNavigate('branches',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         <span>Branches</span>
       </a>
-      <a href="#" class="nav-item uncompleted" id="nav-users-roles" data-tooltip="Users &amp; Roles (In Progress)" data-module="users-roles" onclick="navNavigate('users-roles',event)">
+      <a href="../users-roles/users-roles.html" class="nav-item" id="nav-users-roles" data-tooltip="Users &amp; Roles" data-module="users-roles" onclick="navNavigate('users-roles',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span>Users &amp; Roles</span>
       </a>
-      <a href="#" class="nav-item uncompleted" id="nav-settings" data-tooltip="Settings (In Progress)" data-module="settings" onclick="navNavigate('settings',event)">
+      <a href="../settings/settings.html" class="nav-item" id="nav-settings" data-tooltip="Settings" data-module="settings" onclick="navNavigate('settings',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
         <span>Settings</span>
       </a>

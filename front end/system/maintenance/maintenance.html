@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="System Under Maintenance">System Under Maintenance</title>
+  <meta name="description" content="System is temporarily unavailable for scheduled maintenance. We are improving your experience." />
+  <link rel="icon" type="image/x-icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="maintenance.css" />
+</head>
+<body>
+
+  <div class="maintenance-page-wrapper">
+
+    <!-- Atmospheric Ambient Glowing Background -->
+    <div class="ambient-bg" aria-hidden="true">
+      <div class="glow-orb glow-orb-top"></div>
+      <div class="glow-orb glow-orb-pedestal"></div>
+      <div class="glow-orb glow-orb-side-left"></div>
+      <div class="glow-orb glow-orb-side-right"></div>
+    </div>
+
+    <!-- Top Status Header -->
+    <header class="maintenance-header">
+      <div class="header-status-badge">
+        <span class="status-pulse-dot" aria-hidden="true"></span>
+        <span>Scheduled Maintenance Mode</span>
+      </div>
+
+      <div style="font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.04em;" id="estWindowBadge">
+        EST. WINDOW: <strong style="color: var(--text-secondary);" id="estMinutesText">35 MINS</strong>
+      </div>
+    </header>
+
+    <!-- Main Central Maintenance Content -->
+    <main class="maintenance-main">
+
+      <!-- ===================================================================
+           PURE CSS / SVG 3D DIORAMA (NO RASTER IMAGES)
+           =================================================================== -->
+      <div class="css-diorama-stage" role="img" aria-label="3D System Maintenance Illustration with Gear, Tools, and Glowing Platform">
+        
+        <!-- Glowing Circular Pedestal Platform -->
+        <div class="pedestal-platform">
+          <div class="pedestal-rim">
+            <div class="pedestal-specular"></div>
+          </div>
+          <div class="pedestal-floor-reflection"></div>
+        </div>
+
+        <!-- Left Floating Clock Tile & Circuit Line -->
+        <div class="circuit-branch branch-left">
+          <svg class="circuit-wire-svg" viewBox="0 0 150 120" fill="none">
+            <path d="M130 25 H60 V80 H10" class="circuit-path" stroke-dasharray="3 4"/>
+            <circle cx="130" cy="25" r="3.5" class="circuit-dot"/>
+            <circle cx="60" cy="80" r="3.5" class="circuit-dot"/>
+            <circle cx="10" cy="80" r="3.5" class="circuit-dot"/>
+          </svg>
+          <div class="floating-tile" title="System Scheduled Uptime">
+            <svg viewBox="0 0 24 24" class="tile-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+              <path d="M3.05 11a9 9 0 0 1 .5-2"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Right Floating Settings Tile & Circuit Line -->
+        <div class="circuit-branch branch-right">
+          <svg class="circuit-wire-svg" viewBox="0 0 150 120" fill="none">
+            <path d="M130 25 H60 V80 H10" class="circuit-path" stroke-dasharray="3 4"/>
+            <circle cx="130" cy="25" r="3.5" class="circuit-dot"/>
+            <circle cx="60" cy="80" r="3.5" class="circuit-dot"/>
+            <circle cx="10" cy="80" r="3.5" class="circuit-dot"/>
+          </svg>
+          <div class="floating-tile" title="Engine Optimization">
+            <svg viewBox="0 0 24 24" class="tile-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- The Dark Console Window Screen -->
+        <div class="console-screen-card">
+          <div class="console-screen-header">
+            <span class="screen-dot"></span>
+            <span class="screen-dot screen-dot-2"></span>
+            <span class="screen-dot screen-dot-3"></span>
+          </div>
+          <div class="console-screen-body"></div>
+        </div>
+
+        <!-- The Big 3D Lime Green Gear -->
+        <div class="gear-3d-wrapper" id="gear3d" title="Click or hover to rotate gear">
+          <svg class="gear-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gearGradient" x1="10%" y1="10%" x2="90%" y2="90%">
+                <stop offset="0%" stop-color="#bef264" />
+                <stop offset="50%" stop-color="#a3e635" />
+                <stop offset="100%" stop-color="#4d7c0f" />
+              </linearGradient>
+              <radialGradient id="gearCenterGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#0f1710" />
+                <stop offset="100%" stop-color="#1e291e" />
+              </radialGradient>
+              <filter id="gearShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.6"/>
+              </filter>
+            </defs>
+            <!-- 8-Tooth Gear Path -->
+            <path d="M43 4 h14 l2 10 7 3 9-6 10 10-6 9 3 7 10 2 v14 l-10 2-3 7 6 9-10 10-9-6-7 3-2 10 H43 l-2-10-7-3-9 6-10-10 6-9-3-7-10-2 V43 l10-2 3-7-6-9 10-10 9 6 7-3 2-10 Z" 
+                  fill="url(#gearGradient)" 
+                  stroke="#84cc16" 
+                  stroke-width="1.5"
+                  filter="url(#gearShadow)" />
+            <!-- Inner Bore Hole -->
+            <circle cx="50" cy="50" r="18" fill="url(#gearCenterGrad)" stroke="#65a30d" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <!-- The Metallic Chrome Spanner Wrench -->
+        <div class="wrench-3d-wrapper">
+          <svg class="wrench-svg" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="chromeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f8fafc" />
+                <stop offset="35%" stop-color="#cbd5e1" />
+                <stop offset="70%" stop-color="#64748b" />
+                <stop offset="100%" stop-color="#1e293b" />
+              </linearGradient>
+            </defs>
+            <path d="M12 20 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 m4 0 a4 4 0 1 1 8 0 a4 4 0 1 1 -8 0" fill="url(#chromeGrad)" />
+            <path d="M25 17 L86 17 L92 9 C98 12 105 12 110 8 L104 19 L111 28 C105 25 98 26 93 30 L86 23 L25 23 Z" fill="url(#chromeGrad)" stroke="#475569" stroke-width="1"/>
+          </svg>
+        </div>
+
+        <!-- The Striped Construction Barricade -->
+        <div class="barricade-3d-wrapper">
+          <div class="barricade-beam"></div>
+          <div class="barricade-legs">
+            <div class="barricade-a-frame frame-left">
+              <div class="a-leg a-leg-1"></div>
+              <div class="a-leg a-leg-2"></div>
+            </div>
+            <div class="barricade-a-frame frame-right">
+              <div class="a-leg a-leg-1"></div>
+              <div class="a-leg a-leg-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Striped Traffic Cone -->
+        <div class="traffic-cone-3d-wrapper">
+          <svg class="traffic-cone-svg" viewBox="0 0 60 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="coneLime" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#bef264" />
+                <stop offset="50%" stop-color="#a3e635" />
+                <stop offset="100%" stop-color="#65a30d" />
+              </linearGradient>
+              <linearGradient id="coneBlack" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#2d3748" />
+                <stop offset="50%" stop-color="#1a202c" />
+                <stop offset="100%" stop-color="#0f141c" />
+              </linearGradient>
+            </defs>
+            <!-- Cone Base -->
+            <polygon points="5,78 55,78 50,84 10,84" fill="#111827" stroke="#1f2937" stroke-width="1"/>
+            <!-- Lower Lime Band -->
+            <polygon points="12,78 48,78 43,62 17,62" fill="url(#coneLime)" />
+            <!-- Middle Dark Band -->
+            <polygon points="17,62 43,62 39,46 21,46" fill="url(#coneBlack)" />
+            <!-- Upper Lime Band -->
+            <polygon points="21,46 39,46 35,30 25,30" fill="url(#coneLime)" />
+            <!-- Cone Tip -->
+            <polygon points="25,30 35,30 31,14 29,14" fill="url(#coneBlack)" />
+            <ellipse cx="30" cy="14" rx="2" ry="1.5" fill="#a3e635"/>
+          </svg>
+        </div>
+
+      </div>
+
+      <!-- Brand Identifier -->
+      <a href="../../dashboard/dashboard.html" class="brand-block">
+        <svg viewBox="0 0 24 24" fill="none" class="brand-logo-h" aria-label="Brand Logo">
+          <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+          <circle cx="6" cy="18.5" r="2.5" fill="#a3e635"/>
+          <circle cx="18" cy="5.5" r="2.5" fill="#a3e635"/>
+          <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+        </svg>
+        <div class="brand-text-column">
+          <span class="brand-title" data-brand="shortName"></span>
+          <span class="brand-subtitle" data-brand="systemSub"></span>
+        </div>
+      </a>
+
+      <!-- Headline: System Under Maintenance -->
+      <h1 class="maintenance-title">
+        System Under <span class="highlight-lime">Maintenance</span>
+      </h1>
+
+      <!-- Subtitle Description -->
+      <p class="maintenance-subtitle">
+        Our system is temporarily unavailable for maintenance.<br />
+        We're working to improve your experience.
+      </p>
+
+      <!-- Action Buttons Row: [Go Back] & [Refresh Page] -->
+      <div class="action-row">
+        <button type="button" class="btn-go-back" id="btnGoBack" title="Return to previous screen">
+          <svg viewBox="0 0 24 24" class="arrow-icon-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Go Back</span>
+        </button>
+
+        <button type="button" class="btn-refresh-page" id="btnRefresh" title="Test server status">
+          <svg viewBox="0 0 24 24" class="refresh-icon-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span id="btnRefreshText">Refresh Page</span>
+        </button>
+      </div>
+
+      <!-- Horizontal Divider with Crossed Tools Icon -->
+      <div class="divider-row" aria-hidden="true">
+        <div class="divider-line"></div>
+        <div class="divider-icon-wrap" title="Maintenance underway">
+          <svg viewBox="0 0 24 24" class="divider-tools-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+          </svg>
+        </div>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Patience Note -->
+      <p class="patience-text">Thank you for your patience.</p>
+
+      <!-- Direct Secondary Support Link for convenience -->
+      <div class="secondary-support-hint">
+        Need immediate assistance? 
+        <button type="button" class="support-inline-link" id="linkInlineSupport">Contact Support</button>
+      </div>
+
+    </main>
+
+    <!-- Bottom Footer Area -->
+    <footer class="maintenance-footer">
+      <div class="footer-left-info">
+        <div class="footer-dash"></div>
+        <span class="footer-caption">Boutique Infrastructure &bull; High Reliability</span>
+      </div>
+
+      <div class="footer-center-copyright" data-brand="copyright">
+        &copy; 2026 Boutique ERP. All rights reserved.
+      </div>
+
+      <!-- Bottom Right Need Help / Contact Support Pill Button -->
+      <button type="button" class="btn-support-pill" id="btnSupport" aria-haspopup="dialog" title="Contact Technical Support">
+        <svg viewBox="0 0 24 24" class="support-headset-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+        </svg>
+        <div class="support-pill-text">
+          <span class="support-pill-label">Need Help?</span>
+          <span class="support-pill-action">Contact Support</span>
+        </div>
+        <svg viewBox="0 0 24 24" class="support-chevron-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- Contact Support Modal Dialog -->
+  <div class="support-modal-backdrop" id="supportModal" role="dialog" aria-modal="true" aria-label="Support Options">
+    <div class="support-modal-card">
+      <div class="modal-header-row">
+        <h2 class="modal-title"><span data-brand="shortName"></span> Support &amp; Status</h2>
+        <button type="button" class="modal-close-btn" id="closeSupportModal" aria-label="Close Modal">&times;</button>
+      </div>
+
+      <div class="maintenance-window-box">
+        <svg viewBox="0 0 24 24" class="window-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <div class="window-text">
+          <strong>Maintenance Status:</strong> Upgrading database schemas and boutique synchronization services. Estimated completion: <span id="estCompletionTime">approx. 35 mins</span>.
+        </div>
+      </div>
+
+      <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+        Need emergency access or have critical pending couture delivery schedules? Contact our dedicated infrastructure engineering desk:
+      </p>
+
+      <div class="support-channels-list">
+        <a href="#" class="support-channel-item" data-brand-href="phone">
+          <svg viewBox="0 0 24 24" class="channel-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">24/7 Boutique Emergency Hotline</div>
+            <div class="channel-val" data-brand="phone"></div>
+          </div>
+        </a>
+
+        <a href="#" class="support-channel-item" data-brand-href="supportEmail">
+          <svg viewBox="0 0 24 24" class="channel-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">ERP Engineering Operations</div>
+            <div class="channel-val" data-brand="supportEmail"></div>
+          </div>
+        </a>
+      </div>
+
+      <button type="button" class="btn-copy-diagnostics" id="btnCopyDiag">
+        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span>Copy Maintenance Diagnostic Info</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Notice -->
+  <div class="toast-notice" id="toastNotice" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; color: var(--neon-lime);" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastNoticeMsg">Diagnostic details copied to clipboard!</span>
+  </div>
+
+  <!-- Central Brand Identity & Universal Hydrator -->
+  <script src="../../fragments/brand-identity/brand-identity.js"></script>
+  <!-- Brand & Universal Sync Bridge -->
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="maintenance.js"></script>
+</body>
+</html>

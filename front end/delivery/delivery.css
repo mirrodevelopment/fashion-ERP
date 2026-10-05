@@ -1653,7 +1653,7 @@ body[data-module="delivery"] {
   color: #111827;
   padding: 18px;
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
 }
 
 .slip-header {

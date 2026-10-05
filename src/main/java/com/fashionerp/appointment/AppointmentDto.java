@@ -11,6 +11,7 @@ public class AppointmentDto {
         private String customerMobile;
         private String customerPhone;
         private String customerId; // String alias
+        private String customerName;
         private UUID orderId;
         private AppointmentType apptType;
         private LocalDateTime scheduledAt;

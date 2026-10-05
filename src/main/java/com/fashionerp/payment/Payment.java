@@ -71,7 +71,7 @@ public class Payment {
             this.status = dueDate != null && LocalDate.now().isAfter(dueDate)
                     ? PaymentStatus.OVERDUE : PaymentStatus.PENDING;
         } else if (paidAmount.compareTo(totalAmount) >= 0) {
-            this.status = PaymentStatus.FULLY_PAID;
+            this.status = PaymentStatus.PAID;
         } else {
             this.status = PaymentStatus.PARTIAL;
         }

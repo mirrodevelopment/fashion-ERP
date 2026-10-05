@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Create New User">Create New User</title>
+  <meta name="description" content="Provision account credentials, assign role privileges, branch location, and contact information." />
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="create-user.css" />
+
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="users-roles">
+
+  <!-- Background Atmospheric Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Shared Sidebar Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Global Top Navbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- Create User Scrollable Area -->
+      <div class="create-user-scroll" id="createUserScroll">
+
+        <!-- Page Operations Header -->
+        <div class="cu-page-header-row">
+          <div class="cu-page-title-group">
+            <div class="cu-breadcrumb-nav">
+              <a href="../../dashboard/dashboard.html" class="cu-bc-item cu-bc-link">Dashboard</a>
+              <span class="cu-bc-sep">&gt;</span>
+              <a href="../users-roles.html" class="cu-bc-item cu-bc-link">Users &amp; Roles</a>
+              <span class="cu-bc-sep">&gt;</span>
+              <span class="cu-bc-item current">Create User</span>
+            </div>
+            <h1 class="cu-page-title">
+              <i data-lucide="user-plus" class="cu-title-icon"></i>
+              Create New User
+            </h1>
+            <p class="cu-page-subtitle">Provision account credentials, assign role privileges, branch location, and contact information.</p>
+          </div>
+
+          <!-- 5-Step Horizontal Workflow Stepper -->
+          <div class="cu-workflow-stepper" id="workflowStepper">
+            <div class="cu-step-node active" data-step="1" onclick="scrollToCard('cardAccount')" title="Account Credentials &amp; Security">
+              <div class="cu-step-circle">1</div>
+              <div class="cu-step-label">Account</div>
+            </div>
+            <div class="cu-step-line"></div>
+            <div class="cu-step-node" data-step="2" onclick="scrollToCard('cardRole')" title="System Privileges &amp; Role">
+              <div class="cu-step-circle">2</div>
+              <div class="cu-step-label">Role</div>
+            </div>
+            <div class="cu-step-line"></div>
+            <div class="cu-step-node" data-step="3" onclick="scrollToCard('cardOrg')" title="Department &amp; Branch Assignment">
+              <div class="cu-step-circle">3</div>
+              <div class="cu-step-label">Organization</div>
+            </div>
+            <div class="cu-step-line"></div>
+            <div class="cu-step-node" data-step="4" onclick="scrollToCard('cardContact')" title="Contact Details">
+              <div class="cu-step-circle">4</div>
+              <div class="cu-step-label">Contact</div>
+            </div>
+            <div class="cu-step-line"></div>
+            <div class="cu-step-node" data-step="5" onclick="scrollToCard('cardAccess')" title="Page Access &amp; Permissions">
+              <div class="cu-step-circle">5</div>
+              <div class="cu-step-label">Access</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Form Grid Workspace (Left Form Column + Right Live Preview Column) -->
+        <form id="createUserForm" onsubmit="handleUserSubmit(event)" novalidate>
+          <div class="cu-grid">
+
+            <!-- LEFT FORM COLUMN (~65%) -->
+            <div class="cu-col-form">
+
+              <!-- CARD 1: ACCOUNT CREDENTIALS & SECURITY -->
+              <section class="cu-card" id="cardAccount">
+                <div class="cu-card-header">
+                  <div class="cu-card-header-left">
+                    <div class="cu-step-badge">1</div>
+                    <div>
+                      <h2 class="cu-card-title">Account Credentials &amp; Security</h2>
+                      <p class="cu-card-subtitle">Login username, full legal name, password, and account activation status</p>
+                    </div>
+                  </div>
+                  <div class="cu-card-header-right">
+                    <!-- Status Toggle -->
+                    <div class="cu-status-toggle-wrap">
+                      <span class="cu-status-toggle-label" id="statusToggleText">Account Active</span>
+                      <label class="cu-switch">
+                        <input type="checkbox" id="userActiveToggle" checked onchange="handleStatusToggle(this.checked)" />
+                        <span class="cu-slider round"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 1: Username & Full Name -->
+                <div class="cu-row-2col">
+                  <div class="cu-field">
+                    <label class="cu-label" for="usernameInput">
+                      Username <span class="cu-req">*</span>
+                    </label>
+                    <div class="cu-input-icon-wrap">
+                      <i data-lucide="at-sign" class="cu-input-icon"></i>
+                      <input
+                        type="text"
+                        id="usernameInput"
+                        class="cu-input cu-input-pad"
+                        placeholder="e.g. priya.couture"
+                        required
+                        autocomplete="off"
+                        autocapitalize="none"
+                        spellcheck="false"
+                        oninput="handleUsernameInput(this)"
+                      />
+                    </div>
+                    <span class="cu-field-hint" id="usernameHint">Unique identifier used for logging in. Lowercase and numbers only.</span>
+                  </div>
+
+                  <div class="cu-field">
+                    <label class="cu-label" for="fullNameInput">
+                      Full Name <span class="cu-req">*</span>
+                    </label>
+                    <div class="cu-input-icon-wrap">
+                      <i data-lucide="user" class="cu-input-icon"></i>
+                      <input
+                        type="text"
+                        id="fullNameInput"
+                        class="cu-input cu-input-pad"
+                        placeholder="e.g. Priya Sundaram"
+                        required
+                        oninput="syncUserPreview()"
+                      />
+                    </div>
+                    <span class="cu-field-hint">Employee full legal name as shown on official records.</span>
+                  </div>
+                </div>
+
+                <!-- Row 2: Password & Confirm Password -->
+                <div class="cu-row-2col">
+                  <div class="cu-field">
+                    <label class="cu-label" for="passwordInput">
+                      Password <span class="cu-req">*</span>
+                    </label>
+                    <div class="cu-input-icon-wrap">
+                      <i data-lucide="lock" class="cu-input-icon"></i>
+                      <input
+                        type="password"
+                        id="passwordInput"
+                        class="cu-input cu-input-pad cu-input-pad-right"
+                        placeholder="Minimum 6 characters"
+                        required
+                        minlength="6"
+                        autocomplete="new-password"
+                        oninput="handlePasswordInput()"
+                      />
+                      <button type="button" class="cu-eye-btn" onclick="togglePasswordVisibility('passwordInput', this)" title="Show/Hide Password">
+                        <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                      </button>
+                    </div>
+                    <!-- Password Strength Bar -->
+                    <div class="cu-strength-bar-wrap">
+                      <div class="cu-strength-bar" id="strengthBar"></div>
+                    </div>
+                    <div class="cu-strength-meta">
+                      <span class="cu-strength-label" id="strengthLabel">Enter password</span>
+                      <span class="cu-field-hint">Minimum 6 characters</span>
+                    </div>
+                  </div>
+
+                  <div class="cu-field">
+                    <label class="cu-label" for="confirmPasswordInput">
+                      Confirm Password <span class="cu-req">*</span>
+                    </label>
+                    <div class="cu-input-icon-wrap">
+                      <i data-lucide="shield-check" class="cu-input-icon"></i>
+                      <input
+                        type="password"
+                        id="confirmPasswordInput"
+                        class="cu-input cu-input-pad cu-input-pad-right"
+                        placeholder="Re-enter password"
+                        required
+                        autocomplete="new-password"
+                        oninput="handleConfirmPasswordInput()"
+                      />
+                      <button type="button" class="cu-eye-btn" onclick="togglePasswordVisibility('confirmPasswordInput', this)" title="Show/Hide Password">
+                        <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                      </button>
+                    </div>
+                    <span class="cu-field-hint" id="passwordMatchHint">Both passwords must match identically.</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- CARD 2: ROLE & SYSTEM PRIVILEGES -->
+              <section class="cu-card" id="cardRole">
+                <div class="cu-card-header">
+                  <div class="cu-card-header-left">
+                    <div class="cu-step-badge">2</div>
+                    <div>
+                      <h2 class="cu-card-title">Role &amp; System Privileges</h2>
+                      <p class="cu-card-subtitle">Assign security clearance tier, module access, and administrative capabilities</p>
+                    </div>
+                  </div>
+                  <div class="cu-card-header-right">
+                    <span class="cu-badge-api">
+                      <i data-lucide="shield" style="width:12px;height:12px;"></i>
+                      <span>Server Enforced</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Dynamic Role Cards (Populated by JS from GET /api/v1/users/roles) -->
+                <div class="cu-role-cards-grid" id="rolesContainer">
+                  <div class="cu-loading-roles">
+                    <i data-lucide="loader-2" class="cu-spin"></i>
+                    <span>Loading available roles from security policy...</span>
+                  </div>
+                </div>
+
+                <!-- Role Capability Summary Checklist -->
+                <div class="cu-capability-box" id="roleCapabilitiesBox">
+                  <div class="cu-cap-header">
+                    <i data-lucide="check-circle" class="cu-cap-icon"></i>
+                    <span class="cu-cap-title" id="capTitle">Privilege Matrix</span>
+                  </div>
+                  <div class="cu-cap-pills" id="capPillsContainer">
+                    <!-- Populated dynamically based on selected role -->
+                  </div>
+                </div>
+              </section>
+
+              <!-- CARD 3: ORGANIZATION & BRANCH ASSIGNMENT -->
+              <section class="cu-card" id="cardOrg">
+                <div class="cu-card-header">
+                  <div class="cu-card-header-left">
+                    <div class="cu-step-badge">3</div>
+                    <div>
+                      <h2 class="cu-card-title">Organization &amp; Branch Assignment</h2>
+                      <p class="cu-card-subtitle">Workforce designation, departmental allocation, and physical boutique location</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cu-row-2col">
+                  <!-- Designation -->
+                  <div class="cu-field">
+                    <label class="cu-label" for="designationInput">Job Designation</label>
+                    <div class="cu-input-icon-wrap">
+                      <i data-lucide="briefcase" class="cu-input-icon"></i>
+                      <input
+                        type="text"
+                        id="designationInput"
+                        class="cu-input cu-input-pad"
+                        placeholder="e.g. Master Tailor, Senior Stylist"
+                        list="designationSuggestions"
+                        oninput="syncUserPreview()"
+                      />
+                      <datalist id="designationSuggestions">
+                        <option value="Master Tailor"></option>
+                        <option value="Senior Couturier"></option>
+                        <option value="Atelier Supervisor"></option>
+                        <option value="Boutique Manager"></option>
+                        <option value="Front Desk Executive"></option>
+                        <option value="Stylist &amp; Drape Consultant"></option>
+                        <option value="Quality Control Inspector"></option>
+                        <option value="Administrator"></option>
+                      </datalist>
+                    </div>
+                    <span class="cu-field-hint">Functional role title within the atelier or showroom.</span>
+                  </div>
+
+                  <!-- Department -->
+                  <div class="cu-field">
+                    <label class="cu-label" for="departmentInput">Department</label>
+                    <div class="cu-input-icon-wrap">
+                      <i data-lucide="layers" class="cu-input-icon"></i>
+                      <input
+                        type="text"
+                        id="departmentInput"
+                        class="cu-input cu-input-pad"
+                        placeholder="e.g. Production &amp; Atelier"
+                        list="departmentSuggestions"
+                        oninput="syncUserPreview()"
+                      />
+                      <datalist id="departmentSuggestions">
+                        <option value="Atelier &amp; Tailoring"></option>
+                        <option value="Design Studio"></option>
+                        <option value="Front Desk &amp; Reception"></option>
+                        <option value="Sales &amp; Client Relations"></option>
+                        <option value="Quality Control &amp; Alterations"></option>
+                        <option value="Operations &amp; Logistics"></option>
+                        <option value="Executive Management"></option>
+                      </datalist>
+                    </div>
+                    <span class="cu-field-hint">Internal departmental division.</span>
+                  </div>
+                </div>
+
+                <!-- Assigned Branch (Dynamic from GET /api/v1/branches) -->
+                <div class="cu-field">
+                  <label class="cu-label" for="assignedBranchSelect">Assigned Branch Location</label>
+                  <div class="cu-select-wrapper">
+                    <i data-lucide="map-pin" class="cu-select-icon"></i>
+                    <select id="assignedBranchSelect" class="cu-select" onchange="syncUserPreview()">
+                      <option value="">— Unassigned (All Branches / Central HQ) —</option>
+                      <!-- Branches injected dynamically by JS -->
+                    </select>
+                    <i data-lucide="chevron-down" class="cu-select-arrow"></i>
+                  </div>
+                  <span class="cu-field-hint">Restricts or tags activities to this boutique atelier location.</span>
+                </div>
+              </section>
+
+              <!-- CARD 4: CONTACT & DETAILS -->
+              <section class="cu-card" id="cardContact">
+                <div class="cu-card-header">
+                  <div class="cu-card-header-left">
+                    <div class="cu-step-badge">4</div>
+                    <div>
+                      <h2 class="cu-card-title">Contact &amp; Identification</h2>
+                      <p class="cu-card-subtitle">Work email and mobile phone number for verification and security notices</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cu-row-2col">
+                  <!-- Email -->
+                  <div class="cu-field">
+                    <label class="cu-label" for="emailInput">Work Email Address</label>
+                    <div class="cu-input-icon-wrap">
+                      <i data-lucide="mail" class="cu-input-icon"></i>
+                      <input
+                        type="email"
+                        id="emailInput"
+                        class="cu-input cu-input-pad"
+                        placeholder="e.g. employee@yourdomain.com"
+                        data-brand-placeholder="employeeEmail"
+                        oninput="syncUserPreview()"
+                      />
+                    </div>
+                    <span class="cu-field-hint">Used for system alerts, password resets, and notifications.</span>
+                  </div>
+
+                  <!-- Phone Number -->
+                  <div class="cu-field">
+                    <label class="cu-label" for="phoneInput">Mobile Phone Number</label>
+                    <div class="cu-phone-group">
+                      <div class="cu-phone-prefix">
+                        <span class="cu-prefix-text">IN +91</span>
+                      </div>
+                      <input
+                        type="tel"
+                        id="phoneInput"
+                        class="cu-input cu-phone-input"
+                        placeholder="10-digit mobile number"
+                        data-brand-placeholder="phone"
+                        maxlength="10"
+                        oninput="handlePhoneInput(this)"
+                      />
+                    </div>
+                    <span class="cu-field-hint">Direct contact for internal ERP operations.</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- CARD 5: PAGE ACCESS & PERMISSIONS -->
+              <section class="cu-card" id="cardAccess">
+                <div class="cu-card-header">
+                  <div class="cu-card-header-left">
+                    <div class="cu-step-badge">5</div>
+                    <div>
+                      <h2 class="cu-card-title">Page Access &amp; Permissions</h2>
+                      <p class="cu-card-subtitle">Select which ERP modules this user is permitted to access. Defaults are pre-set based on their assigned role.</p>
+                    </div>
+                  </div>
+                  <div class="cu-card-header-right cu-access-actions">
+                    <span class="cu-access-counter" id="accessCounter">0 modules selected</span>
+                    <button type="button" class="cu-btn-access-action" id="btnSelectAllModules" onclick="selectAllModules()">Select All</button>
+                    <button type="button" class="cu-btn-access-action" id="btnClearAllModules" onclick="clearAllModules()">Clear All</button>
+                    <button type="button" class="cu-btn-access-action cu-btn-reset-role" id="btnResetRoleDefaults" onclick="resetToRoleDefaults()">Reset Defaults</button>
+                  </div>
+                </div>
+
+                <!-- Module Section Groups — rendered by JS from GET /api/v1/users/modules -->
+                <div class="cu-module-access-container" id="moduleAccessGrid">
+                  <div class="cu-loading-roles">
+                    <i data-lucide="loader-2" class="cu-spin"></i>
+                    <span>Loading ERP module registry...</span>
+                  </div>
+                </div>
+              </section>
+
+            </div><!-- /cu-col-form -->
+
+            <!-- RIGHT LIVE PREVIEW & ACTIONS COLUMN (~35%) -->
+            <div class="cu-col-preview">
+
+              <!-- LIVE USER PROFILE CARD -->
+              <section class="cu-card cu-sticky-card" id="cardPreview">
+                <div class="cu-card-header">
+                  <div class="cu-card-header-left">
+                    <div class="cu-step-badge cu-icon-badge">
+                      <i data-lucide="user" style="width:13px;height:13px;"></i>
+                    </div>
+                    <div>
+                      <h2 class="cu-card-title">Live User Profile</h2>
+                      <p class="cu-card-subtitle">Real-time credentials &amp; permissions preview</p>
+                    </div>
+                  </div>
+                  <div class="cu-card-header-right">
+                    <span class="cu-badge-live">
+                      <span class="cu-live-dot"></span>
+                      <span>Live Sync</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Preview Profile Body -->
+                <div class="cu-user-preview-card">
+                  <div class="cu-upc-header">
+                    <div class="cu-avatar-circle" id="sumAvatarCircle">
+                      <span class="cu-avatar-initials" id="sumAvatarInitials">NU</span>
+                    </div>
+                    <div class="cu-upc-meta">
+                      <div class="cu-upc-name" id="sumFullName">— New User</div>
+                      <div class="cu-upc-username" id="sumUsername">@username</div>
+                      <div class="cu-upc-pills">
+                        <span class="cu-role-pill" id="sumRolePill">
+                          <i data-lucide="shield" style="width:11px;height:11px;"></i>
+                          <span id="sumRoleText">ADMIN</span>
+                        </span>
+                        <span class="cu-status-pill active" id="sumStatusPill">
+                          <span class="cu-status-dot"></span>
+                          <span id="sumStatusText">ACTIVE</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Details Divider List -->
+                  <div class="cu-preview-details">
+                    <div class="cu-preview-row">
+                      <div class="cu-pr-label">
+                        <i data-lucide="briefcase"></i>
+                        <span>Designation</span>
+                      </div>
+                      <span class="cu-pr-value" id="sumDesignation">—</span>
+                    </div>
+
+                    <div class="cu-preview-row">
+                      <div class="cu-pr-label">
+                        <i data-lucide="layers"></i>
+                        <span>Department</span>
+                      </div>
+                      <span class="cu-pr-value" id="sumDepartment">—</span>
+                    </div>
+
+                    <div class="cu-preview-row">
+                      <div class="cu-pr-label">
+                        <i data-lucide="map-pin"></i>
+                        <span>Branch</span>
+                      </div>
+                      <span class="cu-pr-value cu-branch-badge" id="sumBranch">Central HQ</span>
+                    </div>
+
+                    <div class="cu-preview-row">
+                      <div class="cu-pr-label">
+                        <i data-lucide="mail"></i>
+                        <span>Email</span>
+                      </div>
+                      <span class="cu-pr-value" id="sumEmail">—</span>
+                    </div>
+
+                    <div class="cu-preview-row">
+                      <div class="cu-pr-label">
+                        <i data-lucide="phone"></i>
+                        <span>Phone</span>
+                      </div>
+                      <span class="cu-pr-value" id="sumPhone">—</span>
+                    </div>
+
+                    <div class="cu-preview-row">
+                      <div class="cu-pr-label">
+                        <i data-lucide="layout-grid"></i>
+                        <span>Page Access</span>
+                      </div>
+                      <span class="cu-pr-value cu-access-pill" id="sumAccessCount">0 modules</span>
+                    </div>
+                  </div>
+
+                  <!-- Security Audit Snippet -->
+                  <div class="cu-security-snippet">
+                    <div class="cu-sec-header">
+                      <i data-lucide="key" style="width:13px;height:13px;color:var(--lime);"></i>
+                      <span>Security &amp; Account Policy</span>
+                    </div>
+                    <p class="cu-sec-text">Password will be hashed using BCrypt before persistence. Account activation allows immediate access.</p>
+                    <div class="cu-sec-meta">
+                      <span>Provision Date:</span>
+                      <strong id="sumProvisionDate">—</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sticky Bottom Action Bar -->
+                <div class="cu-actions-row">
+                  <a href="../users-roles.html" class="cu-btn-cancel" id="btnCancel">
+                    <i data-lucide="arrow-left" style="width:14px;height:14px;"></i>
+                    <span>Cancel</span>
+                  </a>
+                  <button type="button" class="cu-btn-draft" id="btnSaveDraft" onclick="saveUserDraft()">
+                    <i data-lucide="bookmark" style="width:14px;height:14px;"></i>
+                    <span>Save Draft</span>
+                  </button>
+                  <button type="submit" class="cu-btn-submit" id="btnCreateUser">
+                    <span id="btnSubmitText">Create User</span>
+                    <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+                  </button>
+                </div>
+              </section>
+
+            </div><!-- /cu-col-preview -->
+
+          </div><!-- /cu-grid -->
+        </form>
+
+      </div><!-- /createUserScroll -->
+      
+      <!-- Footer / Status Bar Slot -->
+      <div id="footerSlot"></div>
+
+    </main>
+  </div><!-- /appShell -->
+
+  <!-- Toast Notification Container -->
+  <div class="cu-toast-container" id="cuToastContainer"></div>
+
+  <!-- JavaScript Modules -->
+  <script type="module" src="../../api.js"></script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="create-user.js"></script>
+</body>
+</html>

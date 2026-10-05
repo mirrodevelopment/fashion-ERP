@@ -5,24 +5,9 @@
  * Path: front end/inventory/inventory.js
  */
 
-// Fallback image in case an external image fails to load
-const FALLBACK_IMG = '../assets/fabrics/silk.jpg';
+// Fallback neutral SVG silhouette for items without a database image URL
+const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22 width=%2248%22 height=%2248%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%226%22 y=%226%22 width=%2236%22 height=%2236%22 rx=%224%22/%3E%3Cpath d=%22M6 18h36M6 30h36M18 6v36M30 6v36%22 stroke-dasharray=%222 2%22/%3E%3C/svg%3E";
 
-// Local Image Dictionary for Boutique Materials
-const MATERIAL_IMG_MAP = {
-  'Banarasi Silk': '../assets/fabrics/silk.jpg',
-  'Georgette': '../assets/fabrics/georgette.jpg',
-  'Satoon Lining': '../assets/fabrics/lining.jpg',
-  'Embroidery Thread': '../assets/fabrics/thread-gold.jpg',
-  'Designer Button': '../assets/fabrics/button-gold.jpg',
-  'Invisible Zip': '../assets/fabrics/zipper.jpg',
-  'Zardosi Motif': '../assets/fabrics/zari-motif.jpg',
-  'Garment Cover': '../assets/fabrics/lining.jpg',
-  'Pearl Beads 4mm': '../assets/fabrics/button-gold.jpg',
-  'Hook Set': '../assets/fabrics/zipper.jpg',
-  'Satoon Lining (Black)': '../assets/fabrics/lining.jpg',
-  default: '../assets/fabrics/silk.jpg'
-};
 
 // ─────────────────────────────────────────────
 // 1. MASTER INVENTORY DATASET (Loaded from Database via REST API)
@@ -59,6 +44,7 @@ function apiToInventoryItem(i) {
     return String(s);
   };
   return {
+    id: i.id,
     code: i.itemCode,
     name: i.name,
     category: i.category,
@@ -69,98 +55,81 @@ function apiToInventoryItem(i) {
     available: Number(i.availableQty) || 0,
     reorderLevel: Number(i.reorderLevel) || 0,
     status: mapStatus(i.status),
-    supplier: i.supplierName || 'Primary Supplier',
+    supplier: i.supplierName || '—',
     purchasePrice: Number(i.purchasePrice) || 0,
-    image: i.imageUrl || MATERIAL_IMG_MAP[i.name] || MATERIAL_IMG_MAP.default
+    image: i.imageUrl || FALLBACK_IMG
   };
+}
+
+async function getApi() {
+  if (window.api) return window.api;
+  try {
+    const mod = await import('../api.js');
+    return mod.default || mod.api || window.api;
+  } catch (_) {
+    return window.api;
+  }
+}
+
+async function getAuth() {
+  if (window.Auth) return window.Auth;
+  try {
+    const mod = await import('../api.js');
+    return mod.Auth || window.Auth;
+  } catch (_) {
+    return window.Auth;
+  }
 }
 
 async function loadInventoryFromApi() {
   try {
-    const { default: api, Auth } = await import('../api.js');
-    if (!Auth.isLoggedIn()) {
+    const api = await getApi();
+    const Auth = await getAuth();
+    if (Auth && typeof Auth.isLoggedIn === 'function' && !Auth.isLoggedIn()) {
       window.location.href = '../login/login.html';
       return;
     }
-    const res = await api.inventory.list({ page: 0, size: 100 });
+    const res = (api && api.inventory) ? await api.inventory.list({ page: 0, size: 200 }).catch(() => []) : [];
     const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
     inventoryItems = items.map(apiToInventoryItem);
 
-    // Generate movements from live database items
-    stockMovements = inventoryItems.slice(0, 5).map((item, idx) => ({
-      date: 'Live DB',
-      item: item.name,
-      type: idx % 2 === 0 ? 'Receive' : 'Issue',
-      qty: (idx % 2 === 0 ? '+ ' : '- ') + Math.round(item.available * 0.1 || 5) + ' ' + (item.unit || 'units'),
-      ref: 'INV-' + (item.code || '0001')
+    // Fetch real movements from DB
+    let movItems = [];
+    if (api && api.inventory && typeof api.inventory.allMovements === 'function') {
+      try {
+        const movRes = await api.inventory.allMovements({ page: 0, size: 5 });
+        movItems = Array.isArray(movRes) ? movRes : (movRes && movRes.content ? movRes.content : []);
+      } catch (_) {}
+    }
+    stockMovements = movItems.map(m => ({
+      date: m.createdAt ? String(m.createdAt).slice(0, 10) : '—',
+      item: m.itemName || (m.item ? m.item.name : 'Material'),
+      type: m.movementType || 'Adjustment',
+      qty: (Number(m.quantity) >= 0 ? '+ ' : '') + m.quantity + ' ' + (m.unit || 'units'),
+      ref: m.referenceNumber || ('MV-' + (m.id ? String(m.id).slice(0, 6) : '001'))
     }));
 
+    // Fetch real backend KPIs
+    let kpiData = null;
+    if (api && api.inventory && typeof api.inventory.kpis === 'function') {
+      try {
+        kpiData = await api.inventory.kpis();
+      } catch (kpiErr) {
+        console.warn('[Inventory] /inventory/kpis failed:', kpiErr);
+      }
+    }
+
     renderInventoryTable();
-    await updateKPISummaries();
+    updateKPISummaries(kpiData);
+    renderCategorySummaryCards(kpiData);
+    updateCategoryTabs();
+    renderStockAlerts();
+    renderStockValueByCategory(kpiData);
+    renderTopConsumedItems();
     renderMovementsTable();
     populateAdjustmentDropdown();
   } catch (err) {
     console.error('[Inventory] Failed to load inventory from backend:', err.message);
-  }
-}
-
-async function updateKPISummaries() {
-  try {
-    const { default: api } = await import('../api.js');
-    const kpis = await api.inventory.kpis();
-    if (!kpis) return;
-
-    const elTotal = document.getElementById('kpiTotalItems');
-    const elValue = document.getElementById('kpiTotalStockValue');
-    const elLow   = document.getElementById('kpiLowStockItems');
-    const elOut   = document.getElementById('kpiOutOfStock');
-    const elDonut = document.getElementById('donutCategoryTotal');
-
-    if (elTotal) elTotal.textContent = Number(kpis.totalItems || 0).toLocaleString('en-IN');
-    if (elValue) elValue.textContent = '₹' + Number(kpis.totalValue || 0).toLocaleString('en-IN');
-    if (elLow)   elLow.textContent   = Number(kpis.lowStockCount || 0).toLocaleString('en-IN');
-    if (elOut)   elOut.textContent   = Number(kpis.outOfStockCount || 0).toLocaleString('en-IN');
-    if (elDonut) elDonut.textContent = Number(kpis.totalItems || 0).toLocaleString('en-IN');
-
-    // Update Category Donut SVG and Legend if breakdown available
-    if (kpis.categoryBreakdown && Array.isArray(kpis.categoryBreakdown) && kpis.categoryBreakdown.length > 0) {
-      const colors = ['#a3e635', '#c084fc', '#fbbf24', '#f472b6', '#38bdf8', '#fb7185'];
-      const total = Number(kpis.totalItems) || 1;
-      const circum = 239;
-      let offset = 0;
-
-      const svg = document.querySelector('.donut-svg');
-      if (svg) {
-        let svgHtml = '<circle cx="50" cy="50" r="38" class="donut-bg" />';
-        kpis.categoryBreakdown.forEach((cat, idx) => {
-          const count = Number(cat.count) || 0;
-          const segLen = Math.round((count / total) * circum);
-          const color = colors[idx % colors.length];
-          svgHtml += `<circle cx="50" cy="50" r="38" class="donut-seg" stroke="${color}" stroke-dasharray="${segLen} ${circum}" stroke-dashoffset="${-offset}" />`;
-          offset += segLen;
-        });
-        svg.innerHTML = svgHtml;
-      }
-
-      const legend = document.querySelector('.donut-legend');
-      if (legend) {
-        let legHtml = '<div class="legend-title">Items by Category</div>';
-        kpis.categoryBreakdown.forEach((cat, idx) => {
-          const count = Number(cat.count) || 0;
-          const pct = Math.round((count / total) * 100);
-          const color = colors[idx % colors.length];
-          legHtml += `
-            <div class="leg-row">
-              <span class="leg-dot" style="background:${color};"></span>
-              <span class="leg-text">${cat.category}</span>
-              <span class="leg-val">${pct}%</span>
-            </div>`;
-        });
-        legend.innerHTML = legHtml;
-      }
-    }
-  } catch (err) {
-    console.error('[Inventory] Failed to load inventory KPIs:', err.message);
   }
 }
 
@@ -234,7 +203,7 @@ function initSearchShortcuts() {
 }
 
 function focusGlobalSearch() {
-  const inp = document.getElementById('globalSearchInput');
+  const inp = document.getElementById('inventorySearchInput') || document.getElementById('globalSearchInput');
   if (inp) inp.focus();
 }
 
@@ -402,66 +371,243 @@ function handleInventorySearch() {
 }
 
 // ─────────────────────────────────────────────
-// 5. KPI & METRICS CALCULATIONS
+// 5. KPI & METRICS CALCULATIONS (REAL DATABASE-DERIVED)
 // ─────────────────────────────────────────────
-async function updateKPISummaries() {
-  try {
-    const { default: api } = await import('../api.js');
-    const kpis = await api.inventory.kpis().catch(() => null);
-    if (kpis) {
-      const kpiItems = document.getElementById('kpiTotalItems');
-      if (kpiItems && kpis.totalItems != null) kpiItems.textContent = Number(kpis.totalItems).toLocaleString('en-IN');
+function updateKPISummaries(kpiData) {
+  const totalItems = kpiData?.totalItems != null ? Number(kpiData.totalItems) : inventoryItems.length;
+  const totalValue = kpiData?.totalValue != null ? Number(kpiData.totalValue) : inventoryItems.reduce((acc, i) => acc + (i.available * (i.purchasePrice || 0)), 0);
+  const lowStockCount = kpiData?.lowStockCount != null ? Number(kpiData.lowStockCount) : inventoryItems.filter(i => i.status === 'Low Stock' || (i.available > 0 && i.available <= i.reorderLevel)).length;
+  const outOfStockCount = kpiData?.outOfStockCount != null ? Number(kpiData.outOfStockCount) : inventoryItems.filter(i => i.status === 'Out of Stock' || i.available <= 0).length;
+  const onOrderCount = inventoryItems.filter(i => i.status === 'On Order').length;
 
-      const kpiVal = document.getElementById('kpiTotalStockValue');
-      if (kpiVal && kpis.totalStockValue != null) kpiVal.textContent = '₹' + Math.round(Number(kpis.totalStockValue)).toLocaleString('en-IN');
+  const elTotal = document.getElementById('kpiTotalItems');
+  const elValue = document.getElementById('kpiTotalStockValue');
+  const elLow   = document.getElementById('kpiLowStockItems');
+  const elOut   = document.getElementById('kpiOutOfStock');
+  const elOrder = document.getElementById('kpiOnOrder');
+  const elDonut = document.getElementById('donutCategoryTotal');
 
-      const kpiLow = document.getElementById('kpiLowStockItems');
-      if (kpiLow && kpis.lowStockItems != null) kpiLow.textContent = kpis.lowStockItems;
+  if (elTotal) elTotal.textContent = totalItems.toLocaleString('en-IN');
+  if (elValue) elValue.textContent = '₹' + Math.round(totalValue).toLocaleString('en-IN');
+  if (elLow)   elLow.textContent   = lowStockCount.toLocaleString('en-IN');
+  if (elOut)   elOut.textContent   = outOfStockCount.toLocaleString('en-IN');
+  if (elOrder) elOrder.textContent = onOrderCount.toLocaleString('en-IN');
+  if (elDonut) elDonut.textContent = totalItems.toLocaleString('en-IN');
 
-      const kpiOut = document.getElementById('kpiOutOfStock');
-      if (kpiOut && kpis.outOfStockItems != null) kpiOut.textContent = kpis.outOfStockItems;
+  const subTotal = document.getElementById('subtextTotalItems');
+  if (subTotal) subTotal.textContent = totalItems > 0 ? `${totalItems} registered` : '0 items registered';
 
-      const donutCatTotal = document.getElementById('donutCategoryTotal');
-      if (donutCatTotal && kpis.totalItems != null) donutCatTotal.textContent = kpis.totalItems;
-      return;
-    }
-  } catch (_) {}
+  const subVal = document.getElementById('subtextStockValue');
+  if (subVal) subVal.textContent = totalValue > 0 ? `₹${Math.round(totalValue).toLocaleString('en-IN')} total valuation` : '₹0 stock valuation';
 
-  const totalItems = inventoryItems.length;
-  let totalValue = 0;
-  let lowStockCount = 0;
-  let outOfStockCount = 0;
-  let onOrderCount = 0;
+  const subLow = document.getElementById('subtextLowStock');
+  if (subLow) subLow.textContent = lowStockCount > 0 ? `${lowStockCount} items need attention` : '0 items low';
 
-  inventoryItems.forEach(item => {
-    totalValue += (item.available * (item.purchasePrice || 100));
-    if (item.available <= 0) {
-      outOfStockCount++;
-    } else if (item.available <= item.reorderLevel) {
-      lowStockCount++;
-    }
-    if (item.status === 'On Order') {
-      onOrderCount++;
-    }
+  const subOut = document.getElementById('subtextOutOfStock');
+  if (subOut) subOut.textContent = outOfStockCount > 0 ? `${outOfStockCount} items out of stock` : '0 items out of stock';
+
+  const subOrder = document.getElementById('subtextOnOrder');
+  if (subOrder) subOrder.textContent = onOrderCount > 0 ? `${onOrderCount} orders pending` : '0 orders pending';
+
+  // Update Category Donut SVG and Legend
+  const svg = document.getElementById('donutCategorySvg') || document.querySelector('.donut-svg');
+  const legend = document.getElementById('donutCategoryLegend') || document.querySelector('.donut-legend');
+
+  const breakdown = (kpiData && kpiData.categoryBreakdown && Array.isArray(kpiData.categoryBreakdown) && kpiData.categoryBreakdown.length > 0)
+    ? kpiData.categoryBreakdown
+    : (() => {
+        const counts = {};
+        inventoryItems.forEach(i => { counts[i.category] = (counts[i.category] || 0) + 1; });
+        return Object.entries(counts).map(([category, count]) => ({ category, count }));
+      })();
+
+  if (totalItems === 0 || breakdown.length === 0) {
+    if (svg) svg.innerHTML = '<circle cx="50" cy="50" r="38" class="donut-bg" />';
+    if (legend) legend.innerHTML = '<div class="legend-title">Items by Category</div><div style="color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 8px;">No categories logged</div>';
+    return;
+  }
+
+  const colors = ['#a3e635', '#c084fc', '#fbbf24', '#f472b6', '#38bdf8', '#fb7185'];
+  const circum = 239;
+  let offset = 0;
+
+  if (svg) {
+    let svgHtml = '<circle cx="50" cy="50" r="38" class="donut-bg" />';
+    breakdown.forEach((cat, idx) => {
+      const count = Number(cat.count) || 0;
+      const segLen = Math.round((count / totalItems) * circum);
+      const color = colors[idx % colors.length];
+      svgHtml += `<circle cx="50" cy="50" r="38" class="donut-seg" stroke="${color}" stroke-dasharray="${segLen} ${circum}" stroke-dashoffset="${-offset}" />`;
+      offset += segLen;
+    });
+    svg.innerHTML = svgHtml;
+  }
+
+  if (legend) {
+    let legHtml = '<div class="legend-title">Items by Category</div>';
+    breakdown.forEach((cat, idx) => {
+      const count = Number(cat.count) || 0;
+      const pct = Math.round((count / totalItems) * 100);
+      const color = colors[idx % colors.length];
+      legHtml += `
+        <div class="leg-row">
+          <span class="leg-dot" style="background:${color};"></span>
+          <span class="leg-text">${cat.category}</span>
+          <span class="leg-val">${pct}%</span>
+        </div>`;
+    });
+    legend.innerHTML = legHtml;
+  }
+}
+
+function renderCategorySummaryCards() {
+  const catConfig = [
+    { key: 'Fabrics', id: 'Fabrics' },
+    { key: 'Linings', id: 'Linings' },
+    { key: 'Threads', id: 'Threads' },
+    { key: 'Buttons & Hooks', id: 'Buttons' },
+    { key: 'Zips & Fasteners', id: 'Zips' },
+    { key: 'Embellishments', id: 'Embellishments' },
+    { key: 'Packaging', id: 'Packaging' },
+    { key: 'Others', id: 'Others' }
+  ];
+
+  catConfig.forEach(cat => {
+    const inCat = inventoryItems.filter(i => {
+      if (cat.key === 'Buttons & Hooks') return i.category === 'Buttons & Hooks' || i.category === 'Buttons';
+      if (cat.key === 'Zips & Fasteners') return i.category === 'Zips & Fasteners' || i.category === 'Zips';
+      return i.category === cat.key;
+    });
+    const totalCount = inCat.length;
+    const inStockCount = inCat.filter(i => i.available > 0).length;
+    const pct = totalCount > 0 ? Math.round((inStockCount / totalCount) * 100) : 0;
+
+    const countEl = document.getElementById(`catCount-${cat.id}`);
+    const barEl = document.getElementById(`catBar-${cat.id}`);
+    const pctEl = document.getElementById(`catPct-${cat.id}`);
+
+    if (countEl) countEl.textContent = `${totalCount} items`;
+    if (barEl) barEl.style.width = `${pct}%`;
+    if (pctEl) pctEl.textContent = `${pct}% in stock`;
+  });
+}
+
+function updateCategoryTabs() {
+  const allCount = inventoryItems.length;
+  const fabricsCount = inventoryItems.filter(i => i.category === 'Fabrics').length;
+  const trimsCount = inventoryItems.filter(i => ['Linings', 'Threads', 'Buttons & Hooks', 'Buttons', 'Zips & Fasteners', 'Zips', 'Embellishments'].includes(i.category)).length;
+  const consumablesCount = inventoryItems.filter(i => ['Threads', 'Others'].includes(i.category)).length;
+  const packagingCount = inventoryItems.filter(i => i.category === 'Packaging').length;
+  const othersCount = inventoryItems.filter(i => i.category === 'Others').length;
+
+  const setTab = (id, cnt) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = `(${cnt})`;
+  };
+
+  setTab('tabCount-all', allCount);
+  setTab('tabCount-Fabrics', fabricsCount);
+  setTab('tabCount-Trims', trimsCount);
+  setTab('tabCount-Consumables', consumablesCount);
+  setTab('tabCount-Packaging', packagingCount);
+  setTab('tabCount-Others', othersCount);
+}
+
+function renderStockValueByCategory(kpiData) {
+  const totalValEl = document.getElementById('stockValTotal');
+  const svgEl = document.getElementById('stockValSvg');
+  const legendEl = document.getElementById('stockValLegend');
+
+  const catValMap = {};
+  let totalVal = 0;
+  inventoryItems.forEach(i => {
+    const v = Number(i.available) * (Number(i.purchasePrice) || 0);
+    const c = i.category || 'Others';
+    catValMap[c] = (catValMap[c] || 0) + v;
+    totalVal += v;
   });
 
-  const kpiItems = document.getElementById('kpiTotalItems');
-  if (kpiItems) kpiItems.textContent = totalItems.toLocaleString('en-IN');
+  if (kpiData && kpiData.totalValue != null) {
+    totalVal = Number(kpiData.totalValue);
+  }
 
-  const kpiVal = document.getElementById('kpiTotalStockValue');
-  if (kpiVal) kpiVal.textContent = '₹' + Math.round(totalValue).toLocaleString('en-IN');
+  if (totalValEl) {
+    if (totalVal >= 100000) {
+      totalValEl.textContent = '₹' + (totalVal / 100000).toFixed(2) + 'L';
+    } else {
+      totalValEl.textContent = '₹' + Math.round(totalVal).toLocaleString('en-IN');
+    }
+  }
 
-  const kpiLow = document.getElementById('kpiLowStockItems');
-  if (kpiLow) kpiLow.textContent = lowStockCount;
+  if (totalVal === 0 || Object.keys(catValMap).length === 0) {
+    if (svgEl) svgEl.innerHTML = '<circle cx="50" cy="50" r="38" class="donut-bg" />';
+    if (legendEl) legendEl.innerHTML = '<div style="color: rgba(255,255,255,0.4); font-size: 12px; padding: 12px 0;">No stock value logged</div>';
+    return;
+  }
 
-  const kpiOut = document.getElementById('kpiOutOfStock');
-  if (kpiOut) kpiOut.textContent = outOfStockCount;
+  const colors = ['#a3e635', '#c084fc', '#fbbf24', '#f472b6', '#38bdf8', '#fb7185'];
+  const circum = 239;
+  let offset = 0;
+  let svgHtml = '<circle cx="50" cy="50" r="38" class="donut-bg" />';
+  let legHtml = '';
 
-  const kpiOrder = document.getElementById('kpiOnOrder');
-  if (kpiOrder) kpiOrder.textContent = onOrderCount;
+  const entries = Object.entries(catValMap).sort((a, b) => b[1] - a[1]);
+  entries.forEach(([cat, val], idx) => {
+    const pct = totalVal > 0 ? Math.round((val / totalVal) * 100) : 0;
+    const segLen = Math.round((pct / 100) * circum);
+    const color = colors[idx % colors.length];
 
-  const donutCatTotal = document.getElementById('donutCategoryTotal');
-  if (donutCatTotal) donutCatTotal.textContent = totalItems;
+    svgHtml += `<circle cx="50" cy="50" r="38" class="donut-seg" stroke="${color}" stroke-dasharray="${segLen} ${circum}" stroke-dashoffset="${-offset}" />`;
+    offset += segLen;
+
+    const valFmt = val >= 100000 ? `₹${(val / 100000).toFixed(2)}L` : `₹${Math.round(val).toLocaleString('en-IN')}`;
+    legHtml += `
+      <div class="val-leg-row">
+        <span class="val-dot" style="background:${color};"></span>
+        <span class="val-name">${cat}</span>
+        <span class="val-pct">${pct}%</span>
+        <span class="val-num">${valFmt}</span>
+      </div>`;
+  });
+
+  if (svgEl) svgEl.innerHTML = svgHtml;
+  if (legendEl) legendEl.innerHTML = legHtml;
+}
+
+function renderTopConsumedItems() {
+  const container = document.getElementById('consumedBarsList');
+  if (!container) return;
+
+  const consumed = inventoryItems
+    .filter(i => (i.reserved && i.reserved > 0) || (i.stockQty > i.available))
+    .map(i => ({
+      name: i.name,
+      val: (i.stockQty - i.available) || i.reserved,
+      unit: i.unit || 'units'
+    }))
+    .sort((a, b) => b.val - a.val)
+    .slice(0, 5);
+
+  if (consumed.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 24px; color: rgba(255,255,255,0.4); font-size: 13px;">No material consumption recorded yet.</div>';
+    return;
+  }
+
+  const maxVal = Math.max(...consumed.map(c => c.val), 1);
+  const colors = ['green', 'yellow', 'pink', 'purple', 'blue'];
+
+  container.innerHTML = consumed.map((c, idx) => {
+    const pct = Math.min(100, Math.round((c.val / maxVal) * 100));
+    const col = colors[idx % colors.length];
+    return `
+      <div class="consumed-bar-row">
+        <span class="cb-name">${c.name}</span>
+        <div class="cb-track">
+          <div class="cb-fill ${col}" style="width: ${pct}%;"></div>
+        </div>
+        <span class="cb-val">${c.val} ${c.unit}</span>
+      </div>`;
+  }).join('');
 }
 
 // ─────────────────────────────────────────────
@@ -471,9 +617,14 @@ function renderMovementsTable() {
   const tbody = document.getElementById('movementsTableBody');
   if (!tbody) return;
 
+  if (stockMovements.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: rgba(255,255,255,0.45);">No recent stock movements recorded.</td></tr>';
+    return;
+  }
+
   tbody.innerHTML = stockMovements.slice(0, 5).map(mv => {
-    const isNeg = mv.qty.startsWith('-');
-    const tagClass = mv.type.toLowerCase();
+    const isNeg = String(mv.qty).startsWith('-');
+    const tagClass = (mv.type || '').toLowerCase();
 
     return `
       <tr>
@@ -490,25 +641,46 @@ function renderMovementsTable() {
 // ─────────────────────────────────────────────
 // 7. STOCK ALERTS INTERACTION
 // ─────────────────────────────────────────────
+function renderStockAlerts() {
+  const lowCount = inventoryItems.filter(i => i.status === 'Low Stock' || (i.available > 0 && i.available <= i.reorderLevel)).length;
+  const outCount = inventoryItems.filter(i => i.status === 'Out of Stock' || i.available <= 0).length;
+  const orderCount = inventoryItems.filter(i => i.status === 'On Order').length;
+
+  const elLow = document.getElementById('alertCountLow');
+  const elOut = document.getElementById('alertCountOut');
+  const elOrder = document.getElementById('alertCountOrder');
+
+  if (elLow) elLow.textContent = lowCount;
+  if (elOut) elOut.textContent = outCount;
+  if (elOrder) elOrder.textContent = orderCount;
+
+  setAlertsTab(activeAlertsTab);
+}
+
 function setAlertsTab(tab, btn) {
-  activeAlertsTab = tab;
+  if (tab) activeAlertsTab = tab;
   document.querySelectorAll('.alerts-subtab').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const matchingBtn = document.querySelector(`.alerts-subtab[onclick*="'${activeAlertsTab}'"]`);
+    if (matchingBtn) matchingBtn.classList.add('active');
+  }
 
   const list = document.getElementById('alertsItemsList');
   if (!list) return;
 
   let filtered = [];
-  if (tab === 'low') {
+  if (activeAlertsTab === 'low') {
     filtered = inventoryItems.filter(i => i.status === 'Low Stock' || (i.available > 0 && i.available <= i.reorderLevel));
-  } else if (tab === 'out') {
+  } else if (activeAlertsTab === 'out') {
     filtered = inventoryItems.filter(i => i.status === 'Out of Stock' || i.available <= 0);
   } else {
     filtered = inventoryItems.filter(i => i.status === 'On Order');
   }
 
   if (filtered.length === 0) {
-    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px;">No items in this alert category.</div>';
+    list.innerHTML = '<div style="text-align: center; padding: 32px 16px; color: rgba(255,255,255,0.4); font-size: 13px;">No stock alerts in this category.</div>';
     return;
   }
 
@@ -550,60 +722,48 @@ function openAddItemModal() {
   openModal('addItemModal');
 }
 
-function handleSaveNewItem(e) {
+async function handleSaveNewItem(e) {
   e.preventDefault();
 
   const name = document.getElementById('newItemName').value.trim();
-  const code = document.getElementById('newItemCode').value.trim().toUpperCase();
   const category = document.getElementById('newItemCategory').value;
-  const variant = document.getElementById('newItemVariant').value.trim() || 'Standard';
-  const supplier = document.getElementById('newItemSupplier').value.trim() || 'Internal Stock';
+  const variant = document.getElementById('newItemVariant').value.trim();
+  const supplier = document.getElementById('newItemSupplier').value.trim();
   const unit = document.getElementById('newItemUnit').value;
-  const stock = parseInt(document.getElementById('newItemStockQty').value, 10) || 0;
-  const reorder = parseInt(document.getElementById('newItemReorderLevel').value, 10) || 20;
-  const price = parseFloat(document.getElementById('newItemPurchasePrice').value) || 250;
+  const stock = parseFloat(document.getElementById('newItemStockQty').value) || 0;
+  const reorder = parseFloat(document.getElementById('newItemReorderLevel').value) || 0;
+  const price = parseFloat(document.getElementById('newItemPurchasePrice').value) || 0;
   const customImg = document.getElementById('newItemImage').value.trim();
+  const notes = document.getElementById('newItemNotes') ? document.getElementById('newItemNotes').value.trim() : '';
 
-  // Status calculation
-  let status = 'In Stock';
-  if (stock <= 0) status = 'Out of Stock';
-  else if (stock <= reorder) status = 'Low Stock';
-
-  const newItem = {
-    code: code,
-    name: name,
-    category: category,
-    variant: variant,
-    unit: unit,
-    stockQty: stock,
-    reserved: 0,
-    available: stock,
-    reorderLevel: reorder,
-    status: status,
-    supplier: supplier,
-    purchasePrice: price,
-    image: customImg || MATERIAL_IMG_MAP[name] || MATERIAL_IMG_MAP.default
-  };
-
-  // Prepend to list
-  inventoryItems.unshift(newItem);
-
-  // Record a movement
-  stockMovements.unshift({
-    date: '08 Sep 2026',
-    item: name,
-    type: 'Receive',
-    qty: `+ ${stock} ${unit.toLowerCase()}`,
-    ref: `INIT-${code}`
-  });
-
-  closeModal('addItemModal');
-  updateKPISummaries();
-  renderInventoryTable();
-  renderMovementsTable();
-  populateAdjustmentDropdown();
-
-  showToast(`Item "${name}" added successfully with code ${code}!`);
+  try {
+    const api = await getApi();
+    if (api && api.inventory && typeof api.inventory.create === 'function') {
+      const payload = {
+        name,
+        category,
+        variant,
+        unit,
+        stockQty: stock,
+        reservedQty: 0,
+        reorderLevel: reorder,
+        purchasePrice: price,
+        sellingPrice: price,
+        supplierName: supplier,
+        imageUrl: customImg || '',
+        notes
+      };
+      await api.inventory.create(payload);
+      closeModal('addItemModal');
+      await loadInventoryFromApi();
+      showToast(`Item "${name}" created and saved to database!`);
+    } else {
+      throw new Error('Inventory API not available');
+    }
+  } catch (err) {
+    console.error('[Inventory] Error saving item:', err);
+    showToast(`Failed to add item: ${err.message || 'Server error'}`);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -631,54 +791,50 @@ function handleAdjItemChange(sel) {
   // Can be extended to load dynamic details
 }
 
-function handleSaveAdjustment(e) {
+async function handleSaveAdjustment(e) {
   e.preventDefault();
 
   const code = document.getElementById('adjItemSelect').value;
   const type = document.getElementById('adjType').value;
-  const qty = parseInt(document.getElementById('adjQuantity').value, 10) || 0;
+  const qty = parseFloat(document.getElementById('adjQuantity').value) || 0;
   const ref = document.getElementById('adjReference').value.trim() || `ADJ-${Date.now().toString().slice(-6)}`;
   const reason = document.getElementById('adjReason').value.trim();
+  const notes = document.getElementById('adjNotes')?.value?.trim();
 
   const item = inventoryItems.find(i => i.code === code);
   if (!item) {
-    alert('Please select a valid item.');
+    showToast('Please select a valid item.');
     return;
   }
 
   let isPositive = (type === 'Add Stock' || type === 'Return');
-  if (isPositive) {
-    item.stockQty += qty;
-    item.available += qty;
-  } else {
-    item.stockQty = Math.max(0, item.stockQty - qty);
-    item.available = Math.max(0, item.available - qty);
+  let movType = 'ADJUSTMENT';
+  if (type === 'Add Stock') movType = 'RECEIPT';
+  else if (type === 'Remove Stock') movType = 'ISSUE';
+  else if (type === 'Return') movType = 'RETURN';
+  else movType = 'ADJUSTMENT';
+
+  const adjustQty = isPositive ? qty : -qty;
+
+  try {
+    const api = await getApi();
+    if (api && api.inventory && item.id) {
+      await api.inventory.adjust(item.id, {
+        quantity: adjustQty,
+        movementType: movType,
+        reference: ref,
+        reason: [reason, notes].filter(Boolean).join(' - ') || 'Manual Stock Adjustment'
+      });
+      closeModal('stockAdjustmentModal');
+      await loadInventoryFromApi();
+      showToast(`Stock updated for ${item.name} (${type}: ${qty} ${item.unit})`);
+    } else {
+      throw new Error('Item ID or Inventory API not available');
+    }
+  } catch (err) {
+    console.error('[Inventory] Error adjusting stock:', err);
+    showToast(`Adjustment failed: ${err.message || 'Server error'}`);
   }
-
-  // Recalculate status
-  if (item.available <= 0) {
-    item.status = 'Out of Stock';
-  } else if (item.available <= item.reorderLevel) {
-    item.status = 'Low Stock';
-  } else {
-    item.status = 'In Stock';
-  }
-
-  // Append movement
-  stockMovements.unshift({
-    date: '08 Sep 2026',
-    item: item.name,
-    type: isPositive ? 'Receive' : 'Issue',
-    qty: `${isPositive ? '+' : '-'} ${qty} ${item.unit.toLowerCase()}`,
-    ref: ref
-  });
-
-  closeModal('stockAdjustmentModal');
-  updateKPISummaries();
-  renderInventoryTable();
-  renderMovementsTable();
-
-  showToast(`Stock updated for ${item.name} (${type}: ${qty} ${item.unit})`);
 }
 
 // ─────────────────────────────────────────────
@@ -710,7 +866,7 @@ function handleMenuAction(action) {
   } else if (action === 'request') {
     openPurchaseRequestModal(item.name);
   } else if (action === 'supplier') {
-    showToast(`Supplier for ${item.name}: ${item.supplier || 'Varanasi Silks Ltd.'}`);
+    showToast(`Supplier for ${item.name}: ${item.supplier || 'None recorded'}`);
   }
 }
 
@@ -724,13 +880,41 @@ function handleRowSelect(event, code) {
 // ─────────────────────────────────────────────
 // 11. ITEM DETAILS MODAL
 // ─────────────────────────────────────────────
-function openItemDetailsModal(item) {
+async function openItemDetailsModal(item) {
   const title = document.getElementById('idmItemTitle');
   const content = document.getElementById('idmContent');
   if (!title || !content) return;
 
   title.textContent = `${item.name} (${item.code})`;
   contextTargetCode = item.code;
+
+  let movementsHtml = '<div style="text-align: center; font-size: 8.5px; opacity: 0.5; padding: 10px 0;">No stock movements recorded for this item.</div>';
+
+  let itemMovs = [];
+  try {
+    const api = await getApi();
+    if (api && api.inventory && item.id) {
+      const res = await api.inventory.movementsForItem(item.id);
+      itemMovs = Array.isArray(res) ? res : (res && res.content ? res.content : []);
+    }
+  } catch (_) {
+    itemMovs = [];
+  }
+
+  if (itemMovs.length > 0) {
+    movementsHtml = itemMovs.map(m => {
+      const isNeg = Number(m.quantity) < 0;
+      const dateStr = m.createdAt ? String(m.createdAt).slice(0, 10) : '—';
+      const refStr = m.reference || ('MV-' + (m.id ? String(m.id).slice(0, 6) : '001'));
+      return `
+        <div style="display: flex; justify-content: space-between; font-size: 8.5px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
+          <span>${dateStr}</span>
+          <span style="color: ${isNeg ? '#fb7185' : '#4ade80'};">${isNeg ? '' : '+'}${m.quantity} ${item.unit} (${m.movementType || 'Adjustment'})</span>
+          <span style="font-family: var(--font-mono); opacity: 0.6;">${refStr}</span>
+        </div>
+      `;
+    }).join('');
+  }
 
   content.innerHTML = `
     <div style="display: flex; gap: 12px; margin-bottom: 12px;">
@@ -739,9 +923,9 @@ function openItemDetailsModal(item) {
       </div>
       <div style="display: flex; flex-direction: column; gap: 2px;">
         <h4 style="font-size: 13px; font-weight: 800; color: #fff;">${item.name}</h4>
-        <span style="font-size: 9.5px; color: rgba(255,255,255,0.6);">${item.category} • Variant: ${item.variant || 'Standard'}</span>
-        <span style="font-size: 9.5px; color: rgba(255,255,255,0.6);">Supplier: ${item.supplier || 'National Crafts Ltd.'}</span>
-        <span style="font-size: 9px; font-weight: 700; color: #a3e635; margin-top: 3px;">Unit Cost: ₹${item.purchasePrice || 250} / ${item.unit}</span>
+        <span style="font-size: 9.5px; color: rgba(255,255,255,0.6);">${item.category} • Variant: ${item.variant || '—'}</span>
+        <span style="font-size: 9.5px; color: rgba(255,255,255,0.6);">Supplier: ${item.supplier || '—'}</span>
+        <span style="font-size: 9px; font-weight: 700; color: #a3e635; margin-top: 3px;">Unit Cost: ₹${item.purchasePrice || 0} / ${item.unit}</span>
       </div>
     </div>
 
@@ -766,16 +950,7 @@ function openItemDetailsModal(item) {
 
     <h5 style="font-size: 9.5px; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 4px;">Recent Movements for this Material</h5>
     <div style="max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 4px 6px;">
-      <div style="display: flex; justify-content: space-between; font-size: 8.5px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
-        <span>08 Sep 2026</span>
-        <span style="color: #4ade80;">+ 50 ${item.unit} (Receive)</span>
-        <span style="font-family: monospace; opacity: 0.6;">GRN-0142</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 8.5px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
-        <span>05 Sep 2026</span>
-        <span style="color: #fb7185;">- 12 ${item.unit} (Cutting Issue)</span>
-        <span style="font-family: monospace; opacity: 0.6;">ORD-0528</span>
-      </div>
+      ${movementsHtml}
     </div>
   `;
 
@@ -834,7 +1009,9 @@ function openPurchaseOrderModal() {
 }
 
 function openStockValuationModal() {
-  showToast('Generating Total Stock Valuation Statement (₹18,42,500)...');
+  const totalVal = inventoryItems.reduce((acc, i) => acc + (i.available * (i.purchasePrice || 0)), 0);
+  const formattedVal = totalVal >= 100000 ? `₹${(totalVal / 100000).toFixed(2)}L` : `₹${Math.round(totalVal).toLocaleString('en-IN')}`;
+  showToast(`Total Stock Valuation: ${formattedVal} across ${inventoryItems.length} items.`);
 }
 
 function openAllAlertsModal() {

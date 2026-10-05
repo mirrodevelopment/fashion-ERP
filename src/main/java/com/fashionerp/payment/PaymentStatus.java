@@ -1,5 +1,5 @@
 package com.fashionerp.payment;
 
 public enum PaymentStatus {
-    FULLY_PAID, PENDING, OVERDUE, PARTIAL
+    PAID, FULLY_PAID, PENDING, OVERDUE, PARTIAL, UNPAID, CANCELLED
 }

@@ -20,22 +20,17 @@
     <!-- Branch Selector Dropdown -->
     <div class="branch-sel" id="branchSel" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" title="Switch Branch">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:0.75;"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-      <span class="branch-sel-text" id="branchSelText">Haulo Designs — Main Branch</span>
+      <span class="branch-sel-text" id="branchSelText" data-company="branchTitle">Loading branch...</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-chevron" style="width:11px;height:11px;opacity:0.6;"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="branch-dd dd-panel" id="branchDd">
         <div class="dd-panel-header">Active Branch</div>
-        <div class="dd-item active" data-branch="Main Branch">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Main Branch (Haulo Designs)</span>
+        <div class="branch-dd-list" id="branchDdList">
+          <div class="branch-empty-state">Loading branches...</div>
         </div>
-        <div class="dd-item" data-branch="Boutique Studio">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:0;"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Boutique Studio — Flagship</span>
-        </div>
-        <div class="dd-item" data-branch="Couture Workshop">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:0;"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Couture Workshop — Unit 2</span>
-        </div>
+        <a href="../branches/branches.html" class="branch-dd-footer" id="branchManageLink">
+          <span>Manage Branches</span>
+          <span>&rarr;</span>
+        </a>
       </div>
     </div>
 
@@ -78,6 +73,10 @@
         <div class="dd-item" id="navDdDashboard" onclick="navNavigate('dashboard',event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;margin-right:8px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
           Dashboard
+        </div>
+        <div class="dd-item" id="navDdProfile" onclick="navNavigate('profile',event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;margin-right:8px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          My Profile
         </div>
         <div class="dd-item" id="navDdSettings" onclick="navNavigate('settings',event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;margin-right:8px;"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>

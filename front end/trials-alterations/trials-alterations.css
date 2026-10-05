@@ -12,7 +12,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-main, 'Inter', system-ui, -apple-system, sans-serif);
+  font-family: var(--font-body);
   background: var(--bg-body-gradient, linear-gradient(135deg, #1F211F 0%, #3A3732 28%, #625B52 52%, #403C37 72%, #242522 100%));
   background-attachment: fixed;
   color: var(--text-primary, #ffffff);
@@ -59,11 +59,16 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow-y: auto;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* --- Page Container --- */
 .page-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 18px 24px 36px 24px;
   max-width: 1680px;
   width: 100%;
@@ -71,6 +76,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
 }
 
 /* --- Page Header --- */
@@ -478,7 +484,7 @@ body {
 .trial-order-id {
   font-size: 10.5px;
   color: rgba(255, 255, 255, 0.4);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .trial-item-right {
@@ -669,7 +675,7 @@ body {
 
 .spec-v.bold {
   font-weight: 700;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .stage-pill-purple {
@@ -1574,7 +1580,7 @@ body {
   font-size: 13.5px;
   font-weight: 700;
   color: #ffffff;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .order-picker-stage-pill {

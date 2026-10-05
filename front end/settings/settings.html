@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Settings">Settings</title>
+  <meta name="description" content="Manage boutique profile, users, notifications, billing, integrations, security, and system preferences." />
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared Fragments -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="settings.css" />
+  <script>
+    window.FRAGMENT_BASE = '../fragments/';
+  </script>
+  <script src="../fragments/company-bridge.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+</head>
+<body data-module="settings">
+
+  <!-- Background -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sidebar -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+
+      <!-- Navbar -->
+      <div id="navbarSlot"></div>
+
+      <!-- Settings Content -->
+      <div class="settings-root" id="settingsRoot">
+
+        <!-- Page Header -->
+        <header class="settings-header">
+          <div class="settings-header-left">
+            <span class="page-section-label">Administration</span>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Manage your boutique profile, team, security, and system preferences.</p>
+          </div>
+          <div class="settings-header-actions">
+            <button class="btn-save-all" id="btnSaveAll" onclick="Settings.saveAll()">
+              <i data-lucide="save" style="width:15px;height:15px;"></i>
+              Save Changes
+            </button>
+          </div>
+        </header>
+
+        <!-- Layout: Sidebar Nav + Panel -->
+        <div class="settings-layout">
+
+          <!-- Settings Side Nav -->
+          <nav class="settings-sidenav" id="settingsSidenav" aria-label="Settings sections">
+
+            <div class="snav-group">
+              <span class="snav-group-label">Boutique</span>
+              <button class="snav-item" onclick="navNavigate('company', event)">
+                <i data-lucide="building" style="width:16px;height:16px;"></i>
+                Company Details
+              </button>
+              <button class="snav-item active" data-panel="boutique" onclick="Settings.switchPanel('boutique', this)">
+                <i data-lucide="store" style="width:16px;height:16px;"></i>
+                Boutique Profile
+              </button>
+              <button class="snav-item" data-panel="branding" onclick="Settings.switchPanel('branding', this)">
+                <i data-lucide="palette" style="width:16px;height:16px;"></i>
+                Branding & Theme
+              </button>
+              <button class="snav-item" data-panel="regional" onclick="Settings.switchPanel('regional', this)">
+                <i data-lucide="globe" style="width:16px;height:16px;"></i>
+                Regional & Currency
+              </button>
+              <button class="snav-item" onclick="navNavigate('branches', event)">
+                <i data-lucide="building-2" style="width:16px;height:16px;"></i>
+                Branches
+              </button>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Team & Access</span>
+              <button class="snav-item" data-panel="users" onclick="Settings.switchPanel('users', this)">
+                <i data-lucide="users" style="width:16px;height:16px;"></i>
+                Users & Roles
+              </button>
+              <button class="snav-item" data-panel="security" onclick="Settings.switchPanel('security', this)">
+                <i data-lucide="shield" style="width:16px;height:16px;"></i>
+                Security & Access
+              </button>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Workflow</span>
+              <button class="snav-item" data-panel="orders" onclick="Settings.switchPanel('orders', this)">
+                <i data-lucide="shopping-bag" style="width:16px;height:16px;"></i>
+                Orders & Production
+              </button>
+              <button class="snav-item" data-panel="notifications" onclick="Settings.switchPanel('notifications', this)">
+                <i data-lucide="bell" style="width:16px;height:16px;"></i>
+                Notifications
+              </button>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">System</span>
+              <button class="snav-item" data-panel="integrations" onclick="Settings.switchPanel('integrations', this)">
+                <i data-lucide="plug" style="width:16px;height:16px;"></i>
+                Integrations
+              </button>
+              <button class="snav-item" data-panel="data" onclick="Settings.switchPanel('data', this)">
+                <i data-lucide="database" style="width:16px;height:16px;"></i>
+                Data & Backup
+              </button>
+              <button class="snav-item" data-panel="about" onclick="Settings.switchPanel('about', this)">
+                <i data-lucide="info" style="width:16px;height:16px;"></i>
+                About & License
+              </button>
+            </div>
+
+          </nav>
+
+          <!-- Settings Panels -->
+          <div class="settings-panels" id="settingsPanels">
+
+            <!-- ====================================================
+                 PANEL 1: BOUTIQUE PROFILE
+                 ==================================================== -->
+            <section class="settings-panel active" id="panel-boutique" aria-label="Boutique Profile">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="store" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Boutique Profile</h2>
+                    <p class="panel-desc">Your boutique's identity shown on invoices, receipts and client communication.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Logo Upload -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Logo & Identity</h3>
+                <div class="logo-upload-row">
+                  <div class="logo-preview" id="logoPreview">
+                    <span class="logo-initials" id="logoInitials" data-company="initials">—</span>
+                    <div class="logo-upload-overlay" onclick="document.getElementById('logoFileInput').click()">
+                      <i data-lucide="camera" style="width:18px;height:18px;"></i>
+                    </div>
+                  </div>
+                  <div class="logo-upload-info">
+                    <p class="logo-upload-title">Boutique Logo</p>
+                    <p class="logo-upload-hint">PNG, JPG, SVG or WEBP · Max 20 MB · Recommended 200×200px</p>
+                    <div class="logo-upload-btns">
+                      <button class="btn-outline-sm" onclick="document.getElementById('logoFileInput').click()">
+                        <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload Logo
+                      </button>
+                      <button class="btn-ghost-sm" onclick="Settings.removeLogo()">Remove</button>
+                    </div>
+                    <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="Settings.handleLogoUpload(event)" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Business Details -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Business Details</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Boutique Name <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="boutiqueName" placeholder="Enter boutique / company name" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Tagline</label>
+                    <input type="text" class="form-input" id="boutiqueTagline" placeholder="Enter boutique tagline or slogan" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Owner / Director Name</label>
+                    <input type="text" class="form-input" id="ownerName" placeholder="Enter owner or director full name" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Business Type</label>
+                    <select class="form-select" id="businessType">
+                      <option selected>Bespoke Atelier</option>
+                      <option>Luxury Boutique</option>
+                      <option>Garment Manufacturer</option>
+                      <option>Bridal Studio</option>
+                      <option>Fashion House</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">GSTIN</label>
+                    <input type="text" class="form-input" id="gstin" placeholder="Enter 15-digit GSTIN" maxlength="15" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">PAN Number</label>
+                    <input type="text" class="form-input" id="panNumber" placeholder="Enter 10-digit PAN" maxlength="10" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact & Address -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Contact & Address</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Primary Phone</label>
+                    <input type="tel" class="form-input" id="primaryPhone" placeholder="+91 XXXXX XXXXX" data-brand-placeholder="phone" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">WhatsApp Number</label>
+                    <input type="tel" class="form-input" id="whatsappNumber" placeholder="+91 XXXXX XXXXX" data-brand-placeholder="whatsapp" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="boutiqueEmail" placeholder="info@yourdomain.com" data-brand-placeholder="generalEmail" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Website</label>
+                    <input type="url" class="form-input" id="boutiqueWebsite" placeholder="https://yourdomain.com" data-brand-placeholder="website" />
+                  </div>
+                  <div class="form-group form-group-full">
+                    <label class="form-label">Street Address</label>
+                    <input type="text" class="form-input" id="streetAddress" placeholder="Enter street, building, area" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-input" id="city" placeholder="Enter city" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-input" id="state" placeholder="Enter state / province" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">PIN Code</label>
+                    <input type="text" class="form-input" id="pinCode" placeholder="Enter postal / PIN code" maxlength="10" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <select class="form-select" id="country">
+                      <option selected>India</option>
+                      <option>United Arab Emirates</option>
+                      <option>United Kingdom</option>
+                      <option>United States</option>
+                      <option>Singapore</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 2: BRANDING & THEME
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-branding" aria-label="Branding & Theme">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="palette" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Branding & Theme</h2>
+                    <p class="panel-desc">Customize the visual appearance and brand colours across the ERP.</p>
+                  </div>
+                </div>
+              </div>
+
+                            <div class="settings-card">
+                <h3 class="card-section-title">Colour Theme</h3>
+                <div class="theme-presets" id="themePresets">
+                  <button class="theme-preset" data-theme="classic" onclick="Settings.selectTheme('classic', this)">
+                    <div class="theme-swatch" style="background:linear-gradient(135deg,#1F211F,#3A3732,#625B52);border:2px solid #B8FF3D;"></div>
+                    <span>Classic Warm</span>
+                    <i data-lucide="check" class="theme-check" style="width:14px;height:14px;color:#B8FF3D;display:none;"></i>
+                  </button>
+                  <button class="theme-preset" data-theme="haulo-dark" onclick="Settings.selectTheme('haulo-dark', this)">
+                    <div class="theme-swatch" style="background:linear-gradient(135deg,#0A0A0A,#1a1a1a);border:2px solid #A3E635;"></div>
+                    <span><span data-brand="shortName"></span> Obsidian</span>
+                    <i data-lucide="check" class="theme-check" style="width:14px;height:14px;color:#A3E635;display:none;"></i>
+                  </button>
+                  <button class="theme-preset" data-theme="haulo-light" onclick="Settings.selectTheme('haulo-light', this)">
+                    <div class="theme-swatch" style="background:linear-gradient(135deg,#F8F5F0,#EDE8E0);border:2px solid #65A30D;"></div>
+                    <span>Atelier Light</span>
+                    <i data-lucide="check" class="theme-check" style="width:14px;height:14px;color:#65A30D;display:none;"></i>
+                  </button>
+                </div>
+                <p class="input-hint" style="margin-top:10px;">Theme applies instantly across the entire ERP and is saved for your session.</p>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Invoice Appearance</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Invoice Header Colour</label>
+                    <div class="color-input-row">
+                      <input type="color" class="color-picker" id="invoiceHeaderColor" value="#1F211F" />
+                      <input type="text" class="form-input" id="invoiceHeaderColorHex" value="#1F211F" maxlength="7" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Accent / Brand Colour</label>
+                    <div class="color-input-row">
+                      <input type="color" class="color-picker" id="accentColor" value="#B8FF3D" />
+                      <input type="text" class="form-input" id="accentColorHex" value="#B8FF3D" maxlength="7" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Invoice Template</label>
+                    <select class="form-select" id="invoiceTemplate">
+                      <option value="luxury">Luxury Dark</option>
+                      <option value="classic">Classic Ivory</option>
+                      <option value="minimal">Minimal Clean</option>
+                      <option value="royal">Royal Gold</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Font Family</label>
+                    <select class="form-select" id="invoiceFont">
+                      <option>Plus Jakarta Sans</option>
+                      <option>Playfair Display</option>
+                      <option>Inter</option>
+                      <option>Cormorant Garamond</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Invoice Footer Text</h3>
+                <textarea class="form-textarea" id="invoiceFooterText" rows="3" placeholder="e.g., Thank you for choosing our boutique. All garments are handcrafted with love and precision."></textarea>
+                <p class="input-hint">Shown at the bottom of every invoice and receipt.</p>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 3: REGIONAL & CURRENCY
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-regional" aria-label="Regional & Currency">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="globe" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Regional & Currency</h2>
+                    <p class="panel-desc">Configure time zone, date formats, currency and language for your boutique.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-card">
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Default Currency</label>
+                    <select class="form-select" id="currency">
+                      <option value="INR" selected>INR — Indian Rupee (₹)</option>
+                      <option value="AED">AED — UAE Dirham (د.إ)</option>
+                      <option value="USD">USD — US Dollar ($)</option>
+                      <option value="GBP">GBP — British Pound (£)</option>
+                      <option value="SGD">SGD — Singapore Dollar (S$)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Currency Symbol Position</label>
+                    <select class="form-select" id="currencyPosition">
+                      <option>Prefix (₹1,000)</option>
+                      <option>Suffix (1,000 ₹)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Date Format</label>
+                    <select class="form-select" id="dateFormat">
+                      <option>DD/MM/YYYY</option>
+                      <option>MM/DD/YYYY</option>
+                      <option>YYYY-MM-DD</option>
+                      <option>DD-MMM-YYYY</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Time Format</label>
+                    <select class="form-select" id="timeFormat">
+                      <option>12-hour (AM/PM)</option>
+                      <option>24-hour</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Time Zone</label>
+                    <select class="form-select" id="timezone">
+                      <option value="Asia/Kolkata" selected>Asia/Kolkata — IST (UTC+5:30)</option>
+                      <option value="Asia/Dubai">Asia/Dubai — GST (UTC+4)</option>
+                      <option value="Europe/London">Europe/London — GMT/BST</option>
+                      <option value="America/New_York">America/New_York — EST</option>
+                      <option value="Asia/Singapore">Asia/Singapore — SGT</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Language</label>
+                    <select class="form-select" id="language">
+                      <option selected>English</option>
+                      <option>Hindi</option>
+                      <option>Tamil</option>
+                      <option>Urdu</option>
+                      <option>Arabic</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Tax Name</label>
+                    <input type="text" class="form-input" id="taxName" value="GST" placeholder="e.g., GST, VAT, Tax" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Default Tax Rate (%)</label>
+                    <input type="number" class="form-input" id="defaultTaxRate" value="5" min="0" max="100" step="0.5" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 4: USERS & ROLES
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-users" aria-label="Users & Roles">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="shield-check" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Users & Access Control</h2>
+                    <p class="panel-desc">Team member accounts, role-based access control (RBAC), and module permissions.</p>
+                  </div>
+                </div>
+                <a href="../users-roles/users-roles.html" class="btn-lime-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                  <i data-lucide="external-link" style="width:14px;height:14px;"></i> Open Users & Roles
+                </a>
+              </div>
+
+              <!-- Dedicated Module Notice Card -->
+              <div class="settings-card" style="display:flex;flex-direction:column;gap:18px;padding:24px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);border-radius:14px;">
+                <div style="display:flex;align-items:flex-start;gap:16px;">
+                  <div style="width:44px;height:44px;border-radius:12px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.25);display:flex;align-items:center;justify-content:center;color:#D4AF37;flex-shrink:0;">
+                    <i data-lucide="users" style="width:22px;height:22px;"></i>
+                  </div>
+                  <div style="flex:1;">
+                    <h3 style="font-size:16px;font-weight:600;color:rgba(255,255,255,0.92);margin-bottom:6px;">Centralized User & Role Management</h3>
+                    <p style="font-size:13.5px;color:rgba(255,255,255,0.65);line-height:1.6;margin-bottom:14px;">
+                      User accounts, system credentials, branch assignments, and granular RBAC module permissions are managed in the live <strong>Users & Roles</strong> module with database persistence and real-time security synchronization.
+                    </p>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+                      <span class="role-badge role-admin">ADMIN — Full Control</span>
+                      <span class="role-badge role-manager">MANAGER — Operations</span>
+                      <span class="role-badge" style="background:rgba(59,130,246,0.15);color:#60A5FA;border:1px solid rgba(59,130,246,0.3);">STAFF — Production & Atelier</span>
+                      <span class="role-badge" style="background:rgba(236,72,153,0.15);color:#F472B6;border:1px solid rgba(236,72,153,0.3);">RECEPTIONIST — Concierge</span>
+                    </div>
+                    <a href="../users-roles/users-roles.html" class="btn-lime-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:8px 18px;">
+                      <i data-lucide="shield-check" style="width:16px;height:16px;"></i> Launch Users & Roles Directory
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 5: SECURITY & ACCESS
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-security" aria-label="Security">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="shield" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Security & Access</h2>
+                    <p class="panel-desc">Change password, configure session timeouts, and manage login security.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Change Password -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Change Password</h3>
+                <div class="form-grid-1">
+                  <div class="form-group" style="max-width:420px;">
+                    <label class="form-label">Current Password</label>
+                    <div class="input-eye-wrap">
+                      <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password" />
+                      <button class="eye-btn" onclick="Settings.togglePasswordVisibility('currentPassword', this)" tabindex="-1">
+                        <i data-lucide="eye" style="width:15px;height:15px;"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="max-width:420px;">
+                    <label class="form-label">New Password</label>
+                    <div class="input-eye-wrap">
+                      <input type="password" class="form-input" id="newPassword" placeholder="Min 8 characters" />
+                      <button class="eye-btn" onclick="Settings.togglePasswordVisibility('newPassword', this)" tabindex="-1">
+                        <i data-lucide="eye" style="width:15px;height:15px;"></i>
+                      </button>
+                    </div>
+                    <div class="password-strength-bar" id="passwordStrengthBar">
+                      <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <p class="strength-label" id="strengthLabel"></p>
+                  </div>
+                  <div class="form-group" style="max-width:420px;">
+                    <label class="form-label">Confirm New Password</label>
+                    <div class="input-eye-wrap">
+                      <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat new password" />
+                      <button class="eye-btn" onclick="Settings.togglePasswordVisibility('confirmPassword', this)" tabindex="-1">
+                        <i data-lucide="eye" style="width:15px;height:15px;"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <button class="btn-lime-sm" style="width:fit-content;" onclick="Settings.changePassword()">Update Password</button>
+                </div>
+              </div>
+
+              <!-- Session & Login -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Session & Login Security</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Session Timeout (minutes)</label>
+                    <select class="form-select" id="sessionTimeout">
+                      <option value="30">30 minutes</option>
+                      <option value="60" selected>1 hour</option>
+                      <option value="240">4 hours</option>
+                      <option value="480">8 hours</option>
+                      <option value="1440">24 hours</option>
+                      <option value="0">Never (not recommended)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Max Login Attempts</label>
+                    <select class="form-select" id="maxLoginAttempts">
+                      <option value="3">3 attempts</option>
+                      <option value="5" selected>5 attempts</option>
+                      <option value="10">10 attempts</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Login Activity Log</p>
+                    <p class="toggle-desc">Record every login attempt with IP address and timestamp.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="loginActivityLog" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Lock Account After Failed Attempts</p>
+                    <p class="toggle-desc">Temporarily lock user after exceeding max failed login attempts.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="lockOnFailedAttempts" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Active Sessions -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Active Sessions</h3>
+                <div class="active-sessions-list" id="activeSessionsList">
+                  <div class="session-item current">
+                    <div class="session-icon"><i data-lucide="monitor" style="width:18px;height:18px;"></i></div>
+                    <div class="session-info">
+                      <p class="session-device">Windows — Chrome 128 <span class="session-current-badge">Current</span></p>
+                      <p class="session-meta">127.0.0.1 · Logged in just now</p>
+                    </div>
+                    <button class="btn-danger-sm" disabled>This Device</button>
+                  </div>
+                </div>
+                <button class="btn-danger-sm" style="margin-top:12px;" onclick="Settings.revokeAllSessions()">
+                  <i data-lucide="log-out" style="width:13px;height:13px;"></i> Revoke All Other Sessions
+                </button>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 6: ORDERS & PRODUCTION
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-orders" aria-label="Orders & Production">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="shopping-bag" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Orders & Production</h2>
+                    <p class="panel-desc">Configure order codes, delivery defaults, production stage behaviour and alerts.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Order Code Format</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Order Code Prefix</label>
+                    <input type="text" class="form-input" id="orderPrefix" value="ORD" placeholder="e.g. ORD, HB, INV" maxlength="6" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Code Preview</label>
+                    <div class="code-preview-box" id="orderCodePreview">ORD-2026-0001</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Delivery Defaults</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Default Lead Time (Days)</label>
+                    <input type="number" class="form-input" id="defaultLeadDays" value="14" min="1" max="365" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Advance Payment Minimum (%)</label>
+                    <input type="number" class="form-input" id="advancePaymentPct" value="50" min="0" max="100" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Production Alerts</h3>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Alert when order is overdue</p>
+                    <p class="toggle-desc">Highlight orders past their delivery date in red on the dashboard.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="overdueAlert" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Block production stage if QC fails</p>
+                    <p class="toggle-desc">Prevent advancing to the next stage until QC is approved.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="blockOnQcFail" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Auto-assign tailor based on capacity</p>
+                    <p class="toggle-desc">Suggest the least-loaded tailor when creating a new production task.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="autoAssignTailor" />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 7: NOTIFICATIONS
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-notifications" aria-label="Notifications">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="bell" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Notifications</h2>
+                    <p class="panel-desc">Control which events trigger alerts and how they are delivered.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-card">
+                <h3 class="card-section-title">In-App Notifications</h3>
+                <div id="notifToggles">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+              <div class="settings-card">
+                <h3 class="card-section-title">Email Notifications</h3>
+                <div class="form-group" style="max-width:420px;">
+                  <label class="form-label">Notification Email</label>
+                  <input type="email" class="form-input" id="notifEmail" placeholder="alerts@yourdomain.com" data-brand-placeholder="alertsEmail" />
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Send daily summary email</p>
+                    <p class="toggle-desc">Receive a daily digest of orders, trials and pending payments.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="dailySummaryEmail" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">New order confirmation email</p>
+                    <p class="toggle-desc">Auto-send order confirmation to customer when an order is created.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="orderConfirmEmail" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 8: INTEGRATIONS
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-integrations" aria-label="Integrations">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="plug" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Integrations</h2>
+                    <p class="panel-desc">Connect third-party tools and services to your boutique ERP.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="integrations-grid" id="integrationsGrid">
+                <!-- Rendered by JS -->
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 9: DATA & BACKUP
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-data" aria-label="Data & Backup">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="database" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Data & Backup</h2>
+                    <p class="panel-desc">Export your data, manage backups and clean up test records.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Export Data</h3>
+                <div class="export-actions-grid">
+                  <button class="export-action-btn" onclick="Settings.exportData('customers')">
+                    <i data-lucide="users" style="width:22px;height:22px;"></i>
+                    <span class="export-label">Customers</span>
+                    <span class="export-fmt">CSV / Excel</span>
+                  </button>
+                  <button class="export-action-btn" onclick="Settings.exportData('orders')">
+                    <i data-lucide="shopping-bag" style="width:22px;height:22px;"></i>
+                    <span class="export-label">Orders</span>
+                    <span class="export-fmt">CSV / Excel</span>
+                  </button>
+                  <button class="export-action-btn" onclick="Settings.exportData('inventory')">
+                    <i data-lucide="package" style="width:22px;height:22px;"></i>
+                    <span class="export-label">Inventory</span>
+                    <span class="export-fmt">CSV / Excel</span>
+                  </button>
+                  <button class="export-action-btn" onclick="Settings.exportData('payments')">
+                    <i data-lucide="credit-card" style="width:22px;height:22px;"></i>
+                    <span class="export-label">Payments</span>
+                    <span class="export-fmt">CSV / Excel</span>
+                  </button>
+                  <button class="export-action-btn" onclick="Settings.exportData('designs')">
+                    <i data-lucide="layers" style="width:22px;height:22px;"></i>
+                    <span class="export-label">Designs</span>
+                    <span class="export-fmt">CSV / JSON</span>
+                  </button>
+                  <button class="export-action-btn" onclick="Settings.exportData('employees')">
+                    <i data-lucide="briefcase" style="width:22px;height:22px;"></i>
+                    <span class="export-label">Employees</span>
+                    <span class="export-fmt">CSV / Excel</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Backup & Restore</h3>
+                <div class="backup-row">
+                  <div class="backup-info">
+                    <div class="backup-status-dot online"></div>
+                    <div>
+                      <p class="backup-status-text">Auto-backup is active</p>
+                      <p class="backup-meta">Last backup: Today at 03:00 AM · PostgreSQL snapshot · 14.2 MB</p>
+                    </div>
+                  </div>
+                  <button class="btn-outline-sm" onclick="Settings.triggerBackup()">
+                    <i data-lucide="download-cloud" style="width:14px;height:14px;"></i> Backup Now
+                  </button>
+                </div>
+                <div class="form-grid-2" style="margin-top:16px;">
+                  <div class="form-group">
+                    <label class="form-label">Auto-backup Frequency</label>
+                    <select class="form-select" id="backupFrequency">
+                      <option>Every 6 hours</option>
+                      <option selected>Daily at 3:00 AM</option>
+                      <option>Weekly on Sunday</option>
+                      <option>Manual only</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Retain Backups For</label>
+                    <select class="form-select" id="backupRetention">
+                      <option>7 days</option>
+                      <option selected>30 days</option>
+                      <option>90 days</option>
+                      <option>1 year</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Danger Zone -->
+              <div class="settings-card danger-card">
+                <h3 class="card-section-title danger-title">
+                  <i data-lucide="alert-triangle" style="width:16px;height:16px;color:#FF6B6B;"></i>
+                  Danger Zone
+                </h3>
+                <p class="danger-desc">These actions are irreversible. Proceed with extreme caution.</p>
+                <div class="danger-actions">
+                  <div class="danger-action-row">
+                    <div>
+                      <p class="danger-action-label">Clear All Test Data</p>
+                      <p class="danger-action-desc">Removes all sample/seed data while keeping schema intact.</p>
+                    </div>
+                    <button class="btn-danger-outline" onclick="Settings.confirmDangerAction('clear-test-data')">Clear Test Data</button>
+                  </div>
+                  <div class="danger-action-row">
+                    <div>
+                      <p class="danger-action-label">Reset to Factory Defaults</p>
+                      <p class="danger-action-desc">Wipe all settings and return to initial configuration.</p>
+                    </div>
+                    <button class="btn-danger-outline" onclick="Settings.confirmDangerAction('factory-reset')">Factory Reset</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ====================================================
+                 PANEL 10: ABOUT & LICENSE
+                 ==================================================== -->
+            <section class="settings-panel" id="panel-about" aria-label="About">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="info" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">About & License</h2>
+                    <p class="panel-desc">System version, technology stack and license information.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-card about-hero-card">
+                <div class="about-logo-block">
+                  <div class="about-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" width="36" height="36">
+                      <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#B8FF3D"/>
+                      <circle cx="6" cy="18.5" r="2.5" fill="#B8FF3D"/>
+                      <circle cx="18" cy="5.5" r="2.5" fill="#B8FF3D"/>
+                      <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#B8FF3D"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="about-brand" data-brand="systemName"></h2>
+                    <p class="about-tagline" data-brand="tagline"></p>
+                  </div>
+                </div>
+                <div class="about-version-row">
+                  <div class="about-version-pill">Version 1.0.0</div>
+                  <div class="about-version-pill">Spring Boot 4.1.1</div>
+                  <div class="about-version-pill">Java 17</div>
+                  <div class="about-version-pill">PostgreSQL 17</div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">Technology Stack</h3>
+                <div class="stack-grid">
+                  <div class="stack-item"><span class="stack-layer">Backend</span><span class="stack-value">Spring Boot 4.1.1 · Java 17 · Hibernate · Flyway</span></div>
+                  <div class="stack-item"><span class="stack-layer">Database</span><span class="stack-value">PostgreSQL 17 · HikariCP Connection Pool</span></div>
+                  <div class="stack-item"><span class="stack-layer">Security</span><span class="stack-value">Stateless JWT · HMAC-SHA256 · BCrypt · Spring Security</span></div>
+                  <div class="stack-item"><span class="stack-layer">Frontend</span><span class="stack-value">Vanilla ES6+ · CSS3 Custom Properties · HTML5</span></div>
+                  <div class="stack-item"><span class="stack-layer">Icons</span><span class="stack-value">Lucide Icons · Chart.js 4.4.1</span></div>
+                  <div class="stack-item"><span class="stack-layer">Fonts</span><span class="stack-value">Plus Jakarta Sans · Playfair Display · Inter</span></div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">System Health</h3>
+                <div class="health-grid" id="healthGrid">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3 class="card-section-title">License</h3>
+                <div class="license-block">
+                  <p class="license-text"><span data-brand="systemName"></span> is proprietary software developed exclusively for boutique and atelier management. Unauthorised reproduction, distribution or modification is strictly prohibited.</p>
+                  <p class="license-copy" data-brand="copyright"></p>
+                </div>
+              </div>
+            </section>
+
+          </div><!-- /settings-panels -->
+        </div><!-- /settings-layout -->
+
+        <!-- Toast -->
+        <div class="settings-toast" id="settingsToast" role="alert" aria-live="polite"></div>
+
+
+        <!-- Danger Confirm Modal -->
+        <div class="modal-overlay" id="dangerModal" style="display:none;" onclick="Settings.closeDangerModal()">
+          <div class="modal-box modal-box-sm" onclick="event.stopPropagation()">
+            <div class="modal-header danger-modal-header">
+              <i data-lucide="alert-triangle" style="width:22px;height:22px;color:#FF6B6B;"></i>
+              <h3 class="modal-title" id="dangerModalTitle">Confirm Action</h3>
+              <button class="modal-close" onclick="Settings.closeDangerModal()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+            </div>
+            <div class="modal-body">
+              <p id="dangerModalDesc" class="danger-modal-desc">This action is irreversible. Are you sure?</p>
+              <div class="form-group" style="margin-top:14px;">
+                <label class="form-label">Type <strong>CONFIRM</strong> to proceed</label>
+                <input type="text" class="form-input" id="dangerConfirmInput" placeholder="CONFIRM" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-ghost-sm" onclick="Settings.closeDangerModal()">Cancel</button>
+              <button class="btn-danger-sm" id="dangerConfirmBtn" onclick="Settings.executeDangerAction()">Proceed</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /settings-root -->
+
+      <!-- Footer / Status Bar Slot -->
+      <div id="footerSlot"></div>
+    </div><!-- /main-wrapper -->
+  </div><!-- /app-shell -->
+
+  <script src="settings.js"></script>
+</body>
+</html>

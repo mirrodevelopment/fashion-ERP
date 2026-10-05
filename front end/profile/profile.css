@@ -1,0 +1,865 @@
+﻿/* ==========================================================================
+   HAULO BOUTIQUE ERP — EXECUTIVE PROFILE STYLESHEET
+   File: front end/profile/profile.css
+   Seamlessly inherits Customer 360 luxury dark-warm glassmorphism
+   ========================================================================== */
+
+/* ── 1. PROFILE WORKSPACE OVERRIDES ──────────────────────────────────────── */
+.profile-workspace {
+  gap: 14px;
+  width: 100%;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 4px 6px;
+}
+
+/* ── 2. INTERACTIVE AVATAR IN HERO BANNER ────────────────────────────────── */
+.avatar-interactive-wrap {
+  position: relative;
+  cursor: pointer;
+}
+.avatar-interactive-wrap:hover .avatar-hover-overlay {
+  opacity: 1;
+}
+.avatar-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #b8ff3d;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+}
+.avatar-hover-overlay i {
+  width: 18px;
+  height: 18px;
+}
+
+.badge-clearance {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(184, 255, 61, 0.12);
+  color: #b8ff3d;
+  border: 1px solid rgba(184, 255, 61, 0.32);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-clearance i {
+  width: 11px;
+  height: 11px;
+}
+
+/* ── 3. FORM CONTROLS (CUSTOMER 360 LUXURY STYLE) ────────────────────────── */
+.c360-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group-c360 {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-label-c360 {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.form-label-c360 .required {
+  color: #f87171;
+  margin-left: 2px;
+}
+
+.input-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Card Header Actions & Edit Button */
+.card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-header-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #b8ff3d;
+  background: rgba(184, 255, 61, 0.08);
+  border: 1px solid rgba(184, 255, 61, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-header-edit:hover {
+  background: rgba(184, 255, 61, 0.18);
+  border-color: rgba(184, 255, 61, 0.6);
+  transform: translateY(-1px);
+}
+.btn-header-edit.btn-editing-active {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.btn-header-edit.btn-editing-active:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.7);
+}
+
+.input-with-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.input-with-icon-wrap .input-icon-svg {
+  position: absolute;
+  left: 12px;
+  width: 15px;
+  height: 15px;
+  color: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  transition: color 0.18s;
+  z-index: 2;
+}
+
+.c360-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+.input-with-icon-wrap .c360-input {
+  padding-left: 38px !important;
+}
+
+.c360-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(184, 255, 61, 0.6);
+  box-shadow: 0 0 0 3px rgba(184, 255, 61, 0.12);
+}
+.c360-input:focus ~ .input-icon-svg,
+.input-with-icon-wrap:focus-within .input-icon-svg {
+  color: #b8ff3d;
+}
+
+.c360-input.input-readonly {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  cursor: not-allowed;
+}
+
+/* View Mode (Locked before clicking Edit) */
+.c360-input.is-view-mode {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  cursor: default;
+  user-select: text;
+}
+.c360-input.is-view-mode:focus {
+  box-shadow: none !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Edit Mode (Unlocked after clicking Edit) */
+.c360-input.is-editing-mode {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(184, 255, 61, 0.45) !important;
+  color: #ffffff !important;
+  cursor: text;
+  box-shadow: 0 0 12px rgba(184, 255, 61, 0.09);
+}
+.c360-input.is-editing-mode:focus {
+  border-color: rgba(184, 255, 61, 0.8) !important;
+  box-shadow: 0 0 0 3px rgba(184, 255, 61, 0.18) !important;
+}
+
+.c360-select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.c360-select option {
+  background: #1e1b18;
+  color: #ffffff;
+}
+
+.c360-textarea {
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.45;
+}
+
+.form-row-2-c360 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-actions-c360 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Eye Toggle inside password inputs */
+.eye-toggle-btn {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.eye-toggle-btn:hover {
+  color: #ffffff;
+}
+
+/* ── 4. BIO PREVIEW BOX ─────────────────────────────────────────────────── */
+.c360-quote-preview {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid #b8ff3d;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+.preview-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.4);
+  display: block;
+  margin-bottom: 2px;
+}
+.c360-quote-preview p {
+  margin: 0;
+  font-size: 11.5px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+}
+
+/* ── 5. AVATAR STUDIO IN MIDDLE COLUMN ───────────────────────────────────── */
+.card-avatar-studio {
+  text-align: center;
+}
+.avatar-studio-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-preview-frame {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid rgba(184, 255, 61, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(184, 255, 61, 0.15);
+  cursor: pointer;
+  background: #191816;
+}
+.studio-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.studio-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #b8ff3d;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.studio-avatar-overlay i {
+  width: 24px;
+  height: 24px;
+}
+.avatar-preview-frame:hover .studio-avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-studio-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 240px;
+}
+
+.avatar-specs-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+.specs-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.65);
+}
+.specs-row i {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+.specs-row strong {
+  color: #ffffff;
+}
+
+/* ── 6. ATELIER RESPONSIBILITIES LIST ────────────────────────────────────── */
+.atelier-resp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.resp-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 9px 11px;
+}
+.resp-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.resp-icon i {
+  width: 15px;
+  height: 15px;
+}
+.resp-icon.purple {
+  background: rgba(168, 149, 255, 0.16);
+  color: #c4b5fd;
+}
+.resp-icon.lime {
+  background: rgba(184, 255, 61, 0.16);
+  color: #b8ff3d;
+}
+.resp-icon.gold {
+  background: rgba(234, 179, 8, 0.16);
+  color: #facc15;
+}
+
+.resp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.resp-info strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.resp-info span {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.35;
+}
+
+/* ── 7. SYSTEM CLEARANCE & PRIVILEGES ────────────────────────────────────── */
+.clearance-badge-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(184, 255, 61, 0.12) 0%, rgba(34, 197, 94, 0.08) 100%);
+  border: 1px solid rgba(184, 255, 61, 0.35);
+  border-radius: 10px;
+  padding: 11px 14px;
+}
+.clearance-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(184, 255, 61, 0.2);
+  color: #b8ff3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.clearance-icon-wrap i {
+  width: 18px;
+  height: 18px;
+}
+.clearance-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.clearance-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #b8ff3d;
+  letter-spacing: 0.3px;
+}
+.clearance-sub {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.privilege-mini-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+.matrix-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+.matrix-pill i {
+  width: 12px;
+  height: 12px;
+  color: #b8ff3d;
+}
+
+/* ── 8. METADATA KEY-VALUE TABLE (CUSTOMER 360 STYLE) ─────────────────────── */
+.meta-table-c360 {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.meta-row-c360 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 11px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.meta-row-c360:last-child {
+  border-bottom: none;
+}
+.meta-key {
+  color: rgba(255, 255, 255, 0.5);
+}
+.meta-val {
+  color: #ffffff;
+  font-weight: 600;
+}
+.meta-val.mono {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.8);
+}
+.meta-val.positive {
+  color: #b8ff3d;
+}
+
+/* ── 9. PASSWORD STRENGTH METER & CHECKLIST ───────────────────────────────── */
+.strength-meter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.strength-bar-bg {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.strength-bar-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+.strength-text {
+  font-size: 10.5px;
+  font-weight: 600;
+  min-width: 90px;
+  text-align: right;
+}
+
+.match-feedback {
+  font-size: 10.5px;
+  font-weight: 600;
+  margin-top: 2px;
+  display: block;
+}
+
+.password-guidelines-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+.guideline-heading {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  display: block;
+  margin-bottom: 5px;
+}
+.guideline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.guideline-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.2s;
+}
+.guideline-list li.pass {
+  color: #b8ff3d;
+}
+.guideline-list li.pass i {
+  color: #b8ff3d;
+  fill: #b8ff3d;
+}
+
+/* ── 10. SECURITY FEATURES & AUDIT ───────────────────────────────────────── */
+.security-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.security-feature-item:last-child {
+  border-bottom: none;
+}
+.sec-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sec-icon i {
+  width: 14px;
+  height: 14px;
+}
+.sec-icon.green {
+  background: rgba(34, 197, 94, 0.14);
+  color: #4ade80;
+}
+.sec-icon.purple {
+  background: rgba(168, 149, 255, 0.14);
+  color: #c4b5fd;
+}
+.sec-icon.gold {
+  background: rgba(234, 179, 8, 0.14);
+  color: #facc15;
+}
+
+.security-feature-item strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  display: block;
+}
+.security-feature-item p {
+  margin: 1px 0 0;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.35;
+}
+
+/* ── 11. PRIVILEGE CHECKLIST (ROLES TAB) ─────────────────────────────────── */
+.privilege-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 7px 10px;
+}
+.check-lime {
+  width: 14px;
+  height: 14px;
+  color: #b8ff3d;
+  flex-shrink: 0;
+}
+
+/* ── 12. PREFERENCES TOGGLE & SHORTCUTS ──────────────────────────────────── */
+.pref-items-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pref-row strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+  display: block;
+}
+.pref-row p {
+  margin: 1px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.pref-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.c360-toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.c360-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 22px;
+  transition: 0.25s ease;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: 0.25s ease;
+}
+.c360-toggle input:checked + .toggle-slider {
+  background: #b8ff3d;
+}
+.c360-toggle input:checked + .toggle-slider:before {
+  transform: translateX(18px);
+  background: #111110;
+}
+
+.shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.75);
+}
+.kbd-pill {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  color: #b8ff3d;
+}
+
+/* ── 13. ACTIVITY TIMELINE ───────────────────────────────────────────────── */
+.activity-timeline-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  margin-left: 6px;
+}
+.activity-timeline-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.timeline-dot-lime,
+.timeline-dot-purple,
+.timeline-dot-gold {
+  position: absolute;
+  left: -18px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.timeline-dot-lime {
+  background: #b8ff3d;
+  box-shadow: 0 0 8px rgba(184, 255, 61, 0.6);
+}
+.timeline-dot-purple {
+  background: #c4b5fd;
+  box-shadow: 0 0 8px rgba(196, 181, 253, 0.6);
+}
+.timeline-dot-gold {
+  background: #facc15;
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+}
+
+.timeline-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.timeline-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+.timeline-time {
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 1px;
+}
+
+/* ── 14. RESPONSIVE MEDIA QUERIES ────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .c360-dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .c360-grid-col.col-right {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .c360-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .c360-grid-col.col-left,
+  .c360-grid-col.col-middle,
+  .c360-grid-col.col-right {
+    grid-column: span 1 !important;
+  }
+  .c360-profile-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .profile-banner-left {
+    max-width: 100%;
+  }
+  .profile-banner-metrics {
+    width: 100%;
+    overflow-x: auto;
+  }
+}

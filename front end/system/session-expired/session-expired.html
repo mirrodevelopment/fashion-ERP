@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Session Expired">Session Expired</title>
+  <meta name="description" content="Your session has expired due to inactivity for security reasons. Please log in again to continue." />
+  <link rel="icon" type="image/x-icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="session-expired.css" />
+</head>
+<body>
+
+  <div class="session-page-wrapper">
+
+    <!-- Atmospheric Sunlight & Interior French Balcony Background -->
+    <div class="ambient-bg" aria-hidden="true">
+      <div class="sunlight-beam"></div>
+      <div class="marble-floor-reflection"></div>
+      <div class="french-window-left"></div>
+
+      <!-- Foreground Botanical Plant Leaf Silhouette (Bottom-Left) -->
+      <svg viewBox="0 0 190 220" fill="none" class="foreground-plant-leaf" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-20 220C-10 160 30 110 90 90C110 84 140 82 170 90C140 120 110 160 100 220H-20Z" fill="#2d3b2a"/>
+        <path d="M-20 220C20 170 80 140 145 135C125 160 100 190 85 220H-20Z" fill="#3c4e38"/>
+        <path d="M-20 220C-5 130 50 70 120 40C105 75 90 125 75 180L-20 220Z" fill="#243222"/>
+      </svg>
+    </div>
+
+    <!-- Main Two-Column Stage -->
+    <main class="session-main-stage">
+
+      <!-- ===================================================================
+           LEFT COLUMN: BRAND, HEADLINE, SUBTITLE & ACTION BUTTONS
+           =================================================================== -->
+      <section class="session-info-left">
+
+        <!-- Brand Block -->
+        <a href="../../dashboard/dashboard.html" class="brand-block" id="brandLink">
+          <!-- Brand Logo Mark -->
+          <span class="brand-logo-mark-wrap" data-brand="logoMarkGold">
+            <svg viewBox="0 0 36 36" fill="none" class="brand-logo-h" xmlns="http://www.w3.org/2000/svg" aria-label="Brand Logo">
+              <defs>
+                <linearGradient id="goldBrandH" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#fae2b3"/>
+                  <stop offset="50%" stop-color="#be934c"/>
+                  <stop offset="100%" stop-color="#8c672f"/>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="4" width="7" height="28" rx="3.5" fill="url(#goldBrandH)"/>
+              <rect x="23" y="4" width="7" height="28" rx="3.5" fill="url(#goldBrandH)"/>
+              <path d="M12 18H24" stroke="url(#goldBrandH)" stroke-width="4.5" stroke-linecap="round"/>
+              <circle cx="18" cy="18" r="2" fill="#ffffff" opacity="0.8"/>
+            </svg>
+          </span>
+          <span class="brand-title" data-brand="shortName"></span>
+          <span class="brand-subtitle" data-brand="systemSub"></span>
+        </a>
+
+        <!-- Headline: Session Expired -->
+        <h1 class="session-title">
+          <span class="session-word-1">Session</span>
+          <span class="session-word-2">Expired</span>
+        </h1>
+
+        <!-- Subtitle Paragraph -->
+        <p class="session-subtitle">
+          Your session has expired due to inactivity for security reasons. Please log in again to continue.
+        </p>
+
+        <!-- Action Buttons: [Login Again] & [Go to Home] -->
+        <div class="action-buttons-group">
+          <!-- 1. Login Again Button (Solid Golden Bronze Pill) -->
+          <a href="../../login/login.html?reason=session_expired" class="btn-login-again" id="btnLoginAgain" title="Sign in again">
+            <!-- Door Login Arrow SVG -->
+            <svg viewBox="0 0 24 24" fill="none" class="login-icon-svg" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            <span>Login Again</span>
+          </a>
+
+          <!-- 2. Go to Home Button (Warm light cream pill button with subtle gold border) -->
+          <a href="../../dashboard/dashboard.html" class="btn-go-home" id="btnGoHome" title="Return to Dashboard">
+            <!-- Home Icon SVG -->
+            <svg viewBox="0 0 24 24" fill="none" class="home-icon-svg" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Go to Home</span>
+          </a>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================
+           RIGHT COLUMN: 3D ATELIER DIORAMA (PURE CSS / SVG - NO RASTER IMAGES)
+           Featuring: Tiered Marble Pedestal, Brass Hourglass with Rose Sand,
+           Open Laptop with Glowing Lock & Clock, Mannequin with Draped Silk,
+           Fluted Vase, Pincushion, Thread Spool & Coiled Measuring Tape
+           =================================================================== -->
+      <section class="diorama-stage-right" aria-label="Atelier Session Security Diorama">
+        <svg viewBox="0 0 660 520" fill="none" class="diorama-svg-main" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Gold Metallic Gradients -->
+            <linearGradient id="goldHourglassGrad" x1="0" y1="0" x2="150" y2="250" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fff6dd"/>
+              <stop offset="25%" stop-color="#fae2b3"/>
+              <stop offset="55%" stop-color="#dfb76c"/>
+              <stop offset="85%" stop-color="#be934c"/>
+              <stop offset="100%" stop-color="#73521e"/>
+            </linearGradient>
+
+            <linearGradient id="goldArchLight" x1="0" y1="0" x2="450" y2="450" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fff5db"/>
+              <stop offset="35%" stop-color="#dfb76c"/>
+              <stop offset="80%" stop-color="#be934c"/>
+              <stop offset="100%" stop-color="#73521e"/>
+            </linearGradient>
+
+            <!-- Marble Podium Gradients -->
+            <linearGradient id="marblePedestalTop" x1="120" y1="280" x2="480" y2="340" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="50%" stop-color="#f8f2e9"/>
+              <stop offset="100%" stop-color="#e9ddcd"/>
+            </linearGradient>
+
+            <linearGradient id="marblePedestalFront" x1="120" y1="320" x2="480" y2="400" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f6ece0"/>
+              <stop offset="60%" stop-color="#ebddcd"/>
+              <stop offset="100%" stop-color="#d5c4b0"/>
+            </linearGradient>
+
+            <!-- Laptop Metallic Body -->
+            <linearGradient id="laptopBaseGrad" x1="5" y1="125" x2="245" y2="165" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#3c4049"/>
+              <stop offset="50%" stop-color="#22252c"/>
+              <stop offset="100%" stop-color="#14161a"/>
+            </linearGradient>
+
+            <linearGradient id="laptopScreenGrad" x1="20" y1="10" x2="190" y2="135" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#16181e"/>
+              <stop offset="50%" stop-color="#0e1014"/>
+              <stop offset="100%" stop-color="#08090c"/>
+            </linearGradient>
+
+            <!-- Sand Dust Rose Gradient -->
+            <linearGradient id="roseSandGrad" x1="0" y1="0" x2="60" y2="120" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f8caca"/>
+              <stop offset="45%" stop-color="#d99a9a"/>
+              <stop offset="100%" stop-color="#a06066"/>
+            </linearGradient>
+
+            <!-- Silk Cascade Gradient -->
+            <linearGradient id="roseSilkCascade" x1="420" y1="180" x2="620" y2="480" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f7bebe"/>
+              <stop offset="35%" stop-color="#d99a9a"/>
+              <stop offset="75%" stop-color="#b06f75"/>
+              <stop offset="100%" stop-color="#5a2b30"/>
+            </linearGradient>
+
+            <!-- Linen Mannequin Gradient -->
+            <linearGradient id="linenTorso" x1="460" y1="120" x2="560" y2="320" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="40%" stop-color="#f9f3eb"/>
+              <stop offset="85%" stop-color="#ebd8c3"/>
+              <stop offset="100%" stop-color="#beaa94"/>
+            </linearGradient>
+          </defs>
+
+          <!-- 1. Background Arched Windows & Wall Architecture -->
+          <g opacity="0.6">
+            <path d="M340 320V120C340 60 380 20 430 20C480 20 520 60 520 120V320"
+                  stroke="url(#goldArchLight)" stroke-width="4" fill="rgba(255, 255, 255, 0.4)"/>
+            <path d="M370 320V140C370 95 400 65 430 65C460 65 490 95 490 140V320"
+                  stroke="url(#goldArchLight)" stroke-width="2" fill="none"/>
+          </g>
+
+          <!-- 2. Hanging Pendant Lamp on Right -->
+          <line x1="505" y1="0" x2="505" y2="45" stroke="url(#goldArchLight)" stroke-width="2"/>
+          <path d="M485 58C485 45 495 45 505 45C515 45 525 45 525 58H485Z" fill="url(#goldHourglassGrad)"/>
+          <circle cx="505" cy="68" r="10" fill="#ffffff" filter="drop-shadow(0 0 10px rgba(255, 230, 160, 0.9))"/>
+
+          <!-- 3. Wardrobe Closet on Far Right (Dim Silhouette) -->
+          <g transform="translate(540, 30)">
+            <path d="M10 400V90C10 40 35 15 65 15C95 15 120 40 120 90V400"
+                  stroke="url(#goldArchLight)" stroke-width="3.5" fill="#221b18" opacity="0.85"/>
+            <line x1="20" y1="130" x2="110" y2="130" stroke="#dfb76c" stroke-width="2"/>
+            <path d="M35 132L25 155V320H55V155L45 132Z" fill="#c88789" opacity="0.8"/>
+            <path d="M65 132L55 158V340H85V158L75 132Z" fill="#ede4d4" opacity="0.85"/>
+            <path d="M95 132L85 155V310H115V155L105 132Z" fill="#a46c76" opacity="0.8"/>
+          </g>
+
+          <!-- 4. Tiered Calacatta Marble Podium Platform -->
+          <!-- Lower Tier -->
+          <ellipse cx="320" cy="385" rx="205" ry="40" fill="url(#marblePedestalTop)" stroke="#e4d6c4" stroke-width="1.5"/>
+          <path d="M115 385V408C115 428 205 448 320 448C435 448 525 428 525 408V385"
+                fill="url(#marblePedestalFront)" stroke="#d5c4b0" stroke-width="1.5"/>
+          <path d="M115 408C115 428 205 448 320 448C435 448 525 428 525 408"
+                stroke="url(#goldArchLight)" stroke-width="4" fill="none"/>
+
+          <!-- Upper Tier -->
+          <ellipse cx="320" cy="360" rx="165" ry="32" fill="url(#marblePedestalTop)" stroke="#e4d6c4" stroke-width="1.5"/>
+          <path d="M155 360V380C155 398 230 412 320 412C410 412 485 398 485 380V360"
+                fill="url(#marblePedestalFront)" stroke="#d5c4b0" stroke-width="1.5"/>
+          <path d="M155 380C155 398 230 412 320 412C410 412 485 398 485 380"
+                stroke="url(#goldArchLight)" stroke-width="3" fill="none"/>
+
+          <!-- 5. Open Laptop on Center of Pedestal -->
+          <g transform="translate(230, 180)">
+            <!-- Laptop Base Deck (Perspective) -->
+            <polygon points="10,140 185,140 225,164 35,164" fill="url(#laptopBaseGrad)"/>
+            <polygon points="10,140 35,164 33,168 8,144" fill="#14171d"/>
+            <polygon points="35,164 225,164 221,168 33,168" fill="#090b0e"/>
+            <!-- Trackpad -->
+            <polygon points="98,155 142,155 150,162 104,162" fill="#1e222a" stroke="#2c323d" stroke-width="0.5"/>
+
+            <!-- Laptop Open Screen Bezel -->
+            <polygon points="22,12 168,12 180,140 10,140" fill="#1c1f26" stroke="rgba(255,255,255,0.15)" stroke-width="1.2"/>
+            <!-- Screen Dark Glass Face -->
+            <polygon points="28,18 162,18 174,134 16,134" fill="url(#laptopScreenGrad)"/>
+
+            <!-- Gold Floral Filigree Corners on Screen -->
+            <g opacity="0.35">
+              <path d="M34 24C44 24 50 30 50 40M34 24C34 34 40 40 50 40" stroke="#dfb76c" stroke-width="0.8"/>
+              <path d="M156 24C146 24 140 30 140 40M156 24C156 34 150 40 140 40" stroke="#dfb76c" stroke-width="0.8"/>
+            </g>
+
+            <!-- Glowing Golden Padlock with Clock on Laptop Screen -->
+            <g class="laptop-lock-group" transform="translate(95, 68)">
+              <!-- Shackle -->
+              <path d="M-15 -6V-22C-15 -32 -6 -38 4 -38C14 -38 23 -32 23 -22V-6"
+                    stroke="url(#goldHourglassGrad)" stroke-width="7" stroke-linecap="round" fill="none"/>
+              <!-- Lock Body -->
+              <rect x="-24" y="-8" width="56" height="44" rx="8"
+                    fill="url(#goldHourglassGrad)" stroke="#fae2b3" stroke-width="1.2"/>
+              <!-- Keyhole -->
+              <circle cx="4" cy="10" r="3.5" fill="#2b2012"/>
+              <polygon points="2,12 6,12 7,20 1,20" fill="#2b2012"/>
+
+              <!-- Radiating Spark Dashes -->
+              <line x1="-30" y1="-26" x2="-38" y2="-32" stroke="#dfb76c" stroke-width="2" stroke-linecap="round"/>
+              <line x1="-34" y1="-12" x2="-44" y2="-12" stroke="#dfb76c" stroke-width="2" stroke-linecap="round"/>
+              <line x1="38" y1="-26" x2="46" y2="-32" stroke="#dfb76c" stroke-width="2" stroke-linecap="round"/>
+              <line x1="42" y1="-12" x2="52" y2="-12" stroke="#dfb76c" stroke-width="2" stroke-linecap="round"/>
+
+              <!-- Small Circular Clock Timer Badge (Bottom-Right of Lock) -->
+              <g transform="translate(30, 26)">
+                <circle cx="0" cy="0" r="13" fill="#1b1712" stroke="url(#goldHourglassGrad)" stroke-width="3"/>
+                <!-- Clock Hands pointing to 9 and 12 -->
+                <line x1="0" y1="0" x2="0" y2="-7" stroke="#fae2b3" stroke-width="2" stroke-linecap="round"/>
+                <line x1="0" y1="0" x2="-6" y2="0" stroke="#fae2b3" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="0" cy="0" r="1.5" fill="#ffffff"/>
+              </g>
+            </g>
+          </g>
+
+          <!-- 6. Golden Fluted Vase with White Flowers (Behind Hourglass) -->
+          <g transform="translate(180, 160)">
+            <path d="M30 115C25 80 18 55 5 30" stroke="#688258" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M32 110C38 75 48 55 60 25" stroke="#688258" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M30 105C30 70 32 45 34 15" stroke="#688258" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="5" cy="30" r="2.8" fill="#ffffff" filter="drop-shadow(0 0 2px rgba(255,255,255,0.9))"/>
+            <circle cx="15" cy="20" r="2.5" fill="#fff9ea"/>
+            <circle cx="34" cy="15" r="3.0" fill="#ffffff"/>
+            <circle cx="48" cy="18" r="2.5" fill="#fff9ea"/>
+            <circle cx="60" cy="25" r="2.8" fill="#ffffff"/>
+
+            <path d="M22 115H38L42 145C44 158 38 165 30 165C22 165 16 158 18 145L22 115Z"
+                  fill="url(#goldHourglassGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+            <ellipse cx="30" cy="115" rx="8" ry="3" fill="#fae2b3"/>
+          </g>
+
+          <!-- 7. Golden Brass Hourglass with Dusty Rose Sand (Left on Pedestal) -->
+          <g transform="translate(170, 205)" filter="drop-shadow(0 15px 25px rgba(115, 82, 30, 0.22))">
+            <!-- Top Brass Plate & Finial -->
+            <ellipse cx="38" cy="12" rx="34" ry="10" fill="url(#goldHourglassGrad)" stroke="#fff" stroke-width="0.8"/>
+            <ellipse cx="38" cy="8" rx="26" ry="6" fill="#fae2b3"/>
+            <circle cx="38" cy="3" r="3" fill="url(#goldHourglassGrad)"/>
+
+            <!-- Bottom Brass Plate & Finial -->
+            <ellipse cx="38" cy="138" rx="34" ry="10" fill="url(#goldHourglassGrad)" stroke="#fff" stroke-width="0.8"/>
+            <ellipse cx="38" cy="134" rx="26" ry="6" fill="#fae2b3"/>
+            <circle cx="38" cy="144" r="3" fill="url(#goldHourglassGrad)"/>
+
+            <!-- 3 Golden Support Pillars -->
+            <line x1="8" y1="12" x2="8" y2="138" stroke="url(#goldHourglassGrad)" stroke-width="4.5" stroke-linecap="round"/>
+            <line x1="68" y1="12" x2="68" y2="138" stroke="url(#goldHourglassGrad)" stroke-width="4.5" stroke-linecap="round"/>
+            <line x1="38" y1="12" x2="38" y2="138" stroke="url(#goldHourglassGrad)" stroke-width="3" opacity="0.4"/>
+
+            <!-- Clear Glass Bulbs -->
+            <!-- Top Bulb Contour -->
+            <path d="M12 20C12 45 28 65 35 75C28 85 12 105 12 130C12 136 64 136 64 130C64 105 48 85 41 75C48 65 64 45 64 20C64 14 12 14 12 20Z"
+                  fill="rgba(255, 255, 255, 0.35)" stroke="rgba(255, 255, 255, 0.85)" stroke-width="1.8"/>
+
+            <!-- Glass Luster Reflection Curves -->
+            <path d="M16 25C16 45 28 60 32 70" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+            <path d="M16 125C16 105 28 90 32 80" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+
+            <!-- Upper Chamber Sand (Soft Dusty Rose) -->
+            <path d="M18 36C22 55 32 65 38 72C44 65 54 55 58 36H18Z" fill="url(#roseSandGrad)"/>
+            <ellipse cx="38" cy="36" rx="20" ry="5.5" fill="#f8caca"/>
+
+            <!-- Animated Sand Trickle Stream Falling through Narrow Waist -->
+            <line x1="38" y1="72" x2="38" y2="120" stroke="#a06066" stroke-width="2" class="sand-trickle-stream"/>
+
+            <!-- Lower Chamber Sand Mound -->
+            <path d="M16 130C16 120 28 108 38 108C48 108 60 120 60 130H16Z" fill="url(#roseSandGrad)"/>
+            <ellipse cx="38" cy="112" rx="14" ry="4" fill="#f8caca" opacity="0.8"/>
+          </g>
+
+          <!-- 8. Tailor's Dress Form Mannequin on Right with Draped Silk -->
+          <g transform="translate(20, 0)">
+            <!-- Stand Pole & Base -->
+            <line x1="485" y1="210" x2="485" y2="350" stroke="url(#goldHourglassGrad)" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="485" cy="350" r="6" fill="url(#goldHourglassGrad)"/>
+
+            <!-- Torso Form (Cream Linen) -->
+            <path d="M465 150C465 150 475 154 485 154C495 154 505 150 505 150C515 162 518 182 512 210C506 230 508 260 515 292C502 296 485 298 465 294C458 272 460 232 458 210C455 182 458 162 465 150Z"
+                  fill="url(#linenTorso)" stroke="rgba(190, 147, 76, 0.3)" stroke-width="1.2"/>
+            <path d="M475 155C473 190 474 240 471 292" stroke="rgba(190, 160, 130, 0.4)" stroke-width="1" stroke-dasharray="2 2"/>
+            <path d="M495 155C497 190 496 240 499 292" stroke="rgba(190, 160, 130, 0.4)" stroke-width="1" stroke-dasharray="2 2"/>
+
+            <!-- Gold Neck Finial Cap -->
+            <ellipse cx="485" cy="148" rx="8" ry="4" fill="url(#goldHourglassGrad)"/>
+            <path d="M485 132C489 138 491 142 485 146C479 142 481 138 485 132Z" fill="url(#goldHourglassGrad)"/>
+            <circle cx="485" cy="130" r="3" fill="url(#goldHourglassGrad)"/>
+
+            <!-- Tailor's Measuring Tape Around Neck -->
+            <path d="M472 150C478 166 482 192 484 222C486 250 486 275 488 300"
+                  stroke="#fdf5da" stroke-width="3" stroke-linecap="round"/>
+            <path d="M498 150C494 166 491 187 489 210"
+                  stroke="#fdf5da" stroke-width="3" stroke-linecap="round"/>
+            <path d="M482 175L486 175M483 195L487 195M484 215L488 215M485 235L489 235M486 255L490 255M487 275L491 275"
+                  stroke="#5e4921" stroke-width="0.75"/>
+
+            <!-- Haute Couture Dusty Rose Silk Draping Cascading Down Pedestal Steps onto Floor -->
+            <!-- Torso Section -->
+            <path d="M465 152C470 162 480 178 488 198C498 220 504 250 512 284C518 310 528 340 538 370C522 374 502 368 492 358C498 335 500 305 496 278C492 250 484 222 476 195C470 175 466 160 465 152Z"
+                  fill="url(#roseSilkCascade)"/>
+
+            <!-- Cascading Drape Sweeping Down Pedestal Steps and Pooling on Marble Floor -->
+            <path d="M510 320C528 340 545 350 558 375C572 402 555 425 540 445C515 470 485 460 460 442C445 432 440 420 445 410C455 400 480 415 505 420C525 424 540 415 532 395C524 378 505 362 485 348C480 340 485 328 510 320Z"
+                  fill="url(#roseSilkCascade)" filter="drop-shadow(0 10px 25px rgba(120, 60, 60, 0.28))"/>
+
+            <!-- Silk Fold Luster Highlights -->
+            <path d="M468 158C478 182 490 220 502 262C510 292 522 332 534 370"
+                  stroke="#fbe0e0" stroke-width="1.6" stroke-linecap="round" opacity="0.8"/>
+            <path d="M488 205C496 235 504 275 510 315C520 350 535 385 545 415"
+                  stroke="#fbe0e0" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
+            <path d="M500 365C520 380 538 402 546 428"
+                  stroke="#fbe0e0" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+            <path d="M455 418C475 428 505 435 528 432"
+                  stroke="#fbe0e0" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+          </g>
+
+          <!-- 9. Atelier Notions on the Marble Platform (Pincushion, Thread Spool & Measuring Tape) -->
+          <!-- Pincushion with Pins -->
+          <g transform="translate(420, 310)">
+            <ellipse cx="22" cy="30" rx="20" ry="7" fill="url(#goldHourglassGrad)"/>
+            <ellipse cx="22" cy="24" rx="17" ry="11" fill="#d99a9a"/>
+            <!-- Pins with pearl heads -->
+            <line x1="22" y1="20" x2="14" y2="2" stroke="#fae2b3" stroke-width="1.2"/>
+            <circle cx="13" cy="1" r="2.6" fill="#ffffff" filter="drop-shadow(0 0 2px rgba(255,255,255,0.8))"/>
+            <line x1="26" y1="18" x2="26" y2="-2" stroke="#fae2b3" stroke-width="1.2"/>
+            <circle cx="26" cy="-3" r="2.6" fill="#fdf0cf"/>
+            <line x1="30" y1="20" x2="40" y2="4" stroke="#fae2b3" stroke-width="1.2"/>
+            <circle cx="41" cy="3" r="2.6" fill="#ffffff"/>
+          </g>
+
+          <!-- Thread Spool -->
+          <g transform="translate(460, 315)">
+            <ellipse cx="14" cy="12" rx="12" ry="4.5" fill="url(#goldHourglassGrad)"/>
+            <ellipse cx="14" cy="42" rx="12" ry="4.5" fill="url(#goldHourglassGrad)"/>
+            <rect x="3" y="14" width="22" height="26" rx="2" fill="#d99a9a"/>
+            <line x1="3" y1="20" x2="25" y2="20" stroke="#f6c2c2" stroke-width="0.8"/>
+            <line x1="3" y1="26" x2="25" y2="26" stroke="#a06066" stroke-width="0.8"/>
+            <line x1="3" y1="32" x2="25" y2="32" stroke="#f6c2c2" stroke-width="0.8"/>
+            <ellipse cx="14" cy="12" rx="4" ry="1.5" fill="#503518"/>
+          </g>
+
+          <!-- Coiled Tailor's Measuring Tape Ribbon on Pedestal Rim -->
+          <g transform="translate(485, 350)">
+            <path d="M0 0C10 5 25 15 25 30C25 45 10 55 -5 50C-20 45 -25 30 -15 15C-5 0 15 -5 30 5C45 15 50 35 40 50"
+                  stroke="#dfb76c" stroke-width="6" fill="none" stroke-linecap="round"/>
+            <path d="M0 0C10 5 25 15 25 30C25 45 10 55 -5 50C-20 45 -25 30 -15 15C-5 0 15 -5 30 5C45 15 50 35 40 50"
+                  stroke="#5e4921" stroke-width="1.5" stroke-dasharray="2 3" fill="none"/>
+          </g>
+        </svg>
+      </section>
+
+    </main>
+
+    <!-- Bottom Page Footer -->
+    <footer class="session-footer">
+      <div class="footer-left-info">
+        <span class="footer-dash"></span>
+        <span class="footer-caption"><span data-brand="shortName"></span> Role-Based Session Governance</span>
+      </div>
+
+      <div class="footer-center-copyright">
+        <span data-brand="copyright"></span>
+      </div>
+
+      <!-- Security Concierge Pill Trigger -->
+      <button type="button" class="btn-support-pill" id="btnOpenSupport" aria-haspopup="dialog" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" class="support-headset-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <div class="support-pill-text">
+          <span class="support-pill-label">Account Assistance?</span>
+          <span class="support-pill-action">Security Concierge</span>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" class="support-chevron-svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- Security Concierge Modal Dialog -->
+  <div class="support-modal-backdrop" id="supportModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="support-modal-card">
+      <div class="modal-header-row">
+        <h2 class="modal-title" id="modalTitle"><span data-brand="shortName"></span> Security &amp; Session Support</h2>
+        <button type="button" class="modal-close-btn" id="closeSupportModal" aria-label="Close modal">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+        Sessions automatically time out after prolonged inactivity to safeguard boutique order entries and confidential client measurements. You can sign back in immediately.
+      </p>
+
+      <div class="support-channels-list">
+        <!-- Channel 1: Security Admin Email -->
+        <a href="#" class="support-channel-item" data-brand-href="supportEmail">
+          <svg viewBox="0 0 24 24" fill="none" class="channel-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">Atelier Security Desk</div>
+            <div class="channel-val" data-brand="supportEmail"></div>
+          </div>
+        </a>
+
+        <!-- Channel 2: Telephone Helpline -->
+        <a href="#" class="support-channel-item" data-brand-href="phone">
+          <svg viewBox="0 0 24 24" fill="none" class="channel-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">VIP Concierge Helpline</div>
+            <div class="channel-val" data-brand="phoneDisplay"></div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Copy Session Diagnostic Log Button -->
+      <button type="button" class="btn-copy-diagnostics" id="btnCopyDiag">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span>Copy Session Telemetry Log</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Notification -->
+  <div class="toast-notice" id="toastNotice" role="alert" aria-live="polite">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#be934c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastNoticeMsg">Session telemetry log copied to clipboard!</span>
+  </div>
+
+  <!-- Central Brand Identity & Universal Hydrator -->
+  <script src="../../fragments/brand-identity/brand-identity.js"></script>
+  <!-- Brand & Universal Sync Bridge -->
+  <script src="../../fragments/company-bridge.js"></script>
+  <!-- Controller Script -->
+  <script src="session-expired.js"></script>
+</body>
+</html>

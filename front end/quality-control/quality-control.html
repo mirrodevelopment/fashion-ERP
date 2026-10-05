@@ -4,14 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quality Control & Final Inspection — Haulo Boutique ERP</title>
-
-  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet" />
+  <title data-brand-title="Quality Control &amp; Final Inspection">Quality Control &amp; Final Inspection</title>
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -791,29 +786,9 @@
                     </div>
                   </div>
 
-                  <!-- 2. Separate Dropdown for Employee (displays according to selected stage) -->
+                  <!-- 2. Rework Priority -->
                   <div class="rrc-field full-width" style="margin-bottom: 8px;">
-                    <label class="rrc-label" for="reworkAssignee" id="reworkAssigneeLabel"
-                      style="display: flex; align-items: center; justify-content: space-between;">
-                      <span>2. Select Employee *</span>
-                      <span class="rrc-label-hint" id="reworkAssigneeHint"
-                        style="font-size: 8.5px; color: #a3e635; font-weight: 600;">(Select stage first)</span>
-                    </label>
-                    <div class="custom-dropdown-wrap">
-                      <select id="reworkAssignee" onchange="handleReworkAssigneeChange(this.value)">
-                        <option value="">-- Select Stage First to View Employees --</option>
-                        <!-- Dynamically filtered & populated strictly according to selected stage -->
-                      </select>
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
-                        class="dropdown-chevron">
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  <!-- 3. Rework Priority -->
-                  <div class="rrc-field full-width" style="margin-bottom: 8px;">
-                    <label class="rrc-label">3. Rework Priority</label>
+                    <label class="rrc-label">2. Rework Priority</label>
                     <div class="custom-dropdown-wrap">
                       <select id="reworkPriority" onchange="handleReworkPriorityChange(this.value)">
                         <option value="NORMAL">Normal Priority</option>
@@ -827,9 +802,9 @@
                     </div>
                   </div>
 
-                  <!-- 4. Rework Instructions -->
+                  <!-- 3. Rework Instructions -->
                   <div class="rrc-field full-width">
-                    <label class="rrc-label">4. Rework Instructions (Auto-compiled from defects)</label>
+                    <label class="rrc-label">3. Rework Instructions (Auto-compiled from defects)</label>
                     <textarea id="reworkCompiledNotes" rows="2"
                       placeholder="Auto-compiled defect instructions sent to the production board..."
                       class="rrc-textarea"></textarea>
@@ -1107,6 +1082,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
+  <script src="../fragments/company-bridge.js"></script>
   <script src="../fragments/fragments-inline.js"></script>
   <script src="../fragments/fragments.js"></script>
   <script src="quality-control.js?v=20260918_6"></script>

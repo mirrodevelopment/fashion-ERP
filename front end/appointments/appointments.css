@@ -1967,7 +1967,7 @@ svg {
 
 /* Monospace Appointment Chip */
 .appt-num-chip {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
   color: var(--amber);
@@ -2099,7 +2099,7 @@ svg {
 /* Order Badge */
 .table-order-badge {
   display: inline-block;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
   color: var(--blue);

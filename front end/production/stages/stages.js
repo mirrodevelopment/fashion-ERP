@@ -5,6 +5,9 @@
 
 import api from '../../api.js';
 
+const FALLBACK_STAGE_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22 width=%2248%22 height=%2248%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 14 L24 4 L42 14 L34 44 L14 44 Z%22/%3E%3Cpath d=%22M24 4 L24 44%22 stroke-dasharray=%223 3%22/%3E%3C/svg%3E";
+window.FALLBACK_STAGE_SVG = FALLBACK_STAGE_SVG;
+
 // ─── State ──────────────────────────────────────────────────────────────────
 let allStages = [];         // full list (active + inactive)
 let allEmployees = [];      // for employee assignment panel
@@ -130,25 +133,33 @@ function formatStageImgUrl(url) {
   return clean.startsWith('front end/') ? '../../' + clean.replace('front end/', '') : '../../' + clean;
 }
 
-function buildStageCard(stage, idx) {
-  const dotClass = stage.colorClass || 'dot-silver';
-  const empHtml  = buildEmpPills(stage.pinnedEmployees || []);
-  const activeClass = stage.active ? '' : 'inactive';
-  const isFixed = Boolean(
+function isSystemFixedStage(stage) {
+  if (!stage) return false;
+  return Boolean(
     stage.systemFixed ||
     stage.stageKey === 'ORDER_TAKEN' ||
     stage.stageKey === 'READY_TO_DELIVER' ||
     stage.stageKey === 'READY' ||
+    stage.stageKey === 'QC' ||
     stage.displayName === 'Order Taken' ||
     stage.displayName === 'Ready to Deliver' ||
-    stage.displayName === 'Ready for Delivery'
+    stage.displayName === 'Ready for Delivery' ||
+    stage.displayName === 'Quality Control' ||
+    (stage.displayName && stage.displayName.toUpperCase().includes('QC'))
   );
+}
+
+function buildStageCard(stage, idx) {
+  const dotClass = stage.colorClass || 'dot-silver';
+  const empHtml  = buildEmpPills(stage.pinnedEmployees || []);
+  const activeClass = stage.active ? '' : 'inactive';
+  const isFixed = isSystemFixedStage(stage);
   const linkedTip = stage.linkedOrderCount > 0
     ? `<span class="meta-item"><i data-lucide="package-2"></i><span>${stage.linkedOrderCount} active order${stage.linkedOrderCount !== 1 ? 's' : ''}</span></span>`
     : '';
 
   const imgHtml = stage.imageUrl
-    ? `<img src="${formatStageImgUrl(stage.imageUrl)}" alt="${escHtml(stage.displayName)}" onerror="this.onerror=null; this.src='../../assets/designs/blouse-stage.png';" />`
+    ? `<img src="${formatStageImgUrl(stage.imageUrl)}" alt="${escHtml(stage.displayName)}" onerror="this.onerror=null; this.src='${FALLBACK_STAGE_SVG}';" />`
     : `<div class="stage-img-placeholder">${escHtml(stage.displayName.charAt(0))}</div>`;
 
   const imgWrapper = `
@@ -218,7 +229,7 @@ function buildStageCard(stage, idx) {
 
       <!-- Delete -->
       ${isFixed
-        ? `<button class="btn-icon disabled" disabled title="Order Taken & Ready to Deliver are permanent system stages and cannot be deleted" style="opacity:0.35;cursor:not-allowed;"><i data-lucide="lock" style="width:14px;height:14px;"></i></button>`
+        ? `<button class="btn-icon disabled" disabled title="Order Taken, Quality Control, and Ready to Deliver are permanent system stages and cannot be deleted" style="opacity:0.35;cursor:not-allowed;"><i data-lucide="lock" style="width:14px;height:14px;"></i></button>`
         : `<button class="btn-icon danger" title="Delete stage"
                 onclick="openDeleteModal('${stage.id}', '${escHtml(stage.displayName)}', ${stage.linkedOrderCount})">
           <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
@@ -273,17 +284,29 @@ function initDragAndDrop() {
       const moved = filtered.splice(dragSrcIndex, 1)[0];
       filtered.splice(targetIdx, 0, moved);
 
-      // Enforce boundary: ORDER_TAKEN must be at index 0, READY_TO_DELIVER must be at last index
-      const otIdx = filtered.findIndex(s => s.stageKey === 'ORDER_TAKEN');
-      if (otIdx > 0) {
+      // Enforce boundary: ORDER_TAKEN must be at index 0, READY_TO_DELIVER must be at last index, QC at last - 1
+      const otIdx = filtered.findIndex(s => s.stageKey === 'ORDER_TAKEN' || s.displayName === 'Order Taken');
+      if (otIdx >= 0) {
         const [ot] = filtered.splice(otIdx, 1);
         filtered.unshift(ot);
       }
-      const rdIdx = filtered.findIndex(s => s.stageKey === 'READY_TO_DELIVER');
-      if (rdIdx >= 0 && rdIdx < filtered.length - 1) {
+      const rdIdx = filtered.findIndex(s => s.stageKey === 'READY_TO_DELIVER' || s.stageKey === 'READY' || s.displayName === 'Ready to Deliver' || s.displayName === 'Ready for Delivery');
+      if (rdIdx >= 0) {
         const [rd] = filtered.splice(rdIdx, 1);
         filtered.push(rd);
       }
+      const qcIdx = filtered.findIndex(s => s.stageKey === 'QC' || s.displayName === 'Quality Control' || (s.displayName && s.displayName.toUpperCase().includes('QC')));
+      if (qcIdx >= 0) {
+        const [qc] = filtered.splice(qcIdx, 1);
+        if (filtered.length > 0) {
+          filtered.splice(filtered.length - 1, 0, qc);
+        } else {
+          filtered.push(qc);
+        }
+      }
+
+      // Re-assign sequential sort orders for instantaneous crisp UI feedback
+      filtered.forEach((s, i) => { s.sortOrder = i + 1; });
 
       // Update allStages order to match
       const filteredIds = new Set(filtered.map(s => s.id));
@@ -308,8 +331,8 @@ function initDragAndDrop() {
 // ─── Toggle Active ────────────────────────────────────────────────────────────
 window.toggleActive = async (stageId, btn) => {
   const stage = allStages.find(s => s.id === stageId);
-  if (stage && (stage.systemFixed || stage.stageKey === 'ORDER_TAKEN' || stage.stageKey === 'READY_TO_DELIVER' || stage.stageKey === 'READY' || stage.displayName === 'Order Taken' || stage.displayName === 'Ready to Deliver')) {
-    showToast('Order Taken and Ready to Deliver must remain permanently active.', 'warn');
+  if (stage && isSystemFixedStage(stage)) {
+    showToast('Order Taken, Quality Control, and Ready to Deliver must remain permanently active.', 'warn');
     return;
   }
   btn.disabled = true;
@@ -374,7 +397,7 @@ function renderPresetGallery(selectedUrl = '') {
     return `
       <div class="preset-card ${isSel ? 'selected' : ''}" onclick="selectPresetImage('${p.imageUrl}', '${escHtml(p.label)}')">
         <div class="preset-thumb-wrap">
-          <img src="${formatStageImgUrl(p.imageUrl)}" alt="${escHtml(p.label)}" onerror="this.onerror=null; this.src='../../assets/designs/blouse-stage.png';" />
+          <img src="${formatStageImgUrl(p.imageUrl)}" alt="${escHtml(p.label)}" onerror="this.onerror=null; this.src='${FALLBACK_STAGE_SVG}';" />
         </div>
         <span class="preset-label" title="${escHtml(p.label)}">${escHtml(p.label)}</span>
       </div>
@@ -430,6 +453,18 @@ function openAddModal() {
   populateDynamicRoles();
   selectColor('dot-purple');
 
+  const activeChk = document.getElementById('fActive');
+  if (activeChk) {
+    activeChk.checked = true;
+    activeChk.disabled = false;
+    activeChk.title = '';
+  }
+  const sortOrderInput = document.getElementById('fSortOrder');
+  if (sortOrderInput) {
+    sortOrderInput.disabled = false;
+    sortOrderInput.title = '';
+  }
+
   // Reset image upload zone
   const fileInput = document.getElementById('fStageImageFile');
   if (fileInput) fileInput.value = '';
@@ -455,23 +490,26 @@ window.openEditModal = (stage) => {
   document.getElementById('fSortOrder').value      = stage.sortOrder || '';
   document.getElementById('fDeptLabel').value      = stage.deptLabel || '';
   document.getElementById('fActive').checked       = stage.active;
-  const isFixedStage = Boolean(
-    stage.systemFixed ||
-    stage.stageKey === 'ORDER_TAKEN' ||
-    stage.stageKey === 'READY_TO_DELIVER' ||
-    stage.stageKey === 'READY' ||
-    stage.displayName === 'Order Taken' ||
-    stage.displayName === 'Ready to Deliver'
-  );
+  const isFixedStage = isSystemFixedStage(stage);
   const activeChk = document.getElementById('fActive');
   if (activeChk) {
     if (isFixedStage) {
       activeChk.checked = true;
       activeChk.disabled = true;
-      activeChk.title = 'Order Taken and Ready to Deliver must remain permanently active.';
+      activeChk.title = 'Order Taken, Quality Control, and Ready to Deliver must remain permanently active.';
     } else {
       activeChk.disabled = false;
       activeChk.title = '';
+    }
+  }
+  const sortOrderInput = document.getElementById('fSortOrder');
+  if (sortOrderInput) {
+    if (isFixedStage) {
+      sortOrderInput.disabled = true;
+      sortOrderInput.title = 'Fixed system stage position is locked and managed automatically.';
+    } else {
+      sortOrderInput.disabled = false;
+      sortOrderInput.title = '';
     }
   }
   document.getElementById('stageKeyPreview').textContent = `Key: ${stage.stageKey}`;
@@ -571,8 +609,8 @@ let pendingDeleteId = null;
 
 window.openDeleteModal = (stageId, stageName, linkedCount) => {
   const stage = allStages.find(s => s.id === stageId);
-  if (stage && (stage.systemFixed || stage.stageKey === 'ORDER_TAKEN' || stage.stageKey === 'READY_TO_DELIVER' || stage.stageKey === 'READY' || stage.displayName === 'Order Taken' || stage.displayName === 'Ready to Deliver')) {
-    showToast('Order Taken and Ready to Deliver are permanent system stages and cannot be deleted.', 'warn');
+  if (stage && isSystemFixedStage(stage)) {
+    showToast('Order Taken, Quality Control, and Ready to Deliver are permanent system stages and cannot be deleted.', 'warn');
     return;
   }
   pendingDeleteId = stageId;
@@ -580,7 +618,7 @@ window.openDeleteModal = (stageId, stageName, linkedCount) => {
   const statEl = document.getElementById('deleteLinkedStat');
   if (linkedCount > 0) {
     document.getElementById('deleteLinkedMsg').textContent =
-      `${linkedCount} production order record${linkedCount !== 1 ? 's' : ''} reference this stage. Hard delete is blocked — deactivate it instead.`;
+      `${linkedCount} active order${linkedCount !== 1 ? 's' : ''} currently in this stage. Hard delete is blocked — deactivate it instead.`;
     statEl.style.display = 'flex';
     document.getElementById('btnConfirmDelete').disabled = true;
   } else {

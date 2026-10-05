@@ -78,7 +78,8 @@ public class OrderService {
         BigDecimal advance = req.getAdvancePaid() != null ? req.getAdvancePaid() : BigDecimal.ZERO;
         BigDecimal balance = req.getBalanceAmount() != null ? req.getBalanceAmount() : total.subtract(advance);
         String custName = (req.getCustomerName() != null && !req.getCustomerName().isBlank())
-                ? req.getCustomerName() : customer.getName();
+                ? req.getCustomerName()
+                : customer.getName();
         LocalDate expDeliv = req.getEffectiveExpectedDeliveryDate();
         LocalDate ordDate = req.getOrderDate() != null ? req.getOrderDate() : LocalDate.now();
 
@@ -107,19 +108,20 @@ public class OrderService {
         if (req.getReferenceImages() != null) {
             order.setReferenceImageList(req.getReferenceImages());
         }
-        // Add initial ORDER stage (legacy progress tracking)
+        // Add initial intake stage (ORDER_TAKEN)
         OrderProgressStage initial = OrderProgressStage.builder()
                 .order(order)
-                .stage(ProgressStage.ORDER)
+                .stage("ORDER_TAKEN")
                 .completedAt(LocalDateTime.now())
+                .completedBy("System Intake")
+                .notes("Order registered at Order Taken")
                 .build();
         order.getProgressStages().add(initial);
         Order saved = orderRepository.save(order);
 
         // Seed production_stages from active stage definitions so the order
         // immediately appears in the Kanban pipeline at Stage 1 (ORDER_TAKEN).
-        List<StageDefinition> activeDefs =
-                stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
+        List<StageDefinition> activeDefs = stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
         if (!activeDefs.isEmpty()) {
             List<ProductionStage> stagesToSeed = new ArrayList<>();
             for (StageDefinition def : activeDefs) {
@@ -138,7 +140,8 @@ public class OrderService {
         }
 
         // ── Auto-create Payment record + advance transaction (if any) ──
-        // Payment starts with paidAmount = 0; each payment event is a separate PaymentTransaction.
+        // Payment starts with paidAmount = 0; each payment event is a separate
+        // PaymentTransaction.
         Payment autoPayment = Payment.builder()
                 .order(saved)
                 .customer(customer)
@@ -172,7 +175,8 @@ public class OrderService {
             savedPayment.setPaidAmount(advance);
             savedPayment.computeStatus();
             paymentRepository.save(savedPayment);
-            log.info("[OrderService] Advance txn of {} ({}) recorded for order {}", advance, method, saved.getOrderCode());
+            log.info("[OrderService] Advance txn of {} ({}) recorded for order {}", advance, method,
+                    saved.getOrderCode());
         }
         log.info("[OrderService] Payment record created for order {}", saved.getOrderCode());
 
@@ -193,16 +197,22 @@ public class OrderService {
     public OrderDto.Response update(UUID id, OrderDto.Request req) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + id));
-        if (req.getGarmentType() != null) order.setGarmentType(req.getGarmentType());
-        if (req.getGarmentDesc() != null) order.setGarmentDesc(req.getGarmentDesc());
-        if (req.getCollection() != null) order.setCollection(req.getCollection());
-        if (req.getCustomerName() != null && !req.getCustomerName().isBlank()) order.setCustomerName(req.getCustomerName());
-        if (req.getOrderDate() != null) order.setOrderDate(req.getOrderDate());
+        if (req.getGarmentType() != null)
+            order.setGarmentType(req.getGarmentType());
+        if (req.getGarmentDesc() != null)
+            order.setGarmentDesc(req.getGarmentDesc());
+        if (req.getCollection() != null)
+            order.setCollection(req.getCollection());
+        if (req.getCustomerName() != null && !req.getCustomerName().isBlank())
+            order.setCustomerName(req.getCustomerName());
+        if (req.getOrderDate() != null)
+            order.setOrderDate(req.getOrderDate());
         if (req.getEffectiveExpectedDeliveryDate() != null) {
             order.setExpectedDeliveryDate(req.getEffectiveExpectedDeliveryDate());
             order.setDueDate(req.getEffectiveExpectedDeliveryDate());
         }
-        if (req.getDeliveredDate() != null) order.setDeliveredDate(req.getDeliveredDate());
+        if (req.getDeliveredDate() != null)
+            order.setDeliveredDate(req.getDeliveredDate());
         if (req.getEffectiveTotalAmount() != null) {
             order.setTotalAmount(req.getEffectiveTotalAmount());
             order.setAmount(req.getEffectiveTotalAmount());
@@ -216,20 +226,25 @@ public class OrderService {
             BigDecimal adv = order.getAdvancePaid() != null ? order.getAdvancePaid() : BigDecimal.ZERO;
             order.setBalanceAmount(order.getTotalAmount().subtract(adv));
         }
-        if (req.getNotes() != null) order.setNotes(req.getNotes());
-        if (req.getStatus() != null) order.setStatus(req.getStatus());
+        if (req.getNotes() != null)
+            order.setNotes(req.getNotes());
+        if (req.getStatus() != null)
+            order.setStatus(req.getStatus());
         if (req.getCurrentStage() != null) {
             String stage = req.getCurrentStage();
             order.setCurrentStage(stage);
             if (req.getStatus() == null) {
-                // BUG-P1-02 FIX: Standardized stage-to-status mapping including READY_TO_DELIVER and QC
+                // BUG-P1-02 FIX: Standardized stage-to-status mapping including
+                // READY_TO_DELIVER and QC
                 String st = stage.toUpperCase().replace('-', '_').replace(' ', '_');
-                if (st.equals("READY") || st.equals("READY_TO_DELIVER") || st.equals("QC_PASSED") || st.equals("QUALITY") || st.equals("QC")) {
+                if (st.equals("READY") || st.equals("READY_TO_DELIVER") || st.equals("QC_PASSED")) {
                     order.setStatus(OrderStatus.READY);
                 } else if (st.equals("DELIVERED") || st.equals("DELIVERY")) {
                     order.setStatus(OrderStatus.DELIVERED);
-                    if (order.getDeliveredDate() == null) order.setDeliveredDate(LocalDate.now());
-                } else if (st.equals("ORDER") || st.equals("ORDER_PLACED") || st.equals("DESIGN") || st.equals("DESIGNING")) {
+                    if (order.getDeliveredDate() == null)
+                        order.setDeliveredDate(LocalDate.now());
+                } else if (st.equals("ORDER") || st.equals("ORDER_PLACED") || st.equals("DESIGN")
+                        || st.equals("DESIGNING")) {
                     if (order.getStatus() != OrderStatus.DELIVERED && order.getStatus() != OrderStatus.CANCELLED) {
                         order.setStatus(OrderStatus.PENDING);
                     }
@@ -238,35 +253,10 @@ public class OrderService {
                 }
             }
         }
-        if (req.getReferenceImages() != null) order.setReferenceImageList(req.getReferenceImages());
-        if (req.getProductionNotes() != null) order.setProductionNotes(req.getProductionNotes());
-        return OrderDto.Response.from(orderRepository.save(order));
-    }
-
-    @Transactional
-    public OrderDto.Response addProgress(UUID id, OrderDto.ProgressUpdate req) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + id));
-        OrderProgressStage stage = OrderProgressStage.builder()
-                .order(order)
-                .stage(req.getStage())
-                .completedAt(LocalDateTime.now())
-                .completedBy(req.getCompletedBy())
-                .notes(req.getNotes())
-                .build();
-        order.getProgressStages().add(stage);
-
-        // Auto-update order status AND current_stage based on stage
-        String stageName = req.getStage().name();
-        order.setCurrentStage(stageName);
-        order.setStatus(switch (req.getStage()) {
-            case ORDER, MEASUREMENT, CUTTING, SEWING, FINISHING -> OrderStatus.IN_PROGRESS;
-            case QUALITY -> OrderStatus.READY;
-            case DELIVERY -> {
-                order.setDeliveredDate(LocalDate.now());
-                yield OrderStatus.DELIVERED;
-            }
-        });
+        if (req.getReferenceImages() != null)
+            order.setReferenceImageList(req.getReferenceImages());
+        if (req.getProductionNotes() != null)
+            order.setProductionNotes(req.getProductionNotes());
         return OrderDto.Response.from(orderRepository.save(order));
     }
 
@@ -296,7 +286,8 @@ public class OrderService {
      */
     @Transactional
     public OrderDto.Response uploadReferenceImage(UUID orderId, int slot, MultipartFile file) {
-        if (slot < 1 || slot > 5) throw new IllegalArgumentException("Slot must be between 1 and 5");
+        if (slot < 1 || slot > 5)
+            throw new IllegalArgumentException("Slot must be between 1 and 5");
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
@@ -309,7 +300,8 @@ public class OrderService {
             }
             // BUG-P2-07 & SEC-02: Whitelist file extensions
             if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext)) {
-                throw new IllegalArgumentException("Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
+                throw new IllegalArgumentException(
+                        "Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
             }
             // e.g. ORD-2026-0001-ref2.jpg
             String filename = order.getOrderCode() + "-ref" + slot + ext;
@@ -323,10 +315,12 @@ public class OrderService {
             // Update the list at the given slot (0-indexed list position = slot - 1)
             List<String> imgs = new ArrayList<>(order.getReferenceImageList());
             // Pad to at least 'slot' entries
-            while (imgs.size() < slot) imgs.add("");
+            while (imgs.size() < slot)
+                imgs.add("");
             imgs.set(slot - 1, urlPath);
             // Remove trailing empty entries
-            while (!imgs.isEmpty() && imgs.get(imgs.size() - 1).isEmpty()) imgs.remove(imgs.size() - 1);
+            while (!imgs.isEmpty() && imgs.get(imgs.size() - 1).isEmpty())
+                imgs.remove(imgs.size() - 1);
             order.setReferenceImageList(imgs);
 
             return OrderDto.Response.from(orderRepository.save(order));
@@ -340,7 +334,8 @@ public class OrderService {
      */
     @Transactional
     public OrderDto.Response deleteReferenceImage(UUID orderId, int slot) {
-        if (slot < 1 || slot > 5) throw new IllegalArgumentException("Slot must be between 1 and 5");
+        if (slot < 1 || slot > 5)
+            throw new IllegalArgumentException("Slot must be between 1 and 5");
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
         List<String> imgs = new ArrayList<>(order.getReferenceImageList());

@@ -59,9 +59,9 @@ public class CollectionService {
         Page<Collection> page = collectionRepository.search(search, status, season, year, designer, branch, pageable);
 
         List<String> collectionNames = page.getContent().stream()
-                .map(Collection::getName)
+                .map(c -> c != null ? c.getName() : null)
                 .filter(n -> n != null && !n.isBlank())
-                .map(String::toLowerCase)
+                .map(n -> n.toLowerCase())
                 .toList();
 
         Map<String, List<Design>> designsByCollection = collectionNames.isEmpty()

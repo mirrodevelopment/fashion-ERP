@@ -8,7 +8,7 @@
 
 // ── API integration (ES module import at module level) ──────
 // Note: dashboard.html must add type="module" to the script tag.
-import api, { Auth } from '../api.js?v=6';
+import api, { Auth } from '../api.js';
 
 // ─────────────────────────────────────────────
 // DATA STORE (Reactive — strictly populated via API)
@@ -18,7 +18,7 @@ const dashboardData = {
     name: 'Administrator',
     role: 'Administrator',
     initials: 'AD',
-    avatar: '../assets/user_avatar.jpg'
+    avatar: ''
   },
   kpi: [
     { label: 'Total Revenue',        value: '—', sub: '—', subClass: 'kpi-growth', iconClass: 'kpi-lime',     icon: 'rupee'    },
@@ -87,6 +87,8 @@ function icon(name, size = 18, stroke = 'currentColor', sw = 2) {
 // ─────────────────────────────────────────────
 // LIVE CLOCK & GREETING
 // ─────────────────────────────────────────────
+let simulatedHour = null;
+
 function updateClock() {
   const now = new Date();
   const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -95,10 +97,12 @@ function updateClock() {
   const d      = now.getDate();
   const m      = months[now.getMonth()];
   const y      = now.getFullYear();
-  let h        = now.getHours();
+  let h        = simulatedHour !== null ? simulatedHour : now.getHours();
   const min    = String(now.getMinutes()).padStart(2, '0');
+  const sec    = String(now.getSeconds()).padStart(2, '0');
   const ampm   = h >= 12 ? 'PM' : 'AM';
   const h12    = h % 12 || 12;
+  const dStr   = String(d).padStart(2, '0');
 
   const dateEl = document.getElementById('liveDate');
   const timeEl = document.getElementById('liveTime');
@@ -107,11 +111,37 @@ function updateClock() {
 
   if (dateEl) dateEl.textContent = `${day}, ${d} ${m} ${y}`;
   if (timeEl) timeEl.textContent = `${String(h12).padStart(2, '0')}:${min} ${ampm}`;
-  if (lastEl) lastEl.textContent = `Last updated: ${d} ${m} ${y}, ${String(h12).padStart(2, '0')}:${min} ${ampm}`;
+  if (lastEl) lastEl.textContent = `${dStr} ${m} ${y}, ${String(h12).padStart(2, '0')}:${min} ${ampm}`;
+  
   if (todEl) {
-    todEl.textContent = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+    // 05:00 - 11:59 => morning ("Good morning")
+    // 12:00 - 16:59 => afternoon ("Good afternoon")
+    // 17:00 - 04:59 => evening ("Good evening")
+    let tod = 'morning';
+    if (h >= 12 && h < 17) {
+      tod = 'afternoon';
+    } else if (h >= 17 || h < 5) {
+      tod = 'evening';
+    } else {
+      tod = 'morning';
+    }
+    if (todEl.textContent !== tod) {
+      todEl.textContent = tod;
+    }
   }
 }
+
+// Global helper for console verification: window.setGreetingTime(14) or window.setGreetingTime() to reset
+window.setGreetingTime = function(hour) {
+  if (typeof hour === 'number') {
+    simulatedHour = hour;
+  } else {
+    simulatedHour = null;
+  }
+  updateClock();
+  return `Greeting is now: Good ${document.getElementById('timeOfDay')?.textContent}`;
+};
+window.updateClock = updateClock;
 
 // ─────────────────────────────────────────────
 // RENDER 6 KPI CARDS
@@ -611,8 +641,9 @@ function navigate(module) {
     return;
   }
   const moduleMap = {
-    'orders':          null,
+    'orders':          '../orders/order-overview/order-over.html',
     'enquiries':       '../enquiries/enquiries.html',
+    'appointments':    '../appointments/appointments.html',
     'customers':       '../customer/customer-overview/customer-overview.html',
     'designs':         '../DesignStudio/design-studio.html',
     'design-studio':   '../DesignStudio/design-studio.html',
@@ -622,14 +653,13 @@ function navigate(module) {
     'workforce':       '../WorkforceManagement/workforce.html',
     'employees':       '../WorkforceManagement/workforce.html',
     'attendance':      '../WorkforceManagement/workforce.html',
-    'stock':           null,
-    'payments':        null,
-    'appointments':    null,
-    'production-room': null,
-    'production-floor':null,
+    'stock':           '../inventory/inventory.html',
+    'payments':        '../payments/payments.html',
+    'production-room': '../production/production.html',
+    'production-floor':'../production/production.html',
     'job-cards':       null,
     'trials-alterations': '../trials-alterations/trials-alterations.html',
-    'quality-control': null,
+    'quality-control': '../quality-control/quality-control.html',
     'reports':         null,
     'expenses':        null,
     'profitability':   null,
@@ -637,9 +667,10 @@ function navigate(module) {
     'campaigns':       null,
     'collections':     '../collections/collections.html',
     'fabrics':         '../fabrics-materials/fabrics-materials.html',
-    'branches':        null,
-    'users-roles':     null,
-    'settings':        null,
+    'branches':        '../branches/branches.html',
+    'company':         '../company/company.html',
+    'users-roles':     '../users-roles/users-roles.html',
+    'settings':        '../settings/settings.html',
   };
 
   if (moduleMap[module]) {
@@ -706,7 +737,8 @@ function setupDropdowns() {
   });
 
   document.getElementById('branchBtn')?.addEventListener('click', () => {
-    showToast('Branch Switcher: Haulo Designs (Main Branch)', 'blue');
+    const branchName = typeof CompanyBridge !== 'undefined' ? CompanyBridge.formatBranch() : 'Main Branch';
+    showToast('Branch: ' + branchName, 'blue');
   });
 
   document.getElementById('revFilterBtn')?.addEventListener('click', () => {
@@ -983,6 +1015,19 @@ async function init() {
     setTimeout(initRevenueChart, 80);
     setTimeout(initDonutChart,  120);
   });
+
+  // Handle access restriction alert if redirected from an unauthorized page
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('denied')) {
+    const deniedMod = urlParams.get('denied');
+    const msg = `Access Denied: You do not have permission to access the '${deniedMod}' page.`;
+    if (window.HauloNotifications && typeof window.HauloNotifications.show === 'function') {
+      window.HauloNotifications.show({ title: 'Access Restricted', message: msg, type: 'error' });
+    } else {
+      setTimeout(() => alert(msg), 300);
+    }
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 }
 
 if (document.readyState === 'loading') {

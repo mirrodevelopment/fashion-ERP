@@ -77,8 +77,8 @@ public class Order {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    /** Mirrors the latest ProgressStage enum name (e.g. "CUTTING"). Auto-synced on progress updates. */
-    @Column(name = "current_stage", length = 30)
+    /** Current workflow stage key from stage_definitions (e.g. "ORDER_TAKEN", "CUTTING"). */
+    @Column(name = "current_stage", length = 50)
     @Builder.Default
     private String currentStage = "ORDER_TAKEN";
 

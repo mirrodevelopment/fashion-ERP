@@ -10,7 +10,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -22,32 +21,6 @@ public class QcController {
     private final OrderRepository orderRepository;
     private final ProductionService productionService;
 
-    @GetMapping("/checklists")
-    public List<QcChecklist> listChecklists(@RequestParam(required = false) UUID orderId) {
-        if (orderId != null) {
-            return qcRepository.findByOrderIdOrderBySortOrderAsc(orderId);
-        }
-        return qcRepository.findAll();
-    }
-
-    @PatchMapping("/checklists/{id}")
-    public QcChecklist updateChecklist(
-            @PathVariable UUID id,
-            @RequestParam(required = false) String result,
-            @RequestParam(required = false) String remarks) {
-        QcChecklist qc = qcRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "QC checklist item not found: " + id));
-
-        if (result != null) {
-            qc.setResult(result.toUpperCase());
-            qc.setCheckedAt(LocalDateTime.now());
-        }
-        if (remarks != null) {
-            qc.setRemarks(remarks);
-        }
-        return qcRepository.save(qc);
-    }
-
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
         long passed = qcRepository.countByResult("PASS");
@@ -55,8 +28,7 @@ public class QcController {
         long fail = qcRepository.countByResult("FAIL");
         long pending = qcRepository.countByResult("PENDING");
 
-        long awaitingQc = qcRepository.countOrdersAwaitingQc();
-        // DEAD-P3-04 FIX: Remove arbitrary Math.min(awaitingQc, 8) cap
+        long awaitingQc = orderRepository.countOrdersAwaitingQc();
         long inInspection = awaitingQc;
         long readyDelivery = orderRepository.countByStatus(OrderStatus.READY);
 

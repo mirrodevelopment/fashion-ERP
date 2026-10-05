@@ -51,6 +51,11 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
     long countByStatusIgnoreCase(String status);
     long countByFitStatusIgnoreCase(String fitStatus);
 
+    long countByTrialDateGreaterThanAndStatusNotIgnoreCase(LocalDate date, String status);
+    long countByTrialDateAndStatusNotIgnoreCase(LocalDate date, String status);
+    long countByTrialDateLessThanAndStatusNotIgnoreCase(LocalDate date, String status);
+    long countByTrialAttemptGreaterThanAndStatusNotIgnoreCase(Integer attempt, String status);
+
     long countByOrderCode(String orderCode);
     java.util.List<Trial> findByOrderCodeOrderByCreatedAtAsc(String orderCode);
     Optional<Trial> findFirstByOrderIdOrderByCreatedAtDesc(UUID orderId);

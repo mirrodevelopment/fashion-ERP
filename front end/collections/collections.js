@@ -81,7 +81,6 @@ function cacheDOM() {
     detStatusBadge: document.getElementById('detStatusBadge'),
     statGarmentsNum: document.getElementById('statGarmentsNum'),
     statDesignsNum: document.getElementById('statDesignsNum'),
-    statFabricsNum: document.getElementById('statFabricsNum'),
     statEstValueNum: document.getElementById('statEstValueNum'),
     ringOverallFill: document.getElementById('ringOverallFill'),
     ringOverallPct: document.getElementById('ringOverallPct'),
@@ -90,8 +89,6 @@ function cacheDOM() {
     progProductionVal: document.getElementById('progProductionVal'),
     progQcVal: document.getElementById('progQcVal'),
     compositionBars: document.getElementById('compositionBars'),
-    prodDoughnutSvg: document.getElementById('prodDoughnutSvg'),
-    doughnutCenterNum: document.getElementById('doughnutCenterNum'),
     prodLegendList: document.getElementById('prodLegendList'),
     keyFabricsTitle: document.getElementById('keyFabricsTitle'),
     keyFabricsGrid: document.getElementById('keyFabricsGrid'),
@@ -124,20 +121,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Ensure authenticated session
   if (!Auth.isLoggedIn()) {
-    try {
-      const authRes = await api.auth.login('admin', 'Admin@123');
-      if (authRes && authRes.token) {
-        Auth.setToken(authRes.token, true);
-        Auth.setUser({
-          userId: authRes.userId,
-          username: authRes.username,
-          fullName: authRes.fullName,
-          role: authRes.role
-        });
-      }
-    } catch (e) {
-      console.warn('Could not auto-login with master admin:', e);
-    }
+    window.location.href = '../login/login.html';
+    return;
   }
 
   // Close more menu when clicking outside

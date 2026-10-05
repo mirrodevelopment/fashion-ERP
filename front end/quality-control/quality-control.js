@@ -7,25 +7,10 @@
 // Neutral SVG silhouette in case an image fails to load or no photo is provided
 const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
 
-// Garment default fallback (uses neutral silhouette instead of mock photos)
-const GARMENT_IMG_MAP = {
-  Blouse: FALLBACK_IMG,
-  'Bridal Blouse': FALLBACK_IMG,
-  Lehenga: FALLBACK_IMG,
-  'Designer Lehenga': FALLBACK_IMG,
-  'Chudi Set': FALLBACK_IMG,
-  Chudi: FALLBACK_IMG,
-  Saree: FALLBACK_IMG,
-  'Silk Saree': FALLBACK_IMG,
-  Gown: FALLBACK_IMG,
-  default: FALLBACK_IMG
-};
 
 // QC Orders (loaded from API)
 let qcOrders = [];
-let qcStageImageUrl = '';
 let dynamicProductionStages = [];
-let dynamicEmployees = [];
 
 function createDefaultChecklist() {
   return {
@@ -203,199 +188,14 @@ async function loadOrderProductionStages(order) {
 
   const previousVal = stageSelect.value;
   stageSelect.innerHTML = html;
-
-  // Restore current selection if valid for this order
-  const targetToSelect = order.reworkStage || previousVal;
-  if (targetToSelect && Array.from(stageSelect.options).some(o => o.value === targetToSelect)) {
-    stageSelect.value = targetToSelect;
-    order.reworkStage = targetToSelect;
-  } else if (!order.reworkStage) {
-    stageSelect.value = '';
-  }
-
-  // Now update the employee dropdown for the currently selected stage
-  const selectedStage = stageSelect.value;
-  const previousWorker = order.stageAssigneeMap?.[(selectedStage || '').toUpperCase().trim()];
-  const preselectId = order.reworkAssigneeId || previousWorker?.id || '';
-  updateReworkAssigneeDropdown(selectedStage, preselectId, order);
-}
-
-/**
- * Extract department and specific title/role from employee record
- */
-function getEmpDepartmentAndRole(emp) {
-  let dept = '';
-  let title = emp.role || 'Staff';
-  if (emp.notes) {
-    try {
-      const parsed = typeof emp.notes === 'string' ? JSON.parse(emp.notes) : emp.notes;
-      if (parsed.department) dept = parsed.department;
-      if (parsed.role) title = parsed.role;
-    } catch (_) {}
-  }
-  return { dept, title };
-}
-
-/**
- * Check if employee is matched to a specific production stage
- */
-function isEmployeeForStage(emp, stageDef, stageKey, order = null) {
-  if (!stageDef && !stageKey) return false;
-  const sKey = (stageKey || stageDef?.stageKey || '').toUpperCase().trim();
-  const sName = (stageDef?.displayName || '').toUpperCase().trim();
-  const reqRole = (stageDef?.requiredRole || '').toUpperCase().trim();
-  const deptLabel = (stageDef?.deptLabel || '').toUpperCase().trim();
-
-  // 0. Previous worker on this order's stage always matches!
-  if (order?.stageAssigneeMap?.[sKey]?.id === emp.id) return true;
-
-  const { dept, title } = getEmpDepartmentAndRole(emp);
-  const empRole = (emp.role || '').toUpperCase().trim();
-  const empDept = dept.toUpperCase().trim();
-
-  // 1. Pinned employee explicitly linked to this stage definition in DB
-  if (stageDef?.pinnedEmployees?.some(p => p.id === emp.id)) return true;
-
-  // 2. Exact match on requiredRole
-  if (reqRole && empRole === reqRole) return true;
-
-  // 3. Exact match on deptLabel
-  if (deptLabel && (empDept === deptLabel || empRole === deptLabel)) return true;
-
-  // 4. Keyword matches for standard boutique workflows
-  if (sKey.includes('STITCH') || sName.includes('STITCH')) {
-    if (empRole === 'TAILOR' || empDept.includes('STITCH') || title.toLowerCase().includes('tailor')) return true;
-  }
-  if (sKey.includes('CUT') || sName.includes('CUT')) {
-    if (empRole === 'CUTTER' || empDept.includes('CUT') || title.toLowerCase().includes('cutter')) return true;
-  }
-  if (sKey.includes('HAND') || sKey.includes('EMBROID') || sName.includes('HAND') || sName.includes('EMBROID') || sName.includes('MAGGAM') || sName.includes('ZARI')) {
-    if (empRole === 'EMBROIDERER' || empDept.includes('EMBROID') || title.toLowerCase().includes('artisan') || title.toLowerCase().includes('embroidery')) return true;
-  }
-  if (sKey.includes('FINISH') || sKey.includes('PRESS') || sName.includes('FINISH')) {
-    if (empRole === 'FINISHER' || empDept.includes('FINISH') || title.toLowerCase().includes('finishing') || title.toLowerCase().includes('pressing')) return true;
-  }
-  if (sKey.includes('LINING') || sName.includes('LINING')) {
-    if (empRole === 'FINISHER' || empRole === 'TAILOR' || empRole === 'CUTTER') return true;
-  }
-  if (sKey.includes('DESIGN') || sName.includes('DESIGN')) {
-    if (empRole === 'DESIGNER' || empDept.includes('DESIGN') || title.toLowerCase().includes('designer') || title.toLowerCase().includes('stylist')) return true;
-  }
-  if (sKey.includes('TRIAL') || sKey.includes('FIT') || sName.includes('TRIAL') || sName.includes('FIT')) {
-    if (empRole === 'TAILOR' || empRole === 'SUPERVISOR' || empRole === 'MANAGER') return true;
-  }
-
-  return false;
-}
-
-/**
- * Dynamically filter and populate the Assignee dropdown based strictly on the selected rework stage
- */
-function updateReworkAssigneeDropdown(stageKey, preselectedEmpId = '', orderContext = null) {
-  const assigneeSelect = document.getElementById('reworkAssignee');
-  const labelHint = document.getElementById('reworkAssigneeHint');
-  if (!assigneeSelect) return;
-
-  if (!stageKey) {
-    assigneeSelect.innerHTML = '<option value="">-- Select Stage First to View Employees --</option>';
-    assigneeSelect.disabled = true;
-    if (labelHint) labelHint.textContent = '(Select stage first)';
-    return;
-  }
-
-  assigneeSelect.disabled = false;
-
-  const order = orderContext || qcOrders.find(o => o.id === currentSelectedOrderId);
-  const normStageKey = (stageKey || '').toUpperCase().trim();
-
-  const stageDef = dynamicProductionStages.find(s =>
-    (s.stageKey || s.id || '').toUpperCase().trim() === normStageKey ||
-    (s.displayName && s.displayName.toUpperCase().trim() === normStageKey)
-  );
-
-  const stageDisplayName = stageDef?.displayName || formatStageTitle(stageKey);
-
-  // Check if a worker previously worked on this stage for this specific order
-  const prevWorker = order?.stageAssigneeMap?.[normStageKey];
-  const prevWorkerId = prevWorker?.id || '';
-
-  // Filter employees strictly for this stage
-  const matched = dynamicEmployees.filter(e => isEmployeeForStage(e, stageDef, stageKey, order));
-
-  let finalPreselect = preselectedEmpId || prevWorkerId;
-
-  if (labelHint) {
-    if (prevWorker?.name) {
-      labelHint.textContent = `(Original worker auto-selected: ${prevWorker.name})`;
-    } else {
-      labelHint.textContent = `(${matched.length} specialist${matched.length === 1 ? '' : 's'} for ${stageDisplayName})`;
-    }
-  }
-
-  let html = `<option value="">-- Choose Employee for ${stageDisplayName} (${matched.length} Available) --</option>`;
-
-  // 1. If this order has a previous worker for this stage, place them at the very top with special highlight
-  const addedIds = new Set();
-  if (prevWorker && prevWorker.id) {
-    const prevEmpRecord = dynamicEmployees.find(e => e.id === prevWorker.id);
-    const { title } = prevEmpRecord ? getEmpDepartmentAndRole(prevEmpRecord) : { title: prevWorker.role || 'Specialist' };
-    const empName = prevEmpRecord ? prevEmpRecord.name : prevWorker.name;
-    html += `<option value="${prevWorker.id}">★ Worked on this Order: ${empName} (${title})</option>`;
-    addedIds.add(prevWorker.id);
-  }
-
-  // 2. List all other matched employees for this stage
-  if (matched.length > 0) {
-    matched.forEach(e => {
-      if (addedIds.has(e.id)) return;
-      const { title } = getEmpDepartmentAndRole(e);
-      const isPinned = stageDef?.pinnedEmployees?.some(p => p.id === e.id);
-      const prefix = isPinned ? '★ ' : '';
-      html += `<option value="${e.id}">${prefix}${e.name} (${title || e.role})</option>`;
-      addedIds.add(e.id);
-    });
-  }
-
-  // 3. Fallback if no matching specialists found for custom stage
-  if (addedIds.size === 0) {
-    html += `<option value="" disabled>No dedicated specialists found for ${stageDisplayName}</option>`;
-    dynamicEmployees.forEach(e => {
-      const { title } = getEmpDepartmentAndRole(e);
-      html += `<option value="${e.id}">${e.name} (${title || e.role})</option>`;
-    });
-  }
-
-  assigneeSelect.innerHTML = html;
-
-  // Auto-select
-  if (finalPreselect && (addedIds.has(finalPreselect) || dynamicEmployees.some(e => e.id === finalPreselect))) {
-    assigneeSelect.value = finalPreselect;
-    if (order) order.reworkAssigneeId = finalPreselect;
-  } else {
-    assigneeSelect.value = '';
-    if (order) order.reworkAssigneeId = '';
+  if (order.reworkStage) {
+    stageSelect.value = order.reworkStage;
+  } else if (previousVal) {
+    stageSelect.value = previousVal;
   }
 }
 
-/**
- * Load active staff/tailors to assign for rework
- */
-async function loadReworkAssignees() {
-  try {
-    const { default: api } = await import('../api.js');
-    if (!api?.employees?.list) return;
 
-    const emps = await api.employees.list({ status: 'ACTIVE' }).catch(() => []);
-    dynamicEmployees = Array.isArray(emps) ? emps : (emps?.content || []);
-
-    const stageSelect = document.getElementById('reworkTargetStage');
-    const currentStageKey = stageSelect ? stageSelect.value : '';
-    const currentAssigneeVal = document.getElementById('reworkAssignee')?.value || '';
-    updateReworkAssigneeDropdown(currentStageKey, currentAssigneeVal);
-  } catch (err) {
-    console.warn('[QC] Could not load rework assignees:', err);
-  }
-}
 
 function formatStageImgUrl(url) {
   if (!url) return '';
@@ -497,9 +297,8 @@ async function loadQcOrdersFromApi() {
         };
       });
 
-    // Populate dynamic rework stages & assignees alongside orders
+    // Populate dynamic rework stages alongside orders
     await loadDynamicReworkStages();
-    await loadReworkAssignees();
 
     // Auto-select first order if none selected or previous selection gone
     if (qcOrders.length > 0) {
@@ -591,7 +390,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateKPISummaries();
   populateNewQcDropdown();
   loadDynamicReworkStages();
-  loadReworkAssignees();
   loadQcOrdersFromApi(); // Loads real orders from API, then renders table
 
   // Create lucide icons if available
@@ -1300,10 +1098,6 @@ function autoSuggestReworkStage(failedKeys) {
     const order = qcOrders.find(o => o.id === currentSelectedOrderId);
     if (order) {
       order.reworkStage = suggested;
-      const prevWorker = order.stageAssigneeMap?.[(suggested || '').toUpperCase().trim()];
-      const preselectId = order.reworkAssigneeId || prevWorker?.id || '';
-      order.reworkAssigneeId = preselectId;
-      updateReworkAssigneeDropdown(suggested, preselectId, order);
     }
   }
 }
@@ -1345,22 +1139,11 @@ function updateCompiledReworkNotes(order) {
 
 function handleReworkStageChange(val) {
   const order = qcOrders.find(o => o.id === currentSelectedOrderId);
-  let preselectId = '';
   if (order) {
     order.reworkStage = val;
-    const prevWorker = order.stageAssigneeMap?.[(val || '').toUpperCase().trim()];
-    preselectId = prevWorker?.id || '';
-    order.reworkAssigneeId = preselectId;
   }
-  updateReworkAssigneeDropdown(val, preselectId, order);
 }
 
-function handleReworkAssigneeChange(val) {
-  const order = qcOrders.find(o => o.id === currentSelectedOrderId);
-  if (order) {
-    order.reworkAssigneeId = val;
-  }
-}
 
 function handleReworkPriorityChange(val) {
   const order = qcOrders.find(o => o.id === currentSelectedOrderId);
@@ -1454,8 +1237,6 @@ async function saveQCResult() {
       return;
     }
 
-    const assigneeSelect = document.getElementById('reworkAssignee');
-    reworkAssigneeId = assigneeSelect?.value || '';
     priority = document.getElementById('reworkPriority')?.value || 'NORMAL';
     compiledReworkNotes = document.getElementById('reworkCompiledNotes')?.value.trim() || '';
     if (!compiledReworkNotes && generalRemarks) {
@@ -2125,7 +1906,4 @@ if (typeof window !== 'undefined') {
   window.loadDynamicReworkStages = loadDynamicReworkStages;
   window.loadOrderProductionStages = loadOrderProductionStages;
   window.formatStageTitle = formatStageTitle;
-  window.loadReworkAssignees = loadReworkAssignees;
-  window.handleReworkAssigneeChange = handleReworkAssigneeChange;
-  window.updateReworkAssigneeDropdown = updateReworkAssigneeDropdown;
 }

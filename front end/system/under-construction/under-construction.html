@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Under Construction">Under Construction</title>
+  <meta name="description" content="We're working on this page to bring you a better experience. Please check back later." />
+  <link rel="icon" type="image/x-icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="under-construction.css" />
+</head>
+<body>
+
+  <div class="construction-page-wrapper">
+
+    <!-- Atmospheric Ambient Glowing Background & Bokeh -->
+    <div class="ambient-bg" aria-hidden="true">
+      <div class="glow-orb glow-orb-top"></div>
+      <div class="glow-orb glow-orb-pedestal"></div>
+      <div class="bokeh-circle bokeh-1"></div>
+      <div class="bokeh-circle bokeh-2"></div>
+      <div class="bokeh-circle bokeh-3"></div>
+      <div class="bokeh-circle bokeh-4"></div>
+    </div>
+
+    <!-- Top Status Header -->
+    <header class="construction-header">
+      <div class="header-status-badge">
+        <span class="status-pulse-dot" aria-hidden="true"></span>
+        <span>Active Craftsmanship</span>
+      </div>
+
+      <div style="font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.04em;" id="sprintBadge">
+        STATUS: <strong style="color: var(--text-secondary);" id="sprintBadgeText">UNDER CONSTRUCTION</strong>
+      </div>
+    </header>
+
+    <!-- Main Central Under Construction Content -->
+    <main class="construction-main">
+
+      <!-- ===================================================================
+           PURE CSS / SVG 3D DIORAMA (NO RASTER IMAGES)
+           =================================================================== -->
+      <div class="css-diorama-stage" role="img" aria-label="3D Under Construction Diorama with Hard Hat, Barricade, Cones, Toolbox, and Console Screen">
+        
+        <!-- Glowing Circular Pedestal Platform -->
+        <div class="pedestal-platform">
+          <div class="pedestal-rim">
+            <div class="pedestal-specular"></div>
+          </div>
+          <div class="pedestal-floor-reflection"></div>
+        </div>
+
+        <!-- ── Floating Glass Badges with Circuit Traces ── -->
+
+        <!-- Left Tile: Settings Cog -->
+        <div class="circuit-tile-group tile-settings-wrap">
+          <svg class="circuit-wire-svg" viewBox="0 0 150 120" fill="none">
+            <path d="M130 25 H60 V80 H10" class="circuit-path" stroke-dasharray="3 4"/>
+            <circle cx="130" cy="25" r="3.5" class="circuit-dot"/>
+            <circle cx="60" cy="80" r="3.5" class="circuit-dot"/>
+            <circle cx="10" cy="80" r="3.5" class="circuit-dot"/>
+          </svg>
+          <div class="floating-tile" title="System Settings &amp; Architecture">
+            <svg viewBox="0 0 24 24" class="tile-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Right Tile: Construction Barricade -->
+        <div class="circuit-tile-group tile-barrier-wrap">
+          <svg class="circuit-wire-svg" viewBox="0 0 150 120" fill="none">
+            <path d="M130 25 H60 V80 H10" class="circuit-path" stroke-dasharray="3 4"/>
+            <circle cx="130" cy="25" r="3.5" class="circuit-dot"/>
+            <circle cx="60" cy="80" r="3.5" class="circuit-dot"/>
+            <circle cx="10" cy="80" r="3.5" class="circuit-dot"/>
+          </svg>
+          <div class="floating-tile" title="Safety &amp; Reliability Safeguards">
+            <svg viewBox="0 0 24 24" class="tile-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="6" width="20" height="8" rx="1"></rect>
+              <line x1="6" y1="14" x2="4" y2="20"></line>
+              <line x1="18" y1="14" x2="20" y2="20"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+              <line x1="7" y1="6" x2="10" y2="14"></line>
+              <line x1="14" y1="6" x2="17" y2="14"></line>
+            </svg>
+          </div>
+        </div>
+
+        <!-- ── The Dark Console Window Screen ── -->
+        <div class="console-screen-card">
+          <div class="console-screen-header">
+            <span class="screen-dot"></span>
+            <span class="screen-dot screen-dot-2"></span>
+            <span class="screen-dot screen-dot-3"></span>
+          </div>
+          <div class="console-screen-body"></div>
+        </div>
+
+        <!-- Botanical Leaves (Behind Toolbox - Left) -->
+        <div class="leaves-left" aria-hidden="true">
+          <svg viewBox="0 0 50 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M25 55 C16 40 10 28 18 12 C28 20 28 35 25 55 Z" fill="#84cc16" opacity="0.9"/>
+            <path d="M25 55 C32 42 42 36 48 40 C42 48 34 52 25 55 Z" fill="#65a30d" opacity="0.85"/>
+            <path d="M25 55 C20 45 10 44 2 48 C8 54 18 55 25 55 Z" fill="#a3e635" opacity="0.8"/>
+            <circle cx="20" cy="15" r="1.5" fill="#a3e635"/>
+          </svg>
+        </div>
+
+        <!-- ── Rugged Construction Toolbox (Left) ── -->
+        <div class="toolbox-wrapper">
+          <svg class="toolbox-svg" viewBox="0 0 70 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="boxGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#374151"/>
+                <stop offset="50%" stop-color="#1f2937"/>
+                <stop offset="100%" stop-color="#111827"/>
+              </linearGradient>
+            </defs>
+            <!-- Handle -->
+            <path d="M24 16 C24 9 46 9 46 16" stroke="#4b5563" stroke-width="3" stroke-linecap="round"/>
+            <!-- Box Body -->
+            <rect x="6" y="16" width="58" height="34" rx="4" fill="url(#boxGrad)" stroke="#4b5563" stroke-width="1.2"/>
+            <!-- Box Lid Line -->
+            <line x1="6" y1="26" x2="64" y2="26" stroke="#111827" stroke-width="1.5"/>
+            <!-- Metallic Latches -->
+            <rect x="20" y="23" width="6" height="7" rx="1" fill="#9ca3af" stroke="#4b5563" stroke-width="0.8"/>
+            <rect x="44" y="23" width="6" height="7" rx="1" fill="#9ca3af" stroke="#4b5563" stroke-width="0.8"/>
+            <!-- Corner Protectors -->
+            <rect x="6" y="44" width="8" height="6" fill="#111827"/>
+            <rect x="56" y="44" width="8" height="6" fill="#111827"/>
+          </svg>
+        </div>
+
+        <!-- ── Standing Traffic Cone (Left) ── -->
+        <div class="cone-standing-wrapper">
+          <svg class="cone-standing-svg" viewBox="0 0 50 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="coneLimeS" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#bef264"/>
+                <stop offset="50%" stop-color="#a3e635"/>
+                <stop offset="100%" stop-color="#65a30d"/>
+              </linearGradient>
+            </defs>
+            <polygon points="4,70 46,70 42,74 8,74" fill="#111827"/>
+            <polygon points="10,70 40,70 36,55 14,55" fill="url(#coneLimeS)"/>
+            <polygon points="14,55 36,55 32,40 18,40" fill="#1f2937"/>
+            <polygon points="18,40 32,40 28,26 22,26" fill="url(#coneLimeS)"/>
+            <polygon points="22,26 28,26 26,12 24,12" fill="#1f2937"/>
+            <ellipse cx="25" cy="12" rx="2" ry="1.2" fill="#a3e635"/>
+          </svg>
+        </div>
+
+        <!-- ── Striped Construction Barricade (Center) ── -->
+        <div class="barricade-3d-wrapper">
+          <div class="barricade-beam"></div>
+          <div class="barricade-legs">
+            <div class="barricade-a-frame frame-left">
+              <div class="a-leg a-leg-1"></div>
+              <div class="a-leg a-leg-2"></div>
+            </div>
+            <div class="barricade-a-frame frame-right">
+              <div class="a-leg a-leg-1"></div>
+              <div class="a-leg a-leg-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Neon Lime Safety Hard Hat (Perched on Barricade) ── -->
+        <div class="hard-hat-wrapper" id="hardHat" title="Safety Hard Hat">
+          <svg class="hard-hat-svg" viewBox="0 0 85 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hatLimeGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+                <stop offset="0%" stop-color="#d9f99d"/>
+                <stop offset="35%" stop-color="#bef264"/>
+                <stop offset="70%" stop-color="#a3e635"/>
+                <stop offset="100%" stop-color="#65a30d"/>
+              </linearGradient>
+            </defs>
+            <!-- Helmet Crown Shell -->
+            <path d="M12 36 C12 16 30 6 52 6 C68 6 78 18 78 36 Z" fill="url(#hatLimeGrad)" stroke="#4d7c0f" stroke-width="1.2"/>
+            <!-- Top Center Ridge / Crest -->
+            <path d="M38 6 C42 4 48 4 52 6 L52 34 C48 36 42 36 38 34 Z" fill="#d9f99d" opacity="0.6"/>
+            <!-- Front Brim / Visor -->
+            <path d="M6 36 C16 34 68 34 82 36 C80 43 72 45 44 45 C18 45 8 43 6 36 Z" fill="#84cc16" stroke="#4d7c0f" stroke-width="1.2"/>
+            <path d="M8 38 C20 36 64 36 78 38" stroke="#f7fee7" stroke-width="1" opacity="0.8"/>
+          </svg>
+        </div>
+
+        <!-- ── Metallic Chrome Wrench (Floor Center) ── -->
+        <div class="wrench-floor-wrapper">
+          <svg class="wrench-svg" viewBox="0 0 110 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="chromeFloorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f8fafc"/>
+                <stop offset="40%" stop-color="#cbd5e1"/>
+                <stop offset="75%" stop-color="#64748b"/>
+                <stop offset="100%" stop-color="#334155"/>
+              </linearGradient>
+            </defs>
+            <path d="M10 19 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0 m3.5 0 a3.5 3.5 0 1 1 7 0 a3.5 3.5 0 1 1 -7 0" fill="url(#chromeFloorGrad)" />
+            <path d="M22 16 L80 16 L86 9 C91 12 97 12 102 8 L96 18 L103 27 C97 24 91 25 86 29 L80 22 L22 22 Z" fill="url(#chromeFloorGrad)" stroke="#475569" stroke-width="1"/>
+          </svg>
+        </div>
+
+        <!-- ── Dark Gear & Leaves (Right) ── -->
+        <!-- Botanical Leaves Behind Gear -->
+        <div class="leaves-right" aria-hidden="true">
+          <svg viewBox="0 0 50 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M25 55 C16 40 10 28 18 12 C28 20 28 35 25 55 Z" fill="#84cc16" opacity="0.9"/>
+            <path d="M25 55 C32 42 42 36 48 40 C42 48 34 52 25 55 Z" fill="#65a30d" opacity="0.85"/>
+          </svg>
+        </div>
+        <!-- Dark Cog / Gear -->
+        <div class="dark-gear-wrapper">
+          <svg class="dark-gear-svg" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M26 4 h8 l1 6 5 2 6-4 6 6-4 6 2 5 6 1 v8 l-6 1-2 5 4 6-6 6-6-4-5 2-1 6 h-8 l-1-6-5-2-6 4-6-6 4-6-2-5-6-1 v-8 l6-1 2-5-4-6 6-6 6 4 5-2 1-6 Z" 
+                  fill="#1f2937" stroke="#374151" stroke-width="1.2"/>
+            <circle cx="30" cy="30" r="10" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+          </svg>
+        </div>
+
+        <!-- ── Fallen / Tipped Traffic Cone (Right) ── -->
+        <div class="cone-tipped-wrapper">
+          <svg class="cone-tipped-svg" viewBox="0 0 80 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="6,6 6,48 10,44 10,10" fill="#111827"/>
+            <polygon points="10,10 10,44 26,40 26,14" fill="#a3e635"/>
+            <polygon points="26,14 26,40 42,36 42,18" fill="#1f2937"/>
+            <polygon points="42,18 42,36 58,32 58,22" fill="#a3e635"/>
+            <polygon points="58,22 58,32 72,29 72,25" fill="#1f2937"/>
+            <ellipse cx="73" cy="27" rx="1.5" ry="2" fill="#a3e635"/>
+          </svg>
+        </div>
+
+      </div>
+
+      <!-- Brand Identifier -->
+      <a href="../../dashboard/dashboard.html" class="brand-block">
+        <svg viewBox="0 0 24 24" fill="none" class="brand-logo-h" aria-label="Brand Logo">
+          <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+          <circle cx="6" cy="18.5" r="2.5" fill="#a3e635"/>
+          <circle cx="18" cy="5.5" r="2.5" fill="#a3e635"/>
+          <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+        </svg>
+        <div class="brand-text-column">
+          <span class="brand-title" data-brand="shortName"></span>
+          <span class="brand-subtitle" data-brand="systemSub"></span>
+        </div>
+      </a>
+
+      <!-- Headline: Under Construction -->
+      <h1 class="construction-title">
+        Under <span class="highlight-lime">Construction</span>
+      </h1>
+
+      <!-- Subtitle Description -->
+      <p class="construction-subtitle">
+        We’re working on this page to bring you a better experience.<br />
+        Please check back later.
+      </p>
+
+      <!-- Action Buttons Row: [Go Back] & [Go to Dashboard] -->
+      <div class="action-buttons-group">
+        
+        <!-- Button 1: Go Back -->
+        <button type="button" class="btn-go-back" id="btnGoBack" title="Return to previous screen">
+          <svg viewBox="0 0 24 24" class="arrow-icon-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Go Back</span>
+        </button>
+
+        <!-- Button 2: Go to Dashboard -->
+        <a href="../../../dashboard/dashboard.html" class="btn-dashboard-primary" id="btnDashboard" title="Open Main Dashboard">
+          <svg viewBox="0 0 24 24" class="home-icon-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Go to Dashboard</span>
+        </a>
+
+      </div>
+
+    </main>
+
+    <!-- Bottom Footer Area -->
+    <footer class="construction-footer">
+      <div class="footer-left-info">
+        <div class="footer-dash"></div>
+        <span class="footer-caption">Boutique Infrastructure &bull; Continuous Evolution</span>
+      </div>
+
+      <div class="footer-center-copyright" data-brand="copyright">
+        &copy; 2026 Boutique ERP. All rights reserved.
+      </div>
+
+      <!-- Bottom Right Need Help / Contact Support Pill Button -->
+      <button type="button" class="btn-support-pill" id="btnSupport" aria-haspopup="dialog" title="Contact Technical Support">
+        <svg viewBox="0 0 24 24" class="support-headset-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+        </svg>
+        <div class="support-pill-text">
+          <span class="support-pill-label">Need Help?</span>
+          <span class="support-pill-action">Contact Support</span>
+        </div>
+        <svg viewBox="0 0 24 24" class="support-chevron-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- Contact Support Modal Dialog -->
+  <div class="support-modal-backdrop" id="supportModal" role="dialog" aria-modal="true" aria-label="Support Options">
+    <div class="support-modal-card">
+      <div class="modal-header-row">
+        <h2 class="modal-title"><span data-brand="shortName"></span> Support</h2>
+        <button type="button" class="modal-close-btn" id="closeSupportModal" aria-label="Close Modal">&times;</button>
+      </div>
+
+      <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">
+        This module is currently being built and customized for your boutique. Need urgent assistance with existing orders or client fittings? Contact us directly:
+      </p>
+
+      <div class="support-channels-list">
+        <a href="#" class="support-channel-item" data-brand-href="phone">
+          <svg viewBox="0 0 24 24" class="channel-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">24/7 Boutique Client Hotline</div>
+            <div class="channel-val" data-brand="phone"></div>
+          </div>
+        </a>
+
+        <a href="#" class="support-channel-item" data-brand-href="supportEmail">
+          <svg viewBox="0 0 24 24" class="channel-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">ERP Engineering Operations</div>
+            <div class="channel-val" data-brand="supportEmail"></div>
+          </div>
+        </a>
+      </div>
+
+      <button type="button" class="btn-copy-diagnostics" id="btnCopyDiag">
+        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span>Copy Module Diagnostics</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Notice -->
+  <div class="toast-notice" id="toastNotice" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; color: var(--neon-lime);" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastNoticeMsg">Diagnostics copied to clipboard!</span>
+  </div>
+
+  <!-- Central Brand Identity & Universal Hydrator -->
+  <script src="../../fragments/brand-identity/brand-identity.js"></script>
+  <!-- Brand & Universal Sync Bridge -->
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="under-construction.js"></script>
+</body>
+</html>

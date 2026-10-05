@@ -32,9 +32,9 @@ public class MeasurementController {
 
         // Fit accuracy: ratio of versions > 1 (customers who were re-measured — indicates refinement)
         long remeasuredCount = bodyMeasurementRepository.countDistinctCustomerWithVersionGreaterThanOne();
-        int fitAccuracy = totalCustomers > 0
+        int fitAccuracy = (totalCustomers > 0 && totalMeasurements > 0)
                 ? (int) Math.min(100, 90 + (remeasuredCount * 10 / Math.max(1, totalCustomers)))
-                : 90;
+                : 0;
 
         // Category breakdown — how many current body measurements exist per garment type
         Map<String, Long> categoryMap = new LinkedHashMap<>();

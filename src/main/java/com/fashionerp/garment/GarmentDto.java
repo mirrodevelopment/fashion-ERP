@@ -212,13 +212,4 @@ public class GarmentDto {
         private String branch;
         private String notes;
     }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class StageUpdateRequest {
-        private String productionStage;
-        private String status;
-    }
 }

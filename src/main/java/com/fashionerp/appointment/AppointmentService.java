@@ -1,5 +1,6 @@
 package com.fashionerp.appointment;
 
+import com.fashionerp.customer.Customer;
 import com.fashionerp.customer.CustomerRepository;
 import com.fashionerp.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -38,7 +40,15 @@ public class AppointmentService {
         String mobile = req.getEffectiveMobile();
         var customer = customerRepository.findById(mobile)
                 .or(() -> customerRepository.findByFlexibleMobile(mobile))
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found with mobile: " + mobile));
+                .orElseGet(() -> {
+                    String cName = (req.getCustomerName() != null && !req.getCustomerName().isBlank())
+                            ? req.getCustomerName().trim() : "Walk-in Client";
+                    Customer newCust = Customer.builder()
+                            .mobileNumber(mobile)
+                            .name(cName)
+                            .build();
+                    return customerRepository.save(newCust);
+                });
         Appointment a = Appointment.builder()
                 .customer(customer)
                 .apptType(req.getApptType() != null ? req.getApptType() : AppointmentType.CONSULTATION)
@@ -58,6 +68,24 @@ public class AppointmentService {
         Appointment a = appointmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + id));
         a.setStatus(newStatus);
+        return AppointmentDto.Response.from(appointmentRepository.save(a));
+    }
+
+    @Transactional
+    public AppointmentDto.Response reschedule(UUID id, Map<String, Object> body) {
+        Appointment a = appointmentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + id));
+        if (body.containsKey("scheduledAt") && body.get("scheduledAt") != null) {
+            a.setScheduledAt(LocalDateTime.parse(body.get("scheduledAt").toString()));
+        }
+        if (body.containsKey("durationMinutes") && body.get("durationMinutes") != null) {
+            a.setDurationMinutes(Integer.valueOf(body.get("durationMinutes").toString()));
+        }
+        if (body.containsKey("status") && body.get("status") != null) {
+            a.setStatus(AppointmentStatus.valueOf(body.get("status").toString().toUpperCase()));
+        } else {
+            a.setStatus(AppointmentStatus.CONFIRMED);
+        }
         return AppointmentDto.Response.from(appointmentRepository.save(a));
     }
 }

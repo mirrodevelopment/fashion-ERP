@@ -287,6 +287,8 @@ export function openReceiptModal({
   const today = new Date().toLocaleDateString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric'
   });
+  const _co = (typeof CompanyBridge !== 'undefined' ? CompanyBridge.get() : null) || {};
+  const _brandName = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('companyName')) || _co.companyName || 'Boutique ERP';
 
   backdrop.innerHTML = `
     <div class="pb-window" role="dialog" aria-modal="true" aria-label="Receipt">
@@ -307,7 +309,7 @@ export function openReceiptModal({
         <div class="receipt-paper" id="pbReceiptPaper">
 
           <div class="receipt-header">
-            <div class="receipt-brand">Haulo Boutique</div>
+            <div class="receipt-brand">${_brandName}</div>
             <div class="receipt-sub">Official Payment Receipt</div>
             <div class="receipt-sub">${today}</div>
             <div class="receipt-title-banner">Tax Invoice / Payment Confirmation</div>
@@ -348,7 +350,7 @@ export function openReceiptModal({
           </table>
 
           <div class="receipt-footer">
-            Thank you for choosing Haulo Boutique — Crafted with love ❤
+            Thank you for choosing ${_brandName} — Crafted with love ❤
           </div>
 
         </div>

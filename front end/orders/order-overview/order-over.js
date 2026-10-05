@@ -707,7 +707,7 @@ function openDrawer(order) {
         ${order.customerMobile ? `
         <div class="drawer-detail-row">
           <span class="drawer-detail-key">Mobile No</span>
-          <span class="drawer-detail-val" style="font-family:monospace;letter-spacing:0.5px;">${order.customerMobile}</span>
+          <span class="drawer-detail-val" style="font-family:var(--font-mono);letter-spacing:0.5px;">${order.customerMobile}</span>
         </div>` : ''}
         <div class="drawer-detail-row">
           <span class="drawer-detail-key">Garment</span>
@@ -864,8 +864,8 @@ function bindEvents() {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `haulo-orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      const bSlug = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('shortName').toLowerCase()) || 'orders';
+      a.download = `${bSlug}-orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     });

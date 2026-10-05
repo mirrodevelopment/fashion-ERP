@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    HAULO BOUTIQUE ERP ? Production Command Centre Stylesheet
    Matches Reference Visual Design & Glassmorphic Aesthetics
    Path: front end/production/production.css
@@ -1271,7 +1271,7 @@ body {
 
 .kc-order-id {
   font-size: 9.5px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: rgba(255, 255, 255, 0.45);
 }
 

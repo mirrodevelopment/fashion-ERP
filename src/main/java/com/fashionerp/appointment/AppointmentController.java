@@ -44,6 +44,12 @@ public class AppointmentController {
         return appointmentService.updateStatus(id, AppointmentStatus.valueOf(status.toUpperCase()));
     }
 
+    @PatchMapping("/{id}/reschedule")
+    public AppointmentDto.Response reschedule(@PathVariable UUID id,
+                                              @RequestBody Map<String, Object> body) {
+        return appointmentService.reschedule(id, body);
+    }
+
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();

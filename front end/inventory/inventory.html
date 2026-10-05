@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inventory Command Centre — Haulo Boutique ERP</title>
-
-  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title data-brand-title="Inventory Command Centre">Inventory Command Centre</title>
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -56,17 +53,15 @@
           </div>
           <div class="title-right">
             <div class="header-datetime-box">
-              <span class="date-text" id="headerDateText">Tue, 08 Sep 2026</span>
-              <span class="time-text" id="headerTimeText">01:36 PM</span>
+              <span class="date-text" id="headerDateText">—</span>
+              <span class="time-text" id="headerTimeText">—</span>
             </div>
             <button class="btn-dark-pill" onclick="openAddItemModal()">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>Add New Item</span>
             </button>
           </div>
-        </div>
-
-        <!-- =====================================================
+        </div>        <!-- =====================================================
              1. TOP KPI SUMMARY ROW (6 CARDS IN 1 ROW)
              ===================================================== -->
         <section class="kpi-grid">
@@ -79,9 +74,9 @@
             <div class="kpi-body">
               <span class="kpi-label">Total Items</span>
               <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiTotalItems">482</span>
+                <span class="kpi-value" id="kpiTotalItems">0</span>
               </div>
-              <span class="kpi-subtext positive">↑ 12% from last month</span>
+              <span class="kpi-subtext" id="subtextTotalItems">0 items registered</span>
             </div>
           </div>
 
@@ -93,9 +88,9 @@
             <div class="kpi-body">
               <span class="kpi-label">Total Stock Value</span>
               <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiTotalStockValue">₹18,42,500</span>
+                <span class="kpi-value" id="kpiTotalStockValue">₹0</span>
               </div>
-              <span class="kpi-subtext positive">↑ 8% from last month</span>
+              <span class="kpi-subtext" id="subtextStockValue">₹0 stock valuation</span>
             </div>
           </div>
 
@@ -107,9 +102,9 @@
             <div class="kpi-body">
               <span class="kpi-label">Low Stock Items</span>
               <div class="kpi-value-row">
-                <span class="kpi-value alert" id="kpiLowStockItems">24</span>
+                <span class="kpi-value" id="kpiLowStockItems">0</span>
               </div>
-              <span class="kpi-subtext alert">↓ 6 from last week</span>
+              <span class="kpi-subtext" id="subtextLowStock">0 items low</span>
             </div>
           </div>
 
@@ -121,75 +116,39 @@
             <div class="kpi-body">
               <span class="kpi-label">Out of Stock</span>
               <div class="kpi-value-row">
-                <span class="kpi-value alert" id="kpiOutOfStock">6</span>
+                <span class="kpi-value" id="kpiOutOfStock">0</span>
               </div>
-              <span class="kpi-subtext alert">Needs attention</span>
+              <span class="kpi-subtext" id="subtextOutOfStock">0 items out of stock</span>
             </div>
           </div>
 
           <!-- KPI 5: On Order -->
           <div class="kpi-card">
             <div class="kpi-icon-box blue">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
             </div>
             <div class="kpi-body">
               <span class="kpi-label">On Order</span>
               <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiOnOrder">12</span>
+                <span class="kpi-value" id="kpiOnOrder">0</span>
               </div>
-              <span class="kpi-subtext muted">Expected this week</span>
+              <span class="kpi-subtext muted" id="subtextOnOrder">0 orders pending</span>
             </div>
           </div>
 
           <!-- KPI 6: Items by Category (Donut Chart) -->
           <div class="kpi-card kpi-donut-card">
             <div class="donut-wrapper">
-              <svg viewBox="0 0 100 100" class="donut-svg">
-                <!-- Background track -->
+              <svg viewBox="0 0 100 100" class="donut-svg" id="donutCategorySvg">
                 <circle cx="50" cy="50" r="38" class="donut-bg" />
-                <!-- Fabrics (Lime Green 38%) -->
-                <circle cx="50" cy="50" r="38" class="donut-seg seg-fabrics" stroke-dasharray="91 239" stroke-dashoffset="0" />
-                <!-- Trims & Accessories (Purple 26%) -->
-                <circle cx="50" cy="50" r="38" class="donut-seg seg-trims" stroke-dasharray="62 239" stroke-dashoffset="-91" />
-                <!-- Consumables (Yellow 18%) -->
-                <circle cx="50" cy="50" r="38" class="donut-seg seg-consumables" stroke-dasharray="43 239" stroke-dashoffset="-153" />
-                <!-- Packaging (Coral Pink 10%) -->
-                <circle cx="50" cy="50" r="38" class="donut-seg seg-packaging" stroke-dasharray="24 239" stroke-dashoffset="-196" />
-                <!-- Others (Blue 8%) -->
-                <circle cx="50" cy="50" r="38" class="donut-seg seg-others" stroke-dasharray="19 239" stroke-dashoffset="-220" />
               </svg>
-              <div class="donut-center" id="donutCategoryTotal">482</div>
+              <div class="donut-center" id="donutCategoryTotal">0</div>
             </div>
-            <div class="donut-legend">
+            <div class="donut-legend" id="donutCategoryLegend">
               <div class="legend-title">Items by Category</div>
-              <div class="leg-row">
-                <span class="leg-dot lime"></span>
-                <span class="leg-text">Fabrics</span>
-                <span class="leg-val">38%</span>
-              </div>
-              <div class="leg-row">
-                <span class="leg-dot purple"></span>
-                <span class="leg-text">Trims &amp; Accessories</span>
-                <span class="leg-val">26%</span>
-              </div>
-              <div class="leg-row">
-                <span class="leg-dot yellow"></span>
-                <span class="leg-text">Consumables</span>
-                <span class="leg-val">18%</span>
-              </div>
-              <div class="leg-row">
-                <span class="leg-dot pink"></span>
-                <span class="leg-text">Packaging</span>
-                <span class="leg-val">10%</span>
-              </div>
-              <div class="leg-row">
-                <span class="leg-dot blue"></span>
-                <span class="leg-text">Others</span>
-                <span class="leg-val">8%</span>
-              </div>
+              <div class="leg-empty" style="color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 8px;">No categories logged</div>
             </div>
           </div>
-
         </section>
 
         <!-- =====================================================
@@ -204,13 +163,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Fabrics</span>
-                <span class="cat-count">184 items</span>
+                <span class="cat-count" id="catCount-Fabrics">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar green" style="width: 68%;"></div>
+              <div class="cat-progress-bar green" id="catBar-Fabrics" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">68% in stock</span>
+            <span class="cat-status-pct" id="catPct-Fabrics">0% in stock</span>
           </div>
 
           <!-- Card 2: Linings -->
@@ -221,13 +180,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Linings</span>
-                <span class="cat-count">42 items</span>
+                <span class="cat-count" id="catCount-Linings">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar purple" style="width: 76%;"></div>
+              <div class="cat-progress-bar purple" id="catBar-Linings" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">76% in stock</span>
+            <span class="cat-status-pct" id="catPct-Linings">0% in stock</span>
           </div>
 
           <!-- Card 3: Threads -->
@@ -238,13 +197,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Threads</span>
-                <span class="cat-count">36 items</span>
+                <span class="cat-count" id="catCount-Threads">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar yellow" style="width: 58%;"></div>
+              <div class="cat-progress-bar yellow" id="catBar-Threads" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">58% in stock</span>
+            <span class="cat-status-pct" id="catPct-Threads">0% in stock</span>
           </div>
 
           <!-- Card 4: Buttons & Hooks -->
@@ -255,13 +214,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Buttons &amp; Hooks</span>
-                <span class="cat-count">28 items</span>
+                <span class="cat-count" id="catCount-Buttons">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar pink" style="width: 71%;"></div>
+              <div class="cat-progress-bar pink" id="catBar-Buttons" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">71% in stock</span>
+            <span class="cat-status-pct" id="catPct-Buttons">0% in stock</span>
           </div>
 
           <!-- Card 5: Zips & Fasteners -->
@@ -272,13 +231,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Zips &amp; Fasteners</span>
-                <span class="cat-count">24 items</span>
+                <span class="cat-count" id="catCount-Zips">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar blue" style="width: 63%;"></div>
+              <div class="cat-progress-bar blue" id="catBar-Zips" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">63% in stock</span>
+            <span class="cat-status-pct" id="catPct-Zips">0% in stock</span>
           </div>
 
           <!-- Card 6: Embellishments -->
@@ -289,13 +248,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Embellishments</span>
-                <span class="cat-count">56 items</span>
+                <span class="cat-count" id="catCount-Embellishments">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar amber" style="width: 54%;"></div>
+              <div class="cat-progress-bar amber" id="catBar-Embellishments" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">54% in stock</span>
+            <span class="cat-status-pct" id="catPct-Embellishments">0% in stock</span>
           </div>
 
           <!-- Card 7: Packaging -->
@@ -306,13 +265,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Packaging</span>
-                <span class="cat-count">18 items</span>
+                <span class="cat-count" id="catCount-Packaging">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar emerald" style="width: 89%;"></div>
+              <div class="cat-progress-bar emerald" id="catBar-Packaging" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">89% in stock</span>
+            <span class="cat-status-pct" id="catPct-Packaging">0% in stock</span>
           </div>
 
           <!-- Card 8: Others -->
@@ -323,13 +282,13 @@
               </div>
               <div class="cat-meta">
                 <span class="cat-name">Others</span>
-                <span class="cat-count">94 items</span>
+                <span class="cat-count" id="catCount-Others">0 items</span>
               </div>
             </div>
             <div class="cat-progress-track">
-              <div class="cat-progress-bar slate" style="width: 67%;"></div>
+              <div class="cat-progress-bar slate" id="catBar-Others" style="width: 0%;"></div>
             </div>
-            <span class="cat-status-pct">67% in stock</span>
+            <span class="cat-status-pct" id="catPct-Others">0% in stock</span>
           </div>
         </section>
 
@@ -344,12 +303,12 @@
             <!-- Category Toolbar & Search Filter -->
             <div class="inventory-toolbar-card">
               <div class="cat-tabs-group" id="inventoryTabsGroup">
-                <button class="cat-tab-btn active" data-cat="all" onclick="setInventoryTab('all', this)">All Items (482)</button>
-                <button class="cat-tab-btn" data-cat="Fabrics" onclick="setInventoryTab('Fabrics', this)">Fabrics (184)</button>
-                <button class="cat-tab-btn" data-cat="Trims" onclick="setInventoryTab('Trims', this)">Trims (108)</button>
-                <button class="cat-tab-btn" data-cat="Consumables" onclick="setInventoryTab('Consumables', this)">Consumables (86)</button>
-                <button class="cat-tab-btn" data-cat="Packaging" onclick="setInventoryTab('Packaging', this)">Packaging (48)</button>
-                <button class="cat-tab-btn" data-cat="Others" onclick="setInventoryTab('Others', this)">Others (56)</button>
+                <button class="cat-tab-btn active" data-cat="all" onclick="setInventoryTab('all', this)">All Items <span id="tabCount-all">(0)</span></button>
+                <button class="cat-tab-btn" data-cat="Fabrics" onclick="setInventoryTab('Fabrics', this)">Fabrics <span id="tabCount-Fabrics">(0)</span></button>
+                <button class="cat-tab-btn" data-cat="Trims" onclick="setInventoryTab('Trims', this)">Trims <span id="tabCount-Trims">(0)</span></button>
+                <button class="cat-tab-btn" data-cat="Consumables" onclick="setInventoryTab('Consumables', this)">Consumables <span id="tabCount-Consumables">(0)</span></button>
+                <button class="cat-tab-btn" data-cat="Packaging" onclick="setInventoryTab('Packaging', this)">Packaging <span id="tabCount-Packaging">(0)</span></button>
+                <button class="cat-tab-btn" data-cat="Others" onclick="setInventoryTab('Others', this)">Others <span id="tabCount-Others">(0)</span></button>
               </div>
 
               <div class="toolbar-right-tools">
@@ -397,17 +356,8 @@
 
               <!-- Table Pagination Footer -->
               <div class="table-pagination-footer">
-                <span class="pagination-info" id="paginationInfo">Showing 1–8 of 482 items</span>
-                <div class="pagination-controls" id="paginationControls">
-                  <button class="page-nav-btn prev" onclick="changePage(-1)">‹</button>
-                  <button class="page-num-btn active" onclick="goToPage(1)">1</button>
-                  <button class="page-num-btn" onclick="goToPage(2)">2</button>
-                  <button class="page-num-btn" onclick="goToPage(3)">3</button>
-                  <button class="page-num-btn" onclick="goToPage(4)">4</button>
-                  <button class="page-num-btn" onclick="goToPage(5)">5</button>
-                  <span class="page-dots">…</span>
-                  <button class="page-nav-btn next" onclick="changePage(1)">›</button>
-                </div>
+                <span class="pagination-info" id="paginationInfo">Showing 0 of 0 items</span>
+                <div class="pagination-controls" id="paginationControls"></div>
               </div>
             </div>
 
@@ -426,50 +376,7 @@
                 </div>
 
                 <div class="consumed-bars-list" id="consumedBarsList">
-                  <!-- Item 1 -->
-                  <div class="consumed-bar-row">
-                    <span class="cb-name">Banarasi Silk</span>
-                    <div class="cb-track">
-                      <div class="cb-fill green" style="width: 82%;"></div>
-                    </div>
-                    <span class="cb-val">120 m</span>
-                  </div>
-
-                  <!-- Item 2 -->
-                  <div class="consumed-bar-row">
-                    <span class="cb-name">Georgette</span>
-                    <div class="cb-track">
-                      <div class="cb-fill yellow" style="width: 58%;"></div>
-                    </div>
-                    <span class="cb-val">85 m</span>
-                  </div>
-
-                  <!-- Item 3 -->
-                  <div class="consumed-bar-row">
-                    <span class="cb-name">Embroidery Thread</span>
-                    <div class="cb-track">
-                      <div class="cb-fill pink" style="width: 44%;"></div>
-                    </div>
-                    <span class="cb-val">60 rolls</span>
-                  </div>
-
-                  <!-- Item 4 -->
-                  <div class="consumed-bar-row">
-                    <span class="cb-name">Satoon Lining</span>
-                    <div class="cb-track">
-                      <div class="cb-fill purple" style="width: 38%;"></div>
-                    </div>
-                    <span class="cb-val">52 m</span>
-                  </div>
-
-                  <!-- Item 5 -->
-                  <div class="consumed-bar-row">
-                    <span class="cb-name">Designer Buttons</span>
-                    <div class="cb-track">
-                      <div class="cb-fill blue" style="width: 26%;"></div>
-                    </div>
-                    <span class="cb-val">480 pcs</span>
-                  </div>
+                  <div style="text-align: center; padding: 24px; color: rgba(255,255,255,0.4); font-size: 13px;">No consumption logged yet</div>
                 </div>
               </div>
 
@@ -486,56 +393,17 @@
 
                 <div class="stock-val-body">
                   <div class="donut-large-wrap">
-                    <svg viewBox="0 0 100 100" class="donut-svg">
+                    <svg viewBox="0 0 100 100" class="donut-svg" id="stockValSvg">
                       <circle cx="50" cy="50" r="38" class="donut-bg" />
-                      <!-- Fabrics 45% (Green) -->
-                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-fabrics" stroke-dasharray="108 239" stroke-dashoffset="0" />
-                      <!-- Trims & Accessories 25% (Purple) -->
-                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-trims" stroke-dasharray="60 239" stroke-dashoffset="-108" />
-                      <!-- Consumables 15% (Yellow) -->
-                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-consumables" stroke-dasharray="36 239" stroke-dashoffset="-168" />
-                      <!-- Packaging 8% (Pink) -->
-                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-packaging" stroke-dasharray="19 239" stroke-dashoffset="-204" />
-                      <!-- Others 7% (Blue) -->
-                      <circle cx="50" cy="50" r="38" class="donut-seg seg-val-others" stroke-dasharray="16 239" stroke-dashoffset="-223" />
                     </svg>
                     <div class="donut-val-center">
-                      <span class="dvc-big">₹18.42L</span>
+                      <span class="dvc-big" id="stockValTotal">₹0</span>
                       <span class="dvc-sub">Total Value</span>
                     </div>
                   </div>
 
-                  <div class="stock-val-legend">
-                    <div class="val-leg-row">
-                      <span class="val-dot green"></span>
-                      <span class="val-name">Fabrics</span>
-                      <span class="val-pct">45%</span>
-                      <span class="val-num">₹8.26L</span>
-                    </div>
-                    <div class="val-leg-row">
-                      <span class="val-dot purple"></span>
-                      <span class="val-name">Trims &amp; Accessories</span>
-                      <span class="val-pct">25%</span>
-                      <span class="val-num">₹4.61L</span>
-                    </div>
-                    <div class="val-leg-row">
-                      <span class="val-dot yellow"></span>
-                      <span class="val-name">Consumables</span>
-                      <span class="val-pct">15%</span>
-                      <span class="val-num">₹2.76L</span>
-                    </div>
-                    <div class="val-leg-row">
-                      <span class="val-dot pink"></span>
-                      <span class="val-name">Packaging</span>
-                      <span class="val-pct">8%</span>
-                      <span class="val-num">₹1.47L</span>
-                    </div>
-                    <div class="val-leg-row">
-                      <span class="val-dot blue"></span>
-                      <span class="val-name">Others</span>
-                      <span class="val-pct">7%</span>
-                      <span class="val-num">₹1.32L</span>
-                    </div>
+                  <div class="stock-val-legend" id="stockValLegend">
+                    <div style="color: rgba(255,255,255,0.4); font-size: 12px; padding: 12px 0;">No stock value logged</div>
                   </div>
                 </div>
               </div>
@@ -561,102 +429,14 @@
 
               <!-- Alerts Subtabs -->
               <div class="alerts-subtabs-group">
-                <button class="alerts-subtab active" onclick="setAlertsTab('low', this)">Low Stock (24)</button>
-                <button class="alerts-subtab" onclick="setAlertsTab('out', this)">Out of Stock (6)</button>
-                <button class="alerts-subtab" onclick="setAlertsTab('order', this)">On Order (12)</button>
+                <button class="alerts-subtab active" onclick="setAlertsTab('low', this)">Low Stock (<span id="alertCountLow">0</span>)</button>
+                <button class="alerts-subtab" onclick="setAlertsTab('out', this)">Out of Stock (<span id="alertCountOut">0</span>)</button>
+                <button class="alerts-subtab" onclick="setAlertsTab('order', this)">On Order (<span id="alertCountOrder">0</span>)</button>
               </div>
 
               <!-- Alerts List Container -->
               <div class="alerts-items-list" id="alertsItemsList">
-                <!-- Row 1 -->
-                <div class="alert-item-row" onclick="inspectAlertItem('THR-0021')">
-                  <div class="air-thumb-wrap">
-                    <img src="../assets/fabrics/thread-gold.jpg" alt="Thread" onerror="handleImgError(this)" />
-                  </div>
-                  <div class="air-meta">
-                    <span class="air-name">Embroidery Thread (Gold)</span>
-                    <span class="air-code">THR-0021</span>
-                  </div>
-                  <div class="air-quantities">
-                    <span class="air-left alert">10 left</span>
-                    <span class="air-reorder">Reorder at 10</span>
-                  </div>
-                  <button class="air-action-btn" title="View Item">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </button>
-                </div>
-
-                <!-- Row 2 -->
-                <div class="alert-item-row" onclick="inspectAlertItem('EMB-0033')">
-                  <div class="air-thumb-wrap">
-                    <img src="../assets/fabrics/zari-motif.jpg" alt="Zardosi Motif" onerror="handleImgError(this)" />
-                  </div>
-                  <div class="air-meta">
-                    <span class="air-name">Zardosi Motif</span>
-                    <span class="air-code">EMB-0033</span>
-                  </div>
-                  <div class="air-quantities">
-                    <span class="air-left alert">5 left</span>
-                    <span class="air-reorder">Reorder at 20</span>
-                  </div>
-                  <button class="air-action-btn" title="View Item">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </button>
-                </div>
-
-                <!-- Row 3 -->
-                <div class="alert-item-row" onclick="inspectAlertItem('EMB-0041')">
-                  <div class="air-thumb-wrap">
-                    <img src="../assets/fabrics/button-gold.jpg" alt="Pearl Beads" onerror="handleImgError(this)" />
-                  </div>
-                  <div class="air-meta">
-                    <span class="air-name">Pearl Beads 4mm</span>
-                    <span class="air-code">EMB-0041</span>
-                  </div>
-                  <div class="air-quantities">
-                    <span class="air-left alert">8 left</span>
-                    <span class="air-reorder">Reorder at 20</span>
-                  </div>
-                  <button class="air-action-btn" title="View Item">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </button>
-                </div>
-
-                <!-- Row 4 -->
-                <div class="alert-item-row" onclick="inspectAlertItem('BTN-0028')">
-                  <div class="air-thumb-wrap">
-                    <img src="../assets/fabrics/zipper.jpg" alt="Hook Set" onerror="handleImgError(this)" />
-                  </div>
-                  <div class="air-meta">
-                    <span class="air-name">Hook Set</span>
-                    <span class="air-code">BTN-0028</span>
-                  </div>
-                  <div class="air-quantities">
-                    <span class="air-left alert">12 left</span>
-                    <span class="air-reorder">Reorder at 25</span>
-                  </div>
-                  <button class="air-action-btn" title="View Item">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </button>
-                </div>
-
-                <!-- Row 5 -->
-                <div class="alert-item-row" onclick="inspectAlertItem('LIN-0012')">
-                  <div class="air-thumb-wrap">
-                    <img src="../assets/fabrics/lining.jpg" alt="Satoon Lining Black" onerror="handleImgError(this)" />
-                  </div>
-                  <div class="air-meta">
-                    <span class="air-name">Satoon Lining (Black)</span>
-                    <span class="air-code">LIN-0012</span>
-                  </div>
-                  <div class="air-quantities">
-                    <span class="air-left alert">6 left</span>
-                    <span class="air-reorder">Reorder at 20</span>
-                  </div>
-                  <button class="air-action-btn" title="View Item">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </button>
-                </div>
+                <div style="text-align: center; padding: 32px 16px; color: rgba(255,255,255,0.4); font-size: 13px;">No stock alerts currently active.</div>
               </div>
             </div>
 
@@ -797,19 +577,19 @@
           </div>
           <div class="form-group">
             <label>Opening Stock Qty *</label>
-            <input type="number" id="newItemStockQty" min="0" required placeholder="100" />
+            <input type="number" id="newItemStockQty" min="0" required placeholder="0" />
           </div>
           <div class="form-group">
             <label>Reorder Level *</label>
-            <input type="number" id="newItemReorderLevel" min="0" required placeholder="25" />
+            <input type="number" id="newItemReorderLevel" min="0" required placeholder="0" />
           </div>
           <div class="form-group">
             <label>Purchase Price (₹)</label>
-            <input type="number" id="newItemPurchasePrice" min="0" step="0.5" placeholder="850" />
+            <input type="number" id="newItemPurchasePrice" min="0" step="0.5" placeholder="0.00" />
           </div>
           <div class="form-group">
             <label>Image URL (Optional)</label>
-                    <input type="url" id="newItemImage" placeholder="/front end/assets/fabrics/silk.jpg" />
+            <input type="url" id="newItemImage" placeholder="https://..." />
           </div>
         </div>
         <div class="form-group full-width" style="margin-top: 6px;">
@@ -969,7 +749,10 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
-  <script src="inventory.js"></script>  <script src="../fragments/fragments-inline.js"></script>
+  <script type="module" src="../api.js"></script>
+  <script src="inventory.js"></script>
+  <script src="../fragments/company-bridge.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
   <script src="../fragments/fragments.js"></script>
 
 </body>

@@ -18,6 +18,7 @@
   // Global Dataset and State
   let PROFILES = [];
   let ALL_CUSTOMERS = [];
+  let LAST_KPI_DATA = null;
 
   const State = {
     categoryFilter: 'all',
@@ -132,14 +133,36 @@
     if (errorCard) errorCard.style.display = 'none';
 
     try {
-      const { default: api, Auth } = await import('../../api.js');
-      if (!Auth.isLoggedIn()) {
+      let api = window.api;
+      let Auth = window.Auth;
+      if (!api || !Auth) {
+        try {
+          const mod = await import('../../api.js');
+          api = api || mod.default || mod.api || window.api;
+          Auth = Auth || mod.Auth || window.Auth;
+        } catch (_) {
+          api = window.api;
+          Auth = window.Auth;
+        }
+      }
+
+      if (Auth && typeof Auth.isLoggedIn === 'function' && !Auth.isLoggedIn()) {
         window.location.href = '../../login/login.html';
         return;
       }
 
+      // 0. Fetch real database aggregate KPIs from backend /api/v1/measurements/kpis
+      let kpiData = null;
+      if (api && api.measurements && typeof api.measurements.kpis === 'function') {
+        try {
+          kpiData = await api.measurements.kpis();
+        } catch (kpiErr) {
+          console.warn('[MeasurementOverview] Failed to fetch /measurements/kpis:', kpiErr);
+        }
+      }
+
       // 1. Fetch real customers from PostgreSQL
-      const custPage = await api.customers.list({ page: 0, size: 200 }).catch(() => []);
+      const custPage = (api && api.customers) ? await api.customers.list({ page: 0, size: 200 }).catch(() => []) : [];
       const custItems = Array.isArray(custPage) ? custPage : (custPage?.content || []);
       ALL_CUSTOMERS = custItems;
 
@@ -259,8 +282,9 @@
       PROFILES = loaded;
       if (skeletonGrid) skeletonGrid.style.display = 'none';
 
-      updateKPIs();
-      renderCategoryTabs();
+      LAST_KPI_DATA = kpiData;
+      updateKPIs(kpiData);
+      renderCategoryTabs(kpiData);
       renderCurrentView();
 
     } catch (err) {
@@ -305,33 +329,44 @@
   // ==========================================================================
   // 3. KPI & CATEGORY COUNTS ENGINE (REAL DATABASE-DERIVED)
   // ==========================================================================
-  function updateKPIs() {
-    const totalCustomers = ALL_CUSTOMERS.length || PROFILES.length;
+  function updateKPIs(kpiData) {
+    if (kpiData) {
+      LAST_KPI_DATA = kpiData;
+    }
+    const data = kpiData || LAST_KPI_DATA;
+    let totalCustomers = 0;
     let totalMeasurements = 0;
     let pendingIntake = 0;
     let dueRemeasure = 0;
-    let sumAccuracy = 0;
-    let accuracyCount = 0;
+    let fitAccuracyStr = '—';
 
-    PROFILES.forEach(p => {
-      totalMeasurements += (p.measurements || []).length;
-      let hasDue = false;
-      (p.measurements || []).forEach(m => {
-        if (m.status === 'Due Soon' || m.status === 'Overdue' || m.status === 'Needs Update') {
-          hasDue = true;
-        }
-        if (m.fitAccuracy) {
-          sumAccuracy += Number(m.fitAccuracy);
-          accuracyCount++;
-        }
+    if (data) {
+      totalCustomers = data.totalCustomers != null ? data.totalCustomers : ALL_CUSTOMERS.length;
+      totalMeasurements = data.totalMeasurements != null ? data.totalMeasurements : 0;
+      pendingIntake = data.pendingMeasurements != null ? data.pendingMeasurements : (data.pendingCustomers != null ? data.pendingCustomers : Math.max(0, totalCustomers - PROFILES.length));
+      dueRemeasure = data.dueRemeasurement != null ? data.dueRemeasurement : 0;
+      fitAccuracyStr = (data.fitAccuracy && data.fitAccuracy > 0 && totalCustomers > 0 && totalMeasurements > 0) ? `${data.fitAccuracy}%` : '—';
+    } else {
+      totalCustomers = ALL_CUSTOMERS.length || PROFILES.length;
+      let sumAccuracy = 0;
+      let accuracyCount = 0;
+      PROFILES.forEach(p => {
+        totalMeasurements += (p.measurements || []).length;
+        let hasDue = false;
+        (p.measurements || []).forEach(m => {
+          if (m.status === 'Due Soon' || m.status === 'Overdue' || m.status === 'Needs Update') {
+            hasDue = true;
+          }
+          if (m.fitAccuracy) {
+            sumAccuracy += Number(m.fitAccuracy);
+            accuracyCount++;
+          }
+        });
+        if (hasDue) dueRemeasure++;
       });
-      if (hasDue) dueRemeasure++;
-    });
-
-    // Customers in database who do not have measurements yet
-    pendingIntake = Math.max(0, ALL_CUSTOMERS.length - PROFILES.length);
-
-    const avgAccuracy = accuracyCount > 0 ? `${Math.round(sumAccuracy / accuracyCount)}%` : '—';
+      pendingIntake = Math.max(0, ALL_CUSTOMERS.length - PROFILES.length);
+      fitAccuracyStr = accuracyCount > 0 ? `${Math.round(sumAccuracy / accuracyCount)}%` : '—';
+    }
 
     const setVal = (id, val) => {
       const el = document.getElementById(id);
@@ -342,11 +377,31 @@
     setVal('valTotalMeasurements', totalMeasurements.toLocaleString('en-IN'));
     setVal('valPendingMeasurements', pendingIntake.toLocaleString('en-IN'));
     setVal('valDueRemeasurement', dueRemeasure.toLocaleString('en-IN'));
-    setVal('valFitAccuracy', avgAccuracy);
+    setVal('valFitAccuracy', fitAccuracyStr);
 
     const subPending = document.getElementById('subtextPending');
     if (subPending) {
       subPending.innerHTML = `<span>${pendingIntake} customers</span>`;
+    }
+    const trendCust = document.getElementById('trendCustomers');
+    if (trendCust) {
+      const span = trendCust.querySelector('span') || trendCust;
+      span.textContent = totalCustomers > 0 ? `${totalCustomers} registered` : 'No records yet';
+    }
+    const trendMeas = document.getElementById('trendMeasurements');
+    if (trendMeas) {
+      const span = trendMeas.querySelector('span') || trendMeas;
+      span.textContent = totalMeasurements > 0 ? `${totalMeasurements} logged` : 'No records yet';
+    }
+    const subDue = document.getElementById('subtextDue');
+    if (subDue) {
+      const span = subDue.querySelector('span') || subDue;
+      span.textContent = dueRemeasure > 0 ? `${dueRemeasure} due for update` : '0 due';
+    }
+    const trendAcc = document.getElementById('trendAccuracy');
+    if (trendAcc) {
+      const span = trendAcc.querySelector('span') || trendAcc;
+      span.textContent = fitAccuracyStr !== '—' ? `${fitAccuracyStr} based on orders` : 'No fitting records';
     }
   }
 
@@ -372,27 +427,45 @@
   }
 
   // Render Dynamic Category Pills based on real DB profiles
-  function renderCategoryTabs() {
+  function renderCategoryTabs(kpiData) {
     const tabsContainer = document.getElementById('categoryTabs');
     if (!tabsContainer) return;
 
+    if (kpiData) {
+      LAST_KPI_DATA = kpiData;
+    }
+    const data = kpiData || LAST_KPI_DATA;
+
     // Detect unique categories present in DB and count occurrences
-    const catMap = {};
-    PROFILES.forEach(p => {
-      (p.measurements || []).forEach(m => {
-        if (m.garment && m.garment !== 'Pending Intake') {
-          catMap[m.garment] = (catMap[m.garment] || 0) + 1;
-        }
+    const catMap = {
+      'Blouse': 0,
+      'Chudi': 0,
+      'Lehenga': 0,
+      'Saree': 0,
+      'Gown': 0,
+      'Custom': 0
+    };
+
+    let totalAll = 0;
+
+    if (data && data.categoryCounts) {
+      totalAll = data.categoryCounts.all != null ? data.categoryCounts.all : (data.totalCustomers || PROFILES.length);
+      if (data.categoryCounts.blouse != null) catMap['Blouse'] = data.categoryCounts.blouse;
+      if (data.categoryCounts.chudi != null) catMap['Chudi'] = data.categoryCounts.chudi;
+      if (data.categoryCounts.lehenga != null) catMap['Lehenga'] = data.categoryCounts.lehenga;
+      if (data.categoryCounts.saree != null) catMap['Saree'] = data.categoryCounts.saree;
+      if (data.categoryCounts.gown != null) catMap['Gown'] = data.categoryCounts.gown;
+      if (data.categoryCounts.custom != null) catMap['Custom'] = data.categoryCounts.custom;
+    } else {
+      PROFILES.forEach(p => {
+        (p.measurements || []).forEach(m => {
+          if (m.garment && m.garment !== 'Pending Intake') {
+            catMap[m.garment] = (catMap[m.garment] || 0) + 1;
+          }
+        });
       });
-    });
-
-    // Standard boutique categories
-    const standardCategories = ['Blouse', 'Chudi', 'Lehenga', 'Saree', 'Gown', 'Custom'];
-    standardCategories.forEach(cat => {
-      if (!(cat in catMap)) catMap[cat] = 0;
-    });
-
-    const totalAll = PROFILES.length;
+      totalAll = PROFILES.length;
+    }
 
     let html = `
       <button class="cat-pill ${State.categoryFilter === 'all' ? 'active' : ''}" data-cat="all" onclick="setCategoryFilter('all')">

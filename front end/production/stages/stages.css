@@ -1,5 +1,5 @@
-/* ============================================================
-   stages.css — Production Stage Definitions Management Page
+ï»¿/* ============================================================
+   stages.css ï¿½ Production Stage Definitions Management Page
    Design: Dark glass, matches existing ERP design system
    ============================================================ */
 
@@ -37,7 +37,7 @@
 }
 .header-left .page-breadcrumb a:hover { color: var(--clr-accent); }
 .page-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-serif);
   font-size: clamp(22px, 3vw, 30px);
   font-weight: 600;
   color: var(--clr-text);
@@ -240,7 +240,7 @@
 
 /* Stage key badge */
 .stage-key-badge {
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: .06em;

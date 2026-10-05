@@ -17,6 +17,8 @@
     activeTabFilter: 'all',
     searchQuery: '',
     actionTargetOrderNo: null,
+    currentPage: 1,
+    rowsPerPage: 10,
 
     orders: [],
     customerProfiles: {},
@@ -67,8 +69,87 @@
   }
 
   /* ────────────────────────────────────────────────────────────
-     3. RENDER PAYMENT ORDERS TABLE
+     3. RENDER PAYMENT ORDERS TABLE & PAGINATION
      ──────────────────────────────────────────────────────────── */
+  function renderPaginationControls(totalPages, container) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // Previous Button
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = 'page-arrow-btn';
+    prevBtn.id = 'prevPageBtn';
+    prevBtn.title = 'Previous Page';
+    prevBtn.setAttribute('aria-label', 'Previous Page');
+    prevBtn.innerHTML = '&lt;';
+    prevBtn.disabled = STATE.currentPage <= 1;
+    prevBtn.addEventListener('click', () => {
+      if (STATE.currentPage > 1) {
+        STATE.currentPage--;
+        renderPaymentTable();
+      }
+    });
+    container.appendChild(prevBtn);
+
+    // Dynamic Page Numbers
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (STATE.currentPage > 3) pages.push('...');
+      const start = Math.max(2, STATE.currentPage - 1);
+      const end = Math.min(totalPages - 1, STATE.currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i);
+      }
+      if (STATE.currentPage < totalPages - 2) pages.push('...');
+      pages.push(totalPages);
+    }
+
+    pages.forEach(p => {
+      if (p === '...') {
+        const dots = document.createElement('span');
+        dots.style.cssText = 'opacity:0.5;padding:0 3px;font-size:11px;color:var(--text-muted);display:inline-flex;align-items:center;';
+        dots.textContent = '...';
+        container.appendChild(dots);
+      } else {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `page-num-btn${p === STATE.currentPage ? ' active' : ''}`;
+        btn.textContent = p;
+        btn.setAttribute('aria-label', `Page ${p}`);
+        btn.addEventListener('click', () => {
+          if (STATE.currentPage !== p) {
+            STATE.currentPage = p;
+            renderPaymentTable();
+          }
+        });
+        container.appendChild(btn);
+      }
+    });
+
+    // Next Button
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'page-arrow-btn';
+    nextBtn.id = 'nextPageBtn';
+    nextBtn.title = 'Next Page';
+    nextBtn.setAttribute('aria-label', 'Next Page');
+    nextBtn.innerHTML = '&gt;';
+    nextBtn.disabled = STATE.currentPage >= totalPages;
+    nextBtn.addEventListener('click', () => {
+      if (STATE.currentPage < totalPages) {
+        STATE.currentPage++;
+        renderPaymentTable();
+      }
+    });
+    container.appendChild(nextBtn);
+  }
+
   function renderPaymentTable() {
     const tbody = document.getElementById('paymentTableBody');
     if (!tbody) return;
@@ -95,6 +176,9 @@
       return true;
     });
 
+    const pagInfo = document.getElementById('paginationInfoLabel');
+    const pagControls = document.getElementById('paginationControls');
+
     if (filteredOrders.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -104,15 +188,24 @@
           </td>
         </tr>
       `;
-      const pagInfo = document.getElementById('paginationInfoLabel');
       if (pagInfo) pagInfo.textContent = 'Showing 0 orders';
-      const pagControls = document.getElementById('paginationControls');
       if (pagControls) pagControls.innerHTML = '';
       refreshLucide();
       return;
     }
 
-    filteredOrders.forEach(order => {
+    const totalRows = filteredOrders.length;
+    const pageSize = STATE.rowsPerPage === 'all' ? totalRows : (parseInt(STATE.rowsPerPage, 10) || 10);
+    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+    if (STATE.currentPage > totalPages) STATE.currentPage = totalPages;
+    if (STATE.currentPage < 1) STATE.currentPage = 1;
+
+    const startIndex = (STATE.currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalRows);
+    const pagedOrders = filteredOrders.slice(startIndex, endIndex);
+
+    pagedOrders.forEach(order => {
       const balance = calculateBalance(order);
       const isSelected = order.orderNo === STATE.selectedOrderNo;
 
@@ -206,11 +299,11 @@
     });
 
     // Update pagination count text
-    const pagInfo = document.getElementById('paginationInfoLabel');
     if (pagInfo) {
-      pagInfo.textContent = `Showing 1–${filteredOrders.length} of ${STATE.orders.length} orders`;
+      pagInfo.textContent = `Showing ${startIndex + 1}–${endIndex} of ${totalRows} orders`;
     }
 
+    renderPaginationControls(totalPages, pagControls);
     refreshLucide();
   }
 
@@ -781,10 +874,9 @@
     if (!order) return;
 
     const balance = calculateBalance(order);
-    document.getElementById('remindCustomerName').value = order.customer;
-    document.getElementById('remindOutstandingVal').value = formatRupees(balance);
+    const coName = (typeof CompanyBridge !== 'undefined' ? CompanyBridge.get().companyName : null) || 'our boutique';
     document.getElementById('reminderMessageText').value = 
-      `Dear ${order.customer}, your custom ${order.garment} order (${order.orderNo}) has a pending balance of ${formatRupees(balance)} due by ${order.dueDate === '-' ? 'soon' : order.dueDate}. Please complete the payment via UPI or visit Haulo Boutique. Thank you!`;
+      `Dear ${order.customer}, your custom ${order.garment} order (${order.orderNo}) has a pending balance of ${formatRupees(balance)} due by ${order.dueDate === '-' ? 'soon' : order.dueDate}. Please complete the payment via UPI or visit ${coName}. Thank you!`;
 
     modal.classList.add('open');
     refreshLucide();
@@ -938,7 +1030,7 @@
             <td class="amount-col" style="font-weight:700;color:var(--lime,#d4ff32);">${formatRupees(t.amount)}</td>
             <td><span class="txn-method-badge">${t.method || 'CASH'}</span></td>
             <td>${t.receivedBy || 'Staff'}</td>
-            <td style="color:var(--text-muted);font-family:monospace;font-size:10px;">${t.referenceNo || '—'}</td>
+            <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:10px;">${t.referenceNo || '—'}</td>
             <td style="max-width:200px;white-space:normal;color:var(--text-secondary);font-size:11px;">${t.notes || '—'}</td>
             <td style="text-align:center;">
               <button class="btn-toolbar-tool single-txn-rcpt-btn" data-order-no="${order.orderNo}" data-txn-id="${t.id}" title="Receipt for TXN-${idx+1}" style="padding:2px 6px;height:24px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;">
@@ -1205,6 +1297,7 @@
         tabPills.forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
         STATE.activeTabFilter = pill.dataset.filter || 'all';
+        STATE.currentPage = 1;
         renderPaymentTable();
       });
     });
@@ -1214,6 +1307,18 @@
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         STATE.searchQuery = e.target.value;
+        STATE.currentPage = 1;
+        renderPaymentTable();
+      });
+    }
+
+    // 3b. Rows Per Page Selector
+    const rowsSelect = document.getElementById('rowsPerPageSelect');
+    if (rowsSelect) {
+      rowsSelect.value = String(STATE.rowsPerPage);
+      rowsSelect.addEventListener('change', (e) => {
+        STATE.rowsPerPage = e.target.value === 'all' ? 'all' : (parseInt(e.target.value, 10) || 10);
+        STATE.currentPage = 1;
         renderPaymentTable();
       });
     }
@@ -1608,7 +1713,7 @@
         window.location.href = '../login/login.html';
         return;
       }
-      const res = await api.payments.list({ page: 0, size: 100 });
+      const res = await api.payments.list({ page: 0, size: 500 });
       const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
       const realPayments = items.map(p => ({
         id: p.id,

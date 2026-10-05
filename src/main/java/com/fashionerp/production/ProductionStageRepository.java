@@ -19,4 +19,8 @@ public interface ProductionStageRepository extends JpaRepository<ProductionStage
 
     @Query("SELECT COUNT(DISTINCT ps.order.id) FROM ProductionStage ps WHERE ps.status = 'IN_PROGRESS'")
     long countOrdersInProduction();
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM ProductionStage ps WHERE UPPER(TRIM(ps.stageName)) = UPPER(TRIM(:stageName))")
+    void deleteByStageName(@org.springframework.data.repository.query.Param("stageName") String stageName);
 }

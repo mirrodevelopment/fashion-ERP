@@ -121,6 +121,15 @@ public class Trial {
     @Builder.Default
     private List<TrialAlteration> alterations = new ArrayList<>();
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @Column(name = "completed_by", length = 100)
+    private String completedBy;
+
+    @Column(name = "next_trial_date")
+    private LocalDate nextTrialDate;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -40,6 +40,9 @@ public class TrialDto {
         private String fabric;
         private String specNotes;
         private String notes;
+        private LocalDate nextTrialDate;
+        private LocalDateTime completedAt;
+        private String completedBy;
         private List<AlterationItem> alterations;
     }
 
@@ -49,10 +52,14 @@ public class TrialDto {
         private String description;
         private String category;
         private Boolean completed;
+        private String status;
         private String assignedTailor;
         private String priority;
+        @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         private LocalDate targetDate;
         private String tailorNotes;
+        private LocalDateTime completedAt;
+        private String completedBy;
     }
 
     @Getter @Setter @Builder
@@ -89,6 +96,9 @@ public class TrialDto {
         private String fabric;
         private String specNotes;
         private String notes;
+        private LocalDate nextTrialDate;
+        private LocalDateTime completedAt;
+        private String completedBy;
         private List<AlterationItem> alterations;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
@@ -101,10 +111,13 @@ public class TrialDto {
                         item.setDescription(a.getDescription());
                         item.setCategory(a.getCategory());
                         item.setCompleted(a.getCompleted());
+                        item.setStatus(a.getStatus());
                         item.setAssignedTailor(a.getAssignedTailor());
                         item.setPriority(a.getPriority());
                         item.setTargetDate(a.getTargetDate());
                         item.setTailorNotes(a.getTailorNotes());
+                        item.setCompletedAt(a.getCompletedAt());
+                        item.setCompletedBy(a.getCompletedBy());
                         return item;
                     }).collect(Collectors.toList());
 
@@ -148,6 +161,9 @@ public class TrialDto {
                     .fabric(t.getFabric())
                     .specNotes(t.getSpecNotes())
                     .notes(t.getNotes())
+                    .nextTrialDate(t.getNextTrialDate())
+                    .completedAt(t.getCompletedAt())
+                    .completedBy(t.getCompletedBy())
                     .alterations(altList)
                     .createdAt(t.getCreatedAt())
                     .updatedAt(t.getUpdatedAt())

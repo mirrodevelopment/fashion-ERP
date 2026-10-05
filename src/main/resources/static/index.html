@@ -294,7 +294,7 @@
             </div>
 
             <!-- Measurements -->
-            <div class="module-card active-card" onclick="launchModule('Measurements/measurements.html')">
+            <div class="module-card active-card" onclick="launchModule('Measurements/measurement-overview/measurement-overview.html')">
               <div class="card-top">
                 <div class="icon-wrap lime"><i data-lucide="ruler"></i></div>
                 <span class="status-pill active">Active</span>
@@ -357,6 +357,20 @@
               </div>
               <h4 class="card-name">Quality Control (QC)</h4>
               <p class="card-desc">Final seam inspection, embroidery scrutiny, measurement conformity check, and packaging sign-off.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Garments Catalog -->
+            <div class="module-card active-card" onclick="launchModule('garments/garments.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="shirt"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Garments Catalog</h4>
+              <p class="card-desc">Finished dress lifecycle, SKU barcoding, sample showroom racks, and ready-to-wear tags.</p>
               <div class="card-footer">
                 <span class="link-label">Launch Suite</span>
                 <i data-lucide="chevron-right"></i>
@@ -427,31 +441,82 @@
                 <i data-lucide="chevron-right"></i>
               </div>
             </div>
+
+            <!-- Branches -->
+            <div class="module-card active-card" onclick="launchModule('branches/branches.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="git-branch"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Multi-Branch Operations</h4>
+              <p class="card-desc">Inter-branch inventory transfers, regional showroom quotas, and unified boutique rollups.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 4. In-Progress Modules (Ambient Red Glow) -->
+        <!-- 4. Governance, Access & System Settings -->
+        <div class="category-block">
+          <div class="category-header">
+            <i data-lucide="shield-check"></i>
+            <h3>Governance, Access &amp; System Settings</h3>
+          </div>
+          <div class="module-cards-grid">
+            <!-- Users & Roles -->
+            <div class="module-card active-card" onclick="launchModule('users-roles/users-roles.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="user-cog"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Users &amp; Permissions</h4>
+              <p class="card-desc">Role-based security for Master Tailors, Sales Stylists, Accountants, and General Managers.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="module-card active-card" onclick="launchModule('settings/settings.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="settings"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">System Settings &amp; Setup</h4>
+              <p class="card-desc">Tax rates, currency formats, invoice prefixes, measurements units, and cloud backup cadence.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+
+            <!-- Company Profile -->
+            <div class="module-card active-card" onclick="launchModule('company/company.html')">
+              <div class="card-top">
+                <div class="icon-wrap lime"><i data-lucide="building-2"></i></div>
+                <span class="status-pill active">Active</span>
+              </div>
+              <h4 class="card-name">Company Profile</h4>
+              <p class="card-desc">Legal entity registration, GSTIN/PAN credentials, branding logos, and contact information.</p>
+              <div class="card-footer">
+                <span class="link-label">Launch Suite</span>
+                <i data-lucide="chevron-right"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. In-Progress Modules (Ambient Red Glow) -->
         <div class="category-block">
           <div class="category-header">
             <i data-lucide="hammer" style="color:#ef4444;"></i>
             <h3>Planned Modules &amp; In-Progress Features</h3>
-            <span class="wip-count-badge">11 Modules In Development</span>
+            <span class="wip-count-badge">7 Modules In Development</span>
           </div>
           <div class="module-cards-grid">
-            <!-- Garments -->
-            <div class="module-card uncompleted-card" onclick="showWipToast('Garments')">
-              <div class="card-top">
-                <div class="icon-wrap red"><i data-lucide="shirt"></i></div>
-                <span class="status-pill red-glow">In Progress</span>
-              </div>
-              <h4 class="card-name">Garments Catalog</h4>
-              <p class="card-desc">Finished dress lifecycle, SKU barcoding, sample showroom racks, and ready-to-wear tags.</p>
-              <div class="card-footer">
-                <span class="wip-tag">In Development</span>
-                <i data-lucide="alert-circle"></i>
-              </div>
-            </div>
-
             <!-- Job Cards -->
             <div class="module-card uncompleted-card" onclick="showWipToast('Job Cards')">
               <div class="card-top">
@@ -544,48 +609,6 @@
               </div>
               <h4 class="card-name">Bridal &amp; Festive Campaigns</h4>
               <p class="card-desc">Seasonal trunk shows, VIP customer previews, festival discount broadcasting, and lookbook launches.</p>
-              <div class="card-footer">
-                <span class="wip-tag">In Development</span>
-                <i data-lucide="alert-circle"></i>
-              </div>
-            </div>
-
-            <!-- Branches -->
-            <div class="module-card uncompleted-card" onclick="showWipToast('Branches')">
-              <div class="card-top">
-                <div class="icon-wrap red"><i data-lucide="git-branch"></i></div>
-                <span class="status-pill red-glow">In Progress</span>
-              </div>
-              <h4 class="card-name">Multi-Branch Operations</h4>
-              <p class="card-desc">Inter-branch inventory transfers, regional showroom quotas, and unified boutique rollups.</p>
-              <div class="card-footer">
-                <span class="wip-tag">In Development</span>
-                <i data-lucide="alert-circle"></i>
-              </div>
-            </div>
-
-            <!-- Users & Roles -->
-            <div class="module-card uncompleted-card" onclick="showWipToast('Users & Roles')">
-              <div class="card-top">
-                <div class="icon-wrap red"><i data-lucide="user-cog"></i></div>
-                <span class="status-pill red-glow">In Progress</span>
-              </div>
-              <h4 class="card-name">Users &amp; Permissions</h4>
-              <p class="card-desc">Role-based security for Master Tailors, Sales Stylists, Accountants, and General Managers.</p>
-              <div class="card-footer">
-                <span class="wip-tag">In Development</span>
-                <i data-lucide="alert-circle"></i>
-              </div>
-            </div>
-
-            <!-- Settings -->
-            <div class="module-card uncompleted-card" onclick="showWipToast('Settings')">
-              <div class="card-top">
-                <div class="icon-wrap red"><i data-lucide="settings"></i></div>
-                <span class="status-pill red-glow">In Progress</span>
-              </div>
-              <h4 class="card-name">System Settings &amp; Setup</h4>
-              <p class="card-desc">Tax rates, currency formats, invoice prefixes, measurements units, and cloud backup cadence.</p>
               <div class="card-footer">
                 <span class="wip-tag">In Development</span>
                 <i data-lucide="alert-circle"></i>

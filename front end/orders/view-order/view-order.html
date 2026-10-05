@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>View Order — Haulo Boutique ERP</title>
-
-  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title data-brand-title="View Order">View Order</title>
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -16,7 +13,7 @@
   <!-- Base ERP Stylesheets -->
   <link rel="stylesheet" href="../../fragments/fragments.css" />
   <link rel="stylesheet" href="../../fragments/nav.css" />
-  <link rel="stylesheet" href="view-order.css?v=3.7" />
+  <link rel="stylesheet" href="view-order.css?v=3.9" />
   <link rel="stylesheet" href="../../payments/payment-bridge.css" />
 
   <!-- Navigation & Fragment Base Configuration (2 levels deep) -->
@@ -290,7 +287,7 @@
               <!-- Mannequin / Measurement Diagram Display -->
               <div class="meas-diagram-layout">
                 <div class="mannequin-visual-container" id="mannequinVisualContainer">
-                  <img id="measMannequinImg" src="../../assets/mannequin-duo.jpg" alt="Dressform Mannequin" class="mannequin-render-bg" onerror="this.src='../../assets/designs/blouse-stage.png';" />
+                  <img id="measMannequinImg" src="../../assets/mannequin-duo.jpg" alt="Dressform Mannequin" class="mannequin-render-bg" onerror="this.onerror=null; this.style.opacity='0.15';" />
                   
                   <!-- SVG Indicator Overlay -->
                   <svg class="meas-svg-overlay" id="measSvgOverlay" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet">
@@ -490,8 +487,8 @@
         <div class="job-card-print-layout">
           <div class="jc-header">
             <div>
-              <div class="jc-brand">HAULO BOUTIQUE ERP</div>
-              <div class="jc-sub">Haulo Designs — Main Atelier Branch</div>
+              <div class="jc-brand" data-company="nameUpper">—</div>
+              <div class="jc-sub" data-company="branchTitle">—</div>
             </div>
             <div class="jc-barcode-box">
               <div class="jc-order-num" id="jcOrderNum">—</div>
@@ -735,43 +732,154 @@
        MODAL: CONFIRM ORDER CANCELLATION
        ===================================================== -->
   <div class="modal-backdrop" id="cancelOrderModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;">
-    <div class="modal-card" style="background:#13151b;border:1px solid rgba(239,68,68,0.3);box-shadow:0 20px 45px rgba(0,0,0,0.6),0 0 25px rgba(239,68,68,0.15);border-radius:16px;max-width:440px;width:90%;overflow:hidden;">
-      <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.08);">
-        <div class="modal-title-wrap" style="display:flex;align-items:center;gap:10px;">
-          <div style="width:34px;height:34px;border-radius:10px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;">
+    <div class="cancel-modal-card">
+
+      <!-- Header -->
+      <div class="cancel-modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="cancel-icon-wrap">
             <i data-lucide="alert-octagon" style="width:18px;height:18px;color:#ef4444;"></i>
           </div>
-          <h3 class="modal-title" style="margin:0;font-size:16px;font-weight:700;color:#f87171;">Cancel Order</h3>
+          <h3 class="cancel-modal-title">Cancel Order &amp; Settle Refund</h3>
         </div>
-        <button type="button" class="modal-close-btn" onclick="closeCancelOrderModal()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;">&times;</button>
+        <button type="button" onclick="closeCancelOrderModal()" class="cancel-modal-close">&times;</button>
       </div>
-      <div class="modal-body" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
-        <div style="font-size:13.5px;line-height:1.5;color:#e2e8f0;">
-          Are you sure you want to cancel order <span id="cancelModalOrderCode" style="background:rgba(239,68,68,0.15);color:#fca5a5;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:700;font-size:13px;border:1px solid rgba(239,68,68,0.3);">—</span>?
+
+      <!-- Scrollable body -->
+      <div class="cancel-modal-body">
+
+        <!-- Confirm line -->
+        <div class="cancel-confirm-text">
+          Cancel order <span id="cancelModalOrderCode" class="cancel-order-code-pill">—</span>?
+          All production will be frozen and locked.
         </div>
-        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);border-radius:10px;padding:12px 14px;font-size:12px;color:#fca5a5;line-height:1.5;">
-          <strong>Production Warning:</strong> This action will halt all production workflow, lock stage progression, and persist the <strong>CANCELLED</strong> status to PostgreSQL.
+
+        <!-- Production warning -->
+        <div class="cancel-warn-box">
+          <strong>Production Warning:</strong> This halts the workflow, locks stage progression, and persists <strong>CANCELLED</strong> to the database.
         </div>
-        <div class="form-group" style="display:flex;flex-direction:column;gap:6px;">
-          <label style="font-size:11.5px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Cancellation Reason</label>
-          <select id="cancelReasonSelect" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#fff;font-size:13px;outline:none;">
-            <option value="Client Cancellation Request" style="background:#1a1d24;color:#fff;">Client Cancellation Request</option>
-            <option value="Change of Design / Specifications" style="background:#1a1d24;color:#fff;">Change of Design / Specifications</option>
-            <option value="Fabric / Trims Out of Stock" style="background:#1a1d24;color:#fff;">Fabric / Trims Out of Stock</option>
-            <option value="Measurement Revision Needed" style="background:#1a1d24;color:#fff;">Measurement Revision Needed</option>
-            <option value="Delivery Timeline Conflict" style="background:#1a1d24;color:#fff;">Delivery Timeline Conflict</option>
-            <option value="Duplicate Order Entry" style="background:#1a1d24;color:#fff;">Duplicate Order Entry</option>
-            <option value="Other / Boutique Discretion" style="background:#1a1d24;color:#fff;">Other / Boutique Discretion</option>
+
+        <!-- ═══════════════════════════════════════════
+             SECTION 1 — PAYMENT SUMMARY
+             ═══════════════════════════════════════════ -->
+        <div class="cancel-section-label">
+          <i data-lucide="landmark" style="width:12px;height:12px;"></i>
+          Payment Summary
+        </div>
+        <div class="cancel-pay-grid">
+          <div class="cancel-pay-row">
+            <span class="cancel-pay-key">Order Value</span>
+            <span class="cancel-pay-val" id="cmOrderValue">₹ 0</span>
+          </div>
+          <div class="cancel-pay-row">
+            <span class="cancel-pay-key">Total Advance Received</span>
+            <span class="cancel-pay-val cancel-val-green" id="cmPaidAmount">₹ 0</span>
+          </div>
+          <div class="cancel-pay-row" id="cmTxCountRow" style="display:none;">
+            <span class="cancel-pay-key cancel-sub-key">Payment Transactions</span>
+            <span class="cancel-pay-val cancel-sub-val" id="cmTxCount">—</span>
+          </div>
+          <div class="cancel-pay-row cancel-pay-divider">
+            <span class="cancel-pay-key">Balance Still Due from Client</span>
+            <span class="cancel-pay-val cancel-val-amber" id="cmBalanceAmount">₹ 0</span>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             SECTION 2 — REFUND SETTLEMENT
+             ═══════════════════════════════════════════ -->
+        <div class="cancel-section-label" style="margin-top:4px;">
+          <i data-lucide="undo-2" style="width:12px;height:12px;"></i>
+          Refund Settlement
+        </div>
+
+        <!-- Refund Policy -->
+        <div class="cancel-field-group">
+          <label class="cancel-field-label">Refund Policy</label>
+          <select id="cancelRefundPolicy" class="cancel-select" onchange="handleCancelRefundPolicyChange()">
+            <option value="full">Full Refund — Return entire advance to client</option>
+            <option value="partial25">Partial Refund — Deduct 25% (early-stage work done)</option>
+            <option value="partial50">Partial Refund — Deduct 50% (mid-stage work done)</option>
+            <option value="norefund">No Refund — Work already completed</option>
+            <option value="custom">Custom — Enter amount manually</option>
           </select>
         </div>
-      </div>
-      <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.2);">
-        <button type="button" class="btn-ghost" onclick="closeCancelOrderModal()" style="padding:9px 16px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;font-size:13px;font-weight:600;cursor:pointer;">Keep Order</button>
-        <button type="button" class="btn-primary-action" id="btnConfirmCancelOrder" onclick="submitConfirmCancelOrder()" style="padding:9px 18px;border-radius:8px;background:#ef4444;border:1px solid #dc2626;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(239,68,68,0.35);">
-          <i data-lucide="x-circle" style="width:14px;height:14px;"></i>Confirm Cancellation
+
+        <!-- Deduction input -->
+        <div class="cancel-field-group">
+          <label class="cancel-field-label">
+            Cancellation Fee / Deduction
+            <span class="cancel-field-hint">(fabric cost, work done, etc.)</span>
+          </label>
+          <div class="cancel-rupee-input-wrap">
+            <span class="cancel-rupee-prefix">₹</span>
+            <input type="number" id="cancelDeductionInput" class="cancel-input" min="0" step="1"
+              placeholder="0" oninput="recalcCancelRefund()" />
+          </div>
+        </div>
+
+        <!-- Live refund result box -->
+        <div class="cancel-refund-result" id="cancelRefundResultBox">
+          <div class="cancel-refund-label">Refund to Client</div>
+          <div class="cancel-refund-row">
+            <span class="cancel-refund-amount" id="cancelRefundAmount">₹ 0</span>
+            <span class="cancel-refund-formula" id="cancelRefundFormula">= Advance ₹0 − Deduction ₹0</span>
+          </div>
+        </div>
+
+        <!-- Refund Method -->
+        <div class="cancel-field-group">
+          <label class="cancel-field-label">Refund Method</label>
+          <select id="cancelRefundMethod" class="cancel-select">
+            <option value="CASH">Cash (In Hand)</option>
+            <option value="UPI">UPI Transfer</option>
+            <option value="BANK_TRANSFER">Bank Transfer / NEFT / IMPS</option>
+            <option value="STORE_CREDIT">Store Credit / Voucher</option>
+            <option value="NA">N/A — No Refund Applicable</option>
+          </select>
+        </div>
+
+        <!-- Reference note -->
+        <div class="cancel-field-group">
+          <label class="cancel-field-label">
+            Refund Reference / Note
+            <span class="cancel-field-hint">(UPI ref, transaction ID, or any note)</span>
+          </label>
+          <input type="text" id="cancelRefundRef" class="cancel-input"
+            placeholder="e.g. UPI-TXN-987654 or 'Cash returned to Ananya'" maxlength="140" />
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             SECTION 3 — CANCELLATION REASON
+             ═══════════════════════════════════════════ -->
+        <div class="cancel-section-label" style="margin-top:4px;">
+          <i data-lucide="message-square-x" style="width:12px;height:12px;"></i>
+          Cancellation Reason
+        </div>
+        <div class="cancel-field-group">
+          <select id="cancelReasonSelect" class="cancel-select">
+            <option value="Client Cancellation Request">Client Cancellation Request</option>
+            <option value="Change of Design / Specifications">Change of Design / Specifications</option>
+            <option value="Fabric / Trims Out of Stock">Fabric / Trims Out of Stock</option>
+            <option value="Measurement Revision Needed">Measurement Revision Needed</option>
+            <option value="Delivery Timeline Conflict">Delivery Timeline Conflict</option>
+            <option value="Duplicate Order Entry">Duplicate Order Entry</option>
+            <option value="Other / Boutique Discretion">Other / Boutique Discretion</option>
+          </select>
+        </div>
+
+      </div><!-- /.cancel-modal-body -->
+
+      <!-- Footer -->
+      <div class="cancel-modal-footer">
+        <button type="button" onclick="closeCancelOrderModal()" class="cancel-btn-keep">Keep Order</button>
+        <button type="button" id="btnConfirmCancelOrder" onclick="submitConfirmCancelOrder()" class="cancel-btn-confirm">
+          <i data-lucide="x-circle" style="width:14px;height:14px;"></i>
+          Confirm Cancellation
         </button>
       </div>
-    </div>
+
+    </div><!-- /.cancel-modal-card -->
   </div>
 
   <!-- Toast Container -->
@@ -781,9 +889,10 @@
   <script type="module" src="../../api.js"></script>
 
   <!-- Page Logic Script -->
-  <script src="view-order.js?v=3.7"></script>
+  <script src="view-order.js?v=3.9"></script>
 
   <!-- Fragments Initialization -->
+  <script src="../../fragments/company-bridge.js"></script>
   <script src="../../fragments/fragments-inline.js"></script>
   <script src="../../fragments/fragments.js"></script>
 </body>

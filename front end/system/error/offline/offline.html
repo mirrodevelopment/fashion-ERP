@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Offline — Connection Lost">Offline — Connection Lost</title>
+  <meta name="description" content="You are currently offline. We can't connect to the server right now. Your work is protected locally." />
+  <link rel="icon" type="image/x-icon" href="../../../favicon.ico" />
+  <link rel="stylesheet" href="offline.css" />
+</head>
+<body>
+
+  <div class="offline-page-wrapper">
+
+    <!-- Atmospheric Ambient Glowing Background -->
+    <div class="ambient-bg" aria-hidden="true">
+      <div class="glow-orb glow-orb-lime-top-left"></div>
+      <div class="glow-orb glow-orb-center"></div>
+      <div class="glow-orb glow-orb-violet-top-right"></div>
+      <div class="glow-orb glow-orb-lime-bottom-left"></div>
+      <div class="glow-orb glow-orb-violet-bottom-right"></div>
+
+      <!-- Specular Orbital Rings -->
+      <div class="glass-ring glass-ring-left"></div>
+      <div class="glass-ring glass-ring-right"></div>
+    </div>
+
+    <!-- Top Header -->
+    <header class="offline-header">
+      <!-- Brand Logo -->
+      <a href="../../../dashboard/dashboard.html" class="brand-badge" id="brandLink">
+        <span class="brand-logo-mark-wrap" data-brand="logoMarkLime">
+          <svg viewBox="0 0 24 24" fill="none" class="brand-logo-h" aria-label="Brand Logo">
+            <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+            <circle cx="6" cy="18.5" r="2.5" fill="#a3e635"/>
+            <circle cx="18" cy="5.5" r="2.5" fill="#a3e635"/>
+            <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
+          </svg>
+        </span>
+        <div class="brand-text-block">
+          <span class="brand-title" data-brand="shortName"></span>
+          <span class="brand-subtitle" data-brand="systemSub"></span>
+        </div>
+      </a>
+
+      <!-- Right Header Tagline -->
+      <div class="header-tagline-block">
+        <span class="header-tagline-title">Smart Fashion Businesses</span>
+        <span class="header-tagline-sub">Never Stop Growing</span>
+        <div class="header-tagline-dash"></div>
+      </div>
+    </header>
+
+    <!-- Left Side Vertical Category List Watermark -->
+    <aside class="left-vertical-menu" aria-hidden="true">
+      <div class="left-menu-dash"></div>
+      <div class="left-menu-items">
+        <span class="left-menu-item">PEOPLE</span>
+        <span class="left-menu-item">DESIGNS</span>
+        <span class="left-menu-item">MEASUREMENTS</span>
+        <span class="left-menu-item">ORDERS</span>
+        <span class="left-menu-item">DELIVERIES</span>
+        <span class="left-menu-item">&amp; BEYOND</span>
+      </div>
+    </aside>
+
+    <!-- Right Side Elegant Cursive Watermark -->
+    <div class="right-cursive-badge" aria-hidden="true">
+      <div class="cursive-text">
+        Still<br />
+        with you<br />
+        Always.
+      </div>
+      <svg class="cursive-heart" viewBox="0 0 24 24" aria-label="Heart icon">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    </div>
+
+    <!-- Central Showcase Glassmorphism Stage -->
+    <main class="offline-main-stage">
+      <div class="offline-card" role="region" aria-label="Offline Status Panel">
+
+        <!-- Slashed Wi-Fi Glowing Orb Badge -->
+        <div class="wifi-orb-wrapper">
+          <div class="wifi-orb-outer-ring"></div>
+          <div class="wifi-orb-pulse-ring"></div>
+
+          <div class="wifi-orb-core">
+            <!-- Slashed Wi-Fi SVG Icon -->
+            <svg viewBox="0 0 24 24" class="wifi-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="2" y1="2" x2="22" y2="22" stroke-width="2.5"></line>
+              <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+              <path d="M5 12.5a10 10 0 0 1 5.3-2.6"></path>
+              <path d="M19 12.5a10 10 0 0 0-2.3-1.6"></path>
+              <path d="M2 8.5a15 15 0 0 1 8.5-2.4"></path>
+              <path d="M22 8.5a15 15 0 0 0-5.5-2"></path>
+              <circle cx="12" cy="20" r="1" fill="currentColor"></circle>
+            </svg>
+          </div>
+
+          <!-- Subtle Glowing Particle Dots -->
+          <div class="orb-particle particle-1"></div>
+          <div class="orb-particle particle-2"></div>
+          <div class="orb-particle particle-3"></div>
+          <div class="orb-particle particle-4"></div>
+        </div>
+
+        <!-- Headline & Subtitle -->
+        <h1 class="offline-headline">You’re currently offline</h1>
+        <p class="offline-subtitle">
+          We can’t connect to the <span data-brand="shortName"></span> server right now.<br />
+          Please check your internet connection and try again.
+        </p>
+
+        <!-- 4-Column Diagnostic Status Strip -->
+        <div class="status-indicators-strip" aria-label="System Connectivity Diagnostics">
+          
+          <!-- Column 1: Internet Connection -->
+          <div class="status-col" id="colInternet">
+            <svg viewBox="0 0 24 24" class="status-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+            <div class="status-label-row">
+              <span class="status-dot dot-coral" id="dotInternet"></span>
+              <span class="status-name">Internet Connection</span>
+            </div>
+            <span class="status-state-value state-coral" id="valInternet">Offline</span>
+          </div>
+
+          <!-- Column 2: Atelier Server -->
+          <div class="status-col" id="colServer">
+            <svg viewBox="0 0 24 24" class="status-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+            <div class="status-label-row">
+              <span class="status-dot dot-coral" id="dotServer"></span>
+              <span class="status-name"><span data-brand="shortName"></span> Server</span>
+            </div>
+            <span class="status-state-value state-coral" id="valServer">Unreachable</span>
+          </div>
+
+          <!-- Column 3: Local Application -->
+          <div class="status-col" id="colApp">
+            <svg viewBox="0 0 24 24" class="status-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="12" rx="2"></rect>
+              <line x1="2" y1="20" x2="22" y2="20"></line>
+            </svg>
+            <div class="status-label-row">
+              <span class="status-dot dot-emerald" id="dotApp"></span>
+              <span class="status-name">Local Application</span>
+            </div>
+            <span class="status-state-value state-emerald" id="valApp">Available</span>
+          </div>
+
+          <!-- Column 4: Data Sync -->
+          <div class="status-col" id="colSync">
+            <svg viewBox="0 0 24 24" class="status-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6"></path>
+              <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+            <div class="status-label-row">
+              <span class="status-dot dot-amber" id="dotSync"></span>
+              <span class="status-name">Data Sync</span>
+            </div>
+            <span class="status-state-value state-amber" id="valSync">Waiting</span>
+          </div>
+
+        </div>
+
+        <!-- Primary Action Button: Retry Connection -->
+        <button type="button" class="btn-retry-connection" id="btnRetry">
+          <svg viewBox="0 0 24 24" class="retry-icon-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span id="btnRetryText">Retry Connection</span>
+          <svg viewBox="0 0 24 24" class="retry-arrow-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+
+        <!-- Auto-Reconnect Indicator Bar -->
+        <div class="auto-reconnect-bar" id="autoReconnectBar">
+          <div class="reconnect-spinner-circle" aria-hidden="true"></div>
+          <div class="reconnect-text-block">
+            <div class="reconnect-status-text" id="reconnectStatusTitle">Trying to reconnect...</div>
+            <div class="reconnect-sub-text" id="reconnectStatusSub">We'll keep checking automatically.</div>
+          </div>
+        </div>
+
+        <!-- "Your work is protected" Banner Card -->
+        <div class="protection-card">
+          <div class="protection-shield-badge">
+            <svg viewBox="0 0 24 24" class="protection-shield-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <polyline points="9 12 11 14 15 10"></polyline>
+            </svg>
+          </div>
+          <div class="protection-text-wrap">
+            <div class="protection-title">Your work is protected</div>
+            <div class="protection-desc">
+              Your locally available data remains safe. <span data-brand="shortName"></span> will resume synchronization automatically when the connection is restored.
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics Row: Last connected & Last synchronized -->
+        <div class="metrics-row">
+          
+          <!-- Metric 1: Last connected -->
+          <div class="metric-card">
+            <div class="metric-icon-wrap">
+              <svg viewBox="0 0 24 24" class="metric-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="metric-info">
+              <div class="metric-label">Last connected</div>
+              <div class="metric-value" id="lastConnectedVal">08 Sep 2026, 01:34 PM</div>
+            </div>
+          </div>
+
+          <!-- Metric 2: Last synchronized -->
+          <div class="metric-card">
+            <div class="metric-icon-wrap">
+              <svg viewBox="0 0 24 24" class="metric-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+              </svg>
+            </div>
+            <div class="metric-info">
+              <div class="metric-label">Last synchronized</div>
+              <div class="metric-value" id="lastSyncVal">08 Sep 2026, 01:32 PM</div>
+              <div class="metric-sub-stats" id="lastSyncStats">1,248 customers • 3,862 measurements • 48 orders</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Troubleshooting Collapsible Accordion -->
+        <div class="troubleshooting-card" id="troubleshootingCard">
+          <button type="button" class="troubleshooting-header-btn" id="troubleToggleBtn" aria-expanded="false" aria-controls="troubleContent">
+            <div class="trouble-icon-wrap">
+              <svg viewBox="0 0 24 24" class="trouble-icon-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="trouble-text-wrap">
+              <div class="trouble-title">Troubleshooting</div>
+              <div class="trouble-sub">Steps to resolve the connection issue</div>
+            </div>
+            <svg viewBox="0 0 24 24" class="trouble-chevron-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <div class="troubleshooting-content" id="troubleContent">
+            <div class="trouble-steps-list">
+              <div class="trouble-step-item">
+                <span class="trouble-step-num">1</span>
+                <div><strong>Check Physical Connection:</strong> Ensure your Wi-Fi is active or your Ethernet network cable is securely plugged in.</div>
+              </div>
+              <div class="trouble-step-item">
+                <span class="trouble-step-num">2</span>
+                <div><strong>Verify Gateway:</strong> Check if your office router or boutique access point has an active WAN internet connection.</div>
+              </div>
+              <div class="trouble-step-item">
+                <span class="trouble-step-num">3</span>
+                <div><strong><span data-brand="shortName"></span> Local Server Check:</strong> If operating on-premise, verify that the backend application service is active on <code>http://localhost:8080</code>.</div>
+              </div>
+              <div class="trouble-step-item">
+                <span class="trouble-step-num">4</span>
+                <div><strong>Firewall &amp; VPN:</strong> Verify that local proxy filters or corporate VPN policies are not restricting communication with the <span data-brand="shortName"></span> database endpoints.</div>
+              </div>
+              <div class="trouble-step-item">
+                <span class="trouble-step-num">5</span>
+                <div><strong>Manual Refresh:</strong> Once network connectivity is restored, click the <strong>Retry Connection</strong> button above.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Bottom Footer Area -->
+    <footer class="offline-footer">
+      
+      <!-- Bottom Left Brand Tagline -->
+      <div class="footer-left-block">
+        <div class="footer-left-dash"></div>
+        <span class="footer-left-text" data-brand="slogan">FASHION RUNS BETTER TOGETHER</span>
+      </div>
+
+      <!-- Bottom Center Brand Details -->
+      <div class="footer-center-block">
+        <span class="footer-center-title" data-brand="systemName"></span>
+        <span class="footer-center-sub" data-brand="subTagline"></span>
+        <div class="footer-center-dash"></div>
+      </div>
+
+      <!-- Bottom Right Contact Support Pill Button -->
+      <button type="button" class="btn-support-pill" id="btnContactSupport" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" class="support-headset-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+        </svg>
+        <div class="support-pill-text">
+          <span class="support-pill-label">Need Help?</span>
+          <span class="support-pill-action">Contact Support</span>
+        </div>
+        <svg viewBox="0 0 24 24" class="support-chevron-svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+    </footer>
+
+  </div>
+
+  <!-- Contact Support Modal Dialog -->
+  <div class="support-modal-backdrop" id="supportModal" role="dialog" aria-modal="true" aria-label="Support Options">
+    <div class="support-modal-card">
+      <div class="modal-header-row">
+        <h2 class="modal-title"><span data-brand="shortName"></span> Support</h2>
+        <button type="button" class="modal-close-btn" id="closeSupportModal" aria-label="Close Modal">&times;</button>
+      </div>
+      <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+        Our boutique IT &amp; infrastructure engineering team is ready to assist you. Contact us directly or export diagnostic telemetry for fast troubleshooting.
+      </p>
+
+      <div class="support-channels-list">
+        <a href="#" class="support-channel-item" data-brand-href="phone">
+          <svg viewBox="0 0 24 24" class="channel-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">24/7 Boutique Emergency Hotline</div>
+            <div class="channel-val" data-brand="phone"></div>
+          </div>
+        </a>
+
+        <a href="#" class="support-channel-item" data-brand-href="supportEmail">
+          <svg viewBox="0 0 24 24" class="channel-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <div class="channel-info">
+            <div class="channel-name">ERP Engineering Desk</div>
+            <div class="channel-val" data-brand="supportEmail"></div>
+          </div>
+        </a>
+      </div>
+
+      <button type="button" class="btn-copy-diagnostics" id="btnCopyDiag">
+        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span>Copy Diagnostic System Info</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Notice -->
+  <div class="toast-notice" id="toastNotice" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; color: var(--neon-lime);" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastNoticeMsg">Diagnostic info copied to clipboard!</span>
+  </div>
+
+  <!-- Central Brand Identity & Universal Hydrator -->
+  <script src="../../../fragments/brand-identity/brand-identity.js"></script>
+  <!-- Brand & Universal Sync Bridge -->
+  <script src="../../../fragments/company-bridge.js"></script>
+  <script src="offline.js"></script>
+</body>
+</html>

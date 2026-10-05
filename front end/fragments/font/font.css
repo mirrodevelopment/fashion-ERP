@@ -1,0 +1,158 @@
+/* =======================================================================
+   HAULO BOUTIQUE ERP — Centralized Typography & Font Design System
+   Path: front end/fragments/font/font.css
+   Single source of truth for all boutique typography across the entire ERP.
+   Consolidates all 7 fonts: Playfair Display, Plus Jakarta Sans, Inter,
+   Outfit, Cormorant Garamond, Caveat, and JetBrains Mono.
+   ======================================================================= */
+
+/* ── 1. Unified Google Fonts Import (HTTP/2 Multiplexed with Swap Display) ── */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,600&display=swap');
+
+/* ── 2. Master Typography Design Tokens (:root) ── */
+:root {
+  /* ── Font Family Stacks ── */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
+  --font-body: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --font-fashion: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-editorial: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-handwritten: 'Caveat', cursive, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+
+  /* Backward-Compatibility Aliases */
+  --font-main: var(--font-body);
+  --nav-font: var(--font-sans);
+
+  /* ── Typographic Scale ── */
+  --text-2xs: 0.6875rem; /* 11px */
+  --text-xs:  0.75rem;   /* 12px */
+  --text-sm:  0.84375rem;/* 13.5px */
+  --text-base: 0.9375rem;/* 15px */
+  --text-md:  1.0625rem; /* 17px */
+  --text-lg:  1.25rem;   /* 20px */
+  --text-xl:  1.5rem;    /* 24px */
+  --text-2xl: 2rem;      /* 32px */
+  --text-3xl: 2.75rem;   /* 44px */
+  --text-4xl: 4rem;      /* 64px */
+
+  /* ── Letter Spacing (Tracking) ── */
+  --tracking-tighter: -0.03em;
+  --tracking-tight:   -0.015em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.04em;
+  --tracking-wider:    0.10em;
+  --tracking-widest:   0.20em;
+  --tracking-brand:    0.28em;
+
+  /* ── Font Weights ── */
+  --font-light:     300;
+  --font-regular:   400;
+  --font-medium:    500;
+  --font-semibold:  600;
+  --font-bold:      700;
+  --font-extrabold: 800;
+
+  /* ── Line Heights (Leading) ── */
+  --leading-none:     1;
+  --leading-tight:    1.2;
+  --leading-snug:     1.375;
+  --leading-normal:   1.5;
+  --leading-relaxed:  1.625;
+  --leading-loose:    1.8;
+}
+
+/* ── 3. Reusable Font Utility Classes ── */
+.font-sans {
+  font-family: var(--font-sans) !important;
+}
+
+.font-serif {
+  font-family: var(--font-serif) !important;
+}
+
+.font-body {
+  font-family: var(--font-body) !important;
+}
+
+.font-display {
+  font-family: var(--font-display) !important;
+}
+
+.font-fashion {
+  font-family: var(--font-fashion) !important;
+}
+
+.font-editorial {
+  font-family: var(--font-editorial) !important;
+}
+
+.font-handwritten {
+  font-family: var(--font-handwritten) !important;
+  font-size: 1.15em;
+  line-height: 1.25;
+}
+
+.font-mono {
+  font-family: var(--font-mono) !important;
+  letter-spacing: -0.02em;
+}
+
+/* ── Tabular / Numeric Alignment for Invoices, SKUs & Financials ── */
+.tabular-numbers,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ── Luxury Editorial Headings ── */
+.h1-luxury {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+.h2-luxury {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-snug);
+}
+
+.h3-luxury {
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-normal);
+  line-height: var(--leading-snug);
+}
+
+/* ── Tracked Eyebrow / Badges ── */
+.eyebrow-tag {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+}
+
+/* ── Standardized Luxury Gold Gradient Text ── */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #edd193 42%, #dfb76c 78%, #c99e52 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+}
+
+/* ── Tailor Note Script Pill ── */
+.tailor-signature {
+  font-family: var(--font-handwritten);
+  font-size: 1.25rem;
+  color: #dfb76c;
+}

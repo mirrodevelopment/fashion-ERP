@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Set Up Your Boutique — Haulo ERP</title>
+  <meta name="description" content="Configure your boutique details to start using Haulo ERP." />
+  <link rel="stylesheet" href="setup.css" />
+</head>
+<body>
+
+  <!-- Atmospheric Background -->
+  <div class="bg-atmosphere" aria-hidden="true">
+    <div class="glow-orb glow-lime-tl"></div>
+    <div class="glow-orb glow-blue-tr"></div>
+    <div class="glow-orb glow-em-mid"></div>
+    <div class="glow-orb glow-purple-br"></div>
+  </div>
+
+  <div class="setup-page-wrapper">
+
+    <!-- Header -->
+    <header class="setup-header">
+      <a href="#" class="setup-brand" aria-label="Haulo ERP">
+        <svg viewBox="0 0 36 36" fill="none" width="34" height="34" aria-hidden="true">
+          <rect x="3.5" y="3.5" width="8" height="29" rx="4" fill="#B7FF3C"/>
+          <rect x="24.5" y="3.5" width="8" height="29" rx="4" fill="#B7FF3C"/>
+          <rect x="7" y="14" width="22" height="8" rx="4" fill="#B7FF3C"/>
+        </svg>
+        <div class="setup-brand-text">
+          <span class="setup-brand-name" id="hdr-brand-name">HAULO</span>
+          <span class="setup-brand-sub">Boutique ERP</span>
+        </div>
+      </a>
+      <span class="setup-step-counter">Step <span id="hdr-step-num">1</span> of 4</span>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="setup-progress-wrap" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" id="progressBar">
+      <div class="setup-progress-track">
+        <div class="setup-progress-fill" id="progressFill" style="width:25%"></div>
+      </div>
+      <div class="setup-step-dots">
+        <div class="setup-dot-item active" id="dot-1">
+          <div class="step-dot active" id="dot-circle-1">1</div>
+          <span class="step-dot-label">Identity</span>
+        </div>
+        <div class="setup-dot-item" id="dot-2">
+          <div class="step-dot" id="dot-circle-2">2</div>
+          <span class="step-dot-label">Contact</span>
+        </div>
+        <div class="setup-dot-item" id="dot-3">
+          <div class="step-dot" id="dot-circle-3">3</div>
+          <span class="step-dot-label">Location &amp; Tax</span>
+        </div>
+        <div class="setup-dot-item" id="dot-4">
+          <div class="step-dot" id="dot-circle-4">4</div>
+          <span class="step-dot-label">Admin Account</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard Card -->
+    <div class="setup-card" role="main">
+
+      <!-- Error Banner -->
+      <div class="setup-error-banner" id="setup-error-banner" role="alert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span id="setup-error-msg"></span>
+      </div>
+
+      <!-- ═══════════════════ STEP 1 — Boutique Identity ═══════════════════ -->
+      <div class="step-panel active" id="step-1">
+        <p class="step-eyebrow">Step 1</p>
+        <h1 class="step-title">Boutique Identity</h1>
+        <p class="step-subtitle">Tell us about your fashion business. This information appears on invoices, receipts, and across the ERP.</p>
+
+        <div class="form-grid form-grid-2">
+
+          <div class="setup-field" style="grid-column:1/-1">
+            <label class="setup-label" for="f-companyName">Business Name <span class="label-req">*</span></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+              </span>
+              <input type="text" id="f-companyName" class="setup-input" placeholder="e.g. Priya's Couture House" maxlength="150" autocomplete="organization" required />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-shortName">Short Name / Brand <span class="label-req">*</span> <small>(appears in sidebar)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              </span>
+              <input type="text" id="f-shortName" class="setup-input" placeholder="e.g. PRIYA" maxlength="60" style="text-transform:uppercase" required />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-businessType">Business Type</label>
+            <select id="f-businessType" class="setup-select">
+              <option value="Bespoke Atelier">Bespoke Atelier</option>
+              <option value="Boutique Fashion House">Boutique Fashion House</option>
+              <option value="Bridal Studio">Bridal Studio</option>
+              <option value="Tailoring Shop">Tailoring Shop</option>
+              <option value="Luxury Couture">Luxury Couture</option>
+              <option value="Fashion Design Studio">Fashion Design Studio</option>
+              <option value="Garment Manufacturer">Garment Manufacturer</option>
+              <option value="Embroidery Studio">Embroidery Studio</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="setup-field" style="grid-column:1/-1">
+            <label class="setup-label" for="f-tagline">Tagline <small>(optional)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </span>
+              <input type="text" id="f-tagline" class="setup-input" placeholder="e.g. Where tradition meets elegance" maxlength="255" />
+            </div>
+          </div>
+
+          <!-- Logo Upload -->
+          <div class="setup-field" style="grid-column:1/-1">
+            <label class="setup-label">Business Logo <small>(optional — PNG/JPG, max 2MB)</small></label>
+            <label class="logo-upload-zone" id="logo-upload-zone" for="f-logo">
+              <input type="file" id="f-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
+              <div class="logo-preview" id="logo-preview">
+                <img id="logo-preview-img" src="" alt="Logo preview" />
+              </div>
+              <div class="logo-placeholder" id="logo-placeholder">
+                <div class="logo-upload-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                </div>
+                <span class="logo-upload-label">Drag & drop or click to upload your logo</span>
+                <span class="logo-upload-hint">PNG, JPG, SVG — Max 2 MB</span>
+                <span class="logo-upload-btn">Browse File</span>
+              </div>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="setup-nav-row">
+          <div class="setup-nav-left"></div>
+          <div class="setup-nav-right">
+            <button type="button" class="btn-setup-next" id="btn-next-1" onclick="goNext(1)">
+              <span>Continue</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ STEP 2 — Contact Details ════════════════════ -->
+      <div class="step-panel" id="step-2">
+        <p class="step-eyebrow">Step 2</p>
+        <h1 class="step-title">Contact Details</h1>
+        <p class="step-subtitle">How can clients and partners reach your boutique? These appear on printed documents and invoices.</p>
+
+        <div class="form-grid form-grid-2">
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-primaryPhone">Primary Phone <span class="label-req">*</span></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.24 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 6.29 6.29l.52-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.61 16.92z"/>
+                </svg>
+              </span>
+              <input type="tel" id="f-primaryPhone" class="setup-input" placeholder="+91 98765 43210" maxlength="20" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-whatsapp">WhatsApp Number <small>(if different)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </span>
+              <input type="tel" id="f-whatsapp" class="setup-input" placeholder="+91 98765 43210" maxlength="20" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-email">Business Email <span class="label-req">*</span></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <input type="email" id="f-email" class="setup-input" placeholder="hello@yourboutique.com" maxlength="150" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-website">Website <small>(optional)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </span>
+              <input type="url" id="f-website" class="setup-input" placeholder="https://yourboutique.com" maxlength="255" />
+            </div>
+          </div>
+
+        </div>
+
+        <div class="setup-nav-row">
+          <div class="setup-nav-left">
+            <button type="button" class="btn-setup-back" onclick="goBack(2)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+            <button type="button" class="btn-setup-skip" id="btn-skip-2" onclick="skipTo(3)">Skip</button>
+          </div>
+          <div class="setup-nav-right">
+            <button type="button" class="btn-setup-next" onclick="goNext(2)">
+              <span>Continue</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ STEP 3 — Location & Tax ═══════════════════ -->
+      <div class="step-panel" id="step-3">
+        <p class="step-eyebrow">Step 3</p>
+        <h1 class="step-title">Location &amp; Tax</h1>
+        <p class="step-subtitle">Your boutique address and tax details appear on customer invoices and receipts. Skip if not applicable.</p>
+
+        <div class="form-grid form-grid-2">
+
+          <div class="setup-field" style="grid-column:1/-1">
+            <label class="setup-label" for="f-streetAddress">Street Address</label>
+            <textarea id="f-streetAddress" class="setup-textarea" placeholder="e.g. 12, Gandhi Nagar, 1st Floor" rows="2" maxlength="255"></textarea>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-city">City</label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+              </span>
+              <input type="text" id="f-city" class="setup-input" placeholder="e.g. Coimbatore" maxlength="100" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-state">State</label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                </svg>
+              </span>
+              <input type="text" id="f-state" class="setup-input" placeholder="e.g. Tamil Nadu" maxlength="100" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-pinCode">PIN / ZIP Code</label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+              </span>
+              <input type="text" id="f-pinCode" class="setup-input" placeholder="e.g. 641001" maxlength="10" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-country">Country</label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                </svg>
+              </span>
+              <input type="text" id="f-country" class="setup-input" placeholder="India" maxlength="100" value="India" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-gstin">GSTIN <small>(optional)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+              </span>
+              <input type="text" id="f-gstin" class="setup-input" placeholder="e.g. 33AADCK7190K1ZV" maxlength="20" style="text-transform:uppercase;letter-spacing:0.05em" />
+            </div>
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label" for="f-panNumber">PAN Number <small>(optional)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </span>
+              <input type="text" id="f-panNumber" class="setup-input" placeholder="e.g. AADCK7190K" maxlength="15" style="text-transform:uppercase;letter-spacing:0.05em" />
+            </div>
+          </div>
+
+        </div>
+
+        <div class="setup-nav-row">
+          <div class="setup-nav-left">
+            <button type="button" class="btn-setup-back" onclick="goBack(3)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+            <button type="button" class="btn-setup-skip" id="btn-skip-3" onclick="skipTo(4)">Skip to Account</button>
+          </div>
+          <div class="setup-nav-right">
+            <button type="button" class="btn-setup-next" onclick="goNext(3)">
+              <span>Continue</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ STEP 4 — Administrator Account ════════════════════════ -->
+      <div class="step-panel" id="step-4">
+        <p class="step-eyebrow">Step 4</p>
+        <h1 class="step-title">Administrator Account</h1>
+        <p class="step-subtitle">Create your owner-admin account to securely manage your ERP, staff, and operations.</p>
+
+        <!-- Shown if user is already authenticated -->
+        <div id="already-logged-in-box" style="display:none;background:rgba(183,255,60,0.06);border:1px solid rgba(183,255,60,0.22);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:8px;color:#B7FF3C;font-weight:700;font-size:0.9rem;margin-bottom:6px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>Authenticated Administrator</span>
+          </div>
+          <p style="color:rgba(255,255,255,0.7);font-size:0.84rem;line-height:1.45;margin:0;">
+            You are currently signed in as <strong id="logged-in-admin-user" style="color:#fff"></strong>. Your account will automatically be linked as the boutique owner.
+          </p>
+        </div>
+
+        <!-- Account Credentials Form Grid -->
+        <div id="admin-account-form-grid" class="form-grid form-grid-2">
+
+          <!-- Full Name -->
+          <div class="setup-field" style="grid-column:1/-1">
+            <label class="setup-label" for="f-adminFullName">Your Full Name <span class="label-req">*</span></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </span>
+              <input type="text" id="f-adminFullName" class="setup-input" placeholder="e.g. Priya Sharma" autocomplete="name" required />
+            </div>
+          </div>
+
+          <!-- Username / Email -->
+          <div class="setup-field">
+            <label class="setup-label" for="f-adminUsername">Username / Login ID <span class="label-req">*</span></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <input type="text" id="f-adminUsername" class="setup-input" placeholder="Choose a username or email" autocomplete="username" spellcheck="false" required />
+            </div>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="setup-field">
+            <label class="setup-label" for="f-adminPhone">Phone Number <small>(optional)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.24 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 6.29 6.29l.52-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.61 16.92z"/>
+                </svg>
+              </span>
+              <input type="tel" id="f-adminPhone" class="setup-input" placeholder="e.g. +91 98765 43210" autocomplete="tel" />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="setup-field">
+            <label class="setup-label" for="f-adminPassword">Password <span class="label-req">*</span> <small>(min 8 characters)</small></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="f-adminPassword" class="setup-input" placeholder="Create a strong password" autocomplete="new-password" required />
+              <button type="button" class="btn-toggle-eye" id="toggle-admin-pw" aria-label="Show password" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:0 12px;display:flex;align-items:center;">
+                <svg id="admin-eye-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="setup-field">
+            <label class="setup-label" for="f-adminConfirm">Confirm Password <span class="label-req">*</span></label>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
+                </svg>
+              </span>
+              <input type="password" id="f-adminConfirm" class="setup-input" placeholder="Repeat your password" autocomplete="new-password" required />
+            </div>
+          </div>
+
+        </div>
+
+        <div class="setup-nav-row">
+          <div class="setup-nav-left">
+            <button type="button" class="btn-setup-back" onclick="goBack(4)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+          </div>
+          <div class="setup-nav-right">
+            <button type="button" class="btn-setup-next" id="btn-submit-final" onclick="submitSetup()">
+              <span id="submit-btn-text">Complete Setup &amp; Launch ERP</span>
+              <span class="btn-spinner-next" id="submit-spinner"></span>
+              <svg id="submit-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ STEP 5 — Success ════════════════════════════ -->
+      <div class="step-panel" id="step-success">
+        <div class="success-panel">
+          <div class="success-icon-ring">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#B7FF3C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h1 class="success-title">You're all set, <span id="success-name">Admin</span>! 🎉</h1>
+          <p class="success-subtitle">
+            Your boutique <strong id="success-company" style="color:#fff"></strong> is now configured.<br>
+            Your ERP is ready to help you design, manage, and grow.
+          </p>
+          <a href="../../dashboard/dashboard.html" class="btn-enter-erp" id="btn-enter-erp">
+            <span>Enter Your ERP</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div><!-- end .setup-card -->
+
+    <p class="setup-footer">Your data is stored locally on your server. We never share your boutique information.</p>
+
+  </div>
+
+  <script src="setup.js"></script>
+</body>
+</html>

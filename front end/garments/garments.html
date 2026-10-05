@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Garments — Haulo Boutique ERP</title>
-
-  <!-- Google Fonts: Cormorant Garamond & Outfit -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title data-brand-title="Garments">Garments</title>
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -16,30 +13,25 @@
   <!-- Design System & Navigation Styles -->
   <link rel="stylesheet" href="../fragments/fragments.css">
   <link rel="stylesheet" href="../fragments/nav.css">
-  <link rel="stylesheet" href="../fragments/notifications/notifications.css">
   <link rel="stylesheet" href="garments.css">
-
-  <!-- Navigation & Fragment Base Configuration -->
-  <script>window.FRAGMENT_BASE = '../fragments/';</script>
-  <script src="../fragments/theme/theme-switch.js"></script>
-  <script src="../fragments/notifications/notifications.js"></script>
-  <script src="../fragments/nav.js"></script>
 </head>
-<body class="app-body" data-module="garments">
+<body data-module="garments">
 
   <!-- Atmospheric Background Layer (Matching Standard ERP Design System) -->
   <div class="app-bg"></div>
 
+  <!-- App Shell Matching Standard Dashboard Architecture -->
   <div class="app-shell" id="appShell">
     <!-- Dynamic Sidebar Slot -->
-    <div class="sidebar-slot" id="sidebarSlot"></div>
+    <div id="sidebarSlot"></div>
 
-    <div class="app-main-wrapper">
+    <!-- Main Content Area Matching Dashboard Specification -->
+    <main class="main-content" id="mainContent">
       <!-- Dynamic Top Navbar Slot -->
       <div id="navbarSlot"></div>
 
       <!-- Garments Workspace -->
-      <main class="main-content garments-workspace" id="mainContent">
+      <div class="garments-workspace" id="garmentsWorkspace">
 
         <!-- Header Row -->
         <header class="page-header garments-header">
@@ -245,7 +237,7 @@
             <!-- Branch -->
             <select id="filterBranch" class="filter-select" onchange="handleFilterChange()">
               <option value="all">Branch</option>
-              <option value="Haulo Designs — Main Branch">Main Branch</option>
+              <option value="Main Branch">Main Branch</option>
             </select>
           </div>
         </section>
@@ -307,7 +299,7 @@
           </div>
 
           <!-- Right: Garment Inspector Drawer -->
-          <aside class="garment-inspector-drawer" id="garmentInspector" aria-label="Garment Inspector">
+          <aside class="garment-inspector-drawer" id="garmentInspector" aria-label="Garment Inspector" style="display: none;">
             <div class="drawer-header-actions">
               <button type="button" class="btn-drawer-action" onclick="closeInspector()" title="Close Inspector">
                 <i data-lucide="x" style="width:16px;height:16px;"></i>
@@ -319,17 +311,17 @@
 
             <!-- Inspector Hero Media -->
             <div class="inspector-hero-wrap">
-              <img id="inspectorHeroImg" src="../assets/designs/zari-bloom-back.jpg" alt="Garment Preview" onerror="this.src='../assets/designs/zari-bloom-front.jpg'" />
+              <img id="inspectorHeroImg" src="" alt="Garment Preview" onerror="this.style.opacity='0'" />
             </div>
 
             <!-- Inspector Title & Status -->
             <div class="inspector-title-strip">
               <div>
-                <span class="inspector-code" id="inspectorCode">BRD-0528</span>
-                <h3 class="inspector-title" id="inspectorTitle">Bridal Blouse</h3>
+                <span class="inspector-code" id="inspectorCode">—</span>
+                <h3 class="inspector-title" id="inspectorTitle">—</h3>
               </div>
               <span class="badge-status-capsule in-production" id="inspectorStatusBadge">
-                <span class="status-dot"></span> In Production
+                <span class="status-dot"></span> —
               </span>
             </div>
 
@@ -349,47 +341,47 @@
                 <div class="inspector-pairs-grid">
                   <div class="pair-row">
                     <span class="pair-label">Customer</span>
-                    <span class="pair-value" id="detCustomer">Kavya Nair</span>
+                    <span class="pair-value" id="detCustomer">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Order</span>
-                    <span class="pair-value link-accent" id="detOrder" onclick="viewOrder()">ORD-2026-0528</span>
+                    <span class="pair-value link-accent" id="detOrder" onclick="viewOrder()">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Garment Type</span>
-                    <span class="pair-value" id="detType">Blouse</span>
+                    <span class="pair-value" id="detType">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Collection</span>
-                    <span class="pair-value" id="detCollection">Bridal 2026</span>
+                    <span class="pair-value" id="detCollection">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Design</span>
-                    <span class="pair-value" id="detDesign">BR-024</span>
+                    <span class="pair-value" id="detDesign">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Due Date</span>
-                    <span class="pair-value text-green" id="detDueDate">22 Sep 2026 (14 days)</span>
+                    <span class="pair-value" id="detDueDate">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Priority</span>
-                    <span class="pair-value"><span class="badge-priority high" id="detPriority">High</span></span>
+                    <span class="pair-value"><span class="badge-priority normal" id="detPriority">—</span></span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Material Status</span>
-                    <span class="pair-value"><span class="dot-status ready"></span> <span id="detMaterialStatus">Ready</span></span>
+                    <span class="pair-value"><span class="dot-status"></span> <span id="detMaterialStatus">—</span></span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Trial</span>
-                    <span class="pair-value" id="detTrial">14 Sep 2026</span>
+                    <span class="pair-value" id="detTrial">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Payment</span>
-                    <span class="pair-value" id="detPayment"><span class="dot-payment partial"></span> ₹6,250 / ₹12,500</span>
+                    <span class="pair-value" id="detPayment">—</span>
                   </div>
                   <div class="pair-row">
                     <span class="pair-label">Assigned To</span>
-                    <span class="pair-value" id="detAssigned">Sneha</span>
+                    <span class="pair-value" id="detAssigned">—</span>
                   </div>
                 </div>
               </div>
@@ -433,14 +425,21 @@
 
         </section>
 
-      </main>
-    </div>
-  </div>
+      </div><!-- /garments-workspace -->
+
+      <!-- Universal Status Bar / Footer Slot -->
+      <div id="footerSlot"></div>
+    </main><!-- /main-content -->
+  </div><!-- /app-shell -->
 
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- Core Scripts & Shared Fragments -->
+  <!-- Core Scripts & Shared Fragments Matching Dashboard Architecture -->
+  <script>
+    window.FRAGMENT_BASE = '../fragments/';
+  </script>
+  <script src="../fragments/company-bridge.js"></script>
   <script src="../fragments/fragments-inline.js"></script>
   <script src="../fragments/fragments.js"></script>
   <script type="module" src="garments.js"></script>

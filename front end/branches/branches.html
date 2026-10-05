@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Branches &amp; Locations">Branches &amp; Locations</title>
+  <meta name="description" content="Manage all physical boutique locations, staff assignment, working hours, and contact details." />
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared Fragments -->
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="branches.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../fragments/';
+  </script>
+  <script src="../fragments/company-bridge.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+</head>
+<body data-module="branches">
+
+  <!-- Background -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <!-- Sidebar injected by fragments.js -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper" id="mainWrapper">
+      <!-- Navbar injected by fragments.js -->
+      <div id="navbarSlot"></div>
+
+      <!-- Page Content -->
+      <main class="branches-root" id="branchesRoot">
+
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="breadcrumb">
+            <a href="../settings/settings.html" class="breadcrumb-link">
+              <i data-lucide="settings"></i>
+              Settings
+            </a>
+            <i data-lucide="chevron-right" class="breadcrumb-separator"></i>
+            <span>Branches</span>
+          </div>
+          <div class="page-header-row">
+            <div class="page-title-wrap">
+              <div class="page-icon-wrap">
+                <i data-lucide="building-2"></i>
+              </div>
+              <div>
+                <h1 class="page-title">Branches &amp; Locations</h1>
+                <p class="page-subtitle">Manage your boutique's physical locations, staff, and operating hours.</p>
+              </div>
+            </div>
+            <button class="btn-primary" id="addBranchBtn" onclick="Branches.openCreateModal()">
+              <i data-lucide="plus"></i>
+              Add Branch
+            </button>
+          </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stat-cards-row" id="statCardsRow">
+          <div class="stat-card">
+            <div class="stat-icon stat-icon--lime"><i data-lucide="building-2"></i></div>
+            <div class="stat-body">
+              <span class="stat-value" id="statTotal">—</span>
+              <span class="stat-label">Total Branches</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon stat-icon--green"><i data-lucide="check-circle"></i></div>
+            <div class="stat-body">
+              <span class="stat-value" id="statActive">—</span>
+              <span class="stat-label">Active</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon stat-icon--gold"><i data-lucide="star"></i></div>
+            <div class="stat-body">
+              <span class="stat-value" id="statFlagship">—</span>
+              <span class="stat-label">Flagship</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon stat-icon--blue"><i data-lucide="users"></i></div>
+            <div class="stat-body">
+              <span class="stat-value" id="statStaff">—</span>
+              <span class="stat-label">Total Staff</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter + View Toggle Bar -->
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <i data-lucide="search" class="search-icon-inner"></i>
+            <input type="text" class="filter-search" id="branchSearch" placeholder="Search branches by name or city…" oninput="Branches.filterBranches()" />
+          </div>
+          <div class="filter-selects">
+            <select class="filter-select" id="filterType" onchange="Branches.filterBranches()">
+              <option value="">All Types</option>
+            </select>
+            <select class="filter-select" id="filterStatus" onchange="Branches.filterBranches()">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="view-toggle">
+            <button class="view-btn active" id="viewBtnCards" title="Card view" onclick="Branches.switchView('cards', this)">
+              <i data-lucide="layout-grid"></i>
+            </button>
+            <button class="view-btn" id="viewBtnTable" title="Table view" onclick="Branches.switchView('table', this)">
+              <i data-lucide="list"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cards View -->
+        <div class="branches-cards-view" id="cardsView">
+          <div class="branches-grid" id="branchesGrid">
+            <!-- Cards rendered by branches.js -->
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="branches-table-view hidden" id="tableView">
+          <!-- Rendered dynamically by Branches.renderTable() -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state hidden" id="emptyState">
+          <div class="empty-icon"><i data-lucide="building-2"></i></div>
+          <p class="empty-title">No branches found</p>
+          <p class="empty-sub">Add your first boutique location to get started.</p>
+          <button class="btn-primary" onclick="Branches.openCreateModal()">
+            <i data-lucide="plus"></i> Add Branch
+          </button>
+        </div>
+
+      </main>
+
+      <!-- Footer injected by fragments.js -->
+      <div id="footerSlot"></div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       CREATE / EDIT MODAL
+       ===================================================== -->
+  <div class="modal-overlay hidden" id="branchModal" onclick="Branches.closeBranchModal(event)">
+    <div class="modal-box" id="branchModalBox" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 class="modal-title" id="branchModalTitle">Add Branch</h2>
+        <button class="modal-close-btn" onclick="Branches.closeBranchModal()" aria-label="Close modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" id="branchModalBody">
+        <form id="branchForm" onsubmit="return false;">
+          <input type="hidden" id="branchId" />
+
+          <!-- SECTION: Basic Info -->
+          <div class="form-section">
+            <h3 class="form-section-title">Basic Information</h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="bName">Branch Name <span class="required">*</span></label>
+                <input type="text" class="form-input" id="bName" placeholder="e.g. Flagship Atelier — Bandra" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bCode">Branch Code <span class="required">*</span></label>
+                <input type="text" class="form-input" id="bCode" placeholder="Auto-generated" maxlength="20" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bType">Branch Type <span class="required">*</span></label>
+                <select class="form-select" id="bType" required>
+                  <!-- Populated dynamically by Branches.buildTypeSelects() -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bStatus">Status</label>
+                <select class="form-select" id="bStatus">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION: Location -->
+          <div class="form-section">
+            <h3 class="form-section-title">Location</h3>
+            <div class="form-group">
+              <label class="form-label" for="bStreet">Street Address <span class="required">*</span></label>
+              <input type="text" class="form-input" id="bStreet" placeholder="Building, street name" required />
+            </div>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label" for="bCity">City <span class="required">*</span></label>
+                <input type="text" class="form-input" id="bCity" placeholder="Coimbatore" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bState">State <span class="required">*</span></label>
+                <input type="text" class="form-input" id="bState" placeholder="Tamil Nadu" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bPin">PIN Code</label>
+                <input type="text" class="form-input" id="bPin" placeholder="641012" maxlength="6" />
+              </div>
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="bCountry">Country</label>
+                <select class="form-select" id="bCountry">
+                  <option value="India" selected>India</option>
+                  <option value="UAE">UAE</option>
+                  <option value="UK">UK</option>
+                  <option value="USA">USA</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bMaps">Google Maps URL</label>
+                <input type="url" class="form-input" id="bMaps" placeholder="https://maps.google.com/…" />
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION: Contact -->
+          <div class="form-section">
+            <h3 class="form-section-title">Contact Details</h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="bPhone">Primary Phone <span class="required">*</span></label>
+                <input type="tel" class="form-input" id="bPhone" placeholder="+91 XXXXX XXXXX" required data-brand-placeholder="phone" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bWhatsapp">WhatsApp</label>
+                <input type="tel" class="form-input" id="bWhatsapp" placeholder="+91 XXXXX XXXXX" data-brand-placeholder="whatsapp" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bEmail">Email</label>
+                <input type="email" class="form-input" id="bEmail" placeholder="branch@yourdomain.com" data-brand-placeholder="branchEmail" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bWebsite">Website</label>
+                <input type="url" class="form-input" id="bWebsite" placeholder="https://yourdomain.com" data-brand-placeholder="website" />
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION: Working Hours -->
+          <div class="form-section">
+            <h3 class="form-section-title">Working Hours</h3>
+            <div class="hours-grid" id="workingHoursGrid">
+              <!-- Rendered by branches.js buildWorkingHoursGrid() -->
+            </div>
+          </div>
+
+          <!-- SECTION: Manager -->
+          <div class="form-section">
+            <h3 class="form-section-title">Branch Manager</h3>
+            <div class="form-group">
+              <label class="form-label" for="bManager">Assign Manager</label>
+              <select class="form-select" id="bManager">
+                <option value="">— Not assigned —</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- SECTION: Features -->
+          <div class="form-section">
+            <h3 class="form-section-title">Branch Features</h3>
+            <div class="features-grid">
+              <label class="feature-toggle">
+                <input type="checkbox" id="fAppointments" />
+                <span class="toggle-switch"></span>
+                <span class="toggle-label">Accepts Online Appointments</span>
+              </label>
+              <label class="feature-toggle">
+                <input type="checkbox" id="fFittingRoom" />
+                <span class="toggle-switch"></span>
+                <span class="toggle-label">Has Fitting Room</span>
+              </label>
+              <label class="feature-toggle">
+                <input type="checkbox" id="fFabricDisplay" />
+                <span class="toggle-switch"></span>
+                <span class="toggle-label">Has Fabric Display</span>
+              </label>
+              <label class="feature-toggle">
+                <input type="checkbox" id="fWarehouseOnly" />
+                <span class="toggle-switch"></span>
+                <span class="toggle-label">Warehouse / Stock-only</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- SECTION: Notes -->
+          <div class="form-section">
+            <h3 class="form-section-title">Internal Notes</h3>
+            <div class="form-group">
+              <textarea class="form-textarea" id="bNotes" rows="3" placeholder="Internal notes about this branch…"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="Branches.closeBranchModal()">Cancel</button>
+        <button class="btn-primary" id="saveBranchBtn" onclick="Branches.saveBranch()">
+          <i data-lucide="save"></i>
+          <span id="saveBranchBtnText">Create Branch</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal-overlay hidden" id="deleteModal" onclick="Branches.closeDeleteModal(event)">
+    <div class="modal-box modal-box--sm" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 class="modal-title modal-title--danger">Delete Branch</h2>
+        <button class="modal-close-btn" onclick="Branches.closeDeleteModal()" aria-label="Close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="delete-warning">You are about to delete <strong id="deleteBranchName"></strong>. This action cannot be undone.</p>
+        <div class="form-group form-group--spaced">
+          <label class="form-label">Type <code>DELETE</code> to confirm</label>
+          <input type="text" class="form-input" id="deleteConfirmInput" placeholder="DELETE" oninput="Branches.checkDeleteConfirm()" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="Branches.closeDeleteModal()">Cancel</button>
+        <button class="btn-danger" id="confirmDeleteBtn" disabled onclick="Branches.confirmDelete()">
+          <i data-lucide="trash-2"></i>
+          Delete Branch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast hidden" id="branchToast">
+    <span id="branchToastMsg"></span>
+  </div>
+
+  <script src="branches.js"></script>
+</body>
+</html>

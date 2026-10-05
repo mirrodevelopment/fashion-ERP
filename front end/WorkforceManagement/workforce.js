@@ -9,6 +9,9 @@
 (function () {
   'use strict';
 
+  const FALLBACK_AVATAR_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2224%22 height=%2224%22 fill=%22none%22 stroke=%22%2394a3b8%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2%22/%3E%3Ccircle cx=%2212%22 cy=%227%22 r=%224%22/%3E%3C/svg%3E";
+  const THEME_FONT_SANS = (typeof window !== 'undefined' && window.getComputedStyle ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || "'Plus Jakarta Sans', sans-serif";
+
   /* ==========================================================================
      1. APPLICATION CENTRAL STATE
      ========================================================================== */
@@ -102,7 +105,7 @@
           phone: e.phone || "",
           email: e.email || "",
           salary: salaryVal,
-          avatar: e.avatarUrl || "../assets/user_avatar.jpg",
+          avatar: e.avatarUrl || FALLBACK_AVATAR_SVG,
           joinedDate: e.joinedDate ? String(e.joinedDate) : ""
         };
       });
@@ -247,8 +250,8 @@
               bodyColor: "rgba(255, 255, 255, 0.9)",
               borderColor: "rgba(255, 255, 255, 0.12)",
               borderWidth: 1,
-              titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: "600" },
-              bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+              titleFont: { family: THEME_FONT_SANS, size: 11, weight: "600" },
+              bodyFont: { family: THEME_FONT_SANS, size: 11 },
               padding: 8,
               cornerRadius: 6,
               callbacks: {
@@ -346,8 +349,8 @@
               bodyColor: "rgba(255, 255, 255, 0.9)",
               borderColor: "rgba(255, 255, 255, 0.12)",
               borderWidth: 1,
-              titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: "600" },
-              bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+              titleFont: { family: THEME_FONT_SANS, size: 11, weight: "600" },
+              bodyFont: { family: THEME_FONT_SANS, size: 11 },
               padding: 8,
               cornerRadius: 6,
               callbacks: {
@@ -362,7 +365,7 @@
               grid: { display: false },
               ticks: {
                 color: "rgba(255, 255, 255, 0.65)",
-                font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: "500" }
+                font: { family: THEME_FONT_SANS, size: 10, weight: "500" }
               }
             },
             y: {
@@ -371,7 +374,7 @@
               ticks: {
                 stepSize: 25,
                 color: "rgba(255, 255, 255, 0.5)",
-                font: { family: "'Plus Jakarta Sans', sans-serif", size: 9.5 },
+                font: { family: THEME_FONT_SANS, size: 9.5 },
                 callback: function (val) {
                   return val + "%";
                 }
@@ -440,8 +443,8 @@
               bodyColor: "rgba(255, 255, 255, 0.9)",
               borderColor: "rgba(255, 255, 255, 0.12)",
               borderWidth: 1,
-              titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: "600" },
-              bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+              titleFont: { family: THEME_FONT_SANS, size: 11, weight: "600" },
+              bodyFont: { family: THEME_FONT_SANS, size: 11 },
               padding: 8,
               cornerRadius: 6,
               callbacks: {
@@ -566,7 +569,7 @@
     // Render Table Rows (Without Checkbox Column)
     tbody.innerHTML = pageItems
       .map((emp) => {
-        const avatarSrc = emp.avatar || "../assets/user_avatar.jpg";
+        const avatarSrc = emp.avatar || FALLBACK_AVATAR_SVG;
 
         // Status badge class
         let statusBadge = `<span class="pill-status-active">Active</span>`;
@@ -589,7 +592,7 @@
           <tr data-id="${emp.id}">
             <td>
               <div class="emp-cell-wrap">
-                <img src="${avatarSrc}" alt="${emp.name}" class="emp-avatar-img" onerror="this.onerror=null; this.src='../assets/user_avatar.jpg';" />
+                <img src="${avatarSrc}" alt="${emp.name}" class="emp-avatar-img" onerror="this.onerror=null; this.src='${FALLBACK_AVATAR_SVG}';" />
                 <div class="emp-name-block">
                   <span class="emp-name-text">${emp.name}</span>
                   <span class="emp-code-text">${emp.code}</span>
@@ -726,7 +729,7 @@
 
     const editPreview = document.getElementById("editEmpAvatarPreview");
     if (editPreview) {
-      editPreview.src = emp.avatar || "../assets/user_avatar.jpg";
+      editPreview.src = emp.avatar || FALLBACK_AVATAR_SVG;
     }
     const editInput = document.getElementById("editEmpPhotoInput");
     if (editInput) editInput.value = "";
@@ -752,7 +755,7 @@
     body.innerHTML = `
       <div class="profile-hero">
         <div class="profile-avatar-container" id="profileAvatarContainer" title="Click to upload/change photo">
-          <img id="profileModalAvatarImg" src="${emp.avatar || "../assets/user_avatar.jpg"}" alt="${emp.name}" class="profile-large-avatar" onerror="this.onerror=null; this.src='../assets/user_avatar.jpg';" />
+          <img id="profileModalAvatarImg" src="${emp.avatar || FALLBACK_AVATAR_SVG}" alt="${emp.name}" class="profile-large-avatar" onerror="this.onerror=null; this.src='${FALLBACK_AVATAR_SVG}';" />
           <div class="profile-avatar-overlay" id="profileAvatarOverlay">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             <span>Upload</span>
@@ -894,7 +897,7 @@
             <tr>
               <td>
                 <div style="display:flex;align-items:center;gap:6px;">
-                  <img src="${e.avatar || "../assets/user_avatar.jpg"}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null; this.src='../assets/user_avatar.jpg';" />
+                  <img src="${e.avatar || FALLBACK_AVATAR_SVG}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null; this.src='${FALLBACK_AVATAR_SVG}';" />
                   <span style="font-weight:600;">${e.name}</span>
                 </div>
               </td>
@@ -961,7 +964,7 @@
         leaveEl.innerHTML = leaveEmployees.map(e => `
           <div class="leave-item" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex;align-items:center;gap:8px;">
-              <img src="${e.avatar || '../assets/user_avatar.jpg'}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='../assets/user_avatar.jpg';" />
+              <img src="${e.avatar || FALLBACK_AVATAR_SVG}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='${FALLBACK_AVATAR_SVG}';" />
               <div>
                 <div style="font-weight:600;font-size:12px;color:var(--text-primary);">${e.name}</div>
                 <div style="font-size:11px;color:var(--text-muted);">${e.role} · ${e.department}</div>
@@ -981,7 +984,7 @@
         const sampleEvents = state.employees.slice(0, 2);
         eventsGrid.innerHTML = sampleEvents.map((e, idx) => `
           <div class="event-mini-card">
-            <img src="${e.avatar || '../assets/user_avatar.jpg'}" alt="${e.name}" class="event-avatar" onerror="this.onerror=null;this.src='../assets/user_avatar.jpg';" />
+            <img src="${e.avatar || FALLBACK_AVATAR_SVG}" alt="${e.name}" class="event-avatar" onerror="this.onerror=null;this.src='${FALLBACK_AVATAR_SVG}';" />
             <div class="event-details">
               <div class="event-person">${e.name}</div>
               <div class="event-date">${e.joinedDate || 'Active'}</div>
@@ -1027,8 +1030,8 @@
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `haulo_workforce_export_${new Date().toISOString().split("T")[0]}.csv`);
+    const bSlug = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('shortName').toLowerCase()) || 'workforce';
+    link.setAttribute("download", `${bSlug}_workforce_export_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1267,7 +1270,7 @@
           phone: phone || "",
           email: email || "",
           salary,
-          avatar: avatar || "../assets/user_avatar.jpg",
+          avatar: avatar || FALLBACK_AVATAR_SVG,
           joinedDate: new Date().toISOString().split("T")[0]
         };
 
@@ -1316,7 +1319,7 @@
         document.getElementById("modalAddEmployee").style.display = "none";
         formAdd.reset();
         const addPreview = document.getElementById("addEmpAvatarPreview");
-        if (addPreview) addPreview.src = "../assets/user_avatar.jpg";
+        if (addPreview) addPreview.src = FALLBACK_AVATAR_SVG;
         renderTable();
         showToast(`Employee ${name} added successfully!`, "info");
       });
@@ -1627,8 +1630,10 @@
       const searchPh = document.querySelector(".search-ph");
       if (searchPh) searchPh.textContent = "Search employees, skills, roles, or departments...";
 
-      const branchText = document.querySelector(".branch-sel-text");
-      if (branchText) branchText.textContent = "Haulo Designs — Main Branch";
+      const branchText = document.querySelector(".branch-sel-text, #branchSelText");
+      if (branchText && typeof CompanyBridge !== "undefined") {
+        branchText.textContent = CompanyBridge.formatBranch();
+      }
 
       const notifBadge = document.querySelector("#notifBtn .badge");
       if (notifBadge) notifBadge.textContent = "3";

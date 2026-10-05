@@ -9,6 +9,9 @@
 (function () {
   'use strict';
 
+  const FALLBACK_DESIGN_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22 width=%2248%22 height=%2248%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 14 L24 4 L42 14 L34 44 L14 44 Z%22/%3E%3Cpath d=%22M24 4 L24 44%22 stroke-dasharray=%223 3%22/%3E%3C/svg%3E";
+  window.FALLBACK_DESIGN_SVG = FALLBACK_DESIGN_SVG;
+
   /* ==========================================================================
    1. SEED DATASET — Moved to DB (V4__seed_designs.sql)
       All design data is now loaded live from /api/v1/designs
@@ -295,8 +298,8 @@
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(30, 27, 23, 0.95)',
-            titleFont: { family: 'Plus Jakarta Sans', size: 11 },
-            bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
+            titleFont: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || 'Plus Jakarta Sans', size: 11 },
+            bodyFont: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || 'Plus Jakarta Sans', size: 11 },
             padding: 8,
             cornerRadius: 8,
             callbacks: {
@@ -453,10 +456,8 @@
       }
 
       // Synchronize toggle buttons state
-      const btnTable = document.getElementById('btnViewTable');
       const btnGrid = document.getElementById('btnViewGrid');
       const btnList = document.getElementById('btnViewList');
-      if (btnTable) btnTable.classList.toggle('active', isTableView);
       if (btnGrid) btnGrid.classList.toggle('active', !isTableView);
       if (btnList) btnList.classList.toggle('active', isTableView);
 
@@ -499,7 +500,7 @@
       gridContainer.innerHTML = pageItems.map(d => {
         const isSelected = d.id === state.selectedDesignId;
         const isFav = state.favorites.includes(d.id);
-        const mainImg = d.cardImage || (d.images && d.images.length > 0 ? d.images[0] : "../assets/designs/blouse-stage.png");
+        const mainImg = d.cardImage || (d.images && d.images.length > 0 ? d.images[0] : FALLBACK_DESIGN_SVG);
         const catClass = getCategoryClass(d.category);
         const swatches = Array.isArray(d.swatches) ? d.swatches : [];
         const swatchesHtml = swatches
@@ -510,7 +511,7 @@
         return `
         <article class="design-card ${isSelected ? 'selected' : ''}" data-id="${d.id}" tabindex="0">
           <div class="card-image-wrap">
-            <img src="${mainImg}" alt="${d.name || 'Design'} preview" loading="lazy" onerror="this.onerror=null; this.src='../assets/designs/blouse-stage.png';" />
+            <img src="${mainImg}" alt="${d.name || 'Design'} preview" loading="lazy" onerror="this.onerror=null; this.src='${FALLBACK_DESIGN_SVG}';" />
             <button type="button" class="btn-card-favorite ${isFav ? 'favorited' : ''}" data-fav-id="${d.id}" aria-label="Toggle Favorite">
               <i data-lucide="heart" style="width:14px;height:14px;"></i>
             </button>
@@ -538,7 +539,7 @@
         listTbody.innerHTML = pageItems.map(d => {
           const isSelected = d.id === state.selectedDesignId;
           const isFav = state.favorites.includes(d.id);
-          const mainImg = d.cardImage || (d.images && d.images.length > 0 ? d.images[0] : "../assets/designs/blouse-stage.png");
+          const mainImg = d.cardImage || (d.images && d.images.length > 0 ? d.images[0] : FALLBACK_DESIGN_SVG);
           const catClass = getCategoryClass(d.category);
           const swatches = Array.isArray(d.swatches) ? d.swatches : [];
           const swatchesHtml = swatches.slice(0, 3).map(c => `<span class="table-swatch-dot" style="background:${c};" title="${c}"></span>`).join('');
@@ -552,7 +553,7 @@
             </td>
             <td style="text-align:center;">
               <div class="table-thumb-wrap">
-                <img src="${mainImg}" class="table-thumb-img" alt="${d.name || 'Garment preview'}" loading="lazy" onerror="this.onerror=null; this.src='../assets/designs/blouse-stage.png';" />
+                <img src="${mainImg}" class="table-thumb-img" alt="${d.name || 'Garment preview'}" loading="lazy" onerror="this.onerror=null; this.src='${FALLBACK_DESIGN_SVG}';" />
               </div>
             </td>
             <td>
@@ -696,7 +697,7 @@
       const thumbStrip = document.getElementById('thumbnailStrip');
       const mainImg = document.getElementById('detailMainImage');
       const prevChip = document.getElementById('previewCategoryChip');
-      const images = design.images && design.images.length > 0 ? design.images : ["../assets/designs/blouse-stage.png"];
+      const images = design.images && design.images.length > 0 ? design.images : [FALLBACK_DESIGN_SVG];
 
       if (prevChip) {
         if (design.category) {
@@ -710,7 +711,7 @@
       if (mainImg) {
         mainImg.src = images[state.lightboxIndex < images.length ? state.lightboxIndex : 0];
         mainImg.alt = `${design.name || 'Design'} main preview`;
-        mainImg.onerror = function () { this.onerror = null; this.src = '../assets/designs/blouse-stage.png'; };
+        mainImg.onerror = function () { this.onerror = null; this.src = FALLBACK_DESIGN_SVG; };
       }
 
       if (thumbStrip) {
@@ -718,7 +719,7 @@
           const isActive = idx === (state.lightboxIndex < images.length ? state.lightboxIndex : 0);
           return `
           <button type="button" class="thumb-btn ${isActive ? 'active' : ''}" data-thumb-idx="${idx}" aria-label="View photo ${idx + 1}">
-            <img src="${imgUrl}" alt="Thumbnail ${idx + 1}" onerror="this.onerror=null; this.src='../assets/designs/blouse-stage.png';" />
+            <img src="${imgUrl}" alt="Thumbnail ${idx + 1}" onerror="this.onerror=null; this.src='${FALLBACK_DESIGN_SVG}';" />
           </button>
         `;
         }).join('');
@@ -951,7 +952,6 @@
       }
 
       // 3. Grid vs Table View toggle
-      const btnTable = document.getElementById('btnViewTable');
       const btnGrid = document.getElementById('btnViewGrid');
       const btnList = document.getElementById('btnViewList');
 
@@ -963,7 +963,6 @@
         renderGallery();
       }
 
-      if (btnTable) btnTable.addEventListener('click', () => switchViewMode('table'));
       if (btnList) btnList.addEventListener('click', () => switchViewMode('table'));
       if (btnGrid) btnGrid.addEventListener('click', () => switchViewMode('grid'));
 
@@ -1471,7 +1470,7 @@
 
           const photos = createDesignImages.length > 0
             ? [...createDesignImages]
-            : ["../assets/designs/blouse-stage.png"];
+            : [FALLBACK_DESIGN_SVG];
           const primaryThumb = photos[0];
           const allImagesStr = photos.join(',');
 
@@ -1993,8 +1992,10 @@
         const searchPh = document.querySelector('.search-ph');
         if (searchPh) searchPh.textContent = 'Search designs, collections, categories, fabrics...';
 
-        const branchText = document.querySelector('.branch-sel-text');
-        if (branchText) branchText.textContent = 'Haulo Designs — Main Branch';
+        const branchText = document.querySelector('.branch-sel-text, #branchSelText');
+        if (branchText && typeof CompanyBridge !== 'undefined') {
+          branchText.textContent = CompanyBridge.formatBranch();
+        }
 
         const notifBadge = document.querySelector('#notifBtn .badge');
         if (notifBadge) notifBadge.textContent = '3';
@@ -2016,7 +2017,7 @@
       const tags = splitCsv(d.tags);
       const swatches = splitCsv(d.swatches);
       const images = splitCsv(d.imageUrls);
-      const thumb = d.thumbnailUrl || images[0] || '../assets/designs/blouse-stage.png';
+      const thumb = d.thumbnailUrl || images[0] || FALLBACK_DESIGN_SVG;
       const desc = d.notes || d.styleNotes || '';
 
       return {

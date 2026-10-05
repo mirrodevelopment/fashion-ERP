@@ -57,4 +57,19 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     java.util.List<Order> findByCollectionInIgnoreCase(@Param("collections") java.util.Collection<String> collections);
 
     long countByCollectionIgnoreCase(String collection);
+
+    @Query("""
+        SELECT UPPER(TRIM(o.currentStage)), COUNT(o)
+        FROM Order o
+        WHERE o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
+        GROUP BY UPPER(TRIM(o.currentStage))
+        """)
+    java.util.List<Object[]> countActiveOrdersGroupedByStage();
+
+    @Query("""
+        SELECT COUNT(o) FROM Order o
+        WHERE UPPER(TRIM(o.currentStage)) IN ('QC', 'QUALITY', 'QUALITY_CONTROL')
+          AND o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
+        """)
+    long countOrdersAwaitingQc();
 }

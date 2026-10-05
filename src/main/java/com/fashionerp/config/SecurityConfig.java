@@ -4,9 +4,11 @@ import com.fashionerp.auth.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,6 +22,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -38,8 +41,11 @@ public class SecurityConfig {
                                  "/static/**", "/error", "/favicon.ico").permitAll()
                 // Public: actuator health (used by start.bat health monitor)
                 .requestMatchers("/actuator/**").permitAll()
-                // Public: login endpoint
-                .requestMatchers("/api/v1/auth/login").permitAll()
+                // Public: login + register + onboard endpoints
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/onboard").permitAll()
+                // Public read-only: company settings and branches (for app shell branding and topbar branch selection)
+                .requestMatchers(HttpMethod.GET, "/api/v1/company", "/api/v1/company/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/branches", "/api/v1/branches/**").permitAll()
                 // All other API calls require authentication
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().permitAll()

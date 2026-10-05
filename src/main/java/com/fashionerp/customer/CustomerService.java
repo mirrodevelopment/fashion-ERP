@@ -143,6 +143,9 @@ public class CustomerService {
             String ext = (originalFilename != null && originalFilename.contains("."))
                     ? originalFilename.substring(originalFilename.lastIndexOf('.'))
                     : ".png";
+            if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext.toLowerCase())) {
+                throw new IllegalArgumentException("Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
+            }
             int fourDigits = 1000 + new Random().nextInt(9000);
             String filename = customerName + "_" + fourDigits + ext;
 

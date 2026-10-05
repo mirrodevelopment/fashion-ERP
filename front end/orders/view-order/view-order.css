@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    HAULO BOUTIQUE ERP � VIEW ORDER / ORDER DETAILS STYLESHEET
    Path: frontend/orders/view-order/view-order.css
    Visual Source of Truth: media_1789122353178.png
@@ -14,7 +14,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-main), 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-body-gradient);
   background-attachment: fixed;
   color: var(--text-primary);
@@ -2185,7 +2185,7 @@ body {
 }
 
 .jc-barcode {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--font-mono);
   letter-spacing: 2px;
   color: var(--text-muted);
   font-size: 13px;
@@ -2662,3 +2662,292 @@ body.order-is-cancelled .btn-action-row button:not(.btn-view-only) {
   pointer-events: none !important;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CANCEL ORDER MODAL — REFUND & SETTLEMENT STYLES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Card */
+.cancel-modal-card {
+  background: #13151b;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.65), 0 0 32px rgba(239,68,68,0.12);
+  border-radius: 18px;
+  max-width: 500px;
+  width: 94%;
+  overflow: hidden;
+  animation: cancelModalIn 0.22s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+@keyframes cancelModalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+/* Header */
+.cancel-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.cancel-icon-wrap {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: rgba(239,68,68,0.14);
+  display: flex; align-items: center; justify-content: center;
+}
+.cancel-modal-title {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #f87171;
+  letter-spacing: -0.2px;
+}
+.cancel-modal-close {
+  background: none; border: none;
+  color: #94a3b8; font-size: 22px;
+  cursor: pointer; line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.cancel-modal-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+/* Scrollable body */
+.cancel-modal-body {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  max-height: 72vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(239,68,68,0.3) transparent;
+}
+.cancel-modal-body::-webkit-scrollbar { width: 4px; }
+.cancel-modal-body::-webkit-scrollbar-thumb { background: rgba(239,68,68,0.3); border-radius: 4px; }
+
+/* Confirm text */
+.cancel-confirm-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #e2e8f0;
+}
+.cancel-order-code-pill {
+  background: rgba(239,68,68,0.15);
+  color: #fca5a5;
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  border: 1px solid rgba(239,68,68,0.3);
+}
+
+/* Warning box */
+.cancel-warn-box {
+  background: rgba(239,68,68,0.07);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #fca5a5;
+  line-height: 1.5;
+}
+
+/* Section labels */
+.cancel-section-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #64748b;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Payment Summary Grid */
+.cancel-pay-grid {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cancel-pay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cancel-pay-divider {
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+.cancel-pay-key {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.cancel-sub-key { font-size: 11px; color: #475569; }
+.cancel-pay-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+}
+.cancel-sub-val { font-size: 11px; color: #475569; font-weight: 400; font-family: inherit; }
+.cancel-val-green { color: #4ade80; }
+.cancel-val-amber { color: #fbbf24; }
+
+/* Form fields */
+.cancel-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.cancel-field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+}
+.cancel-field-hint {
+  font-size: 10px;
+  color: #475569;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.cancel-select,
+.cancel-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.cancel-select:focus,
+.cancel-input:focus {
+  border-color: rgba(239,68,68,0.5);
+  box-shadow: 0 0 0 2px rgba(239,68,68,0.12);
+}
+.cancel-select option { background: #1a1d24; color: #e2e8f0; }
+
+/* Rupee input wrapper */
+.cancel-rupee-input-wrap {
+  position: relative;
+}
+.cancel-rupee-prefix {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 1;
+}
+.cancel-rupee-input-wrap .cancel-input {
+  padding-left: 28px;
+}
+
+/* Refund Result Box */
+.cancel-refund-result {
+  background: rgba(30,41,59,0.7);
+  border: 1.5px solid rgba(100,116,139,0.25);
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: border-color 0.25s, background 0.25s;
+}
+.cancel-refund-result.refund-box-green {
+  border-color: rgba(74,222,128,0.45);
+  background: rgba(74,222,128,0.06);
+}
+.cancel-refund-result.refund-box-amber {
+  border-color: rgba(251,191,36,0.45);
+  background: rgba(251,191,36,0.06);
+}
+.cancel-refund-result.refund-box-zero {
+  border-color: rgba(239,68,68,0.4);
+  background: rgba(239,68,68,0.05);
+}
+.cancel-refund-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: 5px;
+}
+.cancel-refund-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cancel-refund-amount {
+  font-size: 22px;
+  font-weight: 800;
+  color: #4ade80;
+  font-family: var(--font-mono);
+  transition: color 0.25s;
+}
+.refund-box-amber .cancel-refund-amount { color: #fbbf24; }
+.refund-box-zero  .cancel-refund-amount { color: #f87171; }
+.cancel-refund-formula {
+  font-size: 11px;
+  color: #475569;
+}
+
+/* Footer */
+.cancel-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  background: rgba(0,0,0,0.18);
+}
+.cancel-btn-keep {
+  padding: 9px 16px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cancel-btn-keep:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.cancel-btn-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  background: #ef4444;
+  border: 1px solid #dc2626;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(239,68,68,0.35);
+  transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+.cancel-btn-confirm:hover { background: #dc2626; box-shadow: 0 6px 20px rgba(239,68,68,0.45); }
+.cancel-btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }

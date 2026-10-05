@@ -5,7 +5,7 @@
    Every module CSS must import this via fragments.css.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('../font/font.css');
 
 /* ────────────────────────────────────────────────────────────
    SECTION 1 — :root CSS Custom Properties (All Tokens)
@@ -318,9 +318,9 @@
   --transition-slow:      all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 
   /* ── Font Alias ── */
-  --font-main:            'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body:            'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display:         'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-main:            var(--font-body);
+  --font-body:            var(--font-body);
+  --font-display:         var(--font-display);
 
   /* ── Geometry Aliases (used by modules with --radius-btn, --radius-card etc.) ── */
   --radius-btn:           8px;
@@ -518,7 +518,7 @@
   --accent-login-lime:    #B8FF3D;
 
   /* ── Nav-specific aliases (fragments/nav.css) ── */
-  --nav-font:             'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --nav-font:             var(--font-sans);
   --nav-lime:             #B8FF3D;
   --nav-lime-dark:        #182018;
   --nav-lime-pill:        rgba(184, 255, 61, 0.16);
@@ -885,7 +885,7 @@ body {
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.04em;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 /* ── KPI Icon Box ── */
@@ -1398,6 +1398,14 @@ textarea::placeholder {
   flex-shrink: 0;
   font-size: 14px;
 }
+.search-bar .search-icon,
+.top-bar .search-icon {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+}
 
 /* Search KBD hint */
 .search-kbd {
@@ -1410,6 +1418,14 @@ textarea::placeholder {
   font-size: 10px;
   color: var(--text-dim);
   pointer-events: none;
+}
+.search-bar .search-kbd,
+.top-bar .search-kbd {
+  position: static !important;
+  right: auto !important;
+  top: auto !important;
+  transform: none !important;
+  margin-left: auto !important;
 }
 
 /* Small input variant */

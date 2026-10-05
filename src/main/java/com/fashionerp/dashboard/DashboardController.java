@@ -44,8 +44,10 @@ public class DashboardController {
         long totalCustomers    = customerRepository.count();
         long totalOrders       = orderRepository.count();
         long pendingOrders     = orderRepository.countByStatus(OrderStatus.PENDING);
-        long inProgressOrders  = orderRepository.countByStatus(OrderStatus.IN_PROGRESS);
-        long readyOrders       = orderRepository.countByStatus(OrderStatus.READY);
+        long inProgressOrders  = orderRepository.countByStatus(OrderStatus.IN_PROGRESS)
+                + orderRepository.countByStatus(OrderStatus.IN_PRODUCTION);
+        long readyOrders       = orderRepository.countByStatus(OrderStatus.READY)
+                + orderRepository.countByStatus(OrderStatus.COMPLETED);
         long deliveredOrders   = orderRepository.countByStatus(OrderStatus.DELIVERED);
         long cancelledOrders   = orderRepository.countByStatus(OrderStatus.CANCELLED);
         long lowStockItems     = inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);

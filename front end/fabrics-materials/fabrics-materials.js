@@ -7,6 +7,9 @@
 
 'use strict';
 
+const FALLBACK_FABRIC_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22 width=%2248%22 height=%2248%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%226%22 y=%226%22 width=%2236%22 height=%2236%22 rx=%224%22/%3E%3Cpath d=%22M6 18h36M6 30h36M18 6v36M30 6v36%22 stroke-dasharray=%222 2%22/%3E%3C/svg%3E";
+window.FALLBACK_FABRIC_SVG = FALLBACK_FABRIC_SVG;
+
 // ────────────────────────────────────────────────────────────
 // 1. DATA REPOSITORY & DATABASE API INTEGRATION
 // ────────────────────────────────────────────────────────────
@@ -37,7 +40,7 @@ function mapInventoryToMaterial(item) {
   const available = item.availableQty != null ? Number(item.availableQty) : Math.max(0, stock - reserved);
   const cost = Number(item.purchasePrice || 0);
   const sellingPrice = Number(item.sellingPrice || (cost > 0 ? Math.round(cost * 1.35) : 0));
-  const fallbackImg = '../assets/boutique_bg.png';
+  const fallbackImg = FALLBACK_FABRIC_SVG;
   const splitUrls = str => (str || '').split(/[\n,;|]+/).map(s => s.trim()).filter(Boolean);
   let parsedImages = [];
   if (Array.isArray(item.images)) {
@@ -389,7 +392,7 @@ function createCardHtml(item) {
   return `
     <div class="material-card ${isSelected ? 'selected' : ''}" data-id="${item.id}" onclick="selectMaterial('${item.id}')">
       <div class="card-img-wrap">
-        <img src="${item.image}" alt="${escapeHtml(item.name)}" class="card-img" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';" loading="lazy" />
+        <img src="${item.image}" alt="${escapeHtml(item.name)}" class="card-img" onerror="this.onerror=null;this.src='${FALLBACK_FABRIC_SVG}';" loading="lazy" />
         <span class="card-status-badge ${status.cssClass}">${status.label}</span>
         <button type="button" class="card-menu-btn" title="Actions" onclick="openContextMenu(event, '${item.id}')">
           <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></svg>
@@ -416,7 +419,7 @@ function createTableRowHtml(item) {
 
   return `
     <tr class="${isSelected ? 'selected' : ''}" onclick="selectMaterial('${item.id}')">
-      <td><img src="${item.image}" class="tbl-thumb" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';"/></td>
+      <td><img src="${item.image}" class="tbl-thumb" onerror="this.onerror=null;this.src='${FALLBACK_FABRIC_SVG}';"/></td>
       <td><strong>${escapeHtml(item.name)}</strong></td>
       <td><span class="badge-code">${escapeHtml(item.code)}</span></td>
       <td>${escapeHtml(item.category)}</td>
@@ -613,7 +616,7 @@ function openFullImageModal(url, title) {
   const img = document.getElementById('lightboxImg');
   const titleEl = document.getElementById('lightboxTitle');
   if (modal && img) {
-    img.src = url || '../assets/boutique_bg.png';
+    img.src = url || FALLBACK_FABRIC_SVG;
     if (titleEl) titleEl.textContent = title || 'Product Image';
     modal.style.display = 'flex';
   }
@@ -634,7 +637,7 @@ function renderSelectedDetails() {
   }
 
   const status = getStockStatus(m);
-  const activeImg = m.image || '../assets/boutique_bg.png';
+  const activeImg = m.image || FALLBACK_FABRIC_SVG;
   const isFavorite = isMaterialFavorite(m.id);
 
   const metaParts = [...new Set([m.category, m.subCategory, m.color].filter(Boolean))];
@@ -655,7 +658,7 @@ function renderSelectedDetails() {
         const isLast = (idx === maxThumbs - 1) && remainingCount > 0;
         return `
           <div class="mat-thumb-item ${imgUrl === activeImg ? 'active' : ''}" onclick="selectDetailThumbnail('${escapeHtml(imgUrl)}', this)">
-            <img src="${escapeHtml(imgUrl)}" alt="Thumbnail ${idx + 1}" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';" />
+            <img src="${escapeHtml(imgUrl)}" alt="Thumbnail ${idx + 1}" onerror="this.onerror=null;this.src='${FALLBACK_FABRIC_SVG}';" />
             ${isLast ? `<div class="mat-thumb-overlay">+${remainingCount}</div>` : ''}
           </div>
         `;
@@ -710,7 +713,7 @@ function renderSelectedDetails() {
       <!-- Left Side: Large Product Image & Thumbnails (50%) -->
       <div class="product-image-column">
         <div class="product-main-image-wrap">
-          <img id="productDetailMainImg" src="${escapeHtml(activeImg)}" alt="${escapeHtml(m.name)}" class="product-main-img" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';" />
+          <img id="productDetailMainImg" src="${escapeHtml(activeImg)}" alt="${escapeHtml(m.name)}" class="product-main-img" onerror="this.onerror=null;this.src='${FALLBACK_FABRIC_SVG}';" />
           ${status.label ? `<span class="product-status-badge ${status.cssClass}">${status.label}</span>` : ''}
           <button type="button" class="product-fav-btn ${isFavorite ? 'active' : ''}" id="productDetailFavBtn" title="Favorite" onclick="toggleMaterialFavorite('${m.id}')">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -914,7 +917,7 @@ function renderActiveDetailTab(m, status) {
           <div class="swatches-grid">
             ${imagesList.map((img, i) => `
               <div class="swatch-item" onclick="selectDetailThumbnail('${escapeHtml(img)}'); openFullImageModal('${escapeHtml(img)}', '${escapeHtml(m.name)}')">
-                <img src="${escapeHtml(img)}" alt="Swatch ${i + 1}" onerror="this.onerror=null;this.src='../assets/boutique_bg.png';"/>
+                <img src="${escapeHtml(img)}" alt="Swatch ${i + 1}" onerror="this.onerror=null;this.src='${FALLBACK_FABRIC_SVG}';"/>
               </div>
             `).join('')}
             <div class="btn-add-swatch" onclick="openAddImageModal()">
@@ -1083,7 +1086,7 @@ function openStockAdjustmentModal(material) {
   const preview = document.getElementById('adjSelectedMatPreview');
   if (preview) {
     preview.innerHTML = `
-      <img src="${adjustmentTargetMaterial.image}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;" onerror="this.src='../assets/boutique_bg.png';"/>
+      <img src="${adjustmentTargetMaterial.image}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;" onerror="this.src='${FALLBACK_FABRIC_SVG}';"/>
       <div>
         <div style="font-weight:700;font-size:12.5px;">${escapeHtml(adjustmentTargetMaterial.name)} (${escapeHtml(adjustmentTargetMaterial.code)})</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.5);">Current Stock: <strong style="color:#ffffff;">${adjustmentTargetMaterial.stock} ${adjustmentTargetMaterial.uom}</strong></div>
@@ -1276,7 +1279,7 @@ function handleSaveImage(event) {
 
   if (url && m) {
     if (!m.images || m.images.length === 0) {
-      m.images = [m.image || '../assets/boutique_bg.png'];
+      m.images = [m.image || FALLBACK_FABRIC_SVG];
     }
     if (!m.images.includes(url)) {
       m.images.push(url);
@@ -1312,7 +1315,7 @@ function openFullImageModal(url, title) {
   const img = document.getElementById('lightboxImg');
   const titleEl = document.getElementById('lightboxTitle');
   if (modal && img) {
-    img.src = url || '../assets/boutique_bg.png';
+    img.src = url || FALLBACK_FABRIC_SVG;
     if (titleEl) titleEl.textContent = title || 'Product Image';
     modal.style.display = 'flex';
   }
