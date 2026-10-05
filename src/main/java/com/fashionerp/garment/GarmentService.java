@@ -32,14 +32,12 @@ public class GarmentService {
             String materialStatus,
             String designer,
             String branch,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         UUID companyId = TenantContext.getCompanyId();
         Page<Garment> page = garmentRepository.searchGarments(
                 companyId,
                 search, stage, status, garmentType, collectionName,
-                priority, materialStatus, designer, branch, pageable
-        );
+                priority, materialStatus, designer, branch, pageable);
         return page.map(this::toSummaryResponse);
     }
 
@@ -47,18 +45,35 @@ public class GarmentService {
     public GarmentDto.KpiResponse getKpis() {
         UUID companyId = TenantContext.getCompanyId();
         long total = companyId != null ? garmentRepository.countByCompanyId(companyId) : garmentRepository.count();
-        long inProd = companyId != null ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production") : garmentRepository.countByStatusIgnoreCase("In Production");
-        long inTrial = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial") : garmentRepository.countByProductionStageIgnoreCase("Trial");
-        long awaitingQc = companyId != null ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC") : garmentRepository.countByStatusIgnoreCase("Awaiting QC");
+        long inProd = companyId != null
+                ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production")
+                : garmentRepository.countByStatusIgnoreCase("In Production");
+        long inTrial = companyId != null
+                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial")
+                : garmentRepository.countByProductionStageIgnoreCase("Trial");
+        long awaitingQc = companyId != null
+                ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC")
+                : garmentRepository.countByStatusIgnoreCase("Awaiting QC");
         if (awaitingQc == 0) {
-            awaitingQc = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC") : garmentRepository.countByProductionStageIgnoreCase("QC");
+            awaitingQc = companyId != null
+                    ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC")
+                    : garmentRepository.countByProductionStageIgnoreCase("QC");
         }
-        long ready = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready") : garmentRepository.countByProductionStageIgnoreCase("Ready");
-        long delivered = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered") : garmentRepository.countByProductionStageIgnoreCase("Delivered");
-        long designing = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing") : garmentRepository.countByProductionStageIgnoreCase("Designing");
-        long onHold = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold") : garmentRepository.countByProductionStageIgnoreCase("On Hold");
+        long ready = companyId != null
+                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready")
+                : garmentRepository.countByProductionStageIgnoreCase("Ready");
+        long delivered = companyId != null
+                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered")
+                : garmentRepository.countByProductionStageIgnoreCase("Delivered");
+        long designing = companyId != null
+                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing")
+                : garmentRepository.countByProductionStageIgnoreCase("Designing");
+        long onHold = companyId != null
+                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold")
+                : garmentRepository.countByProductionStageIgnoreCase("On Hold");
 
-        // Real month-over-month deltas require historical data queries; return null until implemented.
+        // Real month-over-month deltas require historical data queries; return null
+        // until implemented.
         return GarmentDto.KpiResponse.builder()
                 .totalGarments(total)
                 .totalGarmentsDelta(null)
@@ -96,7 +111,8 @@ public class GarmentService {
 
     @Transactional
     public GarmentDto.SummaryResponse create(GarmentDto.CreateRequest req) {
-        // BUG-P0-01 FIX: Validate required business fields — do NOT silently inject fake data
+        // BUG-P0-01 FIX: Validate required business fields — do NOT silently inject
+        // fake data
         if (req.getCustomerName() == null || req.getCustomerName().isBlank()) {
             throw new IllegalArgumentException("customerName is required");
         }
@@ -179,6 +195,7 @@ public class GarmentService {
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
+
     private GarmentDto.SummaryResponse toSummaryResponse(Garment g) {
         int daysRem = 0;
         boolean overdue = false;
@@ -228,13 +245,15 @@ public class GarmentService {
         GarmentDto.SummaryResponse sum = toSummaryResponse(g);
 
         // BUG-P0-02 FIX: No hardcoded fabricated data.
-        // Return empty lists — real data to be fetched from inventory/customer_body_measurements/production_stages
+        // Return empty lists — real data to be fetched from
+        // inventory/customer_body_measurements/production_stages
         // when those cross-entity queries are implemented.
         List<GarmentDto.MaterialItem> materials = new ArrayList<>();
         List<GarmentDto.MeasurementItem> measurements = new ArrayList<>();
         List<GarmentDto.TimelineItem> timeline = new ArrayList<>();
 
         return GarmentDto.DetailResponse.builder()
+                //
                 .id(sum.getId())
                 .garmentCode(sum.getGarmentCode())
                 .orderId(sum.getOrderId())
