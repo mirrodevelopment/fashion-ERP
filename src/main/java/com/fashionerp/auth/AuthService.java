@@ -2,7 +2,6 @@ package com.fashionerp.auth;
 
 import com.fashionerp.company.CompanySettings;
 import com.fashionerp.company.CompanySettingsRepository;
-import com.fashionerp.company.CompanySettingsDto;
 import com.fashionerp.company.CompanySettingsService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -98,9 +97,10 @@ public class AuthService {
         UUID companyId = user.getCompanyId();
         String companyName = null;
         if (companyId != null) {
-            companyName = companySettingsRepository.findById(companyId)
-                    .map(CompanySettings::getCompanyName)
-                    .orElse(null);
+            CompanySettings comp = companySettingsRepository.findById(companyId).orElse(null);
+            if (comp != null) {
+                companyName = comp.getCompanyName();
+            }
         } else {
             var defaultComp = companySettingsRepository.findFirstByOrderByCreatedAtAsc().orElse(null);
             if (defaultComp != null) {
