@@ -29,6 +29,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
     @Query("""
         SELECT c FROM Customer c
         WHERE (:companyId IS NULL OR c.companyId = :companyId)
+          AND (:branch IS NULL OR c.branch = :branch OR c.branch IS NULL)
           AND (:search IS NULL OR :search = '' OR
                LOWER(c.name)         LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(c.email)        LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -39,6 +40,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
         ORDER BY c.createdAt DESC
         """)
     Page<Customer> search(@Param("companyId") UUID companyId,
+                          @Param("branch") String branch,
                           @Param("search") String search,
                           @Param("tier") CustomerTier tier,
                           Pageable pageable);

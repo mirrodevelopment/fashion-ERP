@@ -19,6 +19,10 @@ public class InventoryItem {
     @Column(name = "company_id", nullable = false)
     private UUID companyId;
 
+    @Column(length = 100)
+    @Builder.Default
+    private String branch = "Main Branch";
+
     @Column(name = "item_code", unique = true, nullable = false, length = 30)
     private String itemCode;
 
@@ -114,6 +118,10 @@ public class InventoryItem {
     public void computeStatus() {
         if (this.companyId == null) {
             this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+        if (this.branch == null || this.branch.isBlank()) {
+            String b = com.fashionerp.common.TenantContext.getAssignedBranch();
+            this.branch = (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : "Main Branch";
         }
         if (stockQty.compareTo(BigDecimal.ZERO) <= 0) {
             this.status = InventoryStatus.OUT_OF_STOCK;

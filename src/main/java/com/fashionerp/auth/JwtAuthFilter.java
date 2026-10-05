@@ -31,7 +31,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String username = jwtUtil.getUsername(token);
                     String role = jwtUtil.getRole(token);
                     java.util.UUID companyId = jwtUtil.getCompanyId(token);
+                    String assignedBranch = jwtUtil.getAssignedBranch(token);
+
                     com.fashionerp.common.TenantContext.setCompanyId(companyId);
+                    com.fashionerp.common.TenantContext.setAssignedBranch(assignedBranch);
+                    com.fashionerp.common.TenantContext.setUserRole(role);
 
                     var auth = new UsernamePasswordAuthenticationToken(
                             username, null,

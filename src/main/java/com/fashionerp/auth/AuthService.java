@@ -111,7 +111,7 @@ public class AuthService {
             }
         }
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), companyId, companyName);
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), companyId, companyName, user.getAssignedBranch());
         updateLastLogin(user);
 
         boolean needsSetup = !companySettingsService.isConfigured();
@@ -175,7 +175,7 @@ public class AuthService {
         userRepository.save(user);
         log.info("New boutique admin registered: {}", user.getUsername());
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName(), user.getAssignedBranch());
 
         // New registrants always need company setup
         return AuthDto.LoginResponse.builder()
@@ -255,7 +255,7 @@ public class AuthService {
         log.info("New boutique admin registered via onboarding: {}", user.getUsername());
 
         // 3. Issue JWT Token
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName(), user.getAssignedBranch());
 
         return AuthDto.LoginResponse.builder()
                 .token(token)

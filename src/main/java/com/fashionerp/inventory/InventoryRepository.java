@@ -19,6 +19,7 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, UUID> 
     @Query("""
         SELECT i FROM InventoryItem i
         WHERE (:companyId IS NULL OR i.companyId = :companyId)
+          AND (:branch IS NULL OR i.branch = :branch OR i.branch IS NULL)
           AND (:search IS NULL OR :search = '' OR
                LOWER(i.name)     LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(i.itemCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -28,6 +29,7 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, UUID> 
         ORDER BY i.category, i.name
         """)
     Page<InventoryItem> search(@Param("companyId") UUID companyId,
+                               @Param("branch") String branch,
                                @Param("search") String search,
                                @Param("category") String category,
                                @Param("status") InventoryStatus status,

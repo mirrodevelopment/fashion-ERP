@@ -117,6 +117,23 @@ const Company = {
       if (!el) return;
       el.value = data[key] || '';
     });
+
+    // Branch Data Sharing Policies
+    const toggleMap = {
+      shareCustomersAcrossBranches:    'coShareCustomers',
+      shareOrdersAcrossBranches:       'coShareOrders',
+      shareEnquiriesAcrossBranches:    'coShareEnquiries',
+      shareMeasurementsAcrossBranches: 'coShareMeasurements',
+      shareInventoryAcrossBranches:    'coShareInventory',
+      shareGarmentsAcrossBranches:     'coShareGarments',
+      shareTrialsAcrossBranches:       'coShareTrials',
+    };
+    Object.entries(toggleMap).forEach(([prop, elId]) => {
+      const el = document.getElementById(elId);
+      if (el) {
+        el.checked = data[prop] !== false; // defaults to true
+      }
+    });
   },
 
   /* ── Build Selects ── */
@@ -280,6 +297,15 @@ const Company = {
       pinCode:       document.getElementById('coPinCode')?.value.trim()     || '',
       country:       document.getElementById('coCountry')?.value            || COUNTRIES[0],
       logoBase64:    _logoBase64 !== null ? _logoBase64 : undefined,
+
+      /* Branch Data Sharing Policies */
+      shareCustomersAcrossBranches:    document.getElementById('coShareCustomers')?.checked !== false,
+      shareOrdersAcrossBranches:       document.getElementById('coShareOrders')?.checked !== false,
+      shareEnquiriesAcrossBranches:    document.getElementById('coShareEnquiries')?.checked !== false,
+      shareMeasurementsAcrossBranches: document.getElementById('coShareMeasurements')?.checked !== false,
+      shareInventoryAcrossBranches:    document.getElementById('coShareInventory')?.checked !== false,
+      shareGarmentsAcrossBranches:     document.getElementById('coShareGarments')?.checked !== false,
+      shareTrialsAcrossBranches:       document.getElementById('coShareTrials')?.checked !== false,
     };
 
     const btn = document.getElementById('coBtnSave');

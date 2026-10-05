@@ -21,6 +21,7 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
         SELECT t FROM Trial t
         LEFT JOIN FETCH t.customer c
         WHERE (:companyId IS NULL OR t.companyId = :companyId)
+          AND (:branch IS NULL OR t.branch = :branch OR t.branch IS NULL)
           AND (:search IS NULL OR :search = '' OR
                LOWER(t.trialCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(t.orderCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -35,6 +36,7 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
         countQuery = """
         SELECT COUNT(t) FROM Trial t
         WHERE (:companyId IS NULL OR t.companyId = :companyId)
+          AND (:branch IS NULL OR t.branch = :branch OR t.branch IS NULL)
           AND (:search IS NULL OR :search = '' OR
                LOWER(t.trialCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(t.orderCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -46,6 +48,7 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
           AND (:date IS NULL OR t.trialDate = :date)
         """)
     Page<Trial> search(@Param("companyId") UUID companyId,
+                       @Param("branch") String branch,
                        @Param("search") String search,
                        @Param("status") String status,
                        @Param("fitStatus") String fitStatus,

@@ -215,7 +215,131 @@
           </div>
         </div>
 
-        <!-- ── SECTION 4: Live Preview ── -->
+        <!-- ── SECTION 4: Branch Data Sharing & Visibility ── -->
+        <div class="co-card" id="coCardBranchSharing">
+          <div class="co-card-header-flex">
+            <h2 class="co-card-title">
+              <span class="co-card-title-icon">
+                <i data-lucide="git-branch" style="width:13px;height:13px;"></i>
+              </span>
+              Branch Data Sharing &amp; Visibility Policies
+            </h2>
+            <span class="co-badge-info">Same Company Branches</span>
+          </div>
+          <p class="co-card-desc">
+            Configure whether staff across your boutique branches share records or maintain branch-level isolation.
+            Company Admins and Owners can always view records across all branches.
+          </p>
+
+          <div class="co-sharing-grid">
+            <!-- Customer Profiles -->
+            <div class="co-toggle-card">
+              <div class="co-toggle-info">
+                <div class="co-toggle-title">
+                  <i data-lucide="users" style="width:15px;height:15px;"></i>
+                  <span>Share Customer Profiles</span>
+                </div>
+                <p class="co-toggle-desc">Allow staff at any branch to search, view, and select customer profiles created at other branches.</p>
+              </div>
+              <label class="co-switch">
+                <input type="checkbox" id="coShareCustomers" checked />
+                <span class="co-slider"></span>
+              </label>
+            </div>
+
+            <!-- Orders & Tracking -->
+            <div class="co-toggle-card">
+              <div class="co-toggle-info">
+                <div class="co-toggle-title">
+                  <i data-lucide="shopping-bag" style="width:15px;height:15px;"></i>
+                  <span>Share Orders &amp; Production</span>
+                </div>
+                <p class="co-toggle-desc">Allow branches to track orders and manufacturing status regardless of which showroom placed the order.</p>
+              </div>
+              <label class="co-switch">
+                <input type="checkbox" id="coShareOrders" checked />
+                <span class="co-slider"></span>
+              </label>
+            </div>
+
+            <!-- Enquiries & Leads -->
+            <div class="co-toggle-card">
+              <div class="co-toggle-info">
+                <div class="co-toggle-title">
+                  <i data-lucide="help-circle" style="width:15px;height:15px;"></i>
+                  <span>Share Enquiries &amp; Leads</span>
+                </div>
+                <p class="co-toggle-desc">Enable a unified sales pipeline where queries and bridal consultation leads can be accessed across branches.</p>
+              </div>
+              <label class="co-switch">
+                <input type="checkbox" id="coShareEnquiries" checked />
+                <span class="co-slider"></span>
+              </label>
+            </div>
+
+            <!-- Measurements -->
+            <div class="co-toggle-card">
+              <div class="co-toggle-info">
+                <div class="co-toggle-title">
+                  <i data-lucide="ruler" style="width:15px;height:15px;"></i>
+                  <span>Share Tailoring Measurements</span>
+                </div>
+                <p class="co-toggle-desc">Allow master cutters, tailors, and stylists at any branch to access saved client body measurements.</p>
+              </div>
+              <label class="co-switch">
+                <input type="checkbox" id="coShareMeasurements" checked />
+                <span class="co-slider"></span>
+              </label>
+            </div>
+
+            <!-- Inventory Stock -->
+            <div class="co-toggle-card">
+              <div class="co-toggle-info">
+                <div class="co-toggle-title">
+                  <i data-lucide="layers" style="width:15px;height:15px;"></i>
+                  <span>Share Inventory &amp; Fabrics</span>
+                </div>
+                <p class="co-toggle-desc">Allow branches to check fabric roll stock and raw material availability at other branches for transfers.</p>
+              </div>
+              <label class="co-switch">
+                <input type="checkbox" id="coShareInventory" checked />
+                <span class="co-slider"></span>
+              </label>
+            </div>
+
+            <!-- Garments & Collections -->
+            <div class="co-toggle-card">
+              <div class="co-toggle-info">
+                <div class="co-toggle-title">
+                  <i data-lucide="sparkles" style="width:15px;height:15px;"></i>
+                  <span>Share Garments &amp; Collections</span>
+                </div>
+                <p class="co-toggle-desc">Display unified collection catalogs across all boutique showrooms.</p>
+              </div>
+              <label class="co-switch">
+                <input type="checkbox" id="coShareGarments" checked />
+                <span class="co-slider"></span>
+              </label>
+            </div>
+
+            <!-- Fitting & Trials -->
+            <div class="co-toggle-card">
+              <div class="co-toggle-info">
+                <div class="co-toggle-title">
+                  <i data-lucide="calendar" style="width:15px;height:15px;"></i>
+                  <span>Share Fitting &amp; Trial Sessions</span>
+                </div>
+                <p class="co-toggle-desc">Allow branches to view fitting session appointments and alteration notes across locations.</p>
+              </div>
+              <label class="co-switch">
+                <input type="checkbox" id="coShareTrials" checked />
+                <span class="co-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 5: Live Preview ── -->
         <div class="co-card" id="coCardPreview">
           <h2 class="co-card-title">
             <span class="co-card-title-icon">

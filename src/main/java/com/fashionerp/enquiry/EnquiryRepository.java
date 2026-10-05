@@ -18,6 +18,7 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
     @Query("""
         SELECT e FROM Enquiry e
         WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND (:branch IS NULL OR e.branch = :branch OR e.branch IS NULL)
           AND (:search IS NULL OR :search = '' OR
                LOWER(e.customerName)  LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(e.enquiryCode)   LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -28,6 +29,7 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
         ORDER BY e.createdAt DESC
         """)
     Page<Enquiry> search(@Param("companyId") UUID companyId,
+                         @Param("branch") String branch,
                          @Param("search") String search,
                          @Param("status") String status,
                          Pageable pageable);

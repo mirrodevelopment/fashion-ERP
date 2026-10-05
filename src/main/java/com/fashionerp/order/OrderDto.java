@@ -31,6 +31,7 @@ public class OrderDto {
         private List<String> referenceImages;
         private String productionNotes;
         private String paymentMethod;
+        private String branch;
 
         public String getEffectiveMobile() {
             if (customerMobile != null && !customerMobile.isBlank()) return customerMobile;
@@ -75,6 +76,7 @@ public class OrderDto {
         private List<String> referenceImages;
         private String productionNotes;
         private Integer qcReworkCount;
+        private String branch;
         private LocalDateTime createdAt;
 
         public static Response from(Order o) {
@@ -119,6 +121,7 @@ public class OrderDto {
                     .referenceImages(o.getReferenceImageList())
                     .productionNotes(o.getProductionNotes())
                     .qcReworkCount(o.getQcReworkCount() != null ? o.getQcReworkCount() : 0)
+                    .branch(o.getBranch())
                     .createdAt(o.getCreatedAt())
                     .build();
         }

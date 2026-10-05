@@ -25,6 +25,7 @@ public class TrialController {
 
     private final TrialService trialService;
     private final OrderRepository orderRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     @GetMapping
     public Page<TrialDto.Response> list(
@@ -112,7 +113,8 @@ public class TrialController {
     public List<Map<String, Object>> getOrdersForTrial(@RequestParam(required = false) String search) {
         Pageable pageable = PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "createdAt"));
         UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
-        Page<Order> page = orderRepository.search(companyId, search, null, pageable);
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.ORDERS);
+        Page<Order> page = orderRepository.search(companyId, branchFilter, search, null, pageable);
         return page.getContent().stream().map(o -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", o.getId());

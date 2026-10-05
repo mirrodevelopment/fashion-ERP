@@ -17,10 +17,12 @@ public class MeasurementService {
 
     private final MeasurementProfileRepository profileRepository;
     private final CustomerRepository customerRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     public List<MeasurementDto.Response> getByCustomer(String customerMobile) {
         UUID companyId = TenantContext.getCompanyId();
-        return profileRepository.findByCustomerMobileNumberAndCompanyIdOrderByRecordedAtDesc(customerMobile, companyId)
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.MEASUREMENTS);
+        return profileRepository.searchProfiles(companyId, customerMobile, branchFilter)
                 .stream().map(MeasurementDto.Response::from).toList();
     }
 
@@ -43,6 +45,7 @@ public class MeasurementService {
                 .customer(customer)
                 .garmentType(req.getGarmentType())
                 .recordedBy(req.getRecordedBy())
+                .branch(branchAccessService.getDefaultBranchForCreation())
                 .notes(req.getNotes())
                 .build();
         if (req.getPoints() != null) {

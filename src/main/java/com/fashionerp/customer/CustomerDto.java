@@ -41,6 +41,7 @@ public class CustomerDto {
         private String preferredSleeve;
         private String preferredOccasions;
         private String deliveryPreference;
+        private String branch;
         private String notes;
 
         // Optional initial measurement set submitted during onboarding
@@ -88,6 +89,7 @@ public class CustomerDto {
         private String preferredSleeve;
         private String preferredOccasions;
         private String deliveryPreference;
+        private String branch;
         private Boolean measurementsOnFile;
         private String notes;
         private LocalDateTime createdAt;
@@ -128,6 +130,7 @@ public class CustomerDto {
                     .preferredSleeve(c.getPreferredSleeve())
                     .preferredOccasions(c.getPreferredOccasions())
                     .deliveryPreference(c.getDeliveryPreference())
+                    .branch(c.getBranch())
                     .measurementsOnFile(c.getMeasurementsOnFile())
                     .notes(c.getNotes())
                     .createdAt(c.getCreatedAt())

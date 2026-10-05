@@ -20,6 +20,10 @@ public class MeasurementProfile {
     @Column(name = "company_id", nullable = false)
     private UUID companyId;
 
+    @Column(length = 100)
+    @Builder.Default
+    private String branch = "Main Branch";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_mobile", nullable = false)
     private Customer customer;
@@ -48,6 +52,10 @@ public class MeasurementProfile {
     protected void assignTenant() {
         if (this.companyId == null) {
             this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+        if (this.branch == null || this.branch.isBlank()) {
+            String b = com.fashionerp.common.TenantContext.getAssignedBranch();
+            this.branch = (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : "Main Branch";
         }
     }
 }

@@ -23,6 +23,10 @@ public class Order {
     @Column(name = "company_id", nullable = false)
     private UUID companyId;
 
+    @Column(length = 100)
+    @Builder.Default
+    private String branch = "Main Branch";
+
     @Column(name = "order_code", nullable = false, unique = true, length = 30)
     private String orderCode;
 
@@ -191,6 +195,10 @@ public class Order {
     protected void assignTenant() {
         if (this.companyId == null) {
             this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+        if (this.branch == null || this.branch.isBlank()) {
+            String b = com.fashionerp.common.TenantContext.getAssignedBranch();
+            this.branch = (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : "Main Branch";
         }
     }
 }

@@ -19,6 +19,10 @@ public class JwtUtil {
     }
 
     public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName) {
+        return generateToken(userId, username, role, companyId, companyName, null);
+    }
+
+    public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName, String assignedBranch) {
         if (userId == null || username == null || role == null) {
             throw new IllegalArgumentException("userId, username, and role must not be null");
         }
@@ -33,6 +37,9 @@ public class JwtUtil {
         }
         if (companyName != null && !companyName.isBlank()) {
             builder.claim("companyName", companyName);
+        }
+        if (assignedBranch != null && !assignedBranch.isBlank()) {
+            builder.claim("assignedBranch", assignedBranch.trim());
         }
 
         return builder
@@ -78,5 +85,10 @@ public class JwtUtil {
     public String getCompanyName(String token) {
         Claims claims = parseToken(token);
         return claims.get("companyName", String.class);
+    }
+
+    public String getAssignedBranch(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("assignedBranch", String.class);
     }
 }

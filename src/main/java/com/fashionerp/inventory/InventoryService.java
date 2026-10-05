@@ -16,12 +16,14 @@ public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     public Page<InventoryDto.Response> list(String search, String category, String status, Pageable pageable) {
         InventoryStatus statusEnum = (status != null && !status.isBlank())
                 ? InventoryStatus.valueOf(status.toUpperCase().replace('-', '_')) : null;
         UUID companyId = TenantContext.getCompanyId();
-        return inventoryRepository.search(companyId, search, category, statusEnum, pageable).map(InventoryDto.Response::from);
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.INVENTORY);
+        return inventoryRepository.search(companyId, branchFilter, search, category, statusEnum, pageable).map(InventoryDto.Response::from);
     }
 
     public InventoryDto.Response getById(UUID id) {
@@ -60,6 +62,7 @@ public class InventoryService {
                 .leadTime(req.getLeadTime())
                 .supplierName(req.getSupplierName())
                 .supplierContact(req.getSupplierContact())
+                .branch(branchAccessService.getDefaultBranchForCreation())
                 .notes(req.getNotes())
                 .imageUrl(req.getImageUrl())
                 .build();

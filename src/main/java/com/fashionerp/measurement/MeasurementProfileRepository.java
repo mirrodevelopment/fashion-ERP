@@ -11,4 +11,15 @@ public interface MeasurementProfileRepository extends JpaRepository<MeasurementP
     List<MeasurementProfile> findByCustomerMobileNumberAndCompanyIdOrderByRecordedAtDesc(String customerMobile, UUID companyId);
     List<MeasurementProfile> findByCustomerMobileNumberAndGarmentTypeIgnoreCaseAndCompanyId(String customerMobile, String garmentType, UUID companyId);
     Optional<MeasurementProfile> findByIdAndCompanyId(UUID id, UUID companyId);
+
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT mp FROM MeasurementProfile mp
+        WHERE mp.companyId = :companyId
+          AND (:customerMobile IS NULL OR mp.customer.mobileNumber = :customerMobile)
+          AND (:branch IS NULL OR mp.branch = :branch OR mp.branch IS NULL)
+        ORDER BY mp.recordedAt DESC
+    """)
+    List<MeasurementProfile> searchProfiles(@org.springframework.data.repository.query.Param("companyId") UUID companyId,
+                                           @org.springframework.data.repository.query.Param("customerMobile") String customerMobile,
+                                           @org.springframework.data.repository.query.Param("branch") String branch);
 }

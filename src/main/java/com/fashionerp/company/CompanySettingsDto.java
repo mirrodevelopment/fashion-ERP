@@ -29,6 +29,15 @@ public class CompanySettingsDto {
         private String pinCode;
         private String country;
         private String logoBase64;
+
+        /* ── Branch Data Sharing Policies ── */
+        private Boolean shareCustomersAcrossBranches;
+        private Boolean shareOrdersAcrossBranches;
+        private Boolean shareEnquiriesAcrossBranches;
+        private Boolean shareMeasurementsAcrossBranches;
+        private Boolean shareInventoryAcrossBranches;
+        private Boolean shareGarmentsAcrossBranches;
+        private Boolean shareTrialsAcrossBranches;
     }
 
     @Getter
@@ -53,6 +62,13 @@ public class CompanySettingsDto {
         private String pinCode;
         private String country;
         private String logoBase64;
+        private Boolean shareCustomersAcrossBranches;
+        private Boolean shareOrdersAcrossBranches;
+        private Boolean shareEnquiriesAcrossBranches;
+        private Boolean shareMeasurementsAcrossBranches;
+        private Boolean shareInventoryAcrossBranches;
+        private Boolean shareGarmentsAcrossBranches;
+        private Boolean shareTrialsAcrossBranches;
         private LocalDateTime updatedAt;
 
         public static Response from(CompanySettings s) {
@@ -75,6 +91,13 @@ public class CompanySettingsDto {
                 .pinCode(s.getPinCode())
                 .country(s.getCountry())
                 .logoBase64(s.getLogoBase64())
+                .shareCustomersAcrossBranches(s.isShareCustomersAcrossBranches())
+                .shareOrdersAcrossBranches(s.isShareOrdersAcrossBranches())
+                .shareEnquiriesAcrossBranches(s.isShareEnquiriesAcrossBranches())
+                .shareMeasurementsAcrossBranches(s.isShareMeasurementsAcrossBranches())
+                .shareInventoryAcrossBranches(s.isShareInventoryAcrossBranches())
+                .shareGarmentsAcrossBranches(s.isShareGarmentsAcrossBranches())
+                .shareTrialsAcrossBranches(s.isShareTrialsAcrossBranches())
                 .updatedAt(s.getUpdatedAt())
                 .build();
         }

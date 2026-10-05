@@ -39,13 +39,15 @@ public class OrderService {
     private final PaymentRepository paymentRepository;
     private final StageDefinitionRepository stageDefinitionRepository;
     private final ProductionStageRepository productionStageRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     public Page<OrderDto.Response> list(String search, String status, Pageable pageable) {
         OrderStatus statusEnum = (status != null && !status.isBlank())
                 ? OrderStatus.valueOf(status.toUpperCase().replace('-', '_'))
                 : null;
         UUID companyId = TenantContext.getCompanyId();
-        return orderRepository.search(companyId, search, statusEnum, pageable).map(OrderDto.Response::from);
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.ORDERS);
+        return orderRepository.search(companyId, branchFilter, search, statusEnum, pageable).map(OrderDto.Response::from);
     }
 
     public OrderDto.Response getById(UUID id) {
@@ -110,6 +112,7 @@ public class OrderService {
                 .notes(req.getNotes())
                 .currentStage(req.getCurrentStage() != null ? req.getCurrentStage() : "ORDER_TAKEN")
                 .productionNotes(req.getProductionNotes())
+                .branch(req.getBranch() != null && !req.getBranch().isBlank() ? req.getBranch().trim() : branchAccessService.getDefaultBranchForCreation())
                 .build();
         if (req.getStatus() != null) {
             order.setStatus(req.getStatus());

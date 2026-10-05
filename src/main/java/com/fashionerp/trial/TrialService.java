@@ -40,10 +40,12 @@ public class TrialService {
     private final OrderRepository orderRepository;
     private final ProductionService productionService;
     private final AppointmentRepository appointmentRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     public Page<TrialDto.Response> list(String search, String status, String fitStatus, LocalDate date, Pageable pageable) {
         UUID companyId = TenantContext.getCompanyId();
-        return trialRepository.search(companyId, search, status, fitStatus, date, pageable).map(TrialDto.Response::from);
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.TRIALS);
+        return trialRepository.search(companyId, branchFilter, search, status, fitStatus, date, pageable).map(TrialDto.Response::from);
     }
 
     public TrialDto.Response getById(UUID id) {
@@ -113,6 +115,7 @@ public class TrialService {
                 .fabric(req.getFabric())
                 .specNotes(req.getSpecNotes())
                 .notes(req.getNotes())
+                .branch(branchAccessService.getDefaultBranchForCreation())
                 .alterations(new ArrayList<>())
                 .build();
 

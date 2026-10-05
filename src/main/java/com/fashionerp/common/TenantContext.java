@@ -9,6 +9,8 @@ import java.util.UUID;
 public final class TenantContext {
 
     private static final ThreadLocal<UUID> CURRENT_TENANT = new ThreadLocal<>();
+    private static final ThreadLocal<String> CURRENT_BRANCH = new ThreadLocal<>();
+    private static final ThreadLocal<String> CURRENT_ROLE = new ThreadLocal<>();
 
     private TenantContext() {}
 
@@ -28,7 +30,25 @@ public final class TenantContext {
         return id;
     }
 
+    public static void setAssignedBranch(String branch) {
+        CURRENT_BRANCH.set(branch);
+    }
+
+    public static String getAssignedBranch() {
+        return CURRENT_BRANCH.get();
+    }
+
+    public static void setUserRole(String role) {
+        CURRENT_ROLE.set(role);
+    }
+
+    public static String getUserRole() {
+        return CURRENT_ROLE.get();
+    }
+
     public static void clear() {
         CURRENT_TENANT.remove();
+        CURRENT_BRANCH.remove();
+        CURRENT_ROLE.remove();
     }
 }

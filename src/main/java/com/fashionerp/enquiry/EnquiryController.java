@@ -23,6 +23,7 @@ public class EnquiryController {
 
     private final EnquiryRepository enquiryRepository;
     private final com.fashionerp.appointment.AppointmentRepository appointmentRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     @GetMapping
     public Page<Enquiry> list(
@@ -39,7 +40,8 @@ public class EnquiryController {
             status = null;
         }
         UUID companyId = TenantContext.getCompanyId();
-        return enquiryRepository.search(companyId, search, status, pageable);
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.ENQUIRIES);
+        return enquiryRepository.search(companyId, branchFilter, search, status, pageable);
     }
 
     @GetMapping("/{id}")
@@ -67,6 +69,9 @@ public class EnquiryController {
         }
         if (enquiry.getSource() == null || enquiry.getSource().isBlank()) {
             enquiry.setSource("WALK_IN");
+        }
+        if (enquiry.getBranch() == null || enquiry.getBranch().isBlank()) {
+            enquiry.setBranch(branchAccessService.getDefaultBranchForCreation());
         }
         return enquiryRepository.save(enquiry);
     }

@@ -81,6 +81,29 @@ public class CompanySettingsService {
             settings.setLogoBase64(req.getLogoBase64().isBlank() ? null : req.getLogoBase64());
         }
 
+        /* ── Branch Data Sharing Policies ── */
+        if (req.getShareCustomersAcrossBranches() != null) {
+            settings.setShareCustomersAcrossBranches(req.getShareCustomersAcrossBranches());
+        }
+        if (req.getShareOrdersAcrossBranches() != null) {
+            settings.setShareOrdersAcrossBranches(req.getShareOrdersAcrossBranches());
+        }
+        if (req.getShareEnquiriesAcrossBranches() != null) {
+            settings.setShareEnquiriesAcrossBranches(req.getShareEnquiriesAcrossBranches());
+        }
+        if (req.getShareMeasurementsAcrossBranches() != null) {
+            settings.setShareMeasurementsAcrossBranches(req.getShareMeasurementsAcrossBranches());
+        }
+        if (req.getShareInventoryAcrossBranches() != null) {
+            settings.setShareInventoryAcrossBranches(req.getShareInventoryAcrossBranches());
+        }
+        if (req.getShareGarmentsAcrossBranches() != null) {
+            settings.setShareGarmentsAcrossBranches(req.getShareGarmentsAcrossBranches());
+        }
+        if (req.getShareTrialsAcrossBranches() != null) {
+            settings.setShareTrialsAcrossBranches(req.getShareTrialsAcrossBranches());
+        }
+
         return CompanySettingsDto.Response.from(repository.save(settings));
     }
 

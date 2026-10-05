@@ -72,6 +72,35 @@ public class CompanySettings {
     @Column(name = "logo_base64", columnDefinition = "TEXT")
     private String logoBase64;
 
+    /* ── Branch Data Sharing Policies (within same company) ── */
+    @Column(name = "share_customers_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareCustomersAcrossBranches = true;
+
+    @Column(name = "share_orders_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareOrdersAcrossBranches = true;
+
+    @Column(name = "share_enquiries_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareEnquiriesAcrossBranches = true;
+
+    @Column(name = "share_measurements_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareMeasurementsAcrossBranches = true;
+
+    @Column(name = "share_inventory_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareInventoryAcrossBranches = true;
+
+    @Column(name = "share_garments_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareGarmentsAcrossBranches = true;
+
+    @Column(name = "share_trials_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareTrialsAcrossBranches = true;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -80,3 +109,4 @@ public class CompanySettings {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
+

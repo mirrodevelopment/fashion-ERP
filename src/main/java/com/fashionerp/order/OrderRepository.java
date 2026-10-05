@@ -24,6 +24,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         SELECT o FROM Order o
         LEFT JOIN FETCH o.customer c
         WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND (:branch IS NULL OR o.branch = :branch OR o.branch IS NULL)
           AND (:search IS NULL OR :search = '' OR
                LOWER(o.orderCode)    LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(o.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -37,6 +38,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         SELECT COUNT(o) FROM Order o
         LEFT JOIN o.customer c
         WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND (:branch IS NULL OR o.branch = :branch OR o.branch IS NULL)
           AND (:search IS NULL OR :search = '' OR
                LOWER(o.orderCode)    LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(o.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -46,6 +48,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
           AND (:status IS NULL OR o.status = :status)
         """)
     Page<Order> search(@Param("companyId") UUID companyId,
+                       @Param("branch") String branch,
                        @Param("search") String search,
                        @Param("status") OrderStatus status,
                        Pageable pageable);

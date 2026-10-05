@@ -30,11 +30,13 @@ public class CustomerService {
     private final CustomerMeasurementRepository measurementRepository;
     private final CustomerBodyMeasurementRepository bodyMeasurementRepository;
     private final CustomerNoteRepository noteRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     public Page<CustomerDto.Response> list(String search, String tier, Pageable pageable) {
         CustomerTier tierEnum = (tier != null && !tier.isBlank()) ? CustomerTier.valueOf(tier.toUpperCase()) : null;
         UUID companyId = TenantContext.getCompanyId();
-        return customerRepository.search(companyId, search, tierEnum, pageable)
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.CUSTOMERS);
+        return customerRepository.search(companyId, branchFilter, search, tierEnum, pageable)
                 .map(CustomerDto.Response::from);
     }
 
@@ -95,6 +97,7 @@ public class CustomerService {
                     .preferredSleeve(req.getPreferredSleeve())
                     .preferredOccasions(req.getPreferredOccasions())
                     .deliveryPreference(req.getDeliveryPreference())
+                    .branch(req.getBranch() != null && !req.getBranch().isBlank() ? req.getBranch().trim() : branchAccessService.getDefaultBranchForCreation())
                     .notes(req.getNotes())
                     .measurementsOnFile(req.getInitialMeasurement() != null)
                     .build();
