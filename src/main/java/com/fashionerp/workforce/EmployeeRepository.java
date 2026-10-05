@@ -32,22 +32,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
                           @Param("search") String search,
                           @Param("role") String role,
                           @Param("status") String status,
-                          Pageable pageable);
-
-    @Query("""
-        SELECT e FROM Employee e
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(e.employeeCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(e.role) LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:role IS NULL OR :role = '' OR LOWER(e.role) = LOWER(:role))
-          AND (:status IS NULL OR :status = '' OR LOWER(e.status) = LOWER(:status))
-        ORDER BY e.createdAt ASC
-        """)
-    Page<Employee> search(@Param("search") String search,
-                          @Param("role") String role,
-                          @Param("status") String status,
-                          Pageable pageable);
+                           Pageable pageable);
 
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatus(UUID companyId, String status);
@@ -55,7 +40,4 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
     @Query("SELECT e.role AS role, COUNT(e) AS count FROM Employee e WHERE (:companyId IS NULL OR e.companyId = :companyId) GROUP BY e.role ORDER BY e.role")
     List<Map<String, Object>> countByRole(@Param("companyId") UUID companyId);
-
-    @Query("SELECT e.role AS role, COUNT(e) AS count FROM Employee e GROUP BY e.role ORDER BY e.role")
-    List<Map<String, Object>> countByRole();
 }

@@ -47,10 +47,6 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
 
     long countByCompanyId(UUID companyId);
 
-    long countByTier(CustomerTier tier);
-
-    long countByCompanyIdAndTier(UUID companyId, CustomerTier tier);
-
     @Query("SELECT COUNT(DISTINCT o.customer.mobileNumber) FROM Order o WHERE (:companyId IS NULL OR o.companyId = :companyId) AND o.createdAt >= (CURRENT_TIMESTAMP - 90 DAY)")
     long countActiveIn90Days(@Param("companyId") UUID companyId);
 

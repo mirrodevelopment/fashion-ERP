@@ -37,17 +37,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
                          @Param("status") PaymentStatus status,
                          Pageable pageable);
 
-    @Query("""
-        SELECT p FROM Payment p JOIN p.customer c JOIN p.order o
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:status IS NULL OR p.status = :status)
-        ORDER BY p.createdAt DESC
-        """)
-    Page<Payment> search(@Param("search") String search,
-                         @Param("status") PaymentStatus status,
-                         Pageable pageable);
 
     long countByStatus(PaymentStatus status);
 

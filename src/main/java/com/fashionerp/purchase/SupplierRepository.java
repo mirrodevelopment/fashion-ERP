@@ -28,15 +28,4 @@ public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
         ORDER BY s.name ASC
         """)
     Page<Supplier> search(@Param("companyId") UUID companyId, @Param("search") String search, Pageable pageable);
-
-    @Query("""
-        SELECT s FROM Supplier s
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(s.name)           LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(s.supplierCode)   LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(s.contactPerson)  LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(s.specialization) LIKE LOWER(CONCAT('%', :search, '%')))
-        ORDER BY s.name ASC
-        """)
-    Page<Supplier> search(@Param("search") String search, Pageable pageable);
 }

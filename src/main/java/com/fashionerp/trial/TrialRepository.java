@@ -55,38 +55,6 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
                        @Param("date") LocalDate date,
                        Pageable pageable);
 
-    @Query(value = """
-        SELECT t FROM Trial t
-        LEFT JOIN FETCH t.customer c
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(t.trialCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.orderCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.customer.mobileNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.garmentType) LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:status IS NULL OR :status = '' OR UPPER(t.status) = UPPER(:status))
-          AND (:fitStatus IS NULL OR :fitStatus = '' OR UPPER(t.fitStatus) = UPPER(:fitStatus))
-          AND (:date IS NULL OR t.trialDate = :date)
-        ORDER BY t.trialDate DESC, t.createdAt DESC
-        """,
-        countQuery = """
-        SELECT COUNT(t) FROM Trial t
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(t.trialCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.orderCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.customer.mobileNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(t.garmentType) LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:status IS NULL OR :status = '' OR UPPER(t.status) = UPPER(:status))
-          AND (:fitStatus IS NULL OR :fitStatus = '' OR UPPER(t.fitStatus) = UPPER(:fitStatus))
-          AND (:date IS NULL OR t.trialDate = :date)
-        """)
-    Page<Trial> search(@Param("search") String search,
-                       @Param("status") String status,
-                       @Param("fitStatus") String fitStatus,
-                       @Param("date") LocalDate date,
-                       Pageable pageable);
-
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);
     long countByStatusIgnoreCase(String status);

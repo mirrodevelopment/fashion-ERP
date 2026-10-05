@@ -34,20 +34,6 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
                          @Param("status") String status,
                          Pageable pageable);
 
-    @Query("""
-        SELECT e FROM Enquiry e
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(e.customerName)  LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(e.enquiryCode)   LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(e.garmentType)   LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(COALESCE(e.occasion, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(COALESCE(e.phone, '')) LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:status IS NULL OR :status = '' OR UPPER(e.status) = UPPER(:status))
-        ORDER BY e.createdAt DESC
-        """)
-    Page<Enquiry> search(@Param("search") String search,
-                         @Param("status") String status,
-                         Pageable pageable);
 
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);

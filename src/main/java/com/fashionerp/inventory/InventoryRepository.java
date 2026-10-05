@@ -35,20 +35,6 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, UUID> 
                                @Param("status") InventoryStatus status,
                                Pageable pageable);
 
-    @Query("""
-        SELECT i FROM InventoryItem i
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(i.name)     LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(i.itemCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(i.category) LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:category IS NULL OR :category = '' OR LOWER(i.category) = LOWER(:category))
-          AND (:status IS NULL OR i.status = :status)
-        ORDER BY i.category, i.name
-        """)
-    Page<InventoryItem> search(@Param("search") String search,
-                               @Param("category") String category,
-                               @Param("status") InventoryStatus status,
-                               Pageable pageable);
 
     long countByStatus(InventoryStatus status);
 

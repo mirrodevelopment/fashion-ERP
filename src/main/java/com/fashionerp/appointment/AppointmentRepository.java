@@ -28,17 +28,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
                              @Param("status") AppointmentStatus status,
                              Pageable pageable);
 
-    @Query("""
-        SELECT a FROM Appointment a JOIN a.customer c
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(c.mobileNumber) LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:status IS NULL OR a.status = :status)
-        ORDER BY a.scheduledAt ASC
-        """)
-    Page<Appointment> search(@Param("search") String search,
-                             @Param("status") AppointmentStatus status,
-                             Pageable pageable);
 
     List<Appointment> findByCompanyIdAndScheduledAtBetweenOrderByScheduledAtAsc(UUID companyId, LocalDateTime from, LocalDateTime to);
     List<Appointment> findByScheduledAtBetweenOrderByScheduledAtAsc(LocalDateTime from, LocalDateTime to);

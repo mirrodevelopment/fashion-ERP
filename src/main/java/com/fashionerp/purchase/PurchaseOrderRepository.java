@@ -32,19 +32,6 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, UU
                                @Param("status") String status,
                                Pageable pageable);
 
-    @Query("""
-        SELECT po FROM PurchaseOrder po
-        LEFT JOIN po.supplier s
-        WHERE (:search IS NULL OR :search = '' OR
-               LOWER(po.poCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(s.name)    LIKE LOWER(CONCAT('%', :search, '%')))
-          AND (:status IS NULL OR :status = '' OR po.status = :status)
-        ORDER BY po.createdAt DESC
-        """)
-    Page<PurchaseOrder> search(@Param("search") String search,
-                               @Param("status") String status,
-                               Pageable pageable);
-
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatus(UUID companyId, String status);
     long countByStatus(String status);
