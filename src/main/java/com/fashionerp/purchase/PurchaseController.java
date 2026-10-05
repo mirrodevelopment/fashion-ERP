@@ -97,8 +97,7 @@ public class PurchaseController {
     @GetMapping("/purchases/kpis")
     public Map<String, Object> purchaseKpis() {
         UUID companyId = TenantContext.getCompanyId();
-        long totalPos = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "all") : purchaseOrderRepository.count();
-        if (totalPos == 0 && companyId == null) totalPos = purchaseOrderRepository.count();
+        long totalPos = companyId != null ? purchaseOrderRepository.countByCompanyId(companyId) : purchaseOrderRepository.count();
         BigDecimal totalValue = companyId != null ? purchaseOrderRepository.sumTotalAmount(companyId) : purchaseOrderRepository.sumTotalAmount();
         long received = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "RECEIVED") : purchaseOrderRepository.countByStatus("RECEIVED");
         long sent = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "SENT") : purchaseOrderRepository.countByStatus("SENT");
@@ -107,7 +106,7 @@ public class PurchaseController {
         long draft = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "DRAFT") : purchaseOrderRepository.countByStatus("DRAFT");
 
         long pendingDeliveries = sent + partiallyReceived + ordered;
-        long activeSuppliers = supplierRepository.count();
+        long activeSuppliers = companyId != null ? supplierRepository.countByCompanyId(companyId) : supplierRepository.count();
 
         List<Map<String, Object>> topSuppliers = new ArrayList<>();
         BigDecimal totalValSafe = totalValue != null && totalValue.compareTo(BigDecimal.ZERO) > 0 ? totalValue : BigDecimal.ONE;

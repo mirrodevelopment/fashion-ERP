@@ -87,6 +87,7 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
                        @Param("date") LocalDate date,
                        Pageable pageable);
 
+    long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);
     long countByStatusIgnoreCase(String status);
 

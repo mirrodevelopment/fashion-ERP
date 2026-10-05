@@ -15,6 +15,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
 
     Optional<Supplier> findBySupplierCode(String supplierCode);
     Optional<Supplier> findBySupplierCodeAndCompanyId(String supplierCode, UUID companyId);
+    long countByCompanyId(UUID companyId);
 
     @Query("""
         SELECT s FROM Supplier s

@@ -75,6 +75,10 @@ public class QcController {
             @RequestParam(required = false) String notes) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found: " + orderId));
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(order.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found: " + orderId);
+        }
         int currentCount = order.getQcReworkCount() != null ? order.getQcReworkCount() : 0;
         order.setQcReworkCount(currentCount + 1);
         orderRepository.save(order);

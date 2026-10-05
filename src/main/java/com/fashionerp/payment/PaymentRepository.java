@@ -14,8 +14,11 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     boolean existsByOrderId(UUID orderId);
 
+    Optional<Payment> findByIdAndCompanyId(UUID id, UUID companyId);
+
     @Query("SELECT DISTINCT p FROM Payment p LEFT JOIN FETCH p.transactions JOIN FETCH p.order JOIN FETCH p.customer WHERE p.order.id = :orderId AND (:companyId IS NULL OR p.companyId = :companyId)")
     Optional<Payment> findByOrderIdAndCompanyId(@Param("orderId") UUID orderId, @Param("companyId") UUID companyId);
+
 
     @Query("SELECT DISTINCT p FROM Payment p LEFT JOIN FETCH p.transactions JOIN FETCH p.order JOIN FETCH p.customer WHERE p.order.id = :orderId")
     Optional<Payment> findByOrderId(@Param("orderId") UUID orderId);
@@ -47,6 +50,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
                          Pageable pageable);
 
     long countByStatus(PaymentStatus status);
+
+    long countByCompanyId(UUID companyId);
 
     long countByCompanyIdAndStatus(UUID companyId, PaymentStatus status);
 

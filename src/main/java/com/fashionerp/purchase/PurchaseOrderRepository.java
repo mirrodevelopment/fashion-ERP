@@ -45,6 +45,7 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, UU
                                @Param("status") String status,
                                Pageable pageable);
 
+    long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatus(UUID companyId, String status);
     long countByStatus(String status);
 

@@ -54,13 +54,20 @@ public class PaymentService {
 
     @Transactional
     public PaymentDto.Response create(PaymentDto.Request req) {
-        var order = orderRepository.findById(req.getOrderId())
+        UUID companyId = TenantContext.getCompanyId();
+        var order = (companyId != null
+                ? orderRepository.findByIdAndCompanyId(req.getOrderId(), companyId)
+                : orderRepository.findById(req.getOrderId()))
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + req.getOrderId()));
         String mobile = req.getEffectiveMobile();
-        var customer = customerRepository.findById(mobile)
-                .or(() -> customerRepository.findByFlexibleMobile(mobile))
+        var customer = (companyId != null
+                ? customerRepository.findByMobileNumberAndCompanyId(mobile, companyId)
+                        .or(() -> customerRepository.findByFlexibleMobile(companyId, mobile))
+                : customerRepository.findById(mobile)
+                        .or(() -> customerRepository.findByFlexibleMobile(mobile)))
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found with mobile: " + mobile));
         Payment payment = Payment.builder()
+                .companyId(companyId)
                 .order(order).customer(customer)
                 .totalAmount(req.getTotalAmount())
                 .dueDate(req.getDueDate())
@@ -75,9 +82,14 @@ public class PaymentService {
         if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Transaction amount must be positive");
         }
-        Payment payment = paymentRepository.findById(paymentOrOrderId)
-                .or(() -> paymentRepository.findByOrderId(paymentOrOrderId))
+        UUID companyId = TenantContext.getCompanyId();
+        Payment payment = (companyId != null
+                ? paymentRepository.findByIdAndCompanyId(paymentOrOrderId, companyId)
+                        .or(() -> paymentRepository.findByOrderIdAndCompanyId(paymentOrOrderId, companyId))
+                : paymentRepository.findById(paymentOrOrderId)
+                        .or(() -> paymentRepository.findByOrderId(paymentOrOrderId)))
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found for ID: " + paymentOrOrderId));
+
 
         BigDecimal total = payment.getTotalAmount() != null ? payment.getTotalAmount() : BigDecimal.ZERO;
         BigDecimal currentPaid = payment.getPaidAmount() != null ? payment.getPaidAmount() : BigDecimal.ZERO;

@@ -80,6 +80,9 @@ public class ProductionService {
         Employee employee = null;
         if (employeeId != null) {
             employee = employeeRepository.findById(employeeId).orElse(null);
+            if (employee != null && companyId != null && !companyId.equals(employee.getCompanyId())) {
+                employee = null;
+            }
         }
 
         String rawUpper = targetStage != null ? targetStage.toUpperCase().trim() : "";
@@ -123,11 +126,15 @@ public class ProductionService {
         if (matchingStage.isPresent() && matchingStage.get().getSortOrder() != null) {
             targetSortOrder = matchingStage.get().getSortOrder();
         } else {
-            Optional<StageDefinition> def = stageDefinitionRepository.findByStageKey(stUpper);
+            Optional<StageDefinition> def = companyId != null
+                    ? stageDefinitionRepository.findByCompanyIdAndStageKey(companyId, stUpper)
+                    : stageDefinitionRepository.findByStageKey(stUpper);
             if (def.isPresent() && def.get().getSortOrder() != null) {
                 targetSortOrder = def.get().getSortOrder();
             } else {
-                List<StageDefinition> allDefs = stageDefinitionRepository.findAllByOrderBySortOrderAsc();
+                List<StageDefinition> allDefs = companyId != null
+                        ? stageDefinitionRepository.findAllByCompanyIdOrderBySortOrderAsc(companyId)
+                        : stageDefinitionRepository.findAllByOrderBySortOrderAsc();
                 for (StageDefinition d : allDefs) {
                     if ((d.getStageKey() != null && d.getStageKey().equalsIgnoreCase(stUpper)) ||
                         (d.getDisplayName() != null && d.getDisplayName().equalsIgnoreCase(stUpper))) {
@@ -146,6 +153,7 @@ public class ProductionService {
 
         if (!stageFound) {
             ProductionStage newStage = ProductionStage.builder()
+                    .companyId(order.getCompanyId())
                     .order(order)
                     .stageName(stUpper)
                     .sortOrder(targetSortOrder)

@@ -32,22 +32,33 @@ public class ProductionController {
 
     @GetMapping("/stages")
     public List<ProductionStage> listStages(@RequestParam(required = false) UUID orderId) {
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
         if (orderId != null) {
-            return stageRepository.findByOrderIdOrderBySortOrderAsc(orderId);
+            return companyId != null
+                    ? stageRepository.findByOrderIdAndCompanyIdOrderBySortOrderAsc(orderId, companyId)
+                    : stageRepository.findByOrderIdOrderBySortOrderAsc(orderId);
         }
-        return stageRepository.findAll();
+        return companyId != null
+                ? stageRepository.findByCompanyIdOrderBySortOrderAsc(companyId)
+                : stageRepository.findAll();
     }
 
     @GetMapping("/order/{orderId}")
     public List<ProductionStage> getByOrder(@PathVariable UUID orderId) {
-        return stageRepository.findByOrderIdOrderBySortOrderAsc(orderId);
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        return companyId != null
+                ? stageRepository.findByOrderIdAndCompanyIdOrderBySortOrderAsc(orderId, companyId)
+                : stageRepository.findByOrderIdOrderBySortOrderAsc(orderId);
     }
 
     @PatchMapping("/stages/{id}/status")
     public ProductionStage updateStatus(
             @PathVariable UUID id,
             @RequestParam String status) {
-        ProductionStage stage = stageRepository.findById(id)
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        ProductionStage stage = (companyId != null
+                ? stageRepository.findByIdAndCompanyId(id, companyId)
+                : stageRepository.findById(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Production Stage not found: " + id));
 
         stage.setStatus(status.toUpperCase());
@@ -63,12 +74,18 @@ public class ProductionController {
     public ProductionStage assignEmployeeToProductionStage(
             @PathVariable UUID id,
             @RequestParam(required = false) UUID employeeId) {
-        ProductionStage stage = stageRepository.findById(id)
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        ProductionStage stage = (companyId != null
+                ? stageRepository.findByIdAndCompanyId(id, companyId)
+                : stageRepository.findById(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Production Stage not found: " + id));
 
         if (employeeId != null) {
             Employee emp = employeeRepository.findById(employeeId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found: " + employeeId));
+            if (companyId != null && !companyId.equals(emp.getCompanyId())) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found: " + employeeId);
+            }
             stage.setAssignedTo(emp);
         } else {
             stage.setAssignedTo(null);
@@ -97,21 +114,28 @@ public class ProductionController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        long totalOrders = orderRepository.count();
-        long inProduction = stageRepository.countOrdersInProduction();
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        long totalOrders = companyId != null ? orderRepository.countByCompanyId(companyId) : orderRepository.count();
+        long inProduction = companyId != null
+                ? stageRepository.countOrdersInProduction(companyId)
+                : stageRepository.countOrdersInProduction();
         if (inProduction == 0) {
-            inProduction = orderRepository.countByStatus(OrderStatus.IN_PROGRESS);
+            inProduction = companyId != null
+                    ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS)
+                    : orderRepository.countByStatus(OrderStatus.IN_PROGRESS);
         }
 
-        long completedStages = stageRepository.countByStatus("COMPLETED");
-        long inProgressStages = stageRepository.countByStatus("IN_PROGRESS");
-        long notStartedStages = stageRepository.countByStatus("NOT_STARTED");
-        long blockedStages = stageRepository.countByStatus("BLOCKED");
+        long completedStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "COMPLETED") : stageRepository.countByStatus("COMPLETED");
+        long inProgressStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "IN_PROGRESS") : stageRepository.countByStatus("IN_PROGRESS");
+        long notStartedStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "NOT_STARTED") : stageRepository.countByStatus("NOT_STARTED");
+        long blockedStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "BLOCKED") : stageRepository.countByStatus("BLOCKED");
 
         long onTrack = Math.max(0, inProduction - blockedStages);
         long delayed = blockedStages;
 
-        List<Object[]> activeStages = stageRepository.countActiveByStageName();
+        List<Object[]> activeStages = companyId != null
+                ? stageRepository.countActiveByStageName(companyId)
+                : stageRepository.countActiveByStageName();
         List<Map<String, Object>> stageBreakdown = new ArrayList<>();
         for (Object[] row : activeStages) {
             Map<String, Object> m = new LinkedHashMap<>();

@@ -79,9 +79,13 @@ public class OrderService {
 
     @Transactional
     public OrderDto.Response create(OrderDto.Request req) {
+        UUID companyId = TenantContext.getCompanyId();
         String mobile = req.getEffectiveMobile();
-        Customer customer = customerRepository.findById(mobile)
-                .or(() -> customerRepository.findByFlexibleMobile(mobile))
+        Customer customer = (companyId != null
+                ? customerRepository.findByMobileNumberAndCompanyId(mobile, companyId)
+                        .or(() -> customerRepository.findByFlexibleMobile(companyId, mobile))
+                : customerRepository.findById(mobile)
+                        .or(() -> customerRepository.findByFlexibleMobile(mobile)))
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found with mobile: " + mobile));
         String code = generateCode();
 
@@ -95,6 +99,7 @@ public class OrderService {
         LocalDate ordDate = req.getOrderDate() != null ? req.getOrderDate() : LocalDate.now();
 
         Order order = Order.builder()
+                .companyId(companyId)
                 .orderCode(code)
                 .customer(customer)
                 .customerName(custName)
@@ -133,13 +138,19 @@ public class OrderService {
 
         // Seed production_stages from active stage definitions so the order
         // immediately appears in the Kanban pipeline at Stage 1 (ORDER_TAKEN).
-        List<StageDefinition> activeDefs = stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
+        List<StageDefinition> activeDefs = (saved.getCompanyId() != null)
+                ? stageDefinitionRepository.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(saved.getCompanyId())
+                : stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
+        if (activeDefs.isEmpty()) {
+            activeDefs = stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
+        }
         if (!activeDefs.isEmpty()) {
             List<ProductionStage> stagesToSeed = new ArrayList<>();
             for (StageDefinition def : activeDefs) {
                 boolean isFirstStage = "ORDER_TAKEN".equalsIgnoreCase(def.getStageKey())
-                        || def.getSortOrder() == 1;
+                        || (def.getSortOrder() != null && def.getSortOrder() == 1);
                 stagesToSeed.add(ProductionStage.builder()
+                        .companyId(saved.getCompanyId())
                         .order(saved)
                         .stageName(def.getStageKey())
                         .sortOrder(def.getSortOrder() != null ? def.getSortOrder() : 0)
@@ -150,6 +161,7 @@ public class OrderService {
             }
             productionStageRepository.saveAll(stagesToSeed);
         }
+
 
         // ── Auto-create Payment record + advance transaction (if any) ──
         // Payment starts with paidAmount = 0; each payment event is a separate

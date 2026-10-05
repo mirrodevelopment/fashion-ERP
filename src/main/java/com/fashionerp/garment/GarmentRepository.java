@@ -98,6 +98,7 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
             Pageable pageable
     );
 
+    long countByCompanyId(UUID companyId);
     long countByCompanyIdAndProductionStageIgnoreCase(UUID companyId, String productionStage);
     long countByProductionStageIgnoreCase(String productionStage);
 

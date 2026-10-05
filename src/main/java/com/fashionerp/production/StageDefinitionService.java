@@ -305,7 +305,12 @@ public class StageDefinitionService {
 
         // Clean up linked pinned employees and placeholder records before removing definition
         stageDefEmpRepo.deleteAllByStageDefId(def.getId());
-        productionStageRepository.deleteByStageName(def.getStageKey());
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        if (companyId != null) {
+            productionStageRepository.deleteByCompanyIdAndStageName(companyId, def.getStageKey());
+        } else {
+            productionStageRepository.deleteByStageName(def.getStageKey());
+        }
         stageDefRepo.delete(def);
     }
 

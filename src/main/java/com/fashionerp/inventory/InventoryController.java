@@ -76,17 +76,22 @@ public class InventoryController {
     @GetMapping("/kpis")
     @SuppressWarnings("unchecked")
     public Map<String, Object> kpis() {
-        long totalItems      = inventoryRepository.count();
-        long lowStockCount   = inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);
-        long outOfStockCount = inventoryRepository.countByStatus(InventoryStatus.OUT_OF_STOCK);
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        long totalItems      = companyId != null ? inventoryRepository.countByCompanyId(companyId) : inventoryRepository.count();
+        long lowStockCount   = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK) : inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);
+        long outOfStockCount = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK) : inventoryRepository.countByStatus(InventoryStatus.OUT_OF_STOCK);
 
-        BigDecimal totalValue = (BigDecimal) em.createQuery(
-            "SELECT COALESCE(SUM(i.stockQty * i.purchasePrice), 0) FROM InventoryItem i"
-        ).getSingleResult();
+        var valQuery = em.createQuery(
+            "SELECT COALESCE(SUM(i.stockQty * i.purchasePrice), 0) FROM InventoryItem i WHERE (:companyId IS NULL OR i.companyId = :companyId)"
+        );
+        valQuery.setParameter("companyId", companyId);
+        BigDecimal totalValue = (BigDecimal) valQuery.getSingleResult();
 
-        List<Object[]> catRows = em.createQuery(
-            "SELECT i.category, COUNT(i), SUM(i.stockQty * i.purchasePrice) FROM InventoryItem i GROUP BY i.category ORDER BY i.category"
-        ).getResultList();
+        var catQuery = em.createQuery(
+            "SELECT i.category, COUNT(i), SUM(i.stockQty * i.purchasePrice) FROM InventoryItem i WHERE (:companyId IS NULL OR i.companyId = :companyId) GROUP BY i.category ORDER BY i.category"
+        );
+        catQuery.setParameter("companyId", companyId);
+        List<Object[]> catRows = catQuery.getResultList();
 
         List<Map<String, Object>> categoryBreakdown = new ArrayList<>();
         for (Object[] row : catRows) {
@@ -106,4 +111,5 @@ public class InventoryController {
         return m;
     }
 }
+
 

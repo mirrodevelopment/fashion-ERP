@@ -38,13 +38,15 @@ public class InventoryService {
 
     @Transactional
     public InventoryDto.Response create(InventoryDto.Request req) {
-        long count = inventoryRepository.count() + 1;
+        UUID companyId = TenantContext.getCompanyId();
+        long count = (companyId != null ? inventoryRepository.countByCompanyId(companyId) : inventoryRepository.count()) + 1;
         String code = "ITEM-" + String.format("%04d", count);
-        while (inventoryRepository.existsByItemCode(code)) {
+        while (companyId != null ? inventoryRepository.existsByItemCodeAndCompanyId(code, companyId) : inventoryRepository.existsByItemCode(code)) {
             count++;
             code = "ITEM-" + String.format("%04d", count);
         }
         InventoryItem item = InventoryItem.builder()
+                .companyId(companyId)
                 .itemCode(code).name(req.getName()).category(req.getCategory())
                 .variant(req.getVariant()).unit(req.getUnit() != null ? req.getUnit() : "Unit")
                 .stockQty(req.getStockQty() != null ? req.getStockQty() : java.math.BigDecimal.ZERO)
@@ -73,6 +75,10 @@ public class InventoryService {
     public InventoryDto.Response update(UUID id, InventoryDto.Request req) {
         InventoryItem item = inventoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(item.getCompanyId())) {
+            throw new IllegalArgumentException("Item not found: " + id);
+        }
         item.setName(req.getName()); item.setCategory(req.getCategory());
         if (req.getVariant() != null) item.setVariant(req.getVariant());
         if (req.getUnit() != null) item.setUnit(req.getUnit());
@@ -105,6 +111,10 @@ public class InventoryService {
     public InventoryDto.Response adjust(UUID id, InventoryDto.AdjustRequest req) {
         InventoryItem item = inventoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(item.getCompanyId())) {
+            throw new IllegalArgumentException("Item not found: " + id);
+        }
         // BUG-P1-03 FIX: Prevent negative stock
         java.math.BigDecimal currentQty = item.getStockQty() != null ? item.getStockQty() : java.math.BigDecimal.ZERO;
         java.math.BigDecimal newQty = currentQty.add(req.getQuantity());
@@ -113,6 +123,7 @@ public class InventoryService {
         }
         item.setStockQty(newQty);
         InventoryItem saved = inventoryRepository.save(item);
+
 
         // Determine movement type from context
         MovementType type = req.getMovementType() != null
@@ -136,18 +147,34 @@ public class InventoryService {
 
     /** Returns all movements for a specific inventory item, newest first */
     public List<StockMovementDto.Response> getMovements(UUID itemId) {
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null) {
+            return stockMovementRepository.findByCompanyIdAndItemIdOrderByMovedAtDesc(companyId, itemId)
+                    .stream().map(StockMovementDto.Response::from).toList();
+        }
         return stockMovementRepository.findByItemIdOrderByMovedAtDesc(itemId)
                 .stream().map(StockMovementDto.Response::from).toList();
     }
 
     /** Returns paginated movements across all inventory items */
     public Page<StockMovementDto.Response> getAllMovements(Pageable pageable) {
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null) {
+            return stockMovementRepository.findByCompanyIdOrderByMovedAtDesc(companyId, pageable)
+                    .map(StockMovementDto.Response::from);
+        }
         return stockMovementRepository.findAllByOrderByMovedAtDesc(pageable)
                 .map(StockMovementDto.Response::from);
     }
 
     @Transactional
     public void delete(UUID id) {
-        inventoryRepository.deleteById(id);
+        InventoryItem item = inventoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Item not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(item.getCompanyId())) {
+            throw new IllegalArgumentException("Item not found: " + id);
+        }
+        inventoryRepository.delete(item);
     }
 }

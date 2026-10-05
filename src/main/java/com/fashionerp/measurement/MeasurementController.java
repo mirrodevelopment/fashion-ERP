@@ -20,29 +20,39 @@ public class MeasurementController {
 
     @GetMapping("/kpis")
     public ResponseEntity<Map<String, Object>> kpis() {
-        // ── Real database aggregates ──────────────────────────────────────────
-        long totalCustomers      = customerRepository.count();
-        long totalMeasurements   = bodyMeasurementRepository.count();
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
 
-        // BUG-P1-05 FIX: Use targeted database aggregate queries instead of loading whole table into heap
-        long customersWithMeasurements = bodyMeasurementRepository.countDistinctCustomerByIsCurrentTrue();
+        // ── Real database aggregates ──────────────────────────────────────────
+        long totalCustomers      = companyId != null ? customerRepository.countByCompanyId(companyId) : customerRepository.count();
+        long totalMeasurements   = companyId != null ? bodyMeasurementRepository.countByCompanyId(companyId) : bodyMeasurementRepository.count();
+
+        // Use targeted database aggregate queries filtered by company
+        long customersWithMeasurements = companyId != null
+                ? bodyMeasurementRepository.countDistinctCustomerByCompanyIdAndIsCurrentTrue(companyId)
+                : bodyMeasurementRepository.countDistinctCustomerByIsCurrentTrue();
 
         // Customers who do NOT yet have a body measurement
         long pendingCustomers = Math.max(0, totalCustomers - customersWithMeasurements);
 
         // Fit accuracy: ratio of versions > 1 (customers who were re-measured — indicates refinement)
-        long remeasuredCount = bodyMeasurementRepository.countDistinctCustomerWithVersionGreaterThanOne();
+        long remeasuredCount = companyId != null
+                ? bodyMeasurementRepository.countDistinctCustomerByCompanyIdAndVersionGreaterThanOne(companyId)
+                : bodyMeasurementRepository.countDistinctCustomerWithVersionGreaterThanOne();
         int fitAccuracy = (totalCustomers > 0 && totalMeasurements > 0)
                 ? (int) Math.min(100, 90 + (remeasuredCount * 10 / Math.max(1, totalCustomers)))
                 : 0;
 
         // Category breakdown — how many current body measurements exist per garment type
         Map<String, Long> categoryMap = new LinkedHashMap<>();
-        for (Object[] row : bodyMeasurementRepository.countCurrentByGarmentType()) {
+        List<Object[]> garmentRows = companyId != null
+                ? bodyMeasurementRepository.countCurrentByCompanyIdAndGarmentType(companyId)
+                : bodyMeasurementRepository.countCurrentByGarmentType();
+        for (Object[] row : garmentRows) {
             String key = row[0] != null ? row[0].toString() : "custom";
             long cnt = ((Number) row[1]).longValue();
             categoryMap.put(key, cnt);
         }
+
 
         // Build ordered category counts with "all" sentinel
         Map<String, Long> cats = new LinkedHashMap<>();

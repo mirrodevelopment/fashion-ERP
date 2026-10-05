@@ -40,16 +40,27 @@ public class CustomerService {
                 .map(CustomerDto.Response::from);
     }
 
-    public CustomerDto.Response getByMobile(String mobileNumber) {
+    public Customer findCustomerByMobile(String mobileNumber) {
         String cleanMobile = cleanPhone(mobileNumber);
         UUID companyId = TenantContext.getCompanyId();
-        Customer customer = (companyId != null
+        return (companyId != null
                 ? customerRepository.findByMobileNumberAndCompanyId(cleanMobile, companyId)
                         .or(() -> customerRepository.findByFlexibleMobile(companyId, cleanMobile))
                 : customerRepository.findById(cleanMobile)
                         .or(() -> customerRepository.findByFlexibleMobile(cleanMobile)))
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found with mobile: " + mobileNumber));
-        return CustomerDto.Response.from(customer);
+                .orElse(null);
+    }
+
+    public Customer requireCustomerByMobile(String mobileNumber) {
+        Customer c = findCustomerByMobile(mobileNumber);
+        if (c == null) {
+            throw new IllegalArgumentException("Customer not found with mobile: " + mobileNumber);
+        }
+        return c;
+    }
+
+    public CustomerDto.Response getByMobile(String mobileNumber) {
+        return CustomerDto.Response.from(requireCustomerByMobile(mobileNumber));
     }
 
     @Transactional
@@ -61,14 +72,10 @@ public class CustomerService {
         String cleanMobile = cleanPhone(mobile);
         UUID companyId = TenantContext.getCompanyId();
 
-        Customer customer = (companyId != null
-                ? customerRepository.findByMobileNumberAndCompanyId(cleanMobile, companyId)
-                        .or(() -> customerRepository.findByFlexibleMobile(companyId, cleanMobile))
-                : customerRepository.findById(cleanMobile)
-                        .or(() -> customerRepository.findByFlexibleMobile(cleanMobile)))
-                .orElse(null);
+        Customer customer = findCustomerByMobile(cleanMobile);
         if (customer == null) {
             customer = Customer.builder()
+                    .companyId(companyId)
                     .mobileNumber(cleanMobile)
                     .name(req.getName())
                     .salutation(req.getSalutation())
@@ -120,32 +127,31 @@ public class CustomerService {
 
     @Transactional
     public CustomerDto.Response update(String mobileNumber, CustomerDto.Request req) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        Customer customer = customerRepository.findById(cleanMobile)
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found with mobile: " + mobileNumber));
-
+        Customer customer = requireCustomerByMobile(mobileNumber);
         updateFields(customer, req);
         return CustomerDto.Response.from(customerRepository.save(customer));
     }
 
     @Transactional
     public void delete(String mobileNumber) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        if (!customerRepository.existsById(cleanMobile)) {
-            throw new IllegalArgumentException("Customer not found with mobile: " + mobileNumber);
+        Customer customer = requireCustomerByMobile(mobileNumber);
+        UUID companyId = customer.getCompanyId();
+        if (companyId != null) {
+            measurementRepository.deleteByCompanyIdAndCustomerMobile(companyId, customer.getMobileNumber());
+            bodyMeasurementRepository.deleteByCompanyIdAndCustomerMobile(companyId, customer.getMobileNumber());
+        } else {
+            measurementRepository.deleteByCustomerMobile(customer.getMobileNumber());
+            bodyMeasurementRepository.deleteByCustomerMobile(customer.getMobileNumber());
         }
-        measurementRepository.deleteByCustomerMobile(cleanMobile);
-        customerRepository.deleteById(cleanMobile);
+        customerRepository.delete(customer);
     }
 
     // ── Avatar / Profile Photo Upload ────────────────────────────────────
 
     @Transactional
     public CustomerDto.Response uploadAvatar(String mobileNumber, MultipartFile file) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        Customer customer = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found: " + mobileNumber));
+        Customer customer = requireCustomerByMobile(mobileNumber);
+
 
         try {
             // Build safe filename: <CustomerName>_<4digits>.<ext>
@@ -188,38 +194,40 @@ public class CustomerService {
     // ── Dedicated Separate Measurements Operations ───────────────────────
 
     public List<CustomerDto.MeasurementResponse> getMeasurements(String mobileNumber) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        String targetMobile = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .map(c -> c.getMobileNumber())
-                .orElse(cleanMobile);
-        return measurementRepository.findByCustomerMobileOrderByRecordedAtDesc(targetMobile).stream()
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
+        var list = (companyId != null)
+                ? measurementRepository.findByCompanyIdAndCustomerMobileOrderByRecordedAtDesc(companyId, targetMobile)
+                : measurementRepository.findByCustomerMobileOrderByRecordedAtDesc(targetMobile);
+        return list.stream()
                 .map(CustomerDto.MeasurementResponse::from)
                 .collect(Collectors.toList());
     }
 
     public CustomerDto.MeasurementResponse getMeasurementByGarment(String mobileNumber, String garmentType) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        String targetMobile = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .map(c -> c.getMobileNumber())
-                .orElse(cleanMobile);
-        return measurementRepository.findByCustomerMobileAndGarmentType(targetMobile, garmentType)
-                .map(CustomerDto.MeasurementResponse::from)
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
+        var opt = (companyId != null)
+                ? measurementRepository.findByCompanyIdAndCustomerMobileAndGarmentType(companyId, targetMobile, garmentType)
+                : measurementRepository.findByCustomerMobileAndGarmentType(targetMobile, garmentType);
+        return opt.map(CustomerDto.MeasurementResponse::from)
                 .orElseThrow(() -> new IllegalArgumentException("No measurements found for garment " + garmentType));
     }
 
     @Transactional
     public CustomerDto.MeasurementResponse saveMeasurement(String mobileNumber, CustomerDto.MeasurementRequest req) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        Customer c = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .orElse(null);
-        String targetMobile = (c != null) ? c.getMobileNumber() : cleanMobile;
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
         String gType = (req.getGarmentType() != null && !req.getGarmentType().isBlank()) ? req.getGarmentType() : "General";
 
-        CustomerMeasurement m = measurementRepository.findByCustomerMobileAndGarmentType(targetMobile, gType)
+        CustomerMeasurement m = (companyId != null
+                ? measurementRepository.findByCompanyIdAndCustomerMobileAndGarmentType(companyId, targetMobile, gType)
+                : measurementRepository.findByCustomerMobileAndGarmentType(targetMobile, gType))
                 .orElse(CustomerMeasurement.builder()
+                        .companyId(companyId)
                         .customerMobile(targetMobile)
                         .garmentType(gType)
                         .build());
@@ -253,6 +261,7 @@ public class CustomerService {
             customerRepository.save(c);
         }
 
+
         return CustomerDto.MeasurementResponse.from(saved);
     }
 
@@ -262,12 +271,10 @@ public class CustomerService {
 
     @Transactional
     public CustomerDto.BodyMeasurementResponse saveBodyMeasurement(String mobileNumber, CustomerDto.BodyMeasurementRequest req) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        Customer c = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .orElse(null);
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
 
-        String targetMobile = (c != null) ? c.getMobileNumber() : cleanMobile;
         String customerName = (c != null) ? c.getName() : 
                 (req.getCustomerName() != null && !req.getCustomerName().isBlank() ? req.getCustomerName() : "Valued Customer");
 
@@ -276,8 +283,9 @@ public class CustomerService {
 
         // 1. Check if there is an existing CURRENT measurement
         int nextVersion = 1;
-        var currentOpt = bodyMeasurementRepository
-                .findByCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentTrue(targetMobile, garmentType);
+        var currentOpt = (companyId != null)
+                ? bodyMeasurementRepository.findByCompanyIdAndCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentTrue(companyId, targetMobile, garmentType)
+                : bodyMeasurementRepository.findByCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentTrue(targetMobile, garmentType);
 
         if (currentOpt.isPresent()) {
             CustomerBodyMeasurement existing = currentOpt.get();
@@ -290,6 +298,7 @@ public class CustomerService {
 
         // 2. Create and persist new CURRENT measurement record
         CustomerBodyMeasurement newMeas = CustomerBodyMeasurement.builder()
+                .companyId(companyId)
                 .customerMobile(targetMobile)
                 .customerName(customerName)
                 .garmentType(garmentType)
@@ -351,21 +360,21 @@ public class CustomerService {
     }
 
     public CustomerDto.GarmentMeasurementComparisonResponse getGarmentMeasurementComparison(String mobileNumber, String garmentType) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        Customer c = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .orElse(null);
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
 
-        String targetMobile = (c != null) ? c.getMobileNumber() : cleanMobile;
         String customerName = (c != null) ? c.getName() : "Valued Customer";
         String gType = (garmentType != null && !garmentType.isBlank()) ? garmentType.trim().toUpperCase() : "BLOUSE";
 
-        CustomerBodyMeasurement current = bodyMeasurementRepository
-                .findByCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentTrue(targetMobile, gType)
+        CustomerBodyMeasurement current = (companyId != null
+                ? bodyMeasurementRepository.findByCompanyIdAndCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentTrue(companyId, targetMobile, gType)
+                : bodyMeasurementRepository.findByCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentTrue(targetMobile, gType))
                 .orElse(null);
 
-        CustomerBodyMeasurement old = bodyMeasurementRepository
-                .findFirstByCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentFalseOrderByVersionDesc(targetMobile, gType)
+        CustomerBodyMeasurement old = (companyId != null
+                ? bodyMeasurementRepository.findFirstByCompanyIdAndCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentFalseOrderByVersionDesc(companyId, targetMobile, gType)
+                : bodyMeasurementRepository.findFirstByCustomerMobileAndGarmentTypeIgnoreCaseAndIsCurrentFalseOrderByVersionDesc(targetMobile, gType))
                 .orElse(null);
 
         Map<String, String> variances = calculateVariances(current, old);
@@ -381,29 +390,33 @@ public class CustomerService {
     }
 
     public List<CustomerDto.BodyMeasurementResponse> getCustomerCurrentBodyMeasurements(String mobileNumber) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        String targetMobile = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .map(c -> c.getMobileNumber())
-                .orElse(cleanMobile);
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
 
-        return bodyMeasurementRepository.findByCustomerMobileAndIsCurrentTrue(targetMobile).stream()
+        var list = (companyId != null)
+                ? bodyMeasurementRepository.findByCompanyIdAndCustomerMobileAndIsCurrentTrue(companyId, targetMobile)
+                : bodyMeasurementRepository.findByCustomerMobileAndIsCurrentTrue(targetMobile);
+
+        return list.stream()
                 .map(CustomerDto.BodyMeasurementResponse::from)
                 .collect(Collectors.toList());
     }
 
     public List<CustomerDto.BodyMeasurementResponse> getGarmentMeasurementHistory(String mobileNumber, String garmentType) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        String targetMobile = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .map(c -> c.getMobileNumber())
-                .orElse(cleanMobile);
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
 
-        return bodyMeasurementRepository
-                .findByCustomerMobileAndGarmentTypeIgnoreCaseOrderByVersionDesc(targetMobile, garmentType).stream()
+        var list = (companyId != null)
+                ? bodyMeasurementRepository.findByCompanyIdAndCustomerMobileAndGarmentTypeIgnoreCaseOrderByVersionDesc(companyId, targetMobile, garmentType)
+                : bodyMeasurementRepository.findByCustomerMobileAndGarmentTypeIgnoreCaseOrderByVersionDesc(targetMobile, garmentType);
+
+        return list.stream()
                 .map(CustomerDto.BodyMeasurementResponse::from)
                 .collect(Collectors.toList());
     }
+
 
     private Map<String, String> calculateVariances(CustomerBodyMeasurement curr, CustomerBodyMeasurement old) {
         Map<String, String> map = new LinkedHashMap<>();
@@ -498,27 +511,28 @@ public class CustomerService {
     // ── Customer Notes Operations ─────────────────────────────────────────
 
     public List<CustomerDto.NoteResponse> getNotes(String mobileNumber) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        String targetMobile = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .map(c -> c.getMobileNumber())
-                .orElse(cleanMobile);
-        return noteRepository.findByCustomerMobileOrderByCreatedAtDesc(targetMobile).stream()
+        Customer c = findCustomerByMobile(mobileNumber);
+        String targetMobile = (c != null) ? c.getMobileNumber() : cleanPhone(mobileNumber);
+        UUID companyId = (c != null) ? c.getCompanyId() : TenantContext.getCompanyId();
+
+        var list = (companyId != null)
+                ? noteRepository.findByCompanyIdAndCustomerMobileOrderByCreatedAtDesc(companyId, targetMobile)
+                : noteRepository.findByCustomerMobileOrderByCreatedAtDesc(targetMobile);
+
+        return list.stream()
                 .map(CustomerDto.NoteResponse::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public CustomerDto.NoteResponse addNote(String mobileNumber, CustomerDto.NoteRequest req) {
-        String cleanMobile = cleanPhone(mobileNumber);
-        Customer customer = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found: " + mobileNumber));
+        Customer customer = requireCustomerByMobile(mobileNumber);
 
         String author = (req.getAuthorName() != null && !req.getAuthorName().isBlank()) ? req.getAuthorName().trim() : "Atelier Staff";
         String badge = (req.getAuthorBadge() != null && !req.getAuthorBadge().isBlank()) ? req.getAuthorBadge().trim() : "AS";
 
         CustomerNote note = CustomerNote.builder()
+                .companyId(customer.getCompanyId())
                 .customerMobile(customer.getMobileNumber())
                 .noteText(req.getNoteText())
                 .authorName(author)
@@ -531,8 +545,14 @@ public class CustomerService {
 
     @Transactional
     public void deleteNote(java.util.UUID noteId) {
-        noteRepository.deleteById(noteId);
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null) {
+            noteRepository.deleteByIdAndCompanyId(noteId, companyId);
+        } else {
+            noteRepository.deleteById(noteId);
+        }
     }
+
 
     private String cleanPhone(String phone) {
         if (phone == null) return "";

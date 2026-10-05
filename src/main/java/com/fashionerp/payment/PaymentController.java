@@ -71,16 +71,18 @@ public class PaymentController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
         Map<String, Object> m = new LinkedHashMap<>();
-        BigDecimal totalColl = paymentRepository.sumPaidAmount();
-        BigDecimal pendingBal = paymentRepository.sumPendingAmount();
-        BigDecimal thisMonthColl = paymentRepository.sumThisMonthPaidAmount();
+        BigDecimal totalColl = companyId != null ? paymentRepository.sumPaidAmount(companyId) : paymentRepository.sumPaidAmount();
+        BigDecimal pendingBal = companyId != null ? paymentRepository.sumPendingAmount(companyId) : paymentRepository.sumPendingAmount();
+        BigDecimal thisMonthColl = companyId != null ? paymentRepository.sumThisMonthPaidAmount(companyId) : paymentRepository.sumThisMonthPaidAmount();
         m.put("totalCollected",    totalColl != null ? totalColl : BigDecimal.ZERO);
         m.put("pendingBalance",    pendingBal != null ? pendingBal : BigDecimal.ZERO);
-        m.put("overdueCount",      paymentRepository.countByStatus(PaymentStatus.OVERDUE));
-        m.put("partialCount",      paymentRepository.countByStatus(PaymentStatus.PARTIAL));
+        m.put("overdueCount",      companyId != null ? paymentRepository.countOverdue(companyId) : paymentRepository.countOverdue());
+        m.put("partialCount",      companyId != null ? paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL) : paymentRepository.countByStatus(PaymentStatus.PARTIAL));
         m.put("thisMonthCollected",thisMonthColl != null ? thisMonthColl : BigDecimal.ZERO);
-        m.put("invoiceCount",      paymentRepository.count());
+        m.put("invoiceCount",      companyId != null ? paymentRepository.countByCompanyId(companyId) : paymentRepository.count());
         return m;
     }
 }
+

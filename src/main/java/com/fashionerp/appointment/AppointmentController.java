@@ -52,14 +52,17 @@ public class AppointmentController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         LocalDateTime todayEnd   = todayStart.plusDays(1).minusSeconds(1);
-        long todayCount     = appointmentRepository.findByScheduledAtBetweenOrderByScheduledAtAsc(todayStart, todayEnd).size();
-        long upcomingCount  = appointmentRepository.countByStatus(AppointmentStatus.CONFIRMED);
-        long completedCount = appointmentRepository.countByStatus(AppointmentStatus.COMPLETED);
-        long cancelledCount = appointmentRepository.countByStatus(AppointmentStatus.CANCELLED);
-        long noShowCount    = appointmentRepository.countByStatus(AppointmentStatus.NO_SHOW);
-        long confirmedCount = appointmentRepository.countByStatus(AppointmentStatus.CONFIRMED);
+        long todayCount     = (companyId != null
+                ? appointmentRepository.findByCompanyIdAndScheduledAtBetweenOrderByScheduledAtAsc(companyId, todayStart, todayEnd)
+                : appointmentRepository.findByScheduledAtBetweenOrderByScheduledAtAsc(todayStart, todayEnd)).size();
+        long upcomingCount  = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CONFIRMED) : appointmentRepository.countByStatus(AppointmentStatus.CONFIRMED);
+        long completedCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.COMPLETED) : appointmentRepository.countByStatus(AppointmentStatus.COMPLETED);
+        long cancelledCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CANCELLED) : appointmentRepository.countByStatus(AppointmentStatus.CANCELLED);
+        long noShowCount    = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.NO_SHOW) : appointmentRepository.countByStatus(AppointmentStatus.NO_SHOW);
+        long confirmedCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CONFIRMED) : appointmentRepository.countByStatus(AppointmentStatus.CONFIRMED);
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("todayCount",     todayCount);
@@ -71,4 +74,5 @@ public class AppointmentController {
         return m;
     }
 }
+
 

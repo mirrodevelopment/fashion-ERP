@@ -1,5 +1,5 @@
 package com.fashionerp.trial;
- 
+
 import com.fashionerp.appointment.Appointment;
 import com.fashionerp.appointment.AppointmentRepository;
 import com.fashionerp.appointment.AppointmentStatus;
@@ -42,10 +42,13 @@ public class TrialService {
     private final AppointmentRepository appointmentRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
 
-    public Page<TrialDto.Response> list(String search, String status, String fitStatus, LocalDate date, Pageable pageable) {
+    public Page<TrialDto.Response> list(String search, String status, String fitStatus, LocalDate date,
+            Pageable pageable) {
         UUID companyId = TenantContext.getCompanyId();
-        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.TRIALS);
-        return trialRepository.search(companyId, branchFilter, search, status, fitStatus, date, pageable).map(TrialDto.Response::from);
+        String branchFilter = branchAccessService
+                .getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.TRIALS);
+        return trialRepository.search(companyId, branchFilter, search, status, fitStatus, date, pageable)
+                .map(TrialDto.Response::from);
     }
 
     public TrialDto.Response getById(UUID id) {
@@ -69,27 +72,33 @@ public class TrialService {
 
     @Transactional
     public TrialDto.Response create(TrialDto.Request req) {
+        UUID companyId = TenantContext.getCompanyId();
         String cleanMobile = req.getCustomerMobile() != null ? req.getCustomerMobile().replaceAll("[^0-9+]", "") : "";
-        Customer customer = customerRepository.findById(cleanMobile)
-                .or(() -> customerRepository.findByFlexibleMobile(cleanMobile))
-                .orElse(null);
+        Customer customer = (cleanMobile != null && !cleanMobile.isBlank())
+                ? (companyId != null ? customerRepository.findByFlexibleMobile(companyId, cleanMobile).orElse(null)
+                        : customerRepository.findByFlexibleMobile(cleanMobile).orElse(null))
+                : null;
 
         Order order = null;
         if (req.getOrderCode() != null && !req.getOrderCode().isBlank()) {
-            order = orderRepository.findByOrderCode(req.getOrderCode()).orElse(null);
+            order = (companyId != null ? orderRepository.findByOrderCodeAndCompanyId(req.getOrderCode(), companyId)
+                    : orderRepository.findByOrderCode(req.getOrderCode())).orElse(null);
         }
 
-        // BUG-P1-06 FIX: High-resolution timestamp + random suffix to prevent collisions
-        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-" + (100 + (int)(Math.random() * 900));
+        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-"
+                + (100 + (int) (Math.random() * 900));
 
         int attempt = req.getTrialAttempt() != null ? req.getTrialAttempt() : 1;
         int altCount = req.getAlterationCount() != null ? req.getAlterationCount() : 0;
-        String stageLabel = req.getStage() != null ? req.getStage() : (attempt <= 1 ? "First Trial (Attempt #1)" : ("Re-trial Attempt #" + attempt));
+        String stageLabel = req.getStage() != null ? req.getStage()
+                : (attempt <= 1 ? "First Trial (Attempt #1)" : ("Re-trial Attempt #" + attempt));
 
         Trial trial = Trial.builder()
+                .companyId(companyId)
                 .trialCode(code)
                 .order(order)
-                .orderCode(req.getOrderCode() != null ? req.getOrderCode() : (order != null ? order.getOrderCode() : ""))
+                .orderCode(
+                        req.getOrderCode() != null ? req.getOrderCode() : (order != null ? order.getOrderCode() : ""))
                 .customer(customer)
                 .customerName(customer != null ? customer.getName() : req.getCustomerName())
                 .garmentType(req.getGarmentType() != null ? req.getGarmentType() : "General")
@@ -132,8 +141,12 @@ public class TrialService {
                         .priority(item.getPriority() != null ? item.getPriority() : "Normal")
                         .targetDate(item.getTargetDate() != null ? item.getTargetDate() : trial.getDeliveryDate())
                         .tailorNotes(item.getTailorNotes())
-                        .completedAt(completed ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now()) : null)
-                        .completedBy(completed ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor") : null)
+                        .completedAt(completed
+                                ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now())
+                                : null)
+                        .completedBy(
+                                completed ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor")
+                                        : null)
                         .build());
             }
         }
@@ -146,25 +159,44 @@ public class TrialService {
         Trial trial = trialRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Trial not found: " + id));
 
-        if (req.getStatus() != null) trial.setStatus(req.getStatus());
-        if (req.getFitStatus() != null) trial.setFitStatus(req.getFitStatus());
-        if (req.getStage() != null) trial.setStage(req.getStage());
-        if (req.getTrialAttempt() != null) trial.setTrialAttempt(req.getTrialAttempt());
-        if (req.getAlterationCount() != null) trial.setAlterationCount(req.getAlterationCount());
-        if (req.getCustomerFeedback() != null) trial.setCustomerFeedback(req.getCustomerFeedback());
-        if (req.getCustomerRating() != null) trial.setCustomerRating(req.getCustomerRating());
-        if (req.getFitPreference() != null) trial.setFitPreference(req.getFitPreference());
-        if (req.getFitCheckpoints() != null) trial.setFitCheckpoints(req.getFitCheckpoints());
-        if (req.getFitNotes() != null) trial.setFitNotes(req.getFitNotes());
-        if (req.getDesignerName() != null) trial.setDesignerName(req.getDesignerName());
-        if (req.getTrialDate() != null) trial.setTrialDate(req.getTrialDate());
-        if (req.getTrialTime() != null) trial.setTrialTime(req.getTrialTime());
-        if (req.getDeliveryDate() != null) trial.setDeliveryDate(req.getDeliveryDate());
-        if (req.getNextTrialDate() != null) trial.setNextTrialDate(req.getNextTrialDate());
-        if (req.getCompletedAt() != null) trial.setCompletedAt(req.getCompletedAt());
-        if (req.getCompletedBy() != null) trial.setCompletedBy(req.getCompletedBy());
-        if (req.getNotes() != null) trial.setNotes(req.getNotes());
-        if (req.getSpecNotes() != null) trial.setSpecNotes(req.getSpecNotes());
+        if (req.getStatus() != null)
+            trial.setStatus(req.getStatus());
+        if (req.getFitStatus() != null)
+            trial.setFitStatus(req.getFitStatus());
+        if (req.getStage() != null)
+            trial.setStage(req.getStage());
+        if (req.getTrialAttempt() != null)
+            trial.setTrialAttempt(req.getTrialAttempt());
+        if (req.getAlterationCount() != null)
+            trial.setAlterationCount(req.getAlterationCount());
+        if (req.getCustomerFeedback() != null)
+            trial.setCustomerFeedback(req.getCustomerFeedback());
+        if (req.getCustomerRating() != null)
+            trial.setCustomerRating(req.getCustomerRating());
+        if (req.getFitPreference() != null)
+            trial.setFitPreference(req.getFitPreference());
+        if (req.getFitCheckpoints() != null)
+            trial.setFitCheckpoints(req.getFitCheckpoints());
+        if (req.getFitNotes() != null)
+            trial.setFitNotes(req.getFitNotes());
+        if (req.getDesignerName() != null)
+            trial.setDesignerName(req.getDesignerName());
+        if (req.getTrialDate() != null)
+            trial.setTrialDate(req.getTrialDate());
+        if (req.getTrialTime() != null)
+            trial.setTrialTime(req.getTrialTime());
+        if (req.getDeliveryDate() != null)
+            trial.setDeliveryDate(req.getDeliveryDate());
+        if (req.getNextTrialDate() != null)
+            trial.setNextTrialDate(req.getNextTrialDate());
+        if (req.getCompletedAt() != null)
+            trial.setCompletedAt(req.getCompletedAt());
+        if (req.getCompletedBy() != null)
+            trial.setCompletedBy(req.getCompletedBy());
+        if (req.getNotes() != null)
+            trial.setNotes(req.getNotes());
+        if (req.getSpecNotes() != null)
+            trial.setSpecNotes(req.getSpecNotes());
 
         if (req.getAlterations() != null) {
             if (trial.getAlterations() == null) {
@@ -182,17 +214,26 @@ public class TrialService {
                 boolean completed = Boolean.TRUE.equals(item.getCompleted());
                 if (item.getId() != null && existingMap.containsKey(item.getId())) {
                     TrialAlteration existing = existingMap.get(item.getId());
-                    if (item.getDescription() != null) existing.setDescription(item.getDescription());
-                    if (item.getCategory() != null) existing.setCategory(item.getCategory());
+                    if (item.getDescription() != null)
+                        existing.setDescription(item.getDescription());
+                    if (item.getCategory() != null)
+                        existing.setCategory(item.getCategory());
                     existing.setCompleted(completed);
-                    existing.setStatus(item.getStatus() != null ? item.getStatus() : (completed ? "COMPLETED" : "PENDING"));
-                    if (item.getAssignedTailor() != null) existing.setAssignedTailor(item.getAssignedTailor());
-                    if (item.getPriority() != null) existing.setPriority(item.getPriority());
-                    if (item.getTargetDate() != null) existing.setTargetDate(item.getTargetDate());
-                    if (item.getTailorNotes() != null) existing.setTailorNotes(item.getTailorNotes());
+                    existing.setStatus(
+                            item.getStatus() != null ? item.getStatus() : (completed ? "COMPLETED" : "PENDING"));
+                    if (item.getAssignedTailor() != null)
+                        existing.setAssignedTailor(item.getAssignedTailor());
+                    if (item.getPriority() != null)
+                        existing.setPriority(item.getPriority());
+                    if (item.getTargetDate() != null)
+                        existing.setTargetDate(item.getTargetDate());
+                    if (item.getTailorNotes() != null)
+                        existing.setTailorNotes(item.getTailorNotes());
                     if (completed && existing.getCompletedAt() == null) {
-                        existing.setCompletedAt(item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now());
-                        existing.setCompletedBy(item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor");
+                        existing.setCompletedAt(
+                                item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now());
+                        existing.setCompletedBy(
+                                item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor");
                     } else if (!completed) {
                         existing.setCompletedAt(null);
                         existing.setCompletedBy(null);
@@ -210,8 +251,12 @@ public class TrialService {
                             .priority(item.getPriority() != null ? item.getPriority() : "Normal")
                             .targetDate(item.getTargetDate() != null ? item.getTargetDate() : trial.getDeliveryDate())
                             .tailorNotes(item.getTailorNotes())
-                            .completedAt(completed ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now()) : null)
-                            .completedBy(completed ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor") : null)
+                            .completedAt(completed
+                                    ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now())
+                                    : null)
+                            .completedBy(completed
+                                    ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor")
+                                    : null)
                             .build();
                     updatedList.add(newAlt);
                 }
@@ -238,8 +283,8 @@ public class TrialService {
         int attempt = (int) (priorCount + 1);
         String stageLabel = attempt == 1 ? "First Trial (Attempt #1)" : ("Re-trial Attempt #" + attempt);
 
-        // BUG-P1-06 FIX: High-resolution timestamp + random suffix to prevent collisions
-        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-" + (100 + (int)(Math.random() * 900));
+        String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-"
+                + (100 + (int) (Math.random() * 900));
 
         Trial trial = Trial.builder()
                 .trialCode(code)
@@ -260,7 +305,8 @@ public class TrialService {
                 .alterationCount(0)
                 .customerRating(5)
                 .fitPreference("Comfort / Regular Fit")
-                .deliveryDate(order.getExpectedDeliveryDate() != null ? order.getExpectedDeliveryDate() : order.getDueDate())
+                .deliveryDate(
+                        order.getExpectedDeliveryDate() != null ? order.getExpectedDeliveryDate() : order.getDueDate())
                 .specNotes(order.getProductionNotes())
                 .notes(order.getNotes())
                 .alterations(new ArrayList<>())
@@ -289,14 +335,17 @@ public class TrialService {
                 .priority(item.getPriority() != null ? item.getPriority() : "Normal")
                 .targetDate(item.getTargetDate() != null ? item.getTargetDate() : trial.getDeliveryDate())
                 .tailorNotes(item.getTailorNotes())
-                .completedAt(completed ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now()) : null)
-                .completedBy(completed ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor") : null)
+                .completedAt(completed ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now())
+                        : null)
+                .completedBy(
+                        completed ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor") : null)
                 .build();
 
         trial.getAlterations().add(alt);
         trial.setAlterationCount(trial.getAlterations().size());
 
-        if (!"COMPLETED".equalsIgnoreCase(trial.getStatus()) && !"RETRIAL_SCHEDULED".equalsIgnoreCase(trial.getStatus())) {
+        if (!"COMPLETED".equalsIgnoreCase(trial.getStatus())
+                && !"RETRIAL_SCHEDULED".equalsIgnoreCase(trial.getStatus())) {
             trial.setStatus("IN_ALTERATION");
         }
 
@@ -336,7 +385,9 @@ public class TrialService {
                         a.setCompleted(newState);
                         a.setStatus(newState ? "COMPLETED" : "PENDING");
                         a.setCompletedAt(newState ? LocalDateTime.now() : null);
-                        a.setCompletedBy(newState ? (completedBy != null && !completedBy.isBlank() ? completedBy : "Master Tailor") : null);
+                        a.setCompletedBy(newState
+                                ? (completedBy != null && !completedBy.isBlank() ? completedBy : "Master Tailor")
+                                : null);
                     });
         }
 
@@ -367,8 +418,10 @@ public class TrialService {
                 scheduledTime = req.getTrialTime();
                 trial.setTrialTime(scheduledTime);
             }
-            if (req.getDesignerName() != null) trial.setDesignerName(req.getDesignerName());
-            if (req.getNotes() != null) trial.setNotes(req.getNotes());
+            if (req.getDesignerName() != null)
+                trial.setDesignerName(req.getDesignerName());
+            if (req.getNotes() != null)
+                trial.setNotes(req.getNotes());
         }
 
         Trial saved = trialRepository.save(trial);
@@ -389,7 +442,8 @@ public class TrialService {
                                 (req != null && req.getNotes() != null ? " - " + req.getNotes() : ""))
                         .build();
                 appointmentRepository.save(appt);
-                log.info("Booked re-trial appointment for customer {} on {}", trial.getCustomer().getMobileNumber(), apptTime);
+                log.info("Booked re-trial appointment for customer {} on {}", trial.getCustomer().getMobileNumber(),
+                        apptTime);
             } catch (Exception e) {
                 log.warn("Could not auto-create re-trial appointment: {}", e.getMessage());
             }
@@ -432,8 +486,8 @@ public class TrialService {
                         trial.getOrder().getId(),
                         "QC",
                         null,
-                        "Passed Trial Fitting - Perfect Fit (Attempt #" + (trial.getTrialAttempt() != null ? trial.getTrialAttempt() : 1) + ")"
-                );
+                        "Passed Trial Fitting - Perfect Fit (Attempt #"
+                                + (trial.getTrialAttempt() != null ? trial.getTrialAttempt() : 1) + ")");
             } catch (Exception e) {
                 log.warn("Could not auto-advance order {} to QC stage: {}", trial.getOrder().getId(), e.getMessage());
             }
@@ -443,7 +497,8 @@ public class TrialService {
                 List<Appointment> appts = appointmentRepository.findByOrderId(trial.getOrder().getId());
                 for (Appointment appt : appts) {
                     if (appt.getApptType() == AppointmentType.TRIAL || appt.getApptType() == AppointmentType.FITTING) {
-                        if (appt.getStatus() == AppointmentStatus.SCHEDULED || appt.getStatus() == AppointmentStatus.CONFIRMED) {
+                        if (appt.getStatus() == AppointmentStatus.SCHEDULED
+                                || appt.getStatus() == AppointmentStatus.CONFIRMED) {
                             appt.setStatus(AppointmentStatus.COMPLETED);
                             appointmentRepository.save(appt);
                         }
@@ -467,19 +522,44 @@ public class TrialService {
 
     public Map<String, Object> getKpis() {
         LocalDate today = LocalDate.now();
-        long total = trialRepository.count();
-        long todayCount = trialRepository.countByTrialDateAndStatusNotIgnoreCase(today, "COMPLETED");
-        long upcoming = trialRepository.countByTrialDateGreaterThanAndStatusNotIgnoreCase(today, "COMPLETED");
-        long overdue = trialRepository.countByTrialDateLessThanAndStatusNotIgnoreCase(today, "COMPLETED");
-        long completed = trialRepository.countByStatusIgnoreCase("COMPLETED");
+        UUID companyId = TenantContext.getCompanyId();
 
-        long perfect = trialRepository.countByFitStatusIgnoreCase("PERFECT");
-        long minor = trialRepository.countByFitStatusIgnoreCase("MINOR");
-        long major = trialRepository.countByFitStatusIgnoreCase("MAJOR");
-        long retrial = trialRepository.countByFitStatusIgnoreCase("RETRIAL");
+        long total = companyId != null ? trialRepository.countByCompanyId(companyId) : trialRepository.count();
+        long todayCount = companyId != null
+                ? trialRepository.countByCompanyIdAndTrialDateAndStatusNotIgnoreCase(companyId, today, "COMPLETED")
+                : trialRepository.countByTrialDateAndStatusNotIgnoreCase(today, "COMPLETED");
+        long upcoming = companyId != null
+                ? trialRepository.countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCase(companyId, today,
+                        "COMPLETED")
+                : trialRepository.countByTrialDateGreaterThanAndStatusNotIgnoreCase(today, "COMPLETED");
+        long overdue = companyId != null
+                ? trialRepository.countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCase(companyId, today,
+                        "COMPLETED")
+                : trialRepository.countByTrialDateLessThanAndStatusNotIgnoreCase(today, "COMPLETED");
+        long completed = companyId != null
+                ? trialRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "COMPLETED")
+                : trialRepository.countByStatusIgnoreCase("COMPLETED");
 
-        long pendingAlterations = trialAlterationRepository.countByCompletedFalse();
-        long retrialsRequired = trialRepository.countByTrialAttemptGreaterThanAndStatusNotIgnoreCase(1, "COMPLETED");
+        long perfect = companyId != null
+                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "PERFECT")
+                : trialRepository.countByFitStatusIgnoreCase("PERFECT");
+        long minor = companyId != null
+                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MINOR")
+                : trialRepository.countByFitStatusIgnoreCase("MINOR");
+        long major = companyId != null
+                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MAJOR")
+                : trialRepository.countByFitStatusIgnoreCase("MAJOR");
+        long retrial = companyId != null
+                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "RETRIAL")
+                : trialRepository.countByFitStatusIgnoreCase("RETRIAL");
+
+        long pendingAlterations = companyId != null
+                ? trialAlterationRepository.countByCompanyIdAndCompletedFalse(companyId)
+                : trialAlterationRepository.countByCompletedFalse();
+        long retrialsRequired = companyId != null
+                ? trialRepository.countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCase(companyId, 1,
+                        "COMPLETED")
+                : trialRepository.countByTrialAttemptGreaterThanAndStatusNotIgnoreCase(1, "COMPLETED");
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("total", total);
@@ -497,8 +577,10 @@ public class TrialService {
     }
 
     private LocalDateTime parseScheduledDateTime(LocalDate date, String timeStr) {
-        if (date == null) date = LocalDate.now();
-        if (timeStr == null || timeStr.isBlank()) return date.atTime(11, 0);
+        if (date == null)
+            date = LocalDate.now();
+        if (timeStr == null || timeStr.isBlank())
+            return date.atTime(11, 0);
         try {
             DateTimeFormatter dtf12 = DateTimeFormatter.ofPattern("h:mm a", java.util.Locale.ENGLISH);
             return date.atTime(LocalTime.parse(timeStr.trim().toUpperCase(), dtf12));
@@ -515,4 +597,3 @@ public class TrialService {
         return trialRepository.countByOrderCode(orderCode);
     }
 }
-

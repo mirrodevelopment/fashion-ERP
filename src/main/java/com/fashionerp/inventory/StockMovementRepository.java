@@ -14,6 +14,10 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, UU
     /** All movements for a specific inventory item, newest first */
     List<StockMovement> findByItemIdOrderByMovedAtDesc(UUID itemId);
 
+    List<StockMovement> findByCompanyIdAndItemIdOrderByMovedAtDesc(UUID companyId, UUID itemId);
+
     /** Paginated list of all movements across all items */
     Page<StockMovement> findAllByOrderByMovedAtDesc(Pageable pageable);
+
+    Page<StockMovement> findByCompanyIdOrderByMovedAtDesc(UUID companyId, Pageable pageable);
 }

@@ -63,14 +63,16 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeDto.Response create(EmployeeDto.Request req) {
-        long count = employeeRepository.count() + 1;
+        UUID companyId = TenantContext.getCompanyId();
+        long count = (companyId != null ? employeeRepository.countByCompanyId(companyId) : employeeRepository.count()) + 1;
         String code = "EMP-" + String.format("%03d", count);
-        while (employeeRepository.findByEmployeeCode(code).isPresent()) {
+        while (companyId != null ? employeeRepository.findByEmployeeCodeAndCompanyId(code, companyId).isPresent() : employeeRepository.findByEmployeeCode(code).isPresent()) {
             count++;
             code = "EMP-" + String.format("%03d", count);
         }
 
         Employee emp = Employee.builder()
+            .companyId(companyId)
             .employeeCode(code)
             .name(req.getName())
             .phone(req.getPhone())
@@ -90,6 +92,10 @@ public class EmployeeService {
     public EmployeeDto.Response update(UUID id, EmployeeDto.Request req) {
         Employee emp = employeeRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(emp.getCompanyId())) {
+            throw new RuntimeException("Employee not found with id: " + id);
+        }
 
         if (req.getName() != null) emp.setName(req.getName());
         if (req.getPhone() != null) emp.setPhone(req.getPhone());
@@ -152,6 +158,12 @@ public class EmployeeService {
 
     @Transactional
     public void delete(UUID id) {
-        employeeRepository.deleteById(id);
+        Employee emp = employeeRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(emp.getCompanyId())) {
+            throw new RuntimeException("Employee not found with id: " + id);
+        }
+        employeeRepository.delete(emp);
     }
 }

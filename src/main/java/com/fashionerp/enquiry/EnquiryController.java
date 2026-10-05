@@ -58,8 +58,12 @@ public class EnquiryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Enquiry create(@RequestBody Enquiry enquiry) {
+        UUID companyId = TenantContext.getCompanyId();
+        if (enquiry.getCompanyId() == null && companyId != null) {
+            enquiry.setCompanyId(companyId);
+        }
         if (enquiry.getEnquiryCode() == null || enquiry.getEnquiryCode().isBlank()) {
-            long count = enquiryRepository.count() + 1;
+            long count = (companyId != null ? enquiryRepository.countByCompanyId(companyId) : enquiryRepository.count()) + 1;
             enquiry.setEnquiryCode(String.format("ENQ-%04d", count));
         }
         if (enquiry.getStatus() == null || enquiry.getStatus().isBlank()) {
@@ -75,6 +79,7 @@ public class EnquiryController {
         }
         return enquiryRepository.save(enquiry);
     }
+
 
     @PutMapping("/{id}")
     public Enquiry update(@PathVariable UUID id, @RequestBody Enquiry updated) {
@@ -120,21 +125,25 @@ public class EnquiryController {
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
         UUID companyId = TenantContext.getCompanyId();
-        long total = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "all") : enquiryRepository.count();
-        if (total == 0 && companyId == null) total = enquiryRepository.count();
-        long newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW") + enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "PENDING");
-        long inDiscussion = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_DISCUSSION");
-        long quotationSent = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "QUOTATION_SENT");
-        long converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED");
-        long followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP");
-        long closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") + followUp;
+        long total = companyId != null ? enquiryRepository.countByCompanyId(companyId) : enquiryRepository.count();
+        long newCount = (companyId != null
+                ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW") + enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "PENDING")
+                : enquiryRepository.countByStatusIgnoreCase("NEW") + enquiryRepository.countByStatusIgnoreCase("PENDING"));
+        long inDiscussion = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_DISCUSSION") : enquiryRepository.countByStatusIgnoreCase("IN_DISCUSSION");
+        long quotationSent = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "QUOTATION_SENT") : enquiryRepository.countByStatusIgnoreCase("QUOTATION_SENT");
+        long converted = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED") : enquiryRepository.countByStatusIgnoreCase("CONVERTED");
+        long followUp = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP") : enquiryRepository.countByStatusIgnoreCase("FOLLOW_UP");
+        long closed = (companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") : enquiryRepository.countByStatusIgnoreCase("CLOSED")) + followUp;
 
         // Dynamic KPI queries directly from database
-        long newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7));
+        long newThisWeek = companyId != null
+                ? enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7))
+                : enquiryRepository.countByCreatedAtAfter(LocalDateTime.now().minusDays(7));
         if (newThisWeek == 0) newThisWeek = newCount;
 
         long pendingFollowUp = followUp;
-        long appointmentsCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, null) : appointmentRepository.count();
+        long appointmentsCount = companyId != null ? appointmentRepository.countByCompanyId(companyId) : appointmentRepository.count();
+
 
         BigDecimal conversionRate = total > 0
                 ? BigDecimal.valueOf(converted * 100.0 / total).setScale(1, RoundingMode.HALF_UP)

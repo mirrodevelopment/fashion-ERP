@@ -64,11 +64,12 @@ public class EmployeeController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        long activeCount    = employeeRepository.countByStatus("ACTIVE");
-        long onLeaveCount   = employeeRepository.countByStatus("ON_LEAVE");
-        long totalCount     = employeeRepository.count();
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        long activeCount    = companyId != null ? employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE") : employeeRepository.countByStatus("ACTIVE");
+        long onLeaveCount   = companyId != null ? employeeRepository.countByCompanyIdAndStatus(companyId, "ON_LEAVE") : employeeRepository.countByStatus("ON_LEAVE");
+        long totalCount     = companyId != null ? employeeRepository.countByCompanyId(companyId) : employeeRepository.count();
 
-        List<Map<String, Object>> deptBreakdown = employeeRepository.countByRole();
+        List<Map<String, Object>> deptBreakdown = employeeRepository.countByRole(companyId);
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("activeCount",          activeCount);

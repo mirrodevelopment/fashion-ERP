@@ -46,17 +46,17 @@ public class GarmentService {
     @Transactional(readOnly = true)
     public GarmentDto.KpiResponse getKpis() {
         UUID companyId = TenantContext.getCompanyId();
-        long total = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "all") > 0 
-                ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "all") 
-                : garmentRepository.count();
-        long inProd = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production");
-        long inTrial = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial");
-        long awaitingQc = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC");
-        if (awaitingQc == 0) awaitingQc = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC");
-        long ready = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready");
-        long delivered = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered");
-        long designing = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing");
-        long onHold = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold");
+        long total = companyId != null ? garmentRepository.countByCompanyId(companyId) : garmentRepository.count();
+        long inProd = companyId != null ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production") : garmentRepository.countByStatusIgnoreCase("In Production");
+        long inTrial = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial") : garmentRepository.countByProductionStageIgnoreCase("Trial");
+        long awaitingQc = companyId != null ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC") : garmentRepository.countByStatusIgnoreCase("Awaiting QC");
+        if (awaitingQc == 0) {
+            awaitingQc = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC") : garmentRepository.countByProductionStageIgnoreCase("QC");
+        }
+        long ready = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready") : garmentRepository.countByProductionStageIgnoreCase("Ready");
+        long delivered = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered") : garmentRepository.countByProductionStageIgnoreCase("Delivered");
+        long designing = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing") : garmentRepository.countByProductionStageIgnoreCase("Designing");
+        long onHold = companyId != null ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold") : garmentRepository.countByProductionStageIgnoreCase("On Hold");
 
         // Real month-over-month deltas require historical data queries; return null until implemented.
         return GarmentDto.KpiResponse.builder()
@@ -112,7 +112,9 @@ public class GarmentService {
             code = "GRM-" + (System.currentTimeMillis() % 100000);
         }
 
+        UUID companyId = TenantContext.getCompanyId();
         Garment g = Garment.builder()
+                .companyId(companyId)
                 .garmentCode(code)
                 .orderCode(req.getOrderCode())
                 .customerName(req.getCustomerName())
@@ -147,6 +149,10 @@ public class GarmentService {
     public GarmentDto.SummaryResponse update(UUID id, GarmentDto.UpdateRequest req) {
         Garment g = garmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Garment not found with id: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(g.getCompanyId())) {
+            throw new IllegalArgumentException("Garment not found with id: " + id);
+        }
 
         if (req.getTitle() != null) g.setTitle(req.getTitle());
         if (req.getGarmentType() != null) g.setGarmentType(req.getGarmentType());

@@ -49,9 +49,11 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
                          @Param("status") String status,
                          Pageable pageable);
 
+    long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);
     long countByStatusIgnoreCase(String status);
 
     long countByCompanyIdAndCreatedAtAfter(UUID companyId, java.time.LocalDateTime date);
     long countByCreatedAtAfter(java.time.LocalDateTime date);
 }
+

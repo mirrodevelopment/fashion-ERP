@@ -57,12 +57,15 @@ public class DashboardController {
         long cancelledOrders   = companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED) : orderRepository.countByStatus(OrderStatus.CANCELLED);
         long lowStockItems     = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK) : inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);
         long outOfStockItems   = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK) : inventoryRepository.countByStatus(InventoryStatus.OUT_OF_STOCK);
-        BigDecimal totalRevenue   = companyId != null ? paymentRepository.sumPaidAmount(companyId) : paymentRepository.sumPaidAmount();
-        BigDecimal pendingPayments = companyId != null ? paymentRepository.sumPendingAmount(companyId) : paymentRepository.sumPendingAmount();
+        BigDecimal rawRevenue   = companyId != null ? paymentRepository.sumPaidAmount(companyId) : paymentRepository.sumPaidAmount();
+        BigDecimal rawPending   = companyId != null ? paymentRepository.sumPendingAmount(companyId) : paymentRepository.sumPendingAmount();
+        BigDecimal totalRevenue = rawRevenue != null ? rawRevenue : BigDecimal.ZERO;
+        BigDecimal pendingPayments = rawPending != null ? rawPending : BigDecimal.ZERO;
 
         long pendingPaymentsCount = companyId != null
                 ? paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL) + paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PENDING)
                 : paymentRepository.countByStatus(PaymentStatus.PARTIAL) + paymentRepository.countByStatus(PaymentStatus.PENDING);
+
 
         // ── Order status breakdown for donut chart ────────────────
         List<Map<String, Object>> orderStatusBreakdown = new ArrayList<>();
@@ -274,11 +277,14 @@ public class DashboardController {
     private Map<String, Object> buildBusinessHealth(UUID companyId, BigDecimal totalRevenue, long totalOrders,
                                                      long deliveredOrders, long totalCustomers) {
         // Financial: paid / total billed
-        BigDecimal totalBilled = companyId != null ? paymentRepository.sumTotalAmount(companyId) : paymentRepository.sumTotalAmount();
-        int financial = totalBilled != null && totalBilled.compareTo(BigDecimal.ZERO) > 0
-                ? totalRevenue.multiply(BigDecimal.valueOf(100)).divide(totalBilled, 0, RoundingMode.HALF_UP).intValue()
+        BigDecimal rawBilled = companyId != null ? paymentRepository.sumTotalAmount(companyId) : paymentRepository.sumTotalAmount();
+        BigDecimal totalBilled = rawBilled != null ? rawBilled : BigDecimal.ZERO;
+        BigDecimal safeRevenue = totalRevenue != null ? totalRevenue : BigDecimal.ZERO;
+        int financial = totalBilled.compareTo(BigDecimal.ZERO) > 0
+                ? safeRevenue.multiply(BigDecimal.valueOf(100)).divide(totalBilled, 0, RoundingMode.HALF_UP).intValue()
                 : 0;
         financial = Math.min(financial, 100);
+
 
         // Operational: completed orders / total orders
         int operational = totalOrders > 0

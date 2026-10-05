@@ -42,19 +42,25 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto.Response create(AppointmentDto.Request req) {
+        UUID companyId = TenantContext.getCompanyId();
         String mobile = req.getEffectiveMobile();
-        var customer = customerRepository.findById(mobile)
-                .or(() -> customerRepository.findByFlexibleMobile(mobile))
+        var customer = (companyId != null
+                ? customerRepository.findByMobileNumberAndCompanyId(mobile, companyId)
+                        .or(() -> customerRepository.findByFlexibleMobile(companyId, mobile))
+                : customerRepository.findById(mobile)
+                        .or(() -> customerRepository.findByFlexibleMobile(mobile)))
                 .orElseGet(() -> {
                     String cName = (req.getCustomerName() != null && !req.getCustomerName().isBlank())
                             ? req.getCustomerName().trim() : "Walk-in Client";
                     Customer newCust = Customer.builder()
+                            .companyId(companyId)
                             .mobileNumber(mobile)
                             .name(cName)
                             .build();
                     return customerRepository.save(newCust);
                 });
         Appointment a = Appointment.builder()
+                .companyId(companyId)
                 .customer(customer)
                 .apptType(req.getApptType() != null ? req.getApptType() : AppointmentType.CONSULTATION)
                 .scheduledAt(req.getScheduledAt())
@@ -70,7 +76,10 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto.Response updateStatus(UUID id, AppointmentStatus newStatus) {
-        Appointment a = appointmentRepository.findById(id)
+        UUID companyId = TenantContext.getCompanyId();
+        Appointment a = (companyId != null
+                ? appointmentRepository.findByIdAndCompanyId(id, companyId)
+                : appointmentRepository.findById(id))
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + id));
         a.setStatus(newStatus);
         return AppointmentDto.Response.from(appointmentRepository.save(a));
@@ -78,7 +87,10 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto.Response reschedule(UUID id, Map<String, Object> body) {
-        Appointment a = appointmentRepository.findById(id)
+        UUID companyId = TenantContext.getCompanyId();
+        Appointment a = (companyId != null
+                ? appointmentRepository.findByIdAndCompanyId(id, companyId)
+                : appointmentRepository.findById(id))
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + id));
         if (body.containsKey("scheduledAt") && body.get("scheduledAt") != null) {
             a.setScheduledAt(LocalDateTime.parse(body.get("scheduledAt").toString()));
@@ -93,4 +105,5 @@ public class AppointmentService {
         }
         return AppointmentDto.Response.from(appointmentRepository.save(a));
     }
+
 }

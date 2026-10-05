@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -45,9 +46,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
     List<Appointment> findByCompanyIdAndCustomerMobileNumberOrderByScheduledAtDesc(UUID companyId, String customerMobile);
     List<Appointment> findByCustomerMobileNumberOrderByScheduledAtDesc(String customerMobile);
 
+    Optional<Appointment> findByIdAndCompanyId(UUID id, UUID companyId);
+
+    long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatus(UUID companyId, AppointmentStatus status);
     long countByStatus(AppointmentStatus status);
 
     List<Appointment> findByCompanyIdAndOrderId(UUID companyId, UUID orderId);
     List<Appointment> findByOrderId(UUID orderId);
 }
+

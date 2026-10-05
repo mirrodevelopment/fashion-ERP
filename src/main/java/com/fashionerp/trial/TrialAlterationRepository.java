@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface TrialAlterationRepository extends JpaRepository<TrialAlteration, UUID> {
 
     long countByCompletedFalse();
+    long countByCompanyIdAndCompletedFalse(UUID companyId);
 }

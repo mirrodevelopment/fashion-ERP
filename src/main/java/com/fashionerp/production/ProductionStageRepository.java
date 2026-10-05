@@ -12,6 +12,8 @@ public interface ProductionStageRepository extends JpaRepository<ProductionStage
 
     List<ProductionStage> findByOrderIdOrderBySortOrderAsc(UUID orderId);
     List<ProductionStage> findByOrderIdAndCompanyIdOrderBySortOrderAsc(UUID orderId, UUID companyId);
+    List<ProductionStage> findByCompanyIdOrderBySortOrderAsc(UUID companyId);
+    java.util.Optional<ProductionStage> findByIdAndCompanyId(UUID id, UUID companyId);
 
     long countByStatus(String status);
     long countByCompanyIdAndStatus(UUID companyId, String status);
@@ -29,6 +31,11 @@ public interface ProductionStageRepository extends JpaRepository<ProductionStage
     long countOrdersInProduction();
 
     @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM ProductionStage ps WHERE (:companyId IS NULL OR ps.companyId = :companyId) AND UPPER(TRIM(ps.stageName)) = UPPER(TRIM(:stageName))")
+    void deleteByCompanyIdAndStageName(@org.springframework.data.repository.query.Param("companyId") UUID companyId, @org.springframework.data.repository.query.Param("stageName") String stageName);
+
+    @org.springframework.data.jpa.repository.Modifying
     @Query("DELETE FROM ProductionStage ps WHERE UPPER(TRIM(ps.stageName)) = UPPER(TRIM(:stageName))")
     void deleteByStageName(@org.springframework.data.repository.query.Param("stageName") String stageName);
 }
+

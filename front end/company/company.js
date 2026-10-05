@@ -62,6 +62,7 @@ const Company = {
     this._buildCountrySelect();
     this._bindLivePreview();
     await this._load();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   },
 
   /* ── Load from API ── */
