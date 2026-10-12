@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Manage fabric and material suppliers - view, add, edit and track all supplier contacts, specializations and purchase history." />
+  <title data-brand-title="Supplier Directory">Supplier Directory - Fashion ERP</title>
+  <link rel="stylesheet" href="../fragments/font/font.css" />
+  <link rel="stylesheet" href="../fragments/theme/haulo-tokens.css" />
+  <link rel="stylesheet" href="../fragments/theme/theme.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../fragments/fragments.css" />
+  <link rel="stylesheet" href="../fragments/nav.css" />
+  <link rel="stylesheet" href="suppliers.css" />
+  <script>window.FRAGMENT_BASE = '../fragments/';</script>
+  <script src="../fragments/theme/theme-switch.js"></script>
+  <script src="../fragments/nav.js"></script>
+</head>
+<body data-module="suppliers">
+  <div class="app-bg"></div>
+  <div class="app-shell" id="appShell">
+    <div id="sidebarSlot"></div>
+    <main class="main-content" id="mainContent">
+      <div id="navbarSlot"></div>
+      <div class="page-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="header-left">
+            <div id="breadcrumbSlot"></div>
+            <h1 class="page-title">Supplier Directory</h1>
+            <p class="page-subtitle">Manage fabric &amp; material vendors, contacts, specializations and purchase history.</p>
+          </div>
+          <div class="header-right">
+            <a href="../purchases/purchases.html" class="btn-secondary-nav" id="viewPurchasesBtn">
+              <i data-lucide="shopping-cart"></i>
+              <span>Purchase Orders</span>
+            </a>
+            <button type="button" class="btn-primary-create" id="openAddSupplierBtn">
+              <span class="plus-icon">+</span>
+              <span>Add Supplier</span>
+            </button>
+          </div>
+        </div>
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap lime"><i data-lucide="users"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Suppliers</span>
+              <div class="kpi-val" id="kpiTotal">0</div>
+              <span class="kpi-trend lime" id="kpiTotalTrend">&#8212;</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap mint"><i data-lucide="star"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Active This Month</span>
+              <div class="kpi-val" id="kpiActive">0</div>
+              <span class="kpi-trend mint" id="kpiActiveTrend">&#8212;</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap green"><i data-lucide="package"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">With Active POs</span>
+              <div class="kpi-val" id="kpiWithPos">0</div>
+              <span class="kpi-trend green" id="kpiWithPosTrend">&#8212;</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap coral"><i data-lucide="layers"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Specializations</span>
+              <div class="kpi-val" id="kpiSpecializations">0</div>
+              <span class="kpi-trend coral" id="kpiSpecializationsTrend">&#8212;</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap emerald"><i data-lucide="indian-rupee"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Purchase Value</span>
+              <div class="kpi-val" id="kpiTotalValue">&#8377;0</div>
+              <span class="kpi-trend emerald" id="kpiTotalValueTrend">&#8212;</span>
+            </div>
+          </div>
+        </div>
+        <!-- Main Workspace -->
+        <div class="suppliers-workspace">
+          <!-- Table Section -->
+          <div class="supplier-table-section">
+            <div class="table-filter-bar">
+              <div class="filter-pills" id="specializationPills">
+                <button type="button" class="tab-pill active" data-spec="all">All</button>
+              </div>
+              <div class="table-controls-right">
+                <div class="search-box">
+                  <i data-lucide="search" class="search-icon"></i>
+                  <input type="text" id="supplierSearchInput" class="search-input" placeholder="Search by name, code, contact or city..." autocomplete="off" />
+                </div>
+                <div class="view-toggle-group">
+                  <button type="button" class="view-toggle-btn active" id="tableViewBtn" title="Table view"><i data-lucide="table-2"></i></button>
+                  <button type="button" class="view-toggle-btn" id="cardViewBtn" title="Card view"><i data-lucide="layout-grid"></i></button>
+                </div>
+              </div>
+            </div>
+            <!-- Table View -->
+            <div class="glass-card table-card" id="tableViewSection">
+              <div class="table-responsive">
+                <table class="suppliers-table" id="suppliersTable">
+                  <colgroup>
+                    <col style="width:7%;" />
+                    <col style="width:24%;" />
+                    <col style="width:17%;" />
+                    <col style="width:17%;" />
+                    <col style="width:16%;" />
+                    <col style="width:13%;" />
+                    <col style="width:6%;" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Supplier Name</th>
+                      <th>Contact Person</th>
+                      <th>Phone / Email</th>
+                      <th>Specialization</th>
+                      <th>Added On</th>
+                      <th style="text-align:center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="supplierTableBody">
+                    <tr id="supplierTableLoading">
+                      <td colspan="7" class="table-loading-state">
+                        <div class="spinner-ring"></div>
+                        <span>Loading suppliers...</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-pagination">
+                <span class="pagination-summary" id="paginationSummary">Showing 0 suppliers</span>
+                <div class="pagination-pages" id="paginationControls"></div>
+              </div>
+            </div>
+            <!-- Card Grid View -->
+            <div class="supplier-card-grid" id="cardViewSection" style="display:none;"></div>
+          </div>
+          <!-- Profile Side Panel -->
+          <div class="supplier-profile-panel glass-card" id="supplierProfilePanel">
+            <div class="profile-panel-header">
+              <span class="panel-icon-badge lime"><i data-lucide="user-check"></i></span>
+              <h3 class="panel-title">Supplier Profile</h3>
+              <button type="button" class="panel-close-btn" id="closeProfilePanelBtn" title="Close panel"><i data-lucide="x"></i></button>
+            </div>
+            <div class="profile-panel-empty" id="profilePanelEmpty">
+              <i data-lucide="mouse-pointer-2"></i>
+              <p>Click a supplier row to view their full profile and purchase history.</p>
+            </div>
+            <div class="profile-panel-content" id="profilePanelContent" style="display:none;">
+              <div class="supplier-hero">
+                <div class="supplier-avatar-xl" id="profileAvatar">&#8212;</div>
+                <div class="supplier-hero-details">
+                  <div class="supplier-name-row">
+                    <span class="supplier-name-lg" id="profileName">&#8212;</span>
+                  </div>
+                  <span class="supplier-code-badge" id="profileCode">&#8212;</span>
+                  <div class="supplier-spec-tag" id="profileSpec">&#8212;</div>
+                </div>
+              </div>
+              <div class="profile-section">
+                <div class="profile-section-title">Contact Information</div>
+                <div class="profile-info-row"><i data-lucide="user"></i><span id="profileContactPerson">&#8212;</span></div>
+                <div class="profile-info-row"><i data-lucide="phone"></i><span id="profilePhone">&#8212;</span></div>
+                <div class="profile-info-row"><i data-lucide="mail"></i><span id="profileEmail">&#8212;</span></div>
+                <div class="profile-info-row"><i data-lucide="map-pin"></i><span id="profileAddress">&#8212;</span></div>
+              </div>
+              <div class="profile-section">
+                <div class="profile-section-title">Purchase Statistics</div>
+                <div class="profile-stats-grid">
+                  <div class="profile-stat-tile"><span class="stat-k">Total POs</span><span class="stat-v" id="profileTotalPos">&#8212;</span></div>
+                  <div class="profile-stat-tile"><span class="stat-k">Total Value</span><span class="stat-v highlight" id="profileTotalValue">&#8212;</span></div>
+                  <div class="profile-stat-tile"><span class="stat-k">Last Order</span><span class="stat-v" id="profileLastOrder">&#8212;</span></div>
+                  <div class="profile-stat-tile"><span class="stat-k">Member Since</span><span class="stat-v" id="profileSince">&#8212;</span></div>
+                </div>
+              </div>
+              <div class="profile-section" id="profileNotesSection" style="display:none;">
+                <div class="profile-section-title">Notes</div>
+                <p class="profile-notes-text" id="profileNotes"></p>
+              </div>
+              <div class="profile-panel-actions">
+                <button type="button" class="btn-profile-action primary" id="profileEditBtn"><i data-lucide="edit-2"></i> Edit Supplier</button>
+                <a href="../purchases/purchases.html" class="btn-profile-action secondary" id="profileViewPosBtn"><i data-lucide="file-text"></i> View POs</a>
+                <button type="button" class="btn-profile-action danger" id="profileDeleteBtn"><i data-lucide="trash-2"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="footerSlot"></div>
+    </main>
+  </div>
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="supplierModal" aria-hidden="true">
+    <div class="modal-box modal-md" role="dialog" aria-modal="true" aria-labelledby="supplierModalTitle">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="panel-icon-badge lime"><i data-lucide="user-plus"></i></span>
+          <h3 class="modal-title" id="supplierModalTitle">Add Supplier</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeSupplierModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="supplierForm" class="modal-form" novalidate>
+        <input type="hidden" id="supplierIdField" />
+        <div class="modal-body">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="supplierNameInput" class="form-label">Supplier Name *</label>
+              <input type="text" id="supplierNameInput" class="form-input" placeholder="e.g. Shri Ram Fabrics" required />
+            </div>
+            <div class="form-group">
+              <label for="supplierCodeInput" class="form-label">Supplier Code</label>
+              <input type="text" id="supplierCodeInput" class="form-input" placeholder="Auto-generated if blank" />
+            </div>
+          </div>
+          <div class="form-grid-2" style="margin-top:10px;">
+            <div class="form-group">
+              <label for="supplierContactInput" class="form-label">Contact Person</label>
+              <input type="text" id="supplierContactInput" class="form-input" placeholder="e.g. Ramesh Kumar" />
+            </div>
+            <div class="form-group">
+              <label for="supplierPhoneInput" class="form-label">Phone Number</label>
+              <input type="tel" id="supplierPhoneInput" class="form-input" placeholder="+91 98765 43210" />
+            </div>
+          </div>
+          <div class="form-grid-2" style="margin-top:10px;">
+            <div class="form-group">
+              <label for="supplierEmailInput" class="form-label">Email Address</label>
+              <input type="email" id="supplierEmailInput" class="form-input" placeholder="supplier@example.com" />
+            </div>
+            <div class="form-group">
+              <label for="supplierSpecInput" class="form-label">Specialization</label>
+              <input type="text" id="supplierSpecInput" class="form-input" placeholder="e.g. Silk Fabrics, Zari Work" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:10px;">
+            <label for="supplierAddressInput" class="form-label">Address</label>
+            <textarea id="supplierAddressInput" class="form-textarea" rows="2" placeholder="Full address including city, state, PIN..."></textarea>
+          </div>
+          <div class="form-group" style="margin-top:10px;">
+            <label for="supplierNotesInput" class="form-label">Notes / Remarks</label>
+            <textarea id="supplierNotesInput" class="form-textarea" rows="2" placeholder="Payment terms, lead times, quality notes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelSupplierModal">Cancel</button>
+          <button type="submit" class="btn-primary-save" id="submitSupplierBtn">
+            <i data-lucide="save"></i>
+            <span id="submitSupplierLabel">Save Supplier</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Delete Modal -->
+  <div class="modal-overlay" id="deleteSupplierModal" aria-hidden="true">
+    <div class="modal-box modal-sm" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="deleteModalTitle" style="color:#f87171;">
+          <i data-lucide="alert-triangle" style="width:16px;height:16px;margin-right:6px;"></i>Delete Supplier
+        </h3>
+        <button type="button" class="modal-close-btn" id="closeDeleteModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="delete-confirm-text">Are you sure you want to delete <strong id="deleteSupplierName">this supplier</strong>? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="cancelDeleteModal">Cancel</button>
+        <button type="button" class="btn-danger-confirm" id="confirmDeleteBtn">
+          <i data-lucide="trash-2"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Row Context Dropdown -->
+  <div class="row-actions-dropdown" id="rowActionsDropdown" style="display:none;">
+    <button type="button" class="dropdown-item" data-action="view"><i data-lucide="eye"></i><span>View Profile</span></button>
+    <button type="button" class="dropdown-item" data-action="edit"><i data-lucide="edit-2"></i><span>Edit Supplier</span></button>
+    <button type="button" class="dropdown-item" data-action="pos"><i data-lucide="file-text"></i><span>View Purchase Orders</span></button>
+    <div class="dropdown-divider"></div>
+    <button type="button" class="dropdown-item danger" data-action="delete"><i data-lucide="trash-2"></i><span>Delete</span></button>
+  </div>
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="../fragments/company-bridge.js"></script>
+  <script src="../fragments/fragments-inline.js"></script>
+  <script src="../fragments/fragments.js"></script>
+  <script src="suppliers.js"></script>
+</body>
+</html>

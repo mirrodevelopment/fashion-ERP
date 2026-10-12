@@ -140,10 +140,7 @@ public class OrderService {
         // immediately appears in the Kanban pipeline at Stage 1 (ORDER_TAKEN).
         List<StageDefinition> activeDefs = (saved.getCompanyId() != null)
                 ? stageDefinitionRepository.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(saved.getCompanyId())
-                : stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
-        if (activeDefs.isEmpty()) {
-            activeDefs = stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
-        }
+                : java.util.Collections.emptyList();
         if (!activeDefs.isEmpty()) {
             List<ProductionStage> stagesToSeed = new ArrayList<>();
             for (StageDefinition def : activeDefs) {
@@ -221,6 +218,10 @@ public class OrderService {
     public OrderDto.Response update(UUID id, OrderDto.Request req) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(order.getCompanyId())) {
+            throw new IllegalArgumentException("Order not found: " + id);
+        }
         if (req.getGarmentType() != null)
             order.setGarmentType(req.getGarmentType());
         if (req.getGarmentDesc() != null)
@@ -287,9 +288,10 @@ public class OrderService {
     // BUG-P0-07 FIX: Prevent collision on concurrent order creation
     private synchronized String generateCode() {
         int year = java.time.LocalDate.now().getYear();
-        long count = orderRepository.count() + 1;
+        UUID companyId = TenantContext.getCompanyId();
+        long count = (companyId != null ? orderRepository.countByCompanyId(companyId) : orderRepository.count()) + 1;
         String code = "ORD-" + year + "-" + String.format("%04d", count);
-        while (orderRepository.existsByOrderCode(code)) {
+        while (companyId != null ? orderRepository.existsByOrderCodeAndCompanyId(code, companyId) : orderRepository.existsByOrderCode(code)) {
             count++;
             code = "ORD-" + year + "-" + String.format("%04d", count);
         }
@@ -315,6 +317,10 @@ public class OrderService {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(order.getCompanyId())) {
+            throw new IllegalArgumentException("Order not found: " + orderId);
+        }
 
         try {
             String originalFilename = file.getOriginalFilename();
@@ -362,6 +368,10 @@ public class OrderService {
             throw new IllegalArgumentException("Slot must be between 1 and 5");
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(order.getCompanyId())) {
+            throw new IllegalArgumentException("Order not found: " + orderId);
+        }
         List<String> imgs = new ArrayList<>(order.getReferenceImageList());
         if (slot <= imgs.size()) {
             // Try to delete the physical file

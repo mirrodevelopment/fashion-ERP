@@ -41,11 +41,20 @@ public class SecurityConfig {
                                  "/static/**", "/error", "/favicon.ico").permitAll()
                 // Public: actuator health (used by start.bat health monitor)
                 .requestMatchers("/actuator/**").permitAll()
-                // Public: login + register + onboard endpoints
-                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/onboard").permitAll()
+                // Public: login + register + onboard + company-lookup (multi-step login Step 1)
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/onboard",
+                                 "/api/v1/auth/company-lookup").permitAll()
                 // Public read-only: company settings and branches (for app shell branding and topbar branch selection)
                 .requestMatchers(HttpMethod.GET, "/api/v1/company", "/api/v1/company/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/branches", "/api/v1/branches/**").permitAll()
+                // =========================================================================
+                // DEVELOPER TOOLING ENDPOINTS - START
+                // Permitted read-only endpoint for live database-driven persona switching
+                // =========================================================================
+                .requestMatchers(HttpMethod.GET, "/api/v1/dev/**").permitAll()
+                // =========================================================================
+                // DEVELOPER TOOLING ENDPOINTS - END
+                // =========================================================================
                 // All other API calls require authentication
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().permitAll()

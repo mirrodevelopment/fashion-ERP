@@ -11,13 +11,9 @@ import java.util.UUID;
 @Repository
 public interface StockMovementRepository extends JpaRepository<StockMovement, UUID> {
 
-    /** All movements for a specific inventory item, newest first */
-    List<StockMovement> findByItemIdOrderByMovedAtDesc(UUID itemId);
-
+    /** All movements for a specific inventory item scoped to company, newest first */
     List<StockMovement> findByCompanyIdAndItemIdOrderByMovedAtDesc(UUID companyId, UUID itemId);
 
-    /** Paginated list of all movements across all items */
-    Page<StockMovement> findAllByOrderByMovedAtDesc(Pageable pageable);
-
+    /** Paginated list of all movements across items scoped to company */
     Page<StockMovement> findByCompanyIdOrderByMovedAtDesc(UUID companyId, Pageable pageable);
 }

@@ -11,4 +11,10 @@ public interface CompanySettingsRepository extends JpaRepository<CompanySettings
      * Returns the singleton company settings row (the first and only row).
      */
     Optional<CompanySettings> findFirstByOrderByCreatedAtAsc();
+
+    /**
+     * Finds a company by name (case-insensitive).
+     * Used by the login company-lookup endpoint (Step 1 of multi-step login).
+     */
+    Optional<CompanySettings> findByCompanyNameIgnoreCase(String companyName);
 }

@@ -3,19 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title data-brand-title="Branches &amp; Locations">Branches &amp; Locations</title>
-  <meta name="description" content="Manage all physical boutique locations, staff assignment, working hours, and contact details." />
-  <!-- Central Boutique Typography Design System -->
+  <title data-brand-title="Branches">Branch Network Command Centre</title>
+  <meta name="description" content="Monitor performance, capacity, and movement across every branch location." />
   <link rel="stylesheet" href="../fragments/font/font.css" />
-
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
-  <!-- Shared Fragments -->
   <link rel="stylesheet" href="../fragments/fragments.css" />
   <link rel="stylesheet" href="../fragments/nav.css" />
   <link rel="stylesheet" href="branches.css" />
-
   <script>
     window.FRAGMENT_BASE = '../fragments/';
   </script>
@@ -25,139 +19,207 @@
 </head>
 <body data-module="branches">
 
-  <!-- Background -->
   <div class="app-bg"></div>
 
-  <!-- App Shell -->
   <div class="app-shell" id="appShell">
-    <!-- Sidebar injected by fragments.js -->
     <div id="sidebarSlot"></div>
 
-    <!-- Main Wrapper -->
     <div class="main-wrapper" id="mainWrapper">
-      <!-- Navbar injected by fragments.js -->
       <div id="navbarSlot"></div>
 
-      <!-- Page Content -->
       <main class="branches-root" id="branchesRoot">
 
-        <!-- Page Header -->
+        <!-- ── Page Header ── -->
         <div class="page-header">
-          <div class="breadcrumb">
-            <a href="../settings/settings.html" class="breadcrumb-link">
-              <i data-lucide="settings"></i>
-              Settings
-            </a>
-            <i data-lucide="chevron-right" class="breadcrumb-separator"></i>
-            <span>Branches</span>
-          </div>
           <div class="page-header-row">
             <div class="page-title-wrap">
-              <div class="page-icon-wrap">
-                <i data-lucide="building-2"></i>
-              </div>
               <div>
-                <h1 class="page-title">Branches &amp; Locations</h1>
-                <p class="page-subtitle">Manage your boutique's physical locations, staff, and operating hours.</p>
+                <div id="breadcrumbSlot"></div>
+                <h1 class="page-title">Branches</h1>
+                <p class="page-subtitle">Monitor performance, capacity and movement across every location.</p>
               </div>
             </div>
-            <button class="btn-primary" id="addBranchBtn" onclick="Branches.openCreateModal()">
-              <i data-lucide="plus"></i>
-              Add Branch
-            </button>
+            <div class="page-header-actions">
+              <button class="btn-primary" id="addBranchBtn" onclick="Branches.openCreateModal()">
+                <i data-lucide="plus"></i> Add Branch
+              </button>
+              <button class="btn-secondary" id="createTransferBtn" onclick="Branches.openCreateTransferToast()">
+                <i data-lucide="arrow-right-left"></i> Create Transfer
+              </button>
+              <button class="btn-icon" onclick="Branches.showMoreMenu(event)" title="More options">
+                <i data-lucide="more-horizontal"></i>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Stat Cards -->
-        <div class="stat-cards-row" id="statCardsRow">
-          <div class="stat-card">
-            <div class="stat-icon stat-icon--lime"><i data-lucide="building-2"></i></div>
+        <!-- ── Enhanced Stat Bar ── -->
+        <div class="stat-bar" id="statCardsRow">
+          <div class="stat-bar-card">
+            <div class="stat-bar-icon stat-icon--purple"><i data-lucide="building-2"></i></div>
             <div class="stat-body">
               <span class="stat-value" id="statTotal">—</span>
               <span class="stat-label">Total Branches</span>
             </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon stat-icon--green"><i data-lucide="check-circle"></i></div>
+          <div class="stat-bar-card">
+            <div class="stat-bar-icon stat-icon--green"><i data-lucide="user-check"></i></div>
             <div class="stat-body">
               <span class="stat-value" id="statActive">—</span>
-              <span class="stat-label">Active</span>
+              <span class="stat-label">Active Branches</span>
             </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon stat-icon--gold"><i data-lucide="star"></i></div>
+          <div class="stat-bar-card">
+            <div class="stat-bar-icon stat-icon--gold"><i data-lucide="indian-rupee"></i></div>
             <div class="stat-body">
-              <span class="stat-value" id="statFlagship">—</span>
-              <span class="stat-label">Flagship</span>
+              <span class="stat-value" id="statRevenue">—</span>
+              <span class="stat-label">Revenue MTD</span>
             </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon stat-icon--blue"><i data-lucide="users"></i></div>
+          <div class="stat-bar-card">
+            <div class="stat-bar-icon stat-icon--blue"><i data-lucide="file-text"></i></div>
             <div class="stat-body">
-              <span class="stat-value" id="statStaff">—</span>
-              <span class="stat-label">Total Staff</span>
+              <span class="stat-value" id="statOrders">—</span>
+              <span class="stat-label">Active Orders</span>
+            </div>
+          </div>
+          <div class="stat-bar-card">
+            <div class="stat-bar-icon stat-icon--purple"><i data-lucide="truck"></i></div>
+            <div class="stat-body">
+              <span class="stat-value" id="statTransfers">—</span>
+              <span class="stat-label">Transfers in Transit</span>
+            </div>
+          </div>
+          <div class="stat-bar-card stat-bar-card--network">
+            <div class="stat-bar-icon stat-icon--lime">
+              <i data-lucide="share-2"></i>
+            </div>
+            <div class="stat-body network-stat-body">
+              <div class="network-header-line">
+                <span class="stat-label">Network Load</span>
+                <span class="stat-value" id="statNetworkLoad">—</span>
+              </div>
+              <div class="network-load-bar-wrap">
+                <div class="network-load-bar-fill" id="networkLoadBarFill" style="width: 0%;"></div>
+              </div>
+              <div class="network-load-note" id="networkLoadNote">—</div>
             </div>
           </div>
         </div>
 
-        <!-- Filter + View Toggle Bar -->
-        <div class="filter-bar">
-          <div class="search-wrap">
-            <i data-lucide="search" class="search-icon-inner"></i>
-            <input type="text" class="filter-search" id="branchSearch" placeholder="Search branches by name or city…" oninput="Branches.filterBranches()" />
-          </div>
-          <div class="filter-selects">
-            <select class="filter-select" id="filterType" onchange="Branches.filterBranches()">
-              <option value="">All Types</option>
-            </select>
-            <select class="filter-select" id="filterStatus" onchange="Branches.filterBranches()">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div class="view-toggle">
-            <button class="view-btn active" id="viewBtnCards" title="Card view" onclick="Branches.switchView('cards', this)">
-              <i data-lucide="layout-grid"></i>
-            </button>
-            <button class="view-btn" id="viewBtnTable" title="Table view" onclick="Branches.switchView('table', this)">
-              <i data-lucide="list"></i>
-            </button>
-          </div>
-        </div>
+        <!-- ── Main 2-Column Layout ── -->
+        <div class="cmd-layout" id="cmdLayout">
 
-        <!-- Cards View -->
-        <div class="branches-cards-view" id="cardsView">
-          <div class="branches-grid" id="branchesGrid">
-            <!-- Cards rendered by branches.js -->
+          <!-- LEFT: Table & Transfers Panel -->
+          <div class="cmd-left">
+
+            <div class="cmd-table-card">
+              <!-- Command Centre Section Title -->
+              <div class="cmd-section-title">
+                <span>Branch Network Command Centre</span>
+              </div>
+
+              <!-- Tab Navigation -->
+              <div class="branch-tab-nav" id="branchTypeTabNav">
+                <button class="branch-tab active" data-tab="ALL"        onclick="Branches.setTab('ALL', this)">All Branches</button>
+                <button class="branch-tab"         data-tab="SHOWROOMS"  onclick="Branches.setTab('SHOWROOMS', this)">Showrooms</button>
+                <button class="branch-tab"         data-tab="PRODUCTION" onclick="Branches.setTab('PRODUCTION', this)">Production Units</button>
+                <button class="branch-tab"         data-tab="WAREHOUSES" onclick="Branches.setTab('WAREHOUSES', this)">Warehouses</button>
+                <button class="branch-tab"         data-tab="EXPERIENCE" onclick="Branches.setTab('EXPERIENCE', this)">Experience Studios</button>
+              </div>
+
+              <!-- Filter Pill Row -->
+              <div class="cmd-filter-row" id="cmdFilters">
+                <div class="cmd-search-wrap">
+                  <i data-lucide="search" class="cmd-search-icon"></i>
+                  <input type="text" class="cmd-search-input" id="branchSearch"
+                         placeholder="Search branches..." oninput="Branches.filterBranches()" />
+                </div>
+                <select class="filter-pill" id="filterCity" onchange="Branches.filterBranches()">
+                  <option value="">All Cities</option>
+                </select>
+                <select class="filter-pill" id="filterType" onchange="Branches.filterBranches()">
+                  <option value="">All Types</option>
+                </select>
+                <select class="filter-pill" id="filterStatus" onchange="Branches.filterBranches()">
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <select class="filter-pill" id="filterPerf" onchange="Branches.filterBranches()">
+                  <option value="">Performance</option>
+                  <option value="high">High (&gt;80%)</option>
+                  <option value="medium">Medium (50–80%)</option>
+                  <option value="low">Low (&lt;50%)</option>
+                </select>
+                <select class="filter-pill" id="filterCapacity" onchange="Branches.filterBranches()">
+                  <option value="">Capacity</option>
+                  <option value="overloaded">Overloaded (&gt;100%)</option>
+                  <option value="optimal">Optimal (75–100%)</option>
+                  <option value="underloaded">Underloaded (&lt;75%)</option>
+                </select>
+                <select class="filter-pill" id="filterInventory" onchange="Branches.filterBranches()">
+                  <option value="">Inventory Health</option>
+                  <option value="healthy">Healthy (&gt;85%)</option>
+                  <option value="adequate">Adequate (70–85%)</option>
+                  <option value="low">Low (&lt;70%)</option>
+                </select>
+              </div>
+
+              <!-- Enhanced Table -->
+              <div class="cmd-table-wrap" id="tableView">
+                <!-- Rendered by Branches.renderTable() -->
+              </div>
+
+              <!-- Empty State -->
+              <div class="empty-state hidden" id="emptyState">
+                <div class="empty-icon"><i data-lucide="building-2"></i></div>
+                <p class="empty-title">No branches found</p>
+                <p class="empty-sub">Add your first boutique location to get started.</p>
+                <button class="btn-primary" onclick="Branches.openCreateModal()">
+                  <i data-lucide="plus"></i> Add Branch
+                </button>
+              </div>
+            </div><!-- /cmd-table-card -->
+
+            <!-- ── Inter-Branch Transfers Strip ── -->
+            <div class="transfers-section" id="transfersSection">
+              <div class="transfers-header">
+                <div class="transfers-title">
+                  <i data-lucide="truck"></i>
+                  Inter-Branch Transfers
+                </div>
+                <button class="transfers-view-all" onclick="Branches.viewAllTransfers()">View All Transfers →</button>
+              </div>
+              <div class="transfers-strip" id="transfersStrip">
+                <!-- Rendered by Branches.renderTransfersStrip() -->
+              </div>
+            </div>
+
+          </div><!-- /cmd-left -->
+
+          <!-- RIGHT: Branch Detail Panel -->
+          <div class="cmd-panel" id="branchDetailPanel">
+            <!-- Placeholder when no branch selected -->
+            <div class="cmd-panel-placeholder" id="panelPlaceholder">
+              <i data-lucide="mouse-pointer-click" class="placeholder-icon"></i>
+              <p>Select a branch from the table to view details</p>
+            </div>
+            <!-- Detail content injected by Branches.renderDetailPanel() -->
+            <div id="panelContent" class="hidden"></div>
           </div>
-        </div>
 
-        <!-- Table View -->
-        <div class="branches-table-view hidden" id="tableView">
-          <!-- Rendered dynamically by Branches.renderTable() -->
-        </div>
-
-        <!-- Empty State -->
-        <div class="empty-state hidden" id="emptyState">
-          <div class="empty-icon"><i data-lucide="building-2"></i></div>
-          <p class="empty-title">No branches found</p>
-          <p class="empty-sub">Add your first boutique location to get started.</p>
-          <button class="btn-primary" onclick="Branches.openCreateModal()">
-            <i data-lucide="plus"></i> Add Branch
-          </button>
-        </div>
+        </div><!-- /cmd-layout -->
 
       </main>
 
-      <!-- Footer injected by fragments.js -->
       <div id="footerSlot"></div>
     </div>
   </div>
 
-  <!-- =====================================================
+  <!-- ═══════════════════════════════════════════
        CREATE / EDIT MODAL
-       ===================================================== -->
+       ═══════════════════════════════════════════ -->
   <div class="modal-overlay hidden" id="branchModal" onclick="Branches.closeBranchModal(event)">
     <div class="modal-box" id="branchModalBox" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -171,7 +233,6 @@
         <form id="branchForm" onsubmit="return false;">
           <input type="hidden" id="branchId" />
 
-          <!-- SECTION: Basic Info -->
           <div class="form-section">
             <h3 class="form-section-title">Basic Information</h3>
             <div class="form-grid-2">
@@ -180,13 +241,13 @@
                 <input type="text" class="form-input" id="bName" placeholder="e.g. Flagship Atelier — Bandra" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="bCode">Branch Code <span class="required">*</span></label>
+                <label class="form-label" for="bCode">Branch Code</label>
                 <input type="text" class="form-input" id="bCode" placeholder="Auto-generated" maxlength="20" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="bType">Branch Type <span class="required">*</span></label>
                 <select class="form-select" id="bType" required>
-                  <!-- Populated dynamically by Branches.buildTypeSelects() -->
+                  <!-- Populated by buildTypeSelects() -->
                 </select>
               </div>
               <div class="form-group">
@@ -199,7 +260,6 @@
             </div>
           </div>
 
-          <!-- SECTION: Location -->
           <div class="form-section">
             <h3 class="form-section-title">Location</h3>
             <div class="form-group">
@@ -237,49 +297,82 @@
             </div>
           </div>
 
-          <!-- SECTION: Contact -->
           <div class="form-section">
             <h3 class="form-section-title">Contact Details</h3>
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label" for="bPhone">Primary Phone <span class="required">*</span></label>
-                <input type="tel" class="form-input" id="bPhone" placeholder="+91 XXXXX XXXXX" required data-brand-placeholder="phone" />
+                <input type="tel" class="form-input" id="bPhone" placeholder="+91 XXXXX XXXXX" required />
               </div>
               <div class="form-group">
                 <label class="form-label" for="bWhatsapp">WhatsApp</label>
-                <input type="tel" class="form-input" id="bWhatsapp" placeholder="+91 XXXXX XXXXX" data-brand-placeholder="whatsapp" />
+                <input type="tel" class="form-input" id="bWhatsapp" placeholder="+91 XXXXX XXXXX" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="bEmail">Email</label>
-                <input type="email" class="form-input" id="bEmail" placeholder="branch@yourdomain.com" data-brand-placeholder="branchEmail" />
+                <input type="email" class="form-input" id="bEmail" placeholder="branch@yourdomain.com" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="bWebsite">Website</label>
-                <input type="url" class="form-input" id="bWebsite" placeholder="https://yourdomain.com" data-brand-placeholder="website" />
+                <input type="url" class="form-input" id="bWebsite" placeholder="https://yourdomain.com" />
               </div>
             </div>
           </div>
 
-          <!-- SECTION: Working Hours -->
           <div class="form-section">
             <h3 class="form-section-title">Working Hours</h3>
-            <div class="hours-grid" id="workingHoursGrid">
-              <!-- Rendered by branches.js buildWorkingHoursGrid() -->
-            </div>
+            <div class="hours-grid" id="workingHoursGrid"></div>
           </div>
 
-          <!-- SECTION: Manager -->
-          <div class="form-section">
-            <h3 class="form-section-title">Branch Manager</h3>
-            <div class="form-group">
-              <label class="form-label" for="bManager">Assign Manager</label>
+          <div class="form-section" id="adminProvisioningSection">
+            <h3 class="form-section-title">
+              <span style="display:flex;align-items:center;gap:6px;">
+                <i data-lucide="shield" style="width:16px;height:16px;color:#d4af37;"></i>
+                Branch Administrator Account
+              </span>
+            </h3>
+            <div id="createAdminToggleWrapper" style="margin-bottom:12px;">
+              <label class="feature-toggle" style="margin-bottom:8px;">
+                <input type="checkbox" id="bCreateAdminToggle" checked onchange="Branches.toggleAdminFields()" />
+                <span class="toggle-switch"></span>
+                <span class="toggle-label" style="font-weight:600;color:var(--text-primary,#fff);">
+                  👑 Provision Default Branch Administrator Account
+                </span>
+              </label>
+              <p style="font-size:12px;color:var(--text-muted,#888);margin:0 0 10px 0;">
+                The Branch Admin has full authority within this branch domain and can hire and manage branch staff.
+              </p>
+            </div>
+            <div id="newAdminFields" style="display:block;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:8px;padding:12px;margin-bottom:12px;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="bAdminFullName">Admin Full Name</label>
+                  <input type="text" class="form-input" id="bAdminFullName" placeholder="e.g. Bandra Branch Manager" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="bAdminUsername">Admin Username</label>
+                  <input type="text" class="form-input" id="bAdminUsername" placeholder="e.g. brn_bandra_admin" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="bAdminPassword">Initial Password</label>
+                  <input type="text" class="form-input" id="bAdminPassword" placeholder="e.g. Branch@123" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="bAdminEmail">Admin Email (Optional)</label>
+                  <input type="email" class="form-input" id="bAdminEmail" placeholder="manager@boutique.com" />
+                </div>
+              </div>
+            </div>
+            <div class="form-group" id="existingManagerGroup" style="display:none;">
+              <label class="form-label" for="bManager">Assign Existing Employee / Manager</label>
               <select class="form-select" id="bManager">
                 <option value="">— Not assigned —</option>
               </select>
             </div>
           </div>
 
-          <!-- SECTION: Features -->
           <div class="form-section">
             <h3 class="form-section-title">Branch Features</h3>
             <div class="features-grid">
@@ -306,7 +399,6 @@
             </div>
           </div>
 
-          <!-- SECTION: Notes -->
           <div class="form-section">
             <h3 class="form-section-title">Internal Notes</h3>
             <div class="form-group">
@@ -345,14 +437,54 @@
       <div class="modal-footer">
         <button class="btn-secondary" onclick="Branches.closeDeleteModal()">Cancel</button>
         <button class="btn-danger" id="confirmDeleteBtn" disabled onclick="Branches.confirmDelete()">
-          <i data-lucide="trash-2"></i>
-          Delete Branch
+          <i data-lucide="trash-2"></i> Delete Branch
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notification -->
+  <!-- PROVISIONED CREDENTIALS MODAL -->
+  <div class="modal-overlay hidden" id="credentialsModal" onclick="Branches.closeCredentialsModal(event)">
+    <div class="modal-box" id="credentialsModalBox" role="dialog" aria-modal="true" style="max-width:520px;text-align:center;">
+      <div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:rgba(212,175,55,0.15);display:flex;align-items:center;justify-content:center;color:#d4af37;">
+        <i data-lucide="check-circle-2" style="width:32px;height:32px;"></i>
+      </div>
+      <h2 class="modal-title" style="margin-bottom:6px;">Branch &amp; Administrator Created!</h2>
+      <p style="font-size:13px;color:var(--text-muted,#888);margin-bottom:20px;">
+        The new branch has been registered and a dedicated Branch Administrator account is live.
+      </p>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(212,175,55,0.25);border-radius:10px;padding:16px;text-align:left;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;">
+          <span style="color:var(--text-muted,#888);">Branch:</span>
+          <strong id="credBranchName" style="color:#fff;">—</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;">
+          <span style="color:var(--text-muted,#888);">Branch Code:</span>
+          <code id="credBranchCode" style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#d4af37;">—</code>
+        </div>
+        <div style="height:1px;background:rgba(255,255,255,0.08);margin:10px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;">
+          <span style="color:var(--text-muted,#888);">Admin Username:</span>
+          <strong id="credUsername" style="color:#60a5fa;font-family:monospace;font-size:14px;">—</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+          <span style="color:var(--text-muted,#888);">Admin Password:</span>
+          <strong id="credPassword" style="color:#34d399;font-family:monospace;font-size:14px;">—</strong>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn-secondary" onclick="Branches.copyCredentials()" id="copyCredBtn" style="display:flex;align-items:center;gap:6px;">
+          <i data-lucide="copy" style="width:16px;height:16px;"></i>
+          <span id="copyCredBtnText">Copy Credentials</span>
+        </button>
+        <button class="btn-primary" onclick="Branches.closeCredentialsModal()">
+          <span>Got it / Continue</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
   <div class="toast hidden" id="branchToast">
     <span id="branchToastMsg"></span>
   </div>

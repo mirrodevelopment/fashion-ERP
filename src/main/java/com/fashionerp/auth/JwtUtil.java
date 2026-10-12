@@ -19,10 +19,16 @@ public class JwtUtil {
     }
 
     public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName) {
-        return generateToken(userId, username, role, companyId, companyName, null);
+        return generateToken(userId, username, role, companyId, companyName, null, null);
     }
 
-    public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName, String assignedBranch) {
+    public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName,
+            String assignedBranch) {
+        return generateToken(userId, username, role, companyId, companyName, assignedBranch, null);
+    }
+
+    public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName,
+            String assignedBranch, java.util.List<String> allowedBranches) {
         if (userId == null || username == null || role == null) {
             throw new IllegalArgumentException("userId, username, and role must not be null");
         }
@@ -40,6 +46,9 @@ public class JwtUtil {
         }
         if (assignedBranch != null && !assignedBranch.isBlank()) {
             builder.claim("assignedBranch", assignedBranch.trim());
+        }
+        if (allowedBranches != null && !allowedBranches.isEmpty()) {
+            builder.claim("allowedBranches", allowedBranches);
         }
 
         return builder
@@ -77,7 +86,8 @@ public class JwtUtil {
         if (cid != null && !cid.isBlank()) {
             try {
                 return UUID.fromString(cid);
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException ignored) {
+            }
         }
         return null;
     }
@@ -90,5 +100,32 @@ public class JwtUtil {
     public String getAssignedBranch(String token) {
         Claims claims = parseToken(token);
         return claims.get("assignedBranch", String.class);
+    }
+
+    public UUID getUserId(String token) {
+        Claims claims = parseToken(token);
+        String uid = claims.get("userId", String.class);
+        if (uid != null && !uid.isBlank()) {
+            try {
+                return UUID.fromString(uid);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        return null;
+    }
+
+    public java.util.List<String> getAllowedBranches(String token) {
+        Claims claims = parseToken(token);
+        Object obj = claims.get("allowedBranches");
+        if (obj instanceof java.util.List<?> list) {
+            java.util.List<String> result = new java.util.ArrayList<>();
+            for (Object item : list) {
+                if (item != null) {
+                    result.add(item.toString());
+                }
+            }
+            return result;
+        }
+        return java.util.Collections.emptyList();
     }
 }

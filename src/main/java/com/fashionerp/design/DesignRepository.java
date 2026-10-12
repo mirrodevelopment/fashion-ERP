@@ -15,7 +15,6 @@ import java.util.UUID;
 @Repository
 public interface DesignRepository extends JpaRepository<Design, UUID> {
 
-    Optional<Design> findByDesignCode(String designCode);
     Optional<Design> findByDesignCodeAndCompanyId(String designCode, UUID companyId);
     Optional<Design> findByIdAndCompanyId(UUID id, UUID companyId);
     boolean existsByIdAndCompanyId(UUID id, UUID companyId);

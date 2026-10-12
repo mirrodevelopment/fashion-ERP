@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garment 360° Dossier — Riwayat Haute Couture</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
+
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Core ERP Framework Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="../../fragments/theme/theme-dark.css" />
+  <link rel="stylesheet" href="garaments-360.css" />
+
+  <script src="../../fragments/nav.js"></script>
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body class="theme-dark g360-body">
+
+  <!-- Universal ERP Layout Shell -->
+  <main class="app-shell" id="appShell">
+
+    <!-- Shared ERP Sidebar Fragment Slot — injected by fragments.js -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-area" id="mainArea">
+
+      <!-- Global Topbar Header Slot — injected by fragments.js -->
+      <div id="navbarSlot"></div>
+
+      <!-- Empty State Container (Displayed if zero garments exist in DB / unselected) -->
+      <div id="g360EmptyState" class="g360-empty-state-view" style="display:none;">
+        <div class="g360-empty-card">
+          <div class="g360-empty-icon-wrap">
+            <i data-lucide="scissors" style="width:36px;height:36px;color:var(--lime);"></i>
+          </div>
+          <h2 class="g360-empty-title">No Garment Selected</h2>
+          <p class="g360-empty-desc">
+            Select a garment from the atelier directory or register a new bespoke garment to inspect its complete 360° dossier.
+          </p>
+          <div class="g360-empty-actions">
+            <a href="../garments.html" class="btn-g360-glass">Browse Garments Directory</a>
+            <a href="../new-garment/new-garment.html" class="btn-g360-primary">+ Create New Garment</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Garment 360 Workspace Container -->
+      <div class="g360-workspace" id="g360Workspace">
+
+        <!-- Breadcrumbs Navigation Slot — injected by fragments.js -->
+        <div id="breadcrumbSlot"></div>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             1. TOP MASTER HEADER ROW: Title, Readiness & KPI Pills
+             ══════════════════════════════════════════════════════════════════ -->
+        <header class="g360-top-header">
+          <div class="g360-header-left">
+            <h1 class="g360-title">Garment 360</h1>
+            <p class="g360-subtitle">One complete record from design intent to final delivery.</p>
+          </div>
+
+          <div class="g360-header-metrics">
+            <!-- Meter 1: Garment Readiness -->
+            <div class="g360-circle-kpi" title="Garment Readiness">
+              <div class="g360-circle-svg-wrap">
+                <svg viewBox="0 0 36 36">
+                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle-progress-lime" id="ringHeaderReadiness" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <span class="g360-circle-val" id="valHeaderReadiness">—</span>
+              </div>
+              <div class="g360-circle-meta">
+                <span class="g360-circle-label">Garment</span>
+                <span class="g360-circle-sub">Readiness</span>
+              </div>
+            </div>
+
+            <!-- Meter 2: Delivery Confidence -->
+            <div class="g360-circle-kpi" title="Delivery Confidence">
+              <div class="g360-circle-svg-wrap">
+                <svg viewBox="0 0 36 36">
+                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle-progress-violet" id="ringHeaderConfidence" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <span class="g360-circle-val" id="valHeaderConfidence">—</span>
+              </div>
+              <div class="g360-circle-meta">
+                <span class="g360-circle-label">Delivery</span>
+                <span class="g360-circle-sub">Confidence</span>
+              </div>
+            </div>
+
+            <!-- KPI Pill 1: Open Alterations -->
+            <div class="g360-header-pill">
+              <div class="g360-pill-icon coral">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V11L2 17v2h20v-2l-8-6v-1.5c1.2-.7 2-2 2-3.5a4 4 0 0 0-4-4z"/>
+                </svg>
+              </div>
+              <div class="g360-pill-info">
+                <span class="g360-pill-val" id="valOpenAlterationCount">0</span>
+                <span class="g360-pill-label">Open Alterations</span>
+              </div>
+            </div>
+
+            <!-- KPI Pill 2: Production Cost -->
+            <div class="g360-header-pill">
+              <div class="g360-pill-icon gold">
+                <span style="font-weight:800;font-size:13px;color:#fbbf24;">₹</span>
+              </div>
+              <div class="g360-pill-info">
+                <span class="g360-pill-val" id="valProductionCost">—</span>
+                <span class="g360-pill-label">Production Cost</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             2. HERO GARMENT IDENTITY BANNER (100% Dynamic)
+             ══════════════════════════════════════════════════════════════════ -->
+        <section class="g360-hero-banner" aria-label="Garment Master Identity">
+          <div class="g360-hero-main">
+            <img src="../../assets/garments/bridal_blouse_zardozi.jpg" alt="Garment Preview" class="g360-hero-thumb" id="garmentHeroThumb" onerror="this.src='../../assets/order-ref/blouse_front.jpg'" />
+            <div class="g360-hero-details">
+              <div class="g360-hero-code-row">
+                <span class="g360-hero-code" id="lblGarmentCode">—</span>
+                <span class="g360-badge badge-purple" id="badgeCategory">—</span>
+                <span class="g360-badge badge-green" id="badgeStage">—</span>
+                <span class="g360-badge badge-green" id="badgeRisk">—</span>
+              </div>
+              <div class="g360-hero-subtitle" id="lblGarmentName">Loading Garment...</div>
+              <div class="g360-hero-meta-grid">
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span>Customer</span>
+                  <a href="javascript:void(0)" class="g360-meta-val link" id="linkCustomer">—</a>
+                </div>
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                  <span>Order</span>
+                  <a href="javascript:void(0)" class="g360-meta-val link" id="linkOrder">—</a>
+                </div>
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
+                  <span>Branch</span>
+                  <span class="g360-meta-val" id="lblBranch">—</span>
+                </div>
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                  <span>Collection</span>
+                  <span class="g360-meta-val" id="lblCollection">—</span>
+                </div>
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  <span>Design Source</span>
+                  <span class="g360-meta-val" id="lblDesignSource">—</span>
+                </div>
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11l-3 3-2-2"/></svg>
+                  <span>Assigned Tailor</span>
+                  <span class="g360-meta-val" id="lblAssignedTailor">—</span>
+                </div>
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span>Trial Date</span>
+                  <span class="g360-meta-val" id="lblTrialDate">—</span>
+                </div>
+                <div class="g360-meta-item">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  <span>Delivery Promise</span>
+                  <span class="g360-meta-val" id="lblDeliveryPromise">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="g360-hero-actions">
+            <button type="button" class="btn-g360-primary" onclick="openJobCard()">
+              <span>Open Job Card &rarr;</span>
+            </button>
+            <button type="button" class="btn-g360-glass" onclick="openStageModal()">
+              <span>Update Stage &#711;</span>
+            </button>
+            <button type="button" class="btn-g360-glass" onclick="openTrialScheduleModal()">
+              <span>+ Schedule Trial</span>
+            </button>
+            <button type="button" class="btn-g360-glass btn-g360-icon" title="More Actions" onclick="openMoreModal()">
+              <span>&bull;&bull;&bull;</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             3. MAIN MASTER SPLIT (Left Master ~63% + Right Master ~37%)
+             ══════════════════════════════════════════════════════════════════ -->
+        <div class="g360-main-split">
+
+          <!-- ──────────────────────────────────────────────────────────────
+               LEFT MASTER BLOCK (Upper 2x2 Grid + Journey + History)
+               ────────────────────────────────────────────────────────────── -->
+          <div class="g360-left-master">
+
+            <!-- 2-Column Upper Grid: Row 1: Readiness + Blueprint | Row 2: Measurements + BOM -->
+            <div class="g360-upper-grid">
+
+              <!-- Card 1: Garment Readiness -->
+              <article class="g360-card" aria-label="Garment Readiness Breakdown">
+                <div class="g360-card-header">
+                  <h2 class="g360-card-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    <span>Garment Readiness</span>
+                  </h2>
+                </div>
+
+                <div class="g360-readiness-body">
+                  <div class="readiness-ring-wrap">
+                    <svg viewBox="0 0 36 36">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="circle-progress-lime" id="ringOverallReadiness" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="readiness-ring-center">
+                      <div class="readiness-val" id="valOverallReadiness">—</div>
+                      <div class="readiness-label">Overall<br/>Readiness</div>
+                    </div>
+                  </div>
+
+                  <div class="readiness-breakdown">
+                    <div class="breakdown-row">
+                      <span class="breakdown-label">
+                        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 6L9 17l-5-5"/></svg>
+                        Design
+                      </span>
+                      <div class="breakdown-track"><div class="breakdown-fill fill-green" id="fillDesign" style="width:0%;"></div></div>
+                      <span class="breakdown-num" id="numDesign">—</span>
+                    </div>
+                    <div class="breakdown-row">
+                      <span class="breakdown-label">
+                        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                        Measurements
+                      </span>
+                      <div class="breakdown-track"><div class="breakdown-fill fill-green" id="fillMeasurements" style="width:0%;"></div></div>
+                      <span class="breakdown-num" id="numMeasurements">—</span>
+                    </div>
+                    <div class="breakdown-row">
+                      <span class="breakdown-label">
+                        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        Materials
+                      </span>
+                      <div class="breakdown-track"><div class="breakdown-fill fill-green" id="fillMaterials" style="width:0%;"></div></div>
+                      <span class="breakdown-num" id="numMaterials">—</span>
+                    </div>
+                    <div class="breakdown-row">
+                      <span class="breakdown-label">
+                        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                        Construction
+                      </span>
+                      <div class="breakdown-track"><div class="breakdown-fill fill-lime" id="fillConstruction" style="width:0%;"></div></div>
+                      <span class="breakdown-num" id="numConstruction">—</span>
+                    </div>
+                    <div class="breakdown-row">
+                      <span class="breakdown-label">
+                        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Trial
+                      </span>
+                      <div class="breakdown-track"><div class="breakdown-fill fill-amber" id="fillTrial" style="width:0%;"></div></div>
+                      <span class="breakdown-num pending" id="numTrial">—</span>
+                    </div>
+                    <div class="breakdown-row">
+                      <span class="breakdown-label">
+                        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        QC
+                      </span>
+                      <div class="breakdown-track"><div class="breakdown-fill fill-gray" id="fillQc" style="width:0%;"></div></div>
+                      <span class="breakdown-num not-started" id="numQc">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="g360-alert-box">
+                  <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <span id="lblReadinessAlert">Calculating atelier workflow status...</span>
+                </div>
+              </article>
+
+              <!-- Card 2: Construction Blueprint -->
+              <article class="g360-card" aria-label="Garment Construction Blueprint">
+                <div class="g360-card-header">
+                  <h2 class="g360-card-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+                    <span>Construction Blueprint</span>
+                  </h2>
+                </div>
+
+                <div class="blueprint-canvas">
+                  <div class="blueprint-img-wrap">
+                    <img src="../../assets/garments/bridal_blouse_zardozi.jpg" alt="Garment Blueprint" class="blueprint-main-img" id="blueprintMainImg" onerror="this.src='../../assets/order-ref/blouse_front.jpg'" />
+
+                    <!-- Hotspots directly on garment visual -->
+                    <div class="bp-hotspot hotspot-neckline" id="hotspotNeckline">
+                      <div class="hotspot-dot"></div>
+                      <div class="hotspot-card">
+                        <strong id="bpNeckTitle">Neckline</strong>
+                        <span id="bpNeckDesc">—</span>
+                      </div>
+                    </div>
+
+                    <div class="bp-hotspot hotspot-sleeve" id="hotspotSleeve">
+                      <div class="hotspot-dot"></div>
+                      <div class="hotspot-card">
+                        <strong id="bpSleeveTitle">Sleeve</strong>
+                        <span id="bpSleeveDesc">—</span>
+                      </div>
+                    </div>
+
+                    <div class="bp-hotspot hotspot-embroidery" id="hotspotEmbroidery">
+                      <div class="hotspot-dot"></div>
+                      <div class="hotspot-card">
+                        <strong id="bpEmbroideryTitle">Ornamentation</strong>
+                        <span id="bpEmbroideryDesc">—</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Side Blueprint Aside Thumbnails -->
+                  <div class="bp-thumbnails-aside" id="bpThumbsAside">
+                    <!-- Populated dynamically by JS -->
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 3: Measurements & Fit Intelligence -->
+              <article class="g360-card" aria-label="Measurements and Fit Intelligence">
+                <div class="g360-card-header">
+                  <h2 class="g360-card-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M21.3 15.3l-9.6-9.6a2 2 0 0 0-2.8 0L2.7 11.9a2 2 0 0 0 0 2.8l9.6 9.6a2 2 0 0 0 2.8 0l6.2-6.2a2 2 0 0 0 0-2.8z"/><line x1="14" y1="7" x2="16" y2="9"/><line x1="11" y1="10" x2="13" y2="12"/><line x1="8" y1="13" x2="10" y2="15"/></svg>
+                    <span>Measurements &amp; Fit Intelligence</span>
+                  </h2>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="g360-measure-select-wrap">
+                      <span class="measure-set-label">Profile Set</span>
+                      <select class="g360-measure-select" id="selectMeasureSet" onchange="changeMeasurementSet(this.value)">
+                        <option value="V1" selected>V1 Profile</option>
+                      </select>
+                    </div>
+                    <a href="../../Measurements/measurement360/measurement360.html" class="g360-card-link">View All &rsaquo;</a>
+                  </div>
+                </div>
+
+                <div class="g360-measure-grid">
+                  <div class="measure-box">
+                    <div class="measure-name" id="lblDim1">Bust</div>
+                    <div class="measure-val" id="valDim1">—</div>
+                  </div>
+                  <div class="measure-box">
+                    <div class="measure-name" id="lblDim2">Waist</div>
+                    <div class="measure-val" id="valDim2">—</div>
+                  </div>
+                  <div class="measure-box">
+                    <div class="measure-name" id="lblDim3">Shoulder</div>
+                    <div class="measure-val" id="valDim3">—</div>
+                  </div>
+                  <div class="measure-box">
+                    <div class="measure-name" id="lblDim4">Armhole</div>
+                    <div class="measure-val" id="valDim4">—</div>
+                  </div>
+                  <div class="measure-box">
+                    <div class="measure-name" id="lblDim5">Sleeve</div>
+                    <div class="measure-val" id="valDim5">—</div>
+                  </div>
+                </div>
+
+                <div class="g360-measure-bottom-row">
+                  <div class="g360-delta-card" id="containerDeltaRow">
+                    <span class="delta-title">Client body measurements</span>
+                    <div style="font-size:11.5px;color:#9ca3af;padding:6px 0;">Loading customer anatomical profile...</div>
+                  </div>
+
+                  <div class="g360-fit-memory-card">
+                    <div class="fit-memory-icon-wrap">
+                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="color:var(--lime);"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
+                    </div>
+                    <div class="fit-memory-body">
+                      <div class="fit-memory-head">
+                        <strong>Fit Memory</strong>
+                        <span class="fit-memory-badge" id="badgeFitMemoryVer">V1</span>
+                      </div>
+                      <span id="lblFitMemory">Loading fit memory notes...</span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Card 4: Materials & BOM -->
+              <article class="g360-card" aria-label="Bill of Materials and Allocation">
+                <div class="g360-card-header">
+                  <h2 class="g360-card-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M16.5 9.4 7.55 4.24a1.78 1.78 0 0 0-2.5 1.55v12.42a1.78 1.78 0 0 0 2.5 1.55L16.5 14.6a1.78 1.78 0 0 0 0-3.2z"/><path d="m21 12-5.5 3.17"/><path d="m21 12-5.5-3.17"/><path d="M21 12v6"/></svg>
+                    <span>Materials &amp; BOM</span>
+                  </h2>
+                  <div class="bom-readiness-badge">
+                    <span>Material Readiness</span>
+                    <strong id="valMaterialReadiness">—</strong>
+                    <div class="bom-progress-bar">
+                      <div class="bom-progress-fill" id="fillMaterialReadiness" style="width:0%;"></div>
+                    </div>
+                  </div>
+                  <a href="../../fabrics-materials/fabrics-materials.html" class="g360-card-link">Material Library &rsaquo;</a>
+                </div>
+
+                <div class="bom-table-header">
+                  <span></span>
+                  <span>MATERIAL</span>
+                  <span>QTY REQUIRED</span>
+                  <span>STATUS</span>
+                  <span>SUPPLIER / STORE</span>
+                </div>
+
+                <div class="bom-list" id="bomListContainer">
+                  <div style="font-size:12px;color:#9ca3af;padding:16px;text-align:center;">Loading bill of materials...</div>
+                </div>
+              </article>
+
+            </div><!-- /g360-upper-grid -->
+
+            <!-- Card 5: Production Journey & Recent Garment History (Unified Full Width Card) -->
+            <article class="g360-card" aria-label="Production Milestone Journey & Lifecycle History">
+              <div class="g360-card-header">
+                <h2 class="g360-card-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h13l4-3.5L18 6z"/><path d="M12 13v9"/></svg>
+                  <span>Production Journey</span>
+                </h2>
+              </div>
+
+              <!-- Production Horizontal Stepper -->
+              <div class="journey-stepper" id="journeyStepperContainer">
+                <div style="font-size:12px;color:#9ca3af;padding:16px;text-align:center;">Loading production journey milestones...</div>
+              </div>
+
+              <!-- Lower Nested Section: Recent Garment History -->
+              <div class="history-section">
+                <div class="history-header">
+                  <h3 class="history-title">Recent Garment History</h3>
+                  <a href="javascript:void(0)" class="g360-card-link" onclick="openHistoryModal()">View Full Audit Trail &rsaquo;</a>
+                </div>
+
+                <div class="history-chain" id="historyChainContainer">
+                  <div style="font-size:12px;color:#9ca3af;padding:12px;text-align:center;">Loading activity timeline...</div>
+                </div>
+              </div>
+            </article>
+
+          </div><!-- /g360-left-master -->
+
+          <!-- ──────────────────────────────────────────────────────────────
+               RIGHT MASTER BLOCK (Current Work + NBA + Alterations + Dual)
+               ────────────────────────────────────────────────────────────── -->
+          <div class="g360-right-master">
+
+            <!-- Card 1: Current Work -->
+            <article class="g360-card" aria-label="Current Artisan Work">
+              <div class="g360-card-header">
+                <h2 class="g360-card-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span>Current Work</span>
+                </h2>
+              </div>
+
+              <div class="current-work-grid">
+                <img src="../../assets/user_avatar.jpg" alt="Artisan Avatar" class="operator-avatar" id="workerAvatar" />
+                <div class="operator-details">
+                  <strong class="op-task-headline" id="workerTaskHeadline">—</strong>
+                  <span class="op-worker-name" id="workerName">—</span>
+                  <span class="op-worker-role" id="workerRole">—</span>
+                </div>
+                <div class="operator-stats">
+                  <div class="op-stat-row">
+                    <span>Skill Match</span>
+                    <strong id="workerSkillMatch">—</strong>
+                  </div>
+                  <div class="op-bar"><div class="op-fill lime" id="barSkillMatch" style="width:0%;"></div></div>
+                  <div class="op-stat-row" style="margin-top:4px;">
+                    <span>Employee Load</span>
+                    <strong id="workerLoad">—</strong>
+                  </div>
+                  <div class="op-bar"><div class="op-fill orange" id="barWorkerLoad" style="width:0%;"></div></div>
+                </div>
+              </div>
+
+              <div class="current-work-footer">
+                <span class="cw-due-notice">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span id="lblExpectedCompletion">—</span>
+                </span>
+                <span class="badge-overdue" id="badgeOverdue">
+                  <span id="badgeOverdueText">—</span>
+                </span>
+              </div>
+            </article>
+
+            <!-- Card 2: Next Best Action -->
+            <article class="g360-card nba-card" aria-label="AI Next Best Action">
+              <div class="nba-header">
+                <div class="nba-title-tag">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" style="color:var(--gold);"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
+                  <span>Next Best Action</span>
+                </div>
+                <a href="javascript:void(0)" class="g360-card-link" onclick="openActionModal()">View Details &rsaquo;</a>
+              </div>
+
+              <h3 class="nba-headline" id="nbaHeadline">Evaluating next milestone...</h3>
+
+              <div class="nba-body-grid">
+                <img src="../../assets/user_avatar.jpg" alt="Artisan Recommendation" class="operator-avatar" id="nbaAvatar" />
+                <div class="nba-details-col">
+                  <strong class="nba-artisan-name" id="nbaArtisanName">—</strong>
+                  <span class="nba-artisan-role" id="nbaArtisanRole">—</span>
+                  <div class="nba-stats-list">
+                    <div class="nba-stat-item"><span>Skill match</span> <strong id="nbaSkillMatch">—</strong></div>
+                    <div class="nba-stat-item"><span>Available capacity</span> <strong id="nbaCapacity">—</strong></div>
+                    <div class="nba-stat-item"><span>Delivery confidence</span> <strong style="color:var(--lime);" id="nbaConfidence">—</strong></div>
+                  </div>
+                </div>
+                <div class="nba-risk-badge">
+                  <div class="nba-risk-head">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span id="nbaRiskLevel">—</span>
+                  </div>
+                  <span class="nba-risk-label">Garment Risk</span>
+                  <span class="nba-risk-cause" id="nbaRiskCause">—</span>
+                  <div class="nba-risk-bar-track"><div class="nba-risk-bar-fill" id="nbaRiskFill" style="width:0%;"></div></div>
+                  <span class="nba-risk-summary" id="nbaConfidenceSummary">—</span>
+                </div>
+              </div>
+
+              <button type="button" class="btn-nba-action" onclick="reassignTailor()">
+                <span>Review Workforce Allocation &rarr;</span>
+              </button>
+            </article>
+
+            <!-- Card 3: Trial & Alteration Intelligence -->
+            <article class="g360-card" aria-label="Trial and Alteration Intelligence">
+              <div class="g360-card-header">
+                <h2 class="g360-card-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                  <span>Trial &amp; Alteration Intelligence</span>
+                </h2>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="g360-badge badge-green" id="badgeOpenAlterations">
+                    <span>—</span>
+                  </span>
+                  <a href="../../trials/trials.html" class="g360-card-link">View Details &rsaquo;</a>
+                </div>
+              </div>
+
+              <div class="trial-card-body">
+                <!-- Col 1: Date & Status -->
+                <div class="trial-date-col">
+                  <div class="trial-calendar-box">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="color:var(--violet);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <div>
+                      <strong id="trialIteration">—</strong>
+                      <span id="trialDateScheduled">—</span>
+                    </div>
+                  </div>
+                  <span class="g360-badge badge-green" id="badgeTrialStatus">—</span>
+                </div>
+
+                <!-- Col 2: Customer Feedback -->
+                <div class="trial-feedback-col">
+                  <span class="trial-section-title">Customer feedback</span>
+                  <div class="trial-feedback-list" id="trialFeedbackList">
+                    <div style="font-size:11.5px;color:#9ca3af;padding:8px 0;">Loading fitting feedback...</div>
+                  </div>
+                </div>
+
+                <!-- Col 3: Alterations -->
+                <div class="trial-alter-col">
+                  <span class="trial-section-title">Alterations</span>
+                  <div class="trial-alter-list" id="trialAlterList">
+                    <div style="font-size:11.5px;color:#9ca3af;padding:8px 0;">Loading alterations...</div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Dual Split Row (QC & Finish + Change Impact Side-by-Side) -->
+            <div class="g360-right-dual-row">
+
+              <!-- Card 4A: QC & Finish -->
+              <article class="g360-card" aria-label="Quality Control and Finish">
+                <div class="g360-card-header">
+                  <h2 class="g360-card-title" style="font-size:12.5px;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>QC &amp; Finish</span>
+                  </h2>
+                  <a href="../../quality-control/quality-control.html" class="g360-card-link" style="font-size:10.5px;">View Details &rsaquo;</a>
+                </div>
+
+                <div class="qc-card-body">
+                  <div class="qc-gauge-row">
+                    <div class="readiness-ring-wrap" style="width:58px;height:58px;">
+                      <svg viewBox="0 0 36 36">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle-progress-lime" id="ringQcReadiness" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      </svg>
+                      <div class="readiness-ring-center">
+                        <div class="readiness-val" id="valQcReadiness" style="font-size:13px;">—</div>
+                        <div class="readiness-label" style="font-size:7px;">QC Readiness</div>
+                      </div>
+                    </div>
+
+                    <div class="qc-checklist" id="qcChecklistContainer">
+                      <div style="font-size:11px;color:#9ca3af;padding:6px 0;">Loading QC checklist...</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="g360-alert-box" style="padding:4px 8px;font-size:9.5px;margin-top:6px;">
+                  <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span id="lblQcAlert">—</span>
+                </div>
+              </article>
+
+              <!-- Card 4B: Change Impact -->
+              <article class="g360-card change-impact-card" aria-label="Design Change Impact Analysis">
+                <div class="g360-card-header">
+                  <h2 class="g360-card-title" style="font-size:12.5px;color:#fca5a5;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" style="color:#f87171;"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                    <span>Change Impact</span>
+                  </h2>
+                  <a href="javascript:void(0)" class="g360-card-link" onclick="openMoreModal()" title="View Change Details" style="color:var(--text-muted);">
+                    <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </a>
+                </div>
+
+                <div class="ci-banner-box">
+                  <div class="ci-banner-icon">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V11L2 17v2h20v-2l-8-6v-1.5c1.2-.7 2-2 2-3.5a4 4 0 0 0-4-4z"/></svg>
+                  </div>
+                  <div>
+                    <strong id="ciNoticeTitle">—</strong>
+                    <div id="ciSummaryText">—</div>
+                  </div>
+                </div>
+
+                <div class="ci-section-title">Design Change Requested</div>
+
+                <div class="ci-list" id="ciListContainer">
+                  <div style="font-size:11.5px;color:#9ca3af;padding:6px 0;">Loading change impact...</div>
+                </div>
+
+                <button type="button" class="btn-ci-approve" onclick="approveChange()" style="display:none;">
+                  <span>Approve Change &rarr;</span>
+                </button>
+              </article>
+
+            </div><!-- /g360-right-dual-row -->
+
+          </div><!-- /g360-right-master -->
+
+        </div><!-- /g360-main-split -->
+
+      </div><!-- /g360-workspace -->
+
+      <!-- Universal Status Bar Footer Slot — injected by fragments.js -->
+      <div id="footerSlot"></div>
+
+    </div><!-- /main-area -->
+
+  </main><!-- /app-shell -->
+
+  <!-- Modal Overlay for interactive dialogs (Reassignment, Stage update, etc.) -->
+  <div class="g360-modal-overlay" id="g360ModalOverlay">
+    <div class="g360-modal-card">
+      <div class="g360-modal-header">
+        <h3 class="g360-modal-title" id="g360ModalTitle">Atelier Operations</h3>
+        <button type="button" class="btn-modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div id="g360ModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Core Shared Fragments Scripts -->
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="garaments-360.js"></script>
+</body>
+</html>

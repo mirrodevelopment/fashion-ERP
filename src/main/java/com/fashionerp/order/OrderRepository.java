@@ -19,6 +19,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     Optional<Order> findByIdAndCompanyId(UUID id, UUID companyId);
 
     boolean existsByOrderCode(String orderCode);
+    boolean existsByOrderCodeAndCompanyId(String orderCode, UUID companyId);
 
     @Query(value = """
         SELECT o FROM Order o
@@ -52,8 +53,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
                        @Param("search") String search,
                        @Param("status") OrderStatus status,
                        Pageable pageable);
-
-    long countByStatus(OrderStatus status);
 
     long countByCompanyId(UUID companyId);
 

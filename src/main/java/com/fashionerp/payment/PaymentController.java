@@ -71,17 +71,17 @@ public class PaymentController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
         Map<String, Object> m = new LinkedHashMap<>();
-        BigDecimal totalColl = companyId != null ? paymentRepository.sumPaidAmount(companyId) : paymentRepository.sumPaidAmount();
-        BigDecimal pendingBal = companyId != null ? paymentRepository.sumPendingAmount(companyId) : paymentRepository.sumPendingAmount();
-        BigDecimal thisMonthColl = companyId != null ? paymentRepository.sumThisMonthPaidAmount(companyId) : paymentRepository.sumThisMonthPaidAmount();
-        m.put("totalCollected",    totalColl != null ? totalColl : BigDecimal.ZERO);
-        m.put("pendingBalance",    pendingBal != null ? pendingBal : BigDecimal.ZERO);
-        m.put("overdueCount",      companyId != null ? paymentRepository.countOverdue(companyId) : paymentRepository.countOverdue());
-        m.put("partialCount",      companyId != null ? paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL) : paymentRepository.countByStatus(PaymentStatus.PARTIAL));
-        m.put("thisMonthCollected",thisMonthColl != null ? thisMonthColl : BigDecimal.ZERO);
-        m.put("invoiceCount",      companyId != null ? paymentRepository.countByCompanyId(companyId) : paymentRepository.count());
+        BigDecimal totalColl = paymentRepository.sumPaidAmount(companyId);
+        BigDecimal pendingBal = paymentRepository.sumPendingAmount(companyId);
+        BigDecimal thisMonthColl = paymentRepository.sumThisMonthPaidAmount(companyId);
+        m.put("totalCollected",     totalColl != null ? totalColl : BigDecimal.ZERO);
+        m.put("pendingBalance",     pendingBal != null ? pendingBal : BigDecimal.ZERO);
+        m.put("overdueCount",       paymentRepository.countOverdue(companyId));
+        m.put("partialCount",       paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL));
+        m.put("thisMonthCollected", thisMonthColl != null ? thisMonthColl : BigDecimal.ZERO);
+        m.put("invoiceCount",       paymentRepository.countByCompanyId(companyId));
         return m;
     }
 }

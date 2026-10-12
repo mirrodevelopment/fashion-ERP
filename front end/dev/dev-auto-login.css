@@ -1,0 +1,403 @@
+/* ==========================================================================
+   HAULO BOUTIQUE ERP — Developer Mode Auto-Login & Persona Switcher
+   File: /front end/dev/dev-auto-login.css
+   Pure CSS, luxury dark glassmorphism, responsive, matches boutique tokens.
+   ========================================================================== */
+
+/* ── Container Card ──────────────────────────────────────────────────────── */
+.dev-options-card {
+  margin-top: 8px;
+  background: rgba(18, 26, 33, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(184, 255, 61, 0.22);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 20px -5px rgba(184, 255, 61, 0.08);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dev-options-card:hover {
+  border-color: rgba(184, 255, 61, 0.4);
+  box-shadow: 
+    0 12px 35px -8px rgba(0, 0, 0, 0.7),
+    0 0 24px -4px rgba(184, 255, 61, 0.14);
+}
+
+/* ── Collapsible Header Toggle ───────────────────────────────────────────── */
+.dev-header-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(184, 255, 61, 0.04);
+  border-bottom: 1px solid rgba(184, 255, 61, 0.12);
+  transition: background 0.2s ease;
+}
+
+.dev-header-toggle:hover {
+  background: rgba(184, 255, 61, 0.09);
+}
+
+.dev-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-lime, #B7FF3C);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.dev-header-left svg {
+  color: var(--primary-lime, #B7FF3C);
+  flex-shrink: 0;
+}
+
+.dev-badge-pulse {
+  background: rgba(184, 255, 61, 0.15);
+  border: 1px solid rgba(184, 255, 61, 0.4);
+  color: var(--primary-lime, #B7FF3C);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  animation: devBadgeGlow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes devBadgeGlow {
+  0% { box-shadow: 0 0 4px rgba(184, 255, 61, 0.2); }
+  100% { box-shadow: 0 0 10px rgba(184, 255, 61, 0.6); }
+}
+
+.dev-header-right {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
+.dev-chevron {
+  transition: transform 0.25s ease;
+  display: inline-block;
+  line-height: 1;
+}
+
+.dev-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+/* ── Body Content ────────────────────────────────────────────────────────── */
+.dev-body {
+  padding: 8px 12px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: all 0.3s ease;
+}
+
+.dev-body.collapsed {
+  display: none;
+}
+
+/* ── Field Groups & Select Inputs ────────────────────────────────────────── */
+.dev-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dev-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dev-select-glass {
+  width: 100%;
+  background: rgba(10, 15, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: #FFFFFF;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.dev-select-glass:focus {
+  border-color: var(--primary-lime, #B7FF3C);
+  box-shadow: 0 0 0 2px rgba(184, 255, 61, 0.22);
+}
+
+.dev-select-glass:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.dev-select-glass option {
+  background: #0D1318;
+  color: #FFFFFF;
+  padding: 6px;
+}
+
+.dev-select-glass optgroup {
+  background: #090E12;
+  color: var(--primary-lime, #B7FF3C);
+  font-weight: 700;
+}
+
+/* ── Live Persona Inspector Card ─────────────────────────────────────────── */
+.dev-persona-preview {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(184, 255, 61, 0.18);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.dev-preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dev-preview-key {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.dev-preview-val {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dev-preview-val.highlight {
+  color: var(--primary-lime, #B7FF3C);
+  font-family: monospace;
+  font-weight: 700;
+}
+
+.dev-role-badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.role-admin {
+  background: rgba(184, 255, 61, 0.2);
+  color: #B7FF3C;
+  border: 1px solid rgba(184, 255, 61, 0.4);
+}
+
+.role-tailor, .role-cutter, .role-master_tailor {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.role-designer, .role-stylist {
+  background: rgba(168, 85, 247, 0.2);
+  color: #C084FC;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.role-manager, .role-staff, .role-sales {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60A5FA;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+/* ── Instant Login Checkbox ──────────────────────────────────────────────── */
+.dev-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  user-select: none;
+}
+
+.dev-checkbox-row input[type="checkbox"] {
+  accent-color: var(--primary-lime, #B7FF3C);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* ── Actions Grid ────────────────────────────────────────────────────────── */
+.dev-actions-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.btn-dev-login {
+  background: linear-gradient(135deg, #B7FF3C 0%, #8FE81E 100%);
+  color: #070B0E;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(184, 255, 61, 0.25);
+}
+
+.btn-dev-login:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(184, 255, 61, 0.4);
+}
+
+.btn-dev-login:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-dev-login:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-dev-fill {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-dev-fill:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-dev-fill:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Status / Error Messaging ────────────────────────────────────────────── */
+.dev-status-msg {
+  font-size: 0.72rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dev-status-msg.loading {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60A5FA;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.dev-status-msg.error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.dev-btn-retry {
+  background: none;
+  border: 1px solid currentColor;
+  color: inherit;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+/* ── Short Viewports Responsive Adaptations ────────────────────────────── */
+@media (max-height: 820px) {
+  .dev-options-card {
+    margin-top: 4px;
+    border-radius: 8px;
+  }
+  .dev-header-toggle {
+    padding: 5px 10px;
+  }
+  .dev-header-left {
+    font-size: 0.72rem;
+    gap: 6px;
+  }
+  .dev-header-left svg {
+    width: 14px;
+    height: 14px;
+  }
+  .dev-badge-pulse {
+    font-size: 0.58rem;
+    padding: 1px 4px;
+  }
+  .dev-body {
+    padding: 6px 10px 8px 10px;
+    gap: 5px;
+  }
+  .dev-label {
+    font-size: 0.62rem;
+  }
+  .dev-select-glass {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+  .dev-persona-preview {
+    padding: 5px 8px;
+    gap: 3px 8px;
+    font-size: 0.66rem;
+  }
+  .dev-actions-grid {
+    gap: 6px;
+    margin-top: 1px;
+  }
+  .btn-dev-login {
+    padding: 5px 10px;
+    font-size: 0.74rem;
+  }
+  .btn-dev-fill {
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+}
+

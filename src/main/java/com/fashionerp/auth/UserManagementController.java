@@ -24,22 +24,40 @@ import java.util.UUID;
 public class UserManagementController {
 
     private final UserManagementService userManagementService;
+    private final AppUserRepository userRepository;
 
     /**
      * GET /api/v1/users
      * Returns filtered list of all users. Accessible to any authenticated user.
      *
-     * @param search       Optional text search (username, fullName, email)
-     * @param role         Optional role filter — must match UserRole enum name
+     * @param search       Optional text search (username, fullName, email, designation)
+     * @param role         Optional role filter — matches UserRole enum name
      * @param active       Optional active status filter (true / false)
+     * @param tab          Optional tab filter ('ALL', 'ROLES', 'REQUESTS', 'SUSPENDED')
+     * @param branch       Optional branch filter
+     * @param status       Optional status filter ('ACTIVE', 'REVIEW', 'SUSPENDED', 'INVITED')
+     * @param scope        Optional access scope filter
      */
     @GetMapping
     public ResponseEntity<List<UserManagementDto.UserSummary>> listUsers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String role,
-            @RequestParam(required = false) Boolean active
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String branch,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String scope
     ) {
-        return ResponseEntity.ok(userManagementService.listUsers(search, role, active));
+        return ResponseEntity.ok(userManagementService.listUsers(search, role, active, tab, branch, status, scope));
+    }
+
+    /**
+     * GET /api/v1/users/stats
+     * Returns dynamic tenant-scoped KPI Statistics.
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<UserManagementDto.KpiStats> getStats() {
+        return ResponseEntity.ok(userManagementService.getKpiStats());
     }
 
     /**
@@ -61,12 +79,71 @@ public class UserManagementController {
     }
 
     /**
+     * GET /api/v1/users/access-logs
+     * Returns paginated, searchable access and audit logs for the company.
+     */
+    @GetMapping("/access-logs")
+    public ResponseEntity<UserManagementDto.AccessLogPageResponse> listAccessLogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String actionType,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) String search
+    ) {
+        return ResponseEntity.ok(userManagementService.listAccessLogs(page, size, actionType, userId, search));
+    }
+
+    /**
+     * GET /api/v1/users/access-logs/stats
+     * Returns aggregate metrics for the Recent Access audit dashboard.
+     */
+    @GetMapping("/access-logs/stats")
+    public ResponseEntity<UserManagementDto.AccessLogStats> getAccessLogStats() {
+        return ResponseEntity.ok(userManagementService.getAccessLogStats());
+    }
+
+    /**
+     * POST /api/v1/users/access-logs
+     * Records a security access event for audit trace.
+     */
+    @PostMapping("/access-logs")
+    public ResponseEntity<Void> recordAccessLog(
+            Authentication auth,
+            @RequestBody UserManagementDto.CreateAccessLogRequest req
+    ) {
+        UUID currentUserId = null;
+        if (auth != null && auth.getName() != null) {
+            java.util.Optional<AppUser> userOpt = userRepository.findByUsernameAndActiveTrue(auth.getName());
+            if (userOpt.isPresent()) {
+                currentUserId = userOpt.get().getId();
+            }
+        }
+        userManagementService.recordAccessLog(
+                currentUserId,
+                req.getActionType(),
+                req.getDescription(),
+                req.getLocation(),
+                req.getClientInfo()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    /**
      * GET /api/v1/users/{id}
      * Returns a single user by UUID. Accessible to any authenticated user.
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserManagementDto.UserSummary> getUser(@PathVariable UUID id) {
         return ResponseEntity.ok(userManagementService.getUser(id));
+    }
+
+    /**
+     * GET /api/v1/users/{id}/detail
+     * Returns comprehensive governance intelligence and permissions detail.
+     */
+    @GetMapping("/{id}/detail")
+    public ResponseEntity<UserManagementDto.UserDetail> getUserDetail(@PathVariable UUID id) {
+        return ResponseEntity.ok(userManagementService.getUserDetail(id));
     }
 
     /**
@@ -77,52 +154,53 @@ public class UserManagementController {
     public ResponseEntity<UserManagementDto.UserSummary> createUser(
             @RequestBody UserManagementDto.CreateUserRequest req
     ) {
-        requireAdmin();
+        requireManagementAccess();
         UserManagementDto.UserSummary created = userManagementService.createUser(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     /**
      * PUT /api/v1/users/{id}
-     * Updates an existing user. ADMIN only.
+     * Updates an existing user. Company Owner, Admin, or Branch Admin.
      */
     @PutMapping("/{id}")
     public ResponseEntity<UserManagementDto.UserSummary> updateUser(
             @PathVariable UUID id,
             @RequestBody UserManagementDto.UpdateUserRequest req
     ) {
-        requireAdmin();
+        requireManagementAccess();
         return ResponseEntity.ok(userManagementService.updateUser(id, req));
     }
 
     /**
      * PATCH /api/v1/users/{id}/toggle-active
-     * Activates or deactivates a user. ADMIN only.
-     * Guarded by service-layer last-admin check.
+     * Activates or deactivates a user. Company Owner, Admin, or Branch Admin.
+     * Guarded by service-layer last-admin check and branch domain boundaries.
      */
     @PatchMapping("/{id}/toggle-active")
     public ResponseEntity<UserManagementDto.UserSummary> toggleActive(@PathVariable UUID id) {
-        requireAdmin();
+        requireManagementAccess();
         return ResponseEntity.ok(userManagementService.toggleActive(id));
     }
 
     // ─── Private Helpers ───────────────────────────────────────────────────
 
     /**
-     * Verifies the calling user holds the ADMIN role.
-     * Role is compared against the UserRole enum constant name — no raw string.
-     * Throws AccessDeniedException (→ 403) if not admin.
+     * Verifies the calling user holds an administrative role (OWNER, ADMIN, or BRANCH_ADMIN).
+     * Domain boundaries and fine-grained scoping are enforced inside UserManagementService.
+     * Throws AccessDeniedException (→ 403) if unauthorized.
      */
-    private void requireAdmin() {
+    private void requireManagementAccess() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             throw new AccessDeniedException("Authentication required.");
         }
-        String requiredAuthority = "ROLE_" + UserRole.ADMIN.name();
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(requiredAuthority));
-        if (!isAdmin) {
-            throw new AccessDeniedException("Admin access required.");
+        boolean hasAccess = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + UserRole.OWNER.name())
+                            || a.getAuthority().equals("ROLE_" + UserRole.ADMIN.name())
+                            || a.getAuthority().equals("ROLE_" + UserRole.BRANCH_ADMIN.name()));
+        if (!hasAccess) {
+            throw new AccessDeniedException("Administrative access required.");
         }
     }
 

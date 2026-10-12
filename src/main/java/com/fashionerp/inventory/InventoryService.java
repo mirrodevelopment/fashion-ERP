@@ -133,6 +133,7 @@ public class InventoryService {
                         : (req.getQuantity().signum() >= 0 ? MovementType.RECEIPT : MovementType.ISSUE));
 
         StockMovement movement = StockMovement.builder()
+                .companyId(saved.getCompanyId() != null ? saved.getCompanyId() : companyId)
                 .item(saved)
                 .movementType(type)
                 .quantity(req.getQuantity())
@@ -148,22 +149,24 @@ public class InventoryService {
     /** Returns all movements for a specific inventory item, newest first */
     public List<StockMovementDto.Response> getMovements(UUID itemId) {
         UUID companyId = TenantContext.getCompanyId();
-        if (companyId != null) {
-            return stockMovementRepository.findByCompanyIdAndItemIdOrderByMovedAtDesc(companyId, itemId)
-                    .stream().map(StockMovementDto.Response::from).toList();
+        if (companyId == null) {
+            // Also check item companyId
+            InventoryItem item = inventoryRepository.findById(itemId).orElse(null);
+            if (item != null) {
+                companyId = item.getCompanyId();
+            }
         }
-        return stockMovementRepository.findByItemIdOrderByMovedAtDesc(itemId)
+        if (companyId == null) {
+            companyId = TenantContext.requireCompanyId();
+        }
+        return stockMovementRepository.findByCompanyIdAndItemIdOrderByMovedAtDesc(companyId, itemId)
                 .stream().map(StockMovementDto.Response::from).toList();
     }
 
     /** Returns paginated movements across all inventory items */
     public Page<StockMovementDto.Response> getAllMovements(Pageable pageable) {
-        UUID companyId = TenantContext.getCompanyId();
-        if (companyId != null) {
-            return stockMovementRepository.findByCompanyIdOrderByMovedAtDesc(companyId, pageable)
-                    .map(StockMovementDto.Response::from);
-        }
-        return stockMovementRepository.findAllByOrderByMovedAtDesc(pageable)
+        UUID companyId = TenantContext.requireCompanyId();
+        return stockMovementRepository.findByCompanyIdOrderByMovedAtDesc(companyId, pageable)
                 .map(StockMovementDto.Response::from);
     }
 

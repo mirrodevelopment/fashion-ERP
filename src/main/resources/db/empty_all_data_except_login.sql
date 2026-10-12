@@ -163,14 +163,14 @@ VALUES (
     'admin',
     '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', -- Admin@123
     'Boutique Admin',
-    'ADMIN',
+    'OWNER',
     true,
     NOW(),
     NOW()
 )
 ON CONFLICT (username) DO UPDATE
     SET active     = true,
-        role       = 'ADMIN',
+        role       = 'OWNER',
         updated_at = NOW();
 
 INSERT INTO user_profiles (

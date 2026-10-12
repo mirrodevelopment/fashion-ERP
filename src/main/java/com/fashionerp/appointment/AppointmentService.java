@@ -69,17 +69,20 @@ public class AppointmentService {
                 .notes(req.getNotes())
                 .build();
         if (req.getOrderId() != null) {
-            orderRepository.findById(req.getOrderId()).ifPresent(a::setOrder);
+            UUID cId = (companyId != null) ? companyId : a.getCompanyId();
+            if (cId != null) {
+                orderRepository.findByIdAndCompanyId(req.getOrderId(), cId).ifPresent(a::setOrder);
+            } else {
+                orderRepository.findById(req.getOrderId()).ifPresent(a::setOrder);
+            }
         }
         return AppointmentDto.Response.from(appointmentRepository.save(a));
     }
 
     @Transactional
     public AppointmentDto.Response updateStatus(UUID id, AppointmentStatus newStatus) {
-        UUID companyId = TenantContext.getCompanyId();
-        Appointment a = (companyId != null
-                ? appointmentRepository.findByIdAndCompanyId(id, companyId)
-                : appointmentRepository.findById(id))
+        UUID companyId = TenantContext.requireCompanyId();
+        Appointment a = appointmentRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + id));
         a.setStatus(newStatus);
         return AppointmentDto.Response.from(appointmentRepository.save(a));
@@ -87,10 +90,8 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto.Response reschedule(UUID id, Map<String, Object> body) {
-        UUID companyId = TenantContext.getCompanyId();
-        Appointment a = (companyId != null
-                ? appointmentRepository.findByIdAndCompanyId(id, companyId)
-                : appointmentRepository.findById(id))
+        UUID companyId = TenantContext.requireCompanyId();
+        Appointment a = appointmentRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + id));
         if (body.containsKey("scheduledAt") && body.get("scheduledAt") != null) {
             a.setScheduledAt(LocalDateTime.parse(body.get("scheduledAt").toString()));

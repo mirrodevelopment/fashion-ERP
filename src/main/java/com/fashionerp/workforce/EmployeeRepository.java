@@ -36,7 +36,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatus(UUID companyId, String status);
-    long countByStatus(String status);
 
     @Query("SELECT e.role AS role, COUNT(e) AS count FROM Employee e WHERE (:companyId IS NULL OR e.companyId = :companyId) GROUP BY e.role ORDER BY e.role")
     List<Map<String, Object>> countByRole(@Param("companyId") UUID companyId);

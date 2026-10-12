@@ -41,30 +41,45 @@ public class DashboardController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        UUID companyId = TenantContext.getCompanyId();
+        UUID companyId = TenantContext.requireCompanyId();
+        String branchFilter = TenantContext.getActiveBranchFilter();
 
-        // ── Basic counts ──────────────────────────────────────────
-        long totalCustomers    = companyId != null ? customerRepository.countByCompanyId(companyId) : customerRepository.count();
-        long totalOrders       = companyId != null ? orderRepository.countByCompanyId(companyId) : orderRepository.count();
-        long pendingOrders     = companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING) : orderRepository.countByStatus(OrderStatus.PENDING);
-        long inProgressOrders  = companyId != null
-                ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS) + orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PRODUCTION)
-                : orderRepository.countByStatus(OrderStatus.IN_PROGRESS) + orderRepository.countByStatus(OrderStatus.IN_PRODUCTION);
-        long readyOrders       = companyId != null
-                ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY) + orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.COMPLETED)
-                : orderRepository.countByStatus(OrderStatus.READY) + orderRepository.countByStatus(OrderStatus.COMPLETED);
-        long deliveredOrders   = companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED) : orderRepository.countByStatus(OrderStatus.DELIVERED);
-        long cancelledOrders   = companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED) : orderRepository.countByStatus(OrderStatus.CANCELLED);
-        long lowStockItems     = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK) : inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);
-        long outOfStockItems   = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK) : inventoryRepository.countByStatus(InventoryStatus.OUT_OF_STOCK);
-        BigDecimal rawRevenue   = companyId != null ? paymentRepository.sumPaidAmount(companyId) : paymentRepository.sumPaidAmount();
-        BigDecimal rawPending   = companyId != null ? paymentRepository.sumPendingAmount(companyId) : paymentRepository.sumPendingAmount();
+        // ── Basic counts (branch-scoped if selected, otherwise all company data) ──
+        long totalCustomers    = customerRepository.countByCompanyId(companyId);
+        long totalOrders;
+        long pendingOrders;
+        long inProgressOrders;
+        long readyOrders;
+        long deliveredOrders;
+        long cancelledOrders;
+
+        if (branchFilter != null && !branchFilter.isBlank()) {
+            var probe = org.springframework.data.domain.PageRequest.of(0, 1);
+            totalOrders      = orderRepository.search(companyId, branchFilter, null, null, probe).getTotalElements();
+            pendingOrders    = orderRepository.search(companyId, branchFilter, null, OrderStatus.PENDING, probe).getTotalElements();
+            inProgressOrders = orderRepository.search(companyId, branchFilter, null, OrderStatus.IN_PROGRESS, probe).getTotalElements()
+                    + orderRepository.search(companyId, branchFilter, null, OrderStatus.IN_PRODUCTION, probe).getTotalElements();
+            readyOrders      = orderRepository.search(companyId, branchFilter, null, OrderStatus.READY, probe).getTotalElements()
+                    + orderRepository.search(companyId, branchFilter, null, OrderStatus.COMPLETED, probe).getTotalElements();
+            deliveredOrders  = orderRepository.search(companyId, branchFilter, null, OrderStatus.DELIVERED, probe).getTotalElements();
+            cancelledOrders  = orderRepository.search(companyId, branchFilter, null, OrderStatus.CANCELLED, probe).getTotalElements();
+        } else {
+            totalOrders      = orderRepository.countByCompanyId(companyId);
+            pendingOrders    = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING);
+            inProgressOrders = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS) + orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PRODUCTION);
+            readyOrders      = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY) + orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.COMPLETED);
+            deliveredOrders  = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED);
+            cancelledOrders  = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED);
+        }
+
+        long lowStockItems     = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK);
+        long outOfStockItems   = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK);
+        BigDecimal rawRevenue   = paymentRepository.sumPaidAmount(companyId);
+        BigDecimal rawPending   = paymentRepository.sumPendingAmount(companyId);
         BigDecimal totalRevenue = rawRevenue != null ? rawRevenue : BigDecimal.ZERO;
         BigDecimal pendingPayments = rawPending != null ? rawPending : BigDecimal.ZERO;
 
-        long pendingPaymentsCount = companyId != null
-                ? paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL) + paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PENDING)
-                : paymentRepository.countByStatus(PaymentStatus.PARTIAL) + paymentRepository.countByStatus(PaymentStatus.PENDING);
+        long pendingPaymentsCount = paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL) + paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PENDING);
 
 
         // ── Order status breakdown for donut chart ────────────────
@@ -277,7 +292,7 @@ public class DashboardController {
     private Map<String, Object> buildBusinessHealth(UUID companyId, BigDecimal totalRevenue, long totalOrders,
                                                      long deliveredOrders, long totalCustomers) {
         // Financial: paid / total billed
-        BigDecimal rawBilled = companyId != null ? paymentRepository.sumTotalAmount(companyId) : paymentRepository.sumTotalAmount();
+        BigDecimal rawBilled = companyId != null ? paymentRepository.sumTotalAmount(companyId) : BigDecimal.ZERO;
         BigDecimal totalBilled = rawBilled != null ? rawBilled : BigDecimal.ZERO;
         BigDecimal safeRevenue = totalRevenue != null ? totalRevenue : BigDecimal.ZERO;
         int financial = totalBilled.compareTo(BigDecimal.ZERO) > 0
@@ -292,14 +307,14 @@ public class DashboardController {
                 : 0;
 
         // Customer: customers who ordered in last 90 days / total
-        long activeCustomers = companyId != null ? customerRepository.countActiveIn90Days(companyId) : customerRepository.countActiveIn90Days();
+        long activeCustomers = customerRepository.countActiveIn90Days(companyId);
         int customer = totalCustomers > 0
                 ? (int) Math.min(100, activeCustomers * 100L / totalCustomers)
                 : 0;
 
         // People: active employees / total
-        long totalEmployees  = companyId != null ? employeeRepository.countByCompanyId(companyId) : employeeRepository.count();
-        long activeEmployees = companyId != null ? employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE") : employeeRepository.countByStatus("ACTIVE");
+        long totalEmployees  = employeeRepository.countByCompanyId(companyId);
+        long activeEmployees = employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE");
         int people = totalEmployees > 0
                 ? (int) Math.min(100, activeEmployees * 100L / totalEmployees)
                 : 0;

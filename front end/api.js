@@ -8,6 +8,9 @@
  */
 
 const getApiBase = () => {
+  if (typeof window !== 'undefined' && window.HAULO_API_BASE) {
+    return window.HAULO_API_BASE;
+  }
   if (typeof window !== 'undefined' && window.location) {
     const p = window.location.port;
     if (p === '8080' || p === '' || p === '80' || p === '443') {
@@ -16,6 +19,10 @@ const getApiBase = () => {
   }
   return 'http://localhost:8080/api/v1';
 };
+
+if (typeof window !== 'undefined' && !window.HAULO_API_BASE) {
+  window.HAULO_API_BASE = getApiBase();
+}
 
 // ─── Auth Token Management ────────────────────────────────────
 const Auth = {
@@ -104,6 +111,17 @@ async function request(method, path, body = null, params = {}) {
   }
 
   if (token) headers['Authorization'] = 'Bearer ' + token;
+
+  const activeBranch = (typeof localStorage !== 'undefined') ? localStorage.getItem('haulo_active_branch') : null;
+  const activeBranchId = (typeof localStorage !== 'undefined') ? localStorage.getItem('haulo_active_branch_id') : null;
+  if (activeBranch && activeBranch !== 'ALL' && activeBranch !== 'All Company Data') {
+    headers['X-Active-Branch'] = activeBranch;
+    if (activeBranchId && activeBranchId !== 'ALL') {
+      headers['X-Active-Branch-Id'] = activeBranchId;
+    }
+  } else {
+    headers['X-Active-Branch'] = 'ALL';
+  }
 
   const options = { method, headers };
   if (body) options.body = JSON.stringify(body);
@@ -288,9 +306,19 @@ function unwrapList(res) {
 }
 
 const api = {
+  baseUrl: getApiBase(),
+  getBaseUrl: getApiBase,
+  get: get,
+  post: post,
+  put: put,
+  patch: patch,
+  delete: del,
   auth: {
-    login: (username, password) => post('/auth/login', { username, password }),
-    me:    ()                    => get('/auth/me'),
+    /** POST /api/v1/auth/login — companyName is optional, sent by multi-step login Step 2 */
+    login:         (username, password, companyName) => post('/auth/login', { username, password, ...(companyName ? { companyName } : {}) }),
+    me:            ()     => get('/auth/me'),
+    /** GET /api/v1/auth/company-lookup?name=... — validates company name on login Step 1 */
+    lookupCompany: (name) => get('/auth/company-lookup', { name }),
   },
 
   dashboard: {
@@ -359,16 +387,23 @@ const api = {
     list: async (params = {}) => unwrapList(await get('/inventory', params)),
     page: (params = {}) => get('/inventory', params),
     get: (id) => get(`/inventory/${id}`),
+    getById: (id) => get(`/inventory/${id}`),
     create: (data) => post('/inventory', data),
     update: (id, data) => put(`/inventory/${id}`, data),
-    adjust: (id, quantity, reason, movedBy) =>
-      patch(`/inventory/${id}/adjust`, { quantity, reason, movedBy }),
+    adjust: (id, quantityOrData, reason, movedBy) => {
+      const payload = (typeof quantityOrData === 'object' && quantityOrData !== null)
+        ? quantityOrData
+        : { quantity: quantityOrData, reason, movedBy };
+      return patch(`/inventory/${id}/adjust`, payload);
+    },
+    adjustStock: (id, data) => patch(`/inventory/${id}/adjust`, data),
     delete: (id) => del(`/inventory/${id}`),
     kpis: () => get('/inventory/kpis'),
     /** Paginated list of all stock movements across all items */
     allMovements: (params = {}) => get('/inventory/movements', params),
     /** All movements for a specific inventory item (by UUID) */
     movements: (itemId) => get(`/inventory/${itemId}/movements`),
+    movementsForItem: (id) => get(`/inventory/${id}/movements`),
   },
 
   payments: {
@@ -445,6 +480,8 @@ const api = {
     get: (id) => get(`/suppliers/${id}`),
     create: (data) => post('/suppliers', data),
     update: (id, data) => put(`/suppliers/${id}`, data),
+    delete: (id) => del(`/suppliers/${id}`),
+    orders: (id) => get(`/suppliers/${id}/orders`),
   },
 
   production: {
@@ -509,12 +546,25 @@ const api = {
     list: async (params = {}) => unwrapList(await get('/trials', params)),
     page: (params = {}) => get('/trials', params),
     get: (id) => get(`/trials/${id}`),
+    getById: (id) => get(`/trials/${id}`),
     create: (data) => post('/trials', data),
     createFromOrder: (orderId) => post(`/trials/from-order/${orderId}`, {}),
     update: (id, data) => put(`/trials/${id}`, data),
     updateFitStatus: (id, fitStatus) => patch(`/trials/${id}/fit-status?fitStatus=${encodeURIComponent(fitStatus)}`, {}),
-    toggleAlteration: (trialId, altId, completed) => patch(`/trials/${trialId}/alterations/${altId}?completed=${completed != null ? completed : ''}`, {}),
-    completeAndAdvance: (id) => post(`/trials/${id}/complete-and-advance`, {}),
+    toggleAlteration: (trialId, altId, completed, completedBy) => {
+      const params = new URLSearchParams();
+      if (completed !== undefined && completed !== null) params.append('completed', completed);
+      if (completedBy) params.append('completedBy', completedBy);
+      const qs = params.toString() ? `?${params.toString()}` : '';
+      return patch(`/trials/${trialId}/alterations/${altId}${qs}`, {});
+    },
+    addAlteration: (trialId, data) => post(`/trials/${trialId}/alterations`, data),
+    createAlteration: (trialId, data) => post(`/trials/${trialId}/alterations`, data),
+    deleteAlteration: (trialId, altId) => del(`/trials/${trialId}/alterations/${altId}`),
+    completeAndAdvance: (id, completedBy) => {
+      const qs = completedBy ? `?completedBy=${encodeURIComponent(completedBy)}` : '';
+      return post(`/trials/${id}/complete-and-advance${qs}`, {});
+    },
     scheduleRetrial: (id, data) => post(`/trials/${id}/schedule-retrial`, data || {}),
     ordersForTrial: (params = {}) => get('/trials/orders-for-trial', params),
     kpis: () => get('/trials/kpis'),
@@ -610,56 +660,60 @@ const api = {
      */
     update: async (id, data) => {
       return put(`/garments/${id}`, data);
+    },
+
+    /**
+     * Upload garment photo/sketch file to /front end/assets/garments/
+     * @param {File} file
+     * @param {string} [garmentCode]
+     */
+    uploadImage: async (file, garmentCode = '') => {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (garmentCode) formData.append('garmentCode', garmentCode);
+
+      const token = Auth.getToken();
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      const res = await fetch(`${getApiBase()}/garments/upload-image`, {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Upload failed: ${res.statusText}`);
+      }
+      return res.json();
+    },
+
+    /**
+     * Upload and bind image directly to an existing garment ID
+     * @param {string} id
+     * @param {File} file
+     */
+    uploadImageForGarment: async (id, file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const token = Auth.getToken();
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      const res = await fetch(`${getApiBase()}/garments/${id}/image`, {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Upload failed: ${res.statusText}`);
+      }
+      return res.json();
     }
   },
 
-  trials: {
-    list: async (params = {}) => {
-      const res = await get('/trials', params);
-      return res || { content: [], totalElements: 0, totalPages: 0, number: 0 };
-    },
-    getById: async (id) => {
-      return get(`/trials/${id}`);
-    },
-    create: async (data) => {
-      return post('/trials', data);
-    },
-    update: async (id, data) => {
-      return put(`/trials/${id}`, data);
-    },
-    updateFitStatus: async (id, fitStatus) => {
-      return patch(`/trials/${id}/fit-status?fitStatus=${encodeURIComponent(fitStatus)}`);
-    },
-    toggleAlteration: async (trialId, altId, completed, completedBy) => {
-      const params = new URLSearchParams();
-      if (completed !== undefined && completed !== null) params.append('completed', completed);
-      if (completedBy) params.append('completedBy', completedBy);
-      const qs = params.toString() ? `?${params.toString()}` : '';
-      return patch(`/trials/${trialId}/alterations/${altId}${qs}`);
-    },
-    addAlteration: async (trialId, data) => {
-      return post(`/trials/${trialId}/alterations`, data);
-    },
-    deleteAlteration: async (trialId, altId) => {
-      return del(`/trials/${trialId}/alterations/${altId}`);
-    },
-    kpis: async () => {
-      return get('/trials/kpis');
-    },
-    createFromOrder: async (orderId) => {
-      return post(`/trials/from-order/${orderId}`);
-    },
-    completeAndAdvance: async (id, completedBy) => {
-      const qs = completedBy ? `?completedBy=${encodeURIComponent(completedBy)}` : '';
-      return post(`/trials/${id}/complete-and-advance${qs}`);
-    },
-    scheduleRetrial: async (id, data) => {
-      return post(`/trials/${id}/schedule-retrial`, data);
-    },
-    ordersForTrial: async (params = {}) => {
-      return get('/trials/orders-for-trial', params);
-    }
-  },
   profile: {
     get: async () => get('/profile'),
     update: async (data) => put('/profile', data),
@@ -683,12 +737,19 @@ const api = {
   // ─── Users & Roles ────────────────────────────────────────────
   users: {
     /**
-     * List all users. Optional params: search (string), role (UserRole enum name), active (boolean).
-     * Role filter value must match a valid UserRole enum name — e.g. 'ADMIN', 'STAFF'.
+     * List all users. Optional params: search, role, active, tab, branch, status, scope.
      */
     list:         (params = {}) => get('/users', params),
     /**
-     * Get a single user by UUID.
+     * Get dynamic tenant-scoped KPI Statistics.
+     */
+    stats:        ()            => get('/users/stats'),
+    /**
+     * Get full governance intelligence detail for selected user.
+     */
+    detail:       (id)          => get(`/users/${id}/detail`),
+    /**
+     * Get a single user summary by UUID.
      */
     getById:      (id)          => get(`/users/${id}`),
     /**
@@ -714,6 +775,19 @@ const api = {
      * Fetch all available ERP modules and metadata from backend.
      */
     modules:      ()            => get('/users/modules'),
+    /**
+     * Recent Access & Security Audit Logs (100% database-backed, zero mock data).
+     */
+    accessLogs: {
+      list:   (params = {}) => get('/users/access-logs', params),
+      stats:  ()            => get('/users/access-logs/stats'),
+      record: (data)        => post('/users/access-logs', data),
+    },
+  },
+
+  // ─── Dashboard ────────────────────────────────────────────────
+  dashboard: {
+    kpis: (params = {}) => get('/dashboard/kpis', params),
   },
 
   // ─── Branches ─────────────────────────────────────────────────
@@ -723,18 +797,36 @@ const api = {
     get:  (id) => get(`/branches/${id}`),
   },
 
-  // ─── Inventory ────────────────────────────────────────────────
-  inventory: {
-    list:             (params = {}) => get('/inventory', params),
-    getById:          (id)          => get(`/inventory/${id}`),
-    create:           (data)        => post('/inventory', data),
-    update:           (id, data)    => put(`/inventory/${id}`, data),
-    adjust:           (id, data)    => patch(`/inventory/${id}/adjust`, data),
-    adjustStock:      (id, data)    => patch(`/inventory/${id}/adjust`, data),
-    delete:           (id)          => del(`/inventory/${id}`),
-    allMovements:     (params = {}) => get('/inventory/movements', params),
-    movementsForItem: (id)          => get(`/inventory/${id}/movements`),
-    kpis:             ()            => get('/inventory/kpis'),
+  // ─── Workforce / Employees ────────────────────────────────────
+  employees: {
+    list: async (params = {}) => {
+      const res = await get('/employees', params);
+      if (res && Array.isArray(res.content)) return res.content;
+      if (Array.isArray(res)) return res;
+      return [];
+    },
+    page: (params = {}) => get('/employees', params),
+    get:  (id) => get(`/employees/${id}`),
+    create: (data) => post('/employees', data),
+    update: (id, data) => put(`/employees/${id}`, data),
+    delete: (id) => del(`/employees/${id}`),
+    uploadAvatar: (identifier, file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const token = Auth.getToken();
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      return fetch(`${getApiBase()}/employees/${identifier}/avatar`, {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      }).then(r => r.json());
+    }
+  },
+
+  // ─── Company ───────────────────────────────────────────────────
+  company: {
+    get:    () => get('/company'),
+    update: (data) => put('/company', data),
   }
 };
 

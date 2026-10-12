@@ -27,6 +27,19 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(req, clientIp));
     }
 
+    /**
+     * GET /api/v1/auth/company-lookup?name=NovaStitch
+     * Public endpoint — no JWT required.
+     * Called by login page Step 1 to validate that the entered company name
+     * exists before revealing the username/password form.
+     * Only exposes: found (boolean), companyId, companyName, shortName — no sensitive data.
+     */
+    @GetMapping("/company-lookup")
+    public ResponseEntity<AuthDto.CompanyLookupResponse> companyLookup(
+            @RequestParam String name) {
+        return ResponseEntity.ok(authService.lookupCompany(name));
+    }
+
     /** POST /api/v1/auth/register — public, creates the first boutique admin */
     @PostMapping("/register")
     public ResponseEntity<AuthDto.LoginResponse> register(

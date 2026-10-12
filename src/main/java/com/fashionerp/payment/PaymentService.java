@@ -46,9 +46,10 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public Optional<PaymentDto.Response> getByOrderId(UUID orderId) {
         UUID companyId = TenantContext.getCompanyId();
-        return (companyId != null
-                ? paymentRepository.findByOrderIdAndCompanyId(orderId, companyId)
-                : paymentRepository.findByOrderId(orderId))
+        if (companyId == null) {
+            return Optional.empty();
+        }
+        return paymentRepository.findByOrderIdAndCompanyId(orderId, companyId)
                 .map(PaymentDto.Response::from);
     }
 
@@ -86,8 +87,7 @@ public class PaymentService {
         Payment payment = (companyId != null
                 ? paymentRepository.findByIdAndCompanyId(paymentOrOrderId, companyId)
                         .or(() -> paymentRepository.findByOrderIdAndCompanyId(paymentOrOrderId, companyId))
-                : paymentRepository.findById(paymentOrOrderId)
-                        .or(() -> paymentRepository.findByOrderId(paymentOrOrderId)))
+                : paymentRepository.findById(paymentOrOrderId))
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found for ID: " + paymentOrOrderId));
 
 
@@ -154,9 +154,10 @@ public class PaymentService {
             BigDecimal total   = order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO;
             BigDecimal advance = order.getAdvancePaid() != null ? order.getAdvancePaid() : BigDecimal.ZERO;
 
-            Payment payment = paymentRepository.findByOrderId(order.getId()).orElse(null);
+            Payment payment = paymentRepository.findByOrderIdAndCompanyId(order.getId(), order.getCompanyId()).orElse(null);
             if (payment == null) {
                 payment = Payment.builder()
+                        .companyId(order.getCompanyId())
                         .order(order)
                         .customer(order.getCustomer())
                         .totalAmount(total)

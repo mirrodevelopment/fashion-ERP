@@ -8,6 +8,5 @@ import java.util.UUID;
 @Repository
 public interface TrialAlterationRepository extends JpaRepository<TrialAlteration, UUID> {
 
-    long countByCompletedFalse();
     long countByCompanyIdAndCompletedFalse(UUID companyId);
 }

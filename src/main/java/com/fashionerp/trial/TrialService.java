@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,27 +63,23 @@ public class TrialService {
     }
 
     public TrialDto.Response getByCode(String trialCode) {
-        UUID companyId = TenantContext.getCompanyId();
-        Trial trial = (companyId != null
-                ? trialRepository.findByTrialCodeAndCompanyId(trialCode, companyId)
-                : trialRepository.findByTrialCode(trialCode))
+        UUID companyId = TenantContext.requireCompanyId();
+        Trial trial = trialRepository.findByTrialCodeAndCompanyId(trialCode, companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Trial not found with code: " + trialCode));
         return TrialDto.Response.from(trial);
     }
 
     @Transactional
     public TrialDto.Response create(TrialDto.Request req) {
-        UUID companyId = TenantContext.getCompanyId();
+        UUID companyId = TenantContext.requireCompanyId();
         String cleanMobile = req.getCustomerMobile() != null ? req.getCustomerMobile().replaceAll("[^0-9+]", "") : "";
         Customer customer = (cleanMobile != null && !cleanMobile.isBlank())
-                ? (companyId != null ? customerRepository.findByFlexibleMobile(companyId, cleanMobile).orElse(null)
-                        : customerRepository.findByFlexibleMobile(cleanMobile).orElse(null))
+                ? customerRepository.findByFlexibleMobile(companyId, cleanMobile).orElse(null)
                 : null;
 
         Order order = null;
         if (req.getOrderCode() != null && !req.getOrderCode().isBlank()) {
-            order = (companyId != null ? orderRepository.findByOrderCodeAndCompanyId(req.getOrderCode(), companyId)
-                    : orderRepository.findByOrderCode(req.getOrderCode())).orElse(null);
+            order = orderRepository.findByOrderCodeAndCompanyId(req.getOrderCode(), companyId).orElse(null);
         }
 
         String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-"
@@ -101,18 +98,18 @@ public class TrialService {
                         req.getOrderCode() != null ? req.getOrderCode() : (order != null ? order.getOrderCode() : ""))
                 .customer(customer)
                 .customerName(customer != null ? customer.getName() : req.getCustomerName())
-                .garmentType(req.getGarmentType() != null ? req.getGarmentType() : "General")
+                .garmentType(req.getGarmentType())
                 .collection(req.getCollection())
                 .trialDate(req.getTrialDate() != null ? req.getTrialDate() : LocalDate.now())
-                .trialTime(req.getTrialTime() != null ? req.getTrialTime() : "11:00 AM")
+                .trialTime(req.getTrialTime())
                 .stage(stageLabel)
                 .status(req.getStatus() != null ? req.getStatus() : "TODAY")
-                .fitStatus(req.getFitStatus() != null ? req.getFitStatus() : "PENDING")
+                .fitStatus(req.getFitStatus())
                 .trialAttempt(attempt)
                 .alterationCount(altCount)
                 .customerFeedback(req.getCustomerFeedback())
-                .customerRating(req.getCustomerRating() != null ? req.getCustomerRating() : 5)
-                .fitPreference(req.getFitPreference() != null ? req.getFitPreference() : "Comfort / Regular Fit")
+                .customerRating(req.getCustomerRating())
+                .fitPreference(req.getFitPreference())
                 .fitCheckpoints(req.getFitCheckpoints())
                 .fitNotes(req.getFitNotes())
                 .designerName(req.getDesignerName())
@@ -145,8 +142,7 @@ public class TrialService {
                                 ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now())
                                 : null)
                         .completedBy(
-                                completed ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor")
-                                        : null)
+                                completed ? item.getCompletedBy() : null)
                         .build());
             }
         }
@@ -233,7 +229,7 @@ public class TrialService {
                         existing.setCompletedAt(
                                 item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now());
                         existing.setCompletedBy(
-                                item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor");
+                                item.getCompletedBy());
                     } else if (!completed) {
                         existing.setCompletedAt(null);
                         existing.setCompletedBy(null);
@@ -254,9 +250,7 @@ public class TrialService {
                             .completedAt(completed
                                     ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now())
                                     : null)
-                            .completedBy(completed
-                                    ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor")
-                                    : null)
+                            .completedBy(completed ? item.getCompletedBy() : null)
                             .build();
                     updatedList.add(newAlt);
                 }
@@ -294,17 +288,17 @@ public class TrialService {
                 .customerName(order.getCustomerName() != null && !order.getCustomerName().isBlank()
                         ? order.getCustomerName()
                         : (order.getCustomer() != null ? order.getCustomer().getName() : ""))
-                .garmentType(order.getGarmentType() != null ? order.getGarmentType() : "Custom Garment")
+                .garmentType(order.getGarmentType())
                 .collection(order.getCollection())
                 .trialDate(LocalDate.now())
-                .trialTime("11:00 AM")
+                .trialTime(null)
                 .stage(stageLabel)
                 .status("TODAY")
-                .fitStatus("PENDING")
+                .fitStatus(null)
                 .trialAttempt(attempt)
                 .alterationCount(0)
-                .customerRating(5)
-                .fitPreference("Comfort / Regular Fit")
+                .customerRating(null)
+                .fitPreference(null)
                 .deliveryDate(
                         order.getExpectedDeliveryDate() != null ? order.getExpectedDeliveryDate() : order.getDueDate())
                 .specNotes(order.getProductionNotes())
@@ -338,7 +332,7 @@ public class TrialService {
                 .completedAt(completed ? (item.getCompletedAt() != null ? item.getCompletedAt() : LocalDateTime.now())
                         : null)
                 .completedBy(
-                        completed ? (item.getCompletedBy() != null ? item.getCompletedBy() : "Master Tailor") : null)
+                        completed ? item.getCompletedBy() : null)
                 .build();
 
         trial.getAlterations().add(alt);
@@ -368,7 +362,7 @@ public class TrialService {
 
     @Transactional
     public TrialDto.Response toggleAlteration(UUID trialId, UUID alterationId, Boolean completed) {
-        return toggleAlteration(trialId, alterationId, completed, "Master Tailor");
+        return toggleAlteration(trialId, alterationId, completed, null);
     }
 
     @Transactional
@@ -385,9 +379,7 @@ public class TrialService {
                         a.setCompleted(newState);
                         a.setStatus(newState ? "COMPLETED" : "PENDING");
                         a.setCompletedAt(newState ? LocalDateTime.now() : null);
-                        a.setCompletedBy(newState
-                                ? (completedBy != null && !completedBy.isBlank() ? completedBy : "Master Tailor")
-                                : null);
+                        a.setCompletedBy(newState ? completedBy : null);
                     });
         }
 
@@ -454,7 +446,7 @@ public class TrialService {
 
     @Transactional
     public TrialDto.Response completeAndAdvance(UUID trialId) {
-        return completeAndAdvance(trialId, "Boutique Manager");
+        return completeAndAdvance(trialId, null);
     }
 
     @Transactional
@@ -468,7 +460,7 @@ public class TrialService {
                     a.setCompleted(true);
                     a.setStatus("COMPLETED");
                     a.setCompletedAt(LocalDateTime.now());
-                    a.setCompletedBy(completedBy != null && !completedBy.isBlank() ? completedBy : "Master Tailor");
+                    a.setCompletedBy(completedBy);
                 }
             }
         }
@@ -476,7 +468,7 @@ public class TrialService {
         trial.setStatus("COMPLETED");
         trial.setFitStatus("PERFECT");
         trial.setCompletedAt(LocalDateTime.now());
-        trial.setCompletedBy(completedBy != null && !completedBy.isBlank() ? completedBy : "Boutique Manager");
+        trial.setCompletedBy(completedBy);
         Trial saved = trialRepository.save(trial);
 
         if (trial.getOrder() != null) {
@@ -494,7 +486,10 @@ public class TrialService {
 
             // 2. Mark appointments for this order as COMPLETED
             try {
-                List<Appointment> appts = appointmentRepository.findByOrderId(trial.getOrder().getId());
+                UUID companyId = trial.getCompanyId() != null ? trial.getCompanyId() : TenantContext.getCompanyId();
+                List<Appointment> appts = companyId != null
+                        ? appointmentRepository.findByCompanyIdAndOrderId(companyId, trial.getOrder().getId())
+                        : Collections.emptyList();
                 for (Appointment appt : appts) {
                     if (appt.getApptType() == AppointmentType.TRIAL || appt.getApptType() == AppointmentType.FITTING) {
                         if (appt.getStatus() == AppointmentStatus.SCHEDULED
@@ -522,44 +517,21 @@ public class TrialService {
 
     public Map<String, Object> getKpis() {
         LocalDate today = LocalDate.now();
-        UUID companyId = TenantContext.getCompanyId();
+        UUID companyId = TenantContext.requireCompanyId();
 
-        long total = companyId != null ? trialRepository.countByCompanyId(companyId) : trialRepository.count();
-        long todayCount = companyId != null
-                ? trialRepository.countByCompanyIdAndTrialDateAndStatusNotIgnoreCase(companyId, today, "COMPLETED")
-                : trialRepository.countByTrialDateAndStatusNotIgnoreCase(today, "COMPLETED");
-        long upcoming = companyId != null
-                ? trialRepository.countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCase(companyId, today,
-                        "COMPLETED")
-                : trialRepository.countByTrialDateGreaterThanAndStatusNotIgnoreCase(today, "COMPLETED");
-        long overdue = companyId != null
-                ? trialRepository.countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCase(companyId, today,
-                        "COMPLETED")
-                : trialRepository.countByTrialDateLessThanAndStatusNotIgnoreCase(today, "COMPLETED");
-        long completed = companyId != null
-                ? trialRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "COMPLETED")
-                : trialRepository.countByStatusIgnoreCase("COMPLETED");
+        long total = trialRepository.countByCompanyId(companyId);
+        long todayCount = trialRepository.countByCompanyIdAndTrialDateAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
+        long upcoming = trialRepository.countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
+        long overdue = trialRepository.countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
+        long completed = trialRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "COMPLETED");
 
-        long perfect = companyId != null
-                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "PERFECT")
-                : trialRepository.countByFitStatusIgnoreCase("PERFECT");
-        long minor = companyId != null
-                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MINOR")
-                : trialRepository.countByFitStatusIgnoreCase("MINOR");
-        long major = companyId != null
-                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MAJOR")
-                : trialRepository.countByFitStatusIgnoreCase("MAJOR");
-        long retrial = companyId != null
-                ? trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "RETRIAL")
-                : trialRepository.countByFitStatusIgnoreCase("RETRIAL");
+        long perfect = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "PERFECT");
+        long minor = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MINOR");
+        long major = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MAJOR");
+        long retrial = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "RETRIAL");
 
-        long pendingAlterations = companyId != null
-                ? trialAlterationRepository.countByCompanyIdAndCompletedFalse(companyId)
-                : trialAlterationRepository.countByCompletedFalse();
-        long retrialsRequired = companyId != null
-                ? trialRepository.countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCase(companyId, 1,
-                        "COMPLETED")
-                : trialRepository.countByTrialAttemptGreaterThanAndStatusNotIgnoreCase(1, "COMPLETED");
+        long pendingAlterations = trialAlterationRepository.countByCompanyIdAndCompletedFalse(companyId);
+        long retrialsRequired = trialRepository.countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCase(companyId, 1, "COMPLETED");
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("total", total);

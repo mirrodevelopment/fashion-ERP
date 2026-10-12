@@ -3,14 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-brand-title="Measurements Overview">Measurements Overview</title>
+    <title data-brand-title="Measurement Library">Measurement Library</title>
     <meta name="description"
-        content="Comprehensive customer measurement profiles, fitting accuracy, and garment specifications." />
-  <!-- Central Boutique Typography Design System -->
-  <link rel="stylesheet" href="../../fragments/font/font.css" />
+        content="Store, compare and evolve every customer's fit profile in the Haulo Boutique ERP." />
+    <!-- Central Boutique Typography Design System -->
+    <link rel="stylesheet" href="../../fragments/font/font.css" />
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js">
-    </script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <!-- Shared Fragment Styles & Module Styles -->
     <link rel="stylesheet" href="../../fragments/fragments.css" />
     <link rel="stylesheet" href="../../fragments/nav.css" />
@@ -20,660 +19,699 @@
       window.FRAGMENT_BASE = '../../fragments/';
     </script>
     <script src="../../fragments/company-bridge.js"></script>
-    <script src="../../fragments/fragments-inline.js">
-    </script>
-    <script src="../../fragments/fragments.js">
-    </script>
-    <script src="../../fragments/nav.js">
-    </script>
+    <script src="../../fragments/fragments-inline.js"></script>
+    <script src="../../fragments/fragments.js"></script>
+    <script src="../../fragments/nav.js"></script>
   </head>
   <body data-module="measurements">
-    <!-- Atmospheric Dark Glass Background with Radial Glows -->
+    <!-- Atmospheric Dark Glass Background with Warm Glow -->
     <div class="app-background" aria-hidden="true">
-      <div class="glow-orb glow-top-left">
-      </div>
-      <div class="glow-orb glow-center-right">
-      </div>
-      <div class="glow-orb glow-bottom-left">
-      </div>
-      <div class="bg-vignette">
-      </div>
+      <div class="glow-orb glow-top-left"></div>
+      <div class="glow-orb glow-center-right"></div>
+      <div class="glow-orb glow-bottom-left"></div>
+      <div class="bg-vignette"></div>
     </div>
+
     <!-- App Shell -->
     <div class="app-shell" id="appShell">
       <!-- Shared Unified Sidebar Slot -->
-      <div class="sidebar-slot" id="sidebarSlot">
-      </div>
+      <div class="sidebar-slot" id="sidebarSlot"></div>
+
       <!-- Main Viewport Area -->
       <div class="main-wrapper">
         <!-- Shared Global Header / Navbar Slot -->
-        <div id="navbarSlot">
-        </div>
-        <!-- Main Measurements Overview Content -->
+        <div id="navbarSlot"></div>
+
+        <!-- Main Measurements Library Content -->
         <main class="main-content" id="mainContent">
-          <!-- ==========================================             1. PAGE TITLE & LIVE TIME / ACTION ROW             ========================================== -->
-          <header class="page-header-row">
-            <div class="header-titles">
-              <span class="eyebrow-text">
-                Measurements
-              </span>
-              <h1 class="page-title">
-                Measurements Overview
-              </h1>
-              <p class="page-subtitle">
-                View and manage all customer measurements. Ensure the perfect fit for
-                            every design.
-              </p>
+          <!-- ==========================================
+               1. PAGE HEADER: TITLE, SUBTITLE & 4 KPI CARDS
+               ========================================== -->
+          <header class="lib-header-row">
+            <div class="lib-header-titles">
+              <div id="breadcrumbSlot"></div>
+              <h1 class="lib-page-title">Measurement Library</h1>
+              <p class="lib-page-subtitle">Store, compare and evolve every customer's fit profile.</p>
             </div>
-            <div class="header-actions-col">
-              <div class="datetime-widget" id="datetimeWidget" title="Current boutique local time">
-                <span
-                                class="date-text" id="liveDateText">
-                  Tue, 08 Sep 2026
-                </span>
-                <span class="time-text"
-                                id="liveTimeText">
-                  01:36 PM
-                </span>
+            <div class="lib-kpi-row" aria-label="Key Measurement Metrics">
+              <!-- KPI 1: Measurement Profiles -->
+              <div class="lib-kpi-card" id="kpiCardProfiles">
+                <div class="lib-kpi-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <div class="lib-kpi-info">
+                  <div class="lib-kpi-val" id="valLibProfiles">386</div>
+                  <div class="lib-kpi-label">Measurement Profiles</div>
+                </div>
               </div>
-              <button class="btn-primary-add"
-                            id="btnAddMeasurementBtn" onclick="openAddMeasurementModal()"
-                            aria-label="Add new measurement profile">
-                <svg class="btn-icon" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19">
-                  </line>
-                  <line x1="5" y1="12" x2="19" y2="12">
-                  </line>
-                </svg>
-                <span>
-                  + Add Measurement
-                </span>
-              </button>
+
+              <!-- KPI 2: Active Customers -->
+              <div class="lib-kpi-card" id="kpiCardCustomers">
+                <div class="lib-kpi-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <div class="lib-kpi-info">
+                  <div class="lib-kpi-val" id="valLibCustomers">312</div>
+                  <div class="lib-kpi-label">Active Customers</div>
+                </div>
+              </div>
+
+              <!-- KPI 3: Updated This Month -->
+              <div class="lib-kpi-card" id="kpiCardUpdated">
+                <div class="lib-kpi-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div class="lib-kpi-info">
+                  <div class="lib-kpi-val" id="valLibUpdatedMonth">48</div>
+                  <div class="lib-kpi-label">Updated This Month</div>
+                </div>
+              </div>
+
+              <!-- KPI 4: Fit Memories Learned -->
+              <div class="lib-kpi-card kpi-purple" id="kpiCardMemories">
+                <div class="lib-kpi-icon icon-purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04z"></path>
+                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04z"></path>
+                  </svg>
+                </div>
+                <div class="lib-kpi-info">
+                  <div class="lib-kpi-val" id="valLibMemories">21</div>
+                  <div class="lib-kpi-label">Fit Memories Learned</div>
+                </div>
+              </div>
             </div>
           </header>
-          <!-- ==========================================             2. 5 KPI SUMMARY METRIC CARDS             ========================================== -->
-          <section class="kpi-grid" aria-label="Measurements Key Performance Indicators">
-            <!-- Card 1: Total Customers -->
-            <div class="kpi-card" id="kpiTotalCustomers">
-              <div class="kpi-icon-wrap icon-green">
-                <svg viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
-                  </path>
-                  <circle cx="9" cy="7" r="4">
-                  </circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87">
-                  </path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75">
-                  </path>
-                </svg>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">
-                  Total Customers
-                </span>
-                <div class="kpi-value-row">
-                  <span class="kpi-value" id="valTotalCustomers">
-                    0
-                  </span>
-                </div>
-                <div class="kpi-trend trend-positive" id="trendCustomers">
-                  <svg viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                    <polyline points="18 15 12 9 6 15">
-                    </polyline>
+
+          <!-- ==========================================
+               2. TWO-COLUMN MASTER-DETAIL WORKSPACE
+               ========================================== -->
+          <div class="library-workspace" id="libraryWorkspace">
+            <!-- ── LEFT MASTER COLUMN: PROFILES BROWSER ── -->
+            <aside class="lib-master-column" aria-label="Customer Profile Browser">
+              <!-- Category Filter Tabs -->
+              <nav class="lib-category-tabs" id="libCategoryTabs">
+                <button class="lib-cat-pill active" data-tab="all" onclick="selectLibraryTab('all')">All Profiles</button>
+                <button class="lib-cat-pill" data-tab="women" onclick="selectLibraryTab('women')">Women</button>
+                <button class="lib-cat-pill" data-tab="men" onclick="selectLibraryTab('men')">Men</button>
+                <button class="lib-cat-pill" data-tab="bridal" onclick="selectLibraryTab('bridal')">Bridal</button>
+                <button class="lib-cat-pill" data-tab="recently-updated" onclick="selectLibraryTab('recently-updated')">Recently Updated</button>
+              </nav>
+
+              <!-- Search Bar & Filters Trigger -->
+              <div class="lib-search-row">
+                <div class="lib-search-input-wrap">
+                  <svg class="lib-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                   </svg>
-                  <span>
-                    No records yet
-                  </span>
+                  <input type="text" id="libSearchInput" class="lib-search-input"
+                    placeholder="Search customer, profile code, garment type..."
+                    oninput="handleLibrarySearch(this.value)" autocomplete="off" />
+                  <button class="lib-search-clear" id="libSearchClear" onclick="clearLibrarySearch()" style="display:none;" title="Clear search">✕</button>
                 </div>
-              </div>
-            </div>
-            <!-- Card 2: Total Measurements -->
-            <div class="kpi-card" id="kpiTotalMeasurements">
-              <div class="kpi-icon-wrap icon-purple">
-                <!-- Tape measure / ruler icon -->
-                <svg
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                  <path
-                                    d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.5 0l-2.5-2.5c-1-1-1-2.5 0-3.5L15.3 2.7c1-1 2.5-1 3.5 0l2.5 2.5c1 1 1 2.5 0 3.5z">
-                  </path>
-                  <path d="m14.5 3.5 2 2">
-                  </path>
-                  <path d="m11.5 6.5 2 2">
-                  </path>
-                  <path d="m8.5 9.5 2 2">
-                  </path>
-                  <path d="m5.5 12.5 2 2">
-                  </path>
-                </svg>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">
-                  Total Measurements
-                </span>
-                <div class="kpi-value-row">
-                  <span class="kpi-value" id="valTotalMeasurements">
-                    0
-                  </span>
-                </div>
-                <div class="kpi-trend trend-positive" id="trendMeasurements">
-                  <svg viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                    <polyline points="18 15 12 9 6 15">
-                    </polyline>
+                <button class="lib-filters-btn" id="libFiltersToggleBtn" onclick="toggleSecondaryFilters(event)" title="Toggle filters">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14"></line>
+                    <line x1="4" y1="10" x2="4" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="3"></line>
+                    <line x1="20" y1="21" x2="20" y2="16"></line>
+                    <line x1="20" y1="12" x2="20" y2="3"></line>
+                    <line x1="1" y1="14" x2="7" y2="14"></line>
+                    <line x1="9" y1="8" x2="15" y2="8"></line>
+                    <line x1="17" y1="16" x2="23" y2="16"></line>
                   </svg>
-                  <span>
-                    No records yet
-                  </span>
-                </div>
-              </div>
-            </div>
-            <!-- Card 3: Pending Measurements -->
-            <div class="kpi-card" id="kpiPendingMeasurements">
-              <div class="kpi-icon-wrap icon-rose">
-                <!-- Garment / dress icon -->
-                <svg viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                  <path
-                                    d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z">
-                  </path>
-                </svg>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">
-                  Pending Measurements
-                </span>
-                <div class="kpi-value-row">
-                  <span class="kpi-value" id="valPendingMeasurements">
-                    0
-                  </span>
-                </div>
-                <div class="kpi-subtext color-rose" id="subtextPending">
-                  <span>
-                    0 customers
-                  </span>
-                </div>
-              </div>
-            </div>
-            <!-- Card 4: Due for Re-measurement -->
-            <div class="kpi-card" id="kpiDueRemeasurement">
-              <div class="kpi-icon-wrap icon-amber">
-                <svg viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2">
-                  </rect>
-                  <line x1="16" y1="2" x2="16" y2="6">
-                  </line>
-                  <line x1="8" y1="2" x2="8" y2="6">
-                  </line>
-                  <line x1="3" y1="10" x2="21" y2="10">
-                  </line>
-                </svg>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">
-                  Due for Re-measurement
-                </span>
-                <div class="kpi-value-row">
-                  <span class="kpi-value" id="valDueRemeasurement">
-                    0
-                  </span>
-                </div>
-                <div class="kpi-subtext color-amber" id="subtextDue">
-                  <span>
-                    0 due
-                  </span>
-                </div>
-              </div>
-            </div>
-            <!-- Card 5: Fit Accuracy -->
-            <div class="kpi-card" id="kpiFitAccuracy">
-              <div class="kpi-icon-wrap icon-blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="20" x2="18" y2="10">
-                  </line>
-                  <line x1="12" y1="20" x2="12" y2="4">
-                  </line>
-                  <line x1="6" y1="20" x2="6" y2="14">
-                  </line>
-                </svg>
-              </div>
-              <div class="kpi-body">
-                <span class="kpi-label">
-                  Fit Accuracy
-                </span>
-                <div class="kpi-value-row">
-                  <span class="kpi-value" id="valFitAccuracy">
-                    —
-                  </span>
-                </div>
-                <div class="kpi-trend trend-positive" id="trendAccuracy">
-                  <svg viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                    <polyline points="18 15 12 9 6 15">
-                    </polyline>
-                  </svg>
-                  <span>
-                    No fitting records
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-          <!-- ==========================================             3. CATEGORY TABS & CONTROLS TOOLBAR             ========================================== -->
-          <section class="controls-toolbar-row">
-            <!-- Category Filter Pills -->
-            <nav class="category-tabs" id="categoryTabs" aria-label="Filter by garment category">
-              <button
-                            class="cat-pill active" data-cat="all" onclick="setCategoryFilter('all')">
-                <span>
-                  All
-                </span>
-                <span class="cat-count">
-                  (0)
-                </span>
-              </button>
-              <button class="cat-pill" data-cat="Blouse"
-                            onclick="setCategoryFilter('Blouse')">
-                <span>
-                  Blouse
-                </span>
-                <span
-                                class="cat-count">
-                  (0)
-                </span>
-              </button>
-              <button class="cat-pill" data-cat="Chudi"
-                            onclick="setCategoryFilter('Chudi')">
-                <span>
-                  Chudi
-                </span>
-                <span
-                                class="cat-count">
-                  (0)
-                </span>
-              </button>
-              <button class="cat-pill" data-cat="Lehenga"
-                            onclick="setCategoryFilter('Lehenga')">
-                <span>
-                  Lehenga
-                </span>
-                <span
-                                class="cat-count">
-                  (0)
-                </span>
-              </button>
-              <button class="cat-pill" data-cat="Saree"
-                            onclick="setCategoryFilter('Saree')">
-                <span>
-                  Saree
-                </span>
-                <span
-                                class="cat-count">
-                  (0)
-                </span>
-              </button>
-              <button class="cat-pill" data-cat="Gown"
-                            onclick="setCategoryFilter('Gown')">
-                <span>
-                  Gown
-                </span>
-                <span class="cat-count">
-                  (0)
-                </span>
-              </button>
-              <button class="cat-pill" data-cat="Custom" onclick="setCategoryFilter('Custom')">
-                <span>
-                  Custom
-                </span>
-                <span class="cat-count">
-                  (0)
-                </span>
-              </button>
-            </nav>
-            <!-- Right Controls: Search, Filter Popover, Sort, View Toggle -->
-            <div class="toolbar-controls-group">
-              <!-- Search Input -->
-              <div class="search-input-wrap">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8">
-                  </circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65">
-                  </line>
-                </svg>
-                <input type="text" id="measurementSearchInput" class="search-input-field"
-                                placeholder="Search by name, phone or garment..." oninput="handleLiveSearch(this.value)"
-                                autocomplete="off" />
-                <button class="search-clear-btn" id="searchClearBtn"
-                                onclick="clearSearch()" title="Clear search" style="display:none;">
-                  <svg
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18">
-                    </line>
-                    <line x1="6" y1="6" x2="18" y2="18">
-                    </line>
-                  </svg>
+                  <span>Filters</span>
                 </button>
               </div>
-              <!-- Filter Button & Popover Trigger -->
-              <div class="popover-anchor">
-                <button class="ctrl-btn" id="filterBtn"
-                                onclick="toggleFilterPopover(event)" aria-haspopup="true" aria-expanded="false">
-                  <svg
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3">
-                    </polygon>
-                  </svg>
-                  <span>
-                    Filter
-                  </span>
-                  <span class="active-filter-indicator" id="filterActiveDot"
-                                    style="display:none;">
-                  </span>
-                </button>
-                <!-- Filter Dropdown Popover -->
-                <div class="filter-popover" id="filterPopover">
-                  <div class="popover-header">
-                    <span class="popover-title">
-                      Filter Measurements
-                    </span>
-                    <button class="popover-close-btn" onclick="toggleFilterPopover(event)" aria-label="Close filter">
-                      ✕
-                    </button>
+
+              <!-- Secondary Filter Dropdowns Row -->
+              <div class="lib-secondary-filters" id="libSecondaryFiltersRow">
+                <div class="lib-select-wrap">
+                  <select id="libFilterBranch" class="lib-filter-select" onchange="applyFilters()">
+                    <option value="">Branch ▾</option>
+                    <option value="Main Branch">Main Branch</option>
+                    <option value="Anna Nagar">Anna Nagar</option>
+                    <option value="T Nagar">T Nagar</option>
+                    <option value="Velachery">Velachery</option>
+                  </select>
+                </div>
+                <div class="lib-select-wrap">
+                  <select id="libFilterGarmentType" class="lib-filter-select" onchange="applyFilters()">
+                    <option value="">Garment Type ▾</option>
+                    <option value="Bridal / Blouse">Bridal / Blouse</option>
+                    <option value="Saree Blouse">Saree Blouse</option>
+                    <option value="Reception Gown">Reception Gown</option>
+                    <option value="Lehenga">Lehenga</option>
+                    <option value="Kurti">Kurti</option>
+                  </select>
+                </div>
+                <div class="lib-select-wrap">
+                  <select id="libFilterLastUpdated" class="lib-filter-select" onchange="applyFilters()">
+                    <option value="">Last Updated ▾</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="all">All Dates</option>
+                  </select>
+                </div>
+                <div class="lib-select-wrap">
+                  <select id="libFilterStatus" class="lib-filter-select" onchange="applyFilters()">
+                    <option value="">Status ▾</option>
+                    <option value="Active">Active</option>
+                    <option value="Needs Review">Needs Review</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Profile Cards Scrollable List -->
+              <div class="lib-profiles-scroll" id="libProfilesList">
+                <!-- Dynamically populated customer cards -->
+              </div>
+            </aside>
+
+            <!-- ── RIGHT DETAIL COLUMN: SELECTED PROFILE COCKPIT ── -->
+            <section class="lib-detail-column" id="libDetailColumn" aria-label="Customer Profile Details">
+              <!-- Customer Profile Header Banner -->
+              <div class="customer-banner-card" id="customerBannerCard">
+                <div class="customer-banner-left">
+                  <img src="../../assets/order-ref/anitha_raj.jpg" alt="Ananya Krishnan" class="customer-banner-avatar" id="bannerAvatar" />
+                  <div class="customer-banner-meta">
+                    <div class="customer-banner-name-row">
+                      <h2 class="customer-banner-name" id="bannerCustomerName">Ananya Krishnan</h2>
+                      <span class="customer-banner-code" id="bannerProfileCode">MP-0184</span>
+                      <span class="customer-banner-status pill-active" id="bannerStatusPill">Active</span>
+                    </div>
+                    <div class="customer-banner-tags-row">
+                      <span class="banner-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span id="bannerBranch">Main Branch</span>
+                      </span>
+                      <span class="banner-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
+                        <span id="bannerCategory">Bridal / Blouse</span>
+                      </span>
+                      <span class="banner-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span id="bannerSince">Customer since 2024</span>
+                      </span>
+                    </div>
                   </div>
-                  <div class="popover-body">
-                    <div class="filter-group">
-                      <label class="filter-label">
-                        Measurement Status
-                      </label>
-                      <div class="filter-pills-row">
-                        <button class="filter-chip active"
-                                                data-status="all" onclick="selectStatusFilter('all')">
-                          All
-                        </button>
-                        <button class="filter-chip" data-status="Up to Date"
-                                                onclick="selectStatusFilter('Up to Date')">
-                          Up to Date
-                        </button>
-                        <button
-                                                class="filter-chip" data-status="Needs Update"
-                                                onclick="selectStatusFilter('Needs Update')">
-                          Needs Update
-                        </button>
-                        <button class="filter-chip" data-status="Due Soon"
-                                                onclick="selectStatusFilter('Due Soon')">
-                          Due Soon
-                        </button>
-                        <button
-                                                class="filter-chip" data-status="Overdue"
-                                                onclick="selectStatusFilter('Overdue')">
-                          Overdue
-                        </button>
+                </div>
+                <div class="customer-banner-actions">
+                  <button class="btn-lime-add" id="btnBannerAddMeasurement" onclick="openAddMeasurementModal()">
+                    Add Measurement <span class="plus-icon">+</span>
+                  </button>
+                  <button class="btn-glass-secondary" onclick="openAddMeasurementModal('garment')">
+                    Create Garment Measurement
+                  </button>
+                  <button class="btn-glass-secondary" onclick="openCustomerProfile()">
+                    View Customer
+                  </button>
+                  <button class="btn-glass-more" onclick="toggleMoreOptions(event)" title="More actions">
+                    •••
+                  </button>
+                </div>
+              </div>
+
+              <!-- Main Detail Dual Sub-Columns Grid -->
+              <div class="lib-cockpit-grid">
+                <!-- ══ LEFT SUB-COLUMN: MANNEQUIN MAP + EVOLUTION + IMPACT ══ -->
+                <div class="cockpit-left-col">
+                  <!-- 1. Body Measurement Map Card -->
+                  <div class="cockpit-card card-mannequin-map">
+                    <div class="cockpit-card-header card-map-header">
+                      <div class="cockpit-card-title-group">
+                        <h3 class="cockpit-card-title">Body Measurement Map</h3>
+                      </div>
+                      <div class="map-controls-group">
+                        <!-- Dress Type Dropdown -->
+                        <div class="map-dropdown-pill" title="Select Dress Type / Silhouette">
+                          <span class="map-dropdown-tag">Type</span>
+                          <select id="mapDressTypeSelect" class="map-dropdown-select" onchange="handleMapDressTypeChange(this.value)">
+                            <option value="Bridal Blouse">Bridal Blouse</option>
+                            <option value="Saree Blouse">Saree Blouse</option>
+                            <option value="Lehenga Choli">Lehenga Choli</option>
+                            <option value="Reception Gown">Reception Gown</option>
+                            <option value="Anarkali Suit">Anarkali Suit</option>
+                            <option value="Festive Kurti">Festive Kurti</option>
+                            <option value="Crop Top">Crop Top</option>
+                          </select>
+                          <svg class="map-dropdown-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+
+                        <!-- Material / Fabric Dropdown -->
+                        <div class="map-dropdown-pill" title="Select Fabric Material">
+                          <span class="map-dropdown-tag">Material</span>
+                          <select id="mapMaterialSelect" class="map-dropdown-select" onchange="handleMapMaterialChange(this.value)">
+                            <option value="Raw Silk">Raw Silk</option>
+                            <option value="Banarasi Silk">Banarasi Silk</option>
+                            <option value="Pure Velvet">Pure Velvet</option>
+                            <option value="Organza Silk">Organza Silk</option>
+                            <option value="Georgette">Georgette</option>
+                            <option value="Chanderi Silk">Chanderi Silk</option>
+                            <option value="Brocade">Brocade</option>
+                            <option value="Satin Crepe">Satin Crepe</option>
+                            <option value="Pure Cotton">Pure Cotton</option>
+                          </select>
+                          <svg class="map-dropdown-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+
+                        <!-- Unit Toggle Pill [ inches | cm ] -->
+                        <div class="unit-toggle-pill" id="unitTogglePill">
+                          <button class="unit-btn active" id="btnUnitInches" onclick="setMeasurementUnit('in')">inches</button>
+                          <button class="unit-btn" id="btnUnitCm" onclick="setMeasurementUnit('cm')">cm</button>
+                        </div>
                       </div>
                     </div>
-                    <div class="filter-group">
-                      <label class="filter-label">
-                        Client Tier
-                      </label>
-                      <label
-                                            class="custom-checkbox-wrap">
-                        <input type="checkbox" id="filterVipOnly"
-                                                onchange="applyFilters()" />
-                        <span class="checkbox-box">
-                        </span>
-                        <span
-                                                class="checkbox-text">
-                          VIP Clients Only
-                        </span>
-                      </label>
+                    <div class="mannequin-stage-container" id="mannequinStageContainer">
+                      <!-- Active Fabric Ease Allowance Badge -->
+                      <div class="stage-fabric-badge" id="stageFabricBadge">
+                        <span class="fabric-badge-dot"></span>
+                        <span class="fabric-badge-text" id="stageFabricBadgeText">Raw Silk · +0.5" Bodice Ease</span>
+                      </div>
+                      <img src="../../assets/mannequin-duo.jpg" alt="Body Measurement Map Mannequin" class="mannequin-duo-img" id="mannequinDuoImg" />
+                      
+                      <!-- Overlay Callout Pins (Front View - Left Torso) -->
+                      <div class="pin-callout pin-front-neck" style="top: 17%; left: 14%;">
+                        <div class="pin-card">
+                          <span class="pin-label">Front Neck</span>
+                          <span class="pin-value" id="valPinFrontNeck">7.5"</span>
+                        </div>
+                        <div class="pin-line line-right"></div>
+                        <div class="pin-dot"></div>
+                      </div>
+
+                      <div class="pin-callout pin-bust" style="top: 36%; left: 10%;">
+                        <div class="pin-card">
+                          <span class="pin-label">Bust</span>
+                          <span class="pin-value" id="valPinBust">36.5"</span>
+                        </div>
+                        <div class="pin-line line-right"></div>
+                        <div class="pin-dot"></div>
+                      </div>
+
+                      <div class="pin-callout pin-waist" style="top: 55%; left: 10%;">
+                        <div class="pin-card">
+                          <span class="pin-label">Waist</span>
+                          <span class="pin-value" id="valPinWaist">30"</span>
+                        </div>
+                        <div class="pin-line line-right"></div>
+                        <div class="pin-dot"></div>
+                      </div>
+
+                      <div class="pin-callout pin-hip" style="top: 73%; left: 10%;">
+                        <div class="pin-card">
+                          <span class="pin-label">Hip</span>
+                          <span class="pin-value" id="valPinHip">39"</span>
+                        </div>
+                        <div class="pin-line line-right"></div>
+                        <div class="pin-dot"></div>
+                      </div>
+
+                      <!-- Overlay Callout Pins (Back View - Right Torso) -->
+                      <div class="pin-callout pin-shoulder" style="top: 14%; right: 10%;">
+                        <div class="pin-dot"></div>
+                        <div class="pin-line line-left"></div>
+                        <div class="pin-card">
+                          <span class="pin-label">Shoulder</span>
+                          <span class="pin-value" id="valPinShoulder">14.25"</span>
+                        </div>
+                      </div>
+
+                      <div class="pin-callout pin-armhole" style="top: 29%; right: 10%;">
+                        <div class="pin-dot"></div>
+                        <div class="pin-line line-left"></div>
+                        <div class="pin-card">
+                          <span class="pin-label">Armhole</span>
+                          <span class="pin-value" id="valPinArmhole">16.75"</span>
+                        </div>
+                      </div>
+
+                      <div class="pin-callout pin-sleeve" style="top: 45%; right: 10%;">
+                        <div class="pin-dot"></div>
+                        <div class="pin-line line-left"></div>
+                        <div class="pin-card">
+                          <span class="pin-label">Sleeve</span>
+                          <span class="pin-value" id="valPinSleeve">11"</span>
+                        </div>
+                      </div>
+
+                      <div class="pin-callout pin-back-neck" style="top: 58%; right: 10%;">
+                        <div class="pin-dot"></div>
+                        <div class="pin-line line-left"></div>
+                        <div class="pin-card">
+                          <span class="pin-label">Back Neck</span>
+                          <span class="pin-value" id="valPinBackNeck">10"</span>
+                        </div>
+                      </div>
+
+                      <div class="pin-callout pin-blouse-length" style="top: 75%; right: 10%;">
+                        <div class="pin-dot"></div>
+                        <div class="pin-line line-left"></div>
+                        <div class="pin-card">
+                          <span class="pin-label" id="lblPinLength">Blouse Length</span>
+                          <span class="pin-value" id="valPinBlouseLength">14.5"</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Measurement History Strip: Stores Last 3 Histories -->
+                    <div class="map-history-section" id="mapHistorySection">
+                      <div class="map-history-header">
+                        <div class="map-history-title-group">
+                          <svg class="map-history-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B8FF3D" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                          <span class="map-history-title">Measurement History</span>
+                          <span class="map-history-badge">Last 3 Stored</span>
+                        </div>
+                        <div class="map-history-actions">
+                          <button type="button" class="btn-history-save" onclick="saveCurrentToHistory()" title="Save current measurements as a new history record (maintains last 3)">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            <span>Save Snapshot</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="map-history-grid" id="mapHistoryGrid">
+                        <!-- Up to 3 history cards rendered dynamically -->
+                      </div>
                     </div>
                   </div>
-                  <div class="popover-footer">
-                    <button class="btn-text" onclick="resetAllFilters()">
-                      Reset
-                                        All
-                    </button>
-                    <button class="btn-apply"
-                                        onclick="toggleFilterPopover(event)">
-                      Apply Filters
+
+                  <!-- 2. Measurement Evolution Card -->
+                  <div class="cockpit-card card-evolution">
+                    <div class="cockpit-card-header">
+                      <h3 class="cockpit-card-title">Measurement Evolution</h3>
+                    </div>
+                    <div class="evolution-timeline" id="evolutionTimeline">
+                      <div class="evo-step" id="evoStep1">
+                        <div class="evo-dot"></div>
+                        <div class="evo-content">
+                          <span class="evo-version">V1</span>
+                          <span class="evo-date" id="evoDate1">24 Aug 2026</span>
+                        </div>
+                      </div>
+                      <div class="evo-connector"></div>
+                      <div class="evo-step" id="evoStep2">
+                        <div class="evo-dot"></div>
+                        <div class="evo-content">
+                          <span class="evo-version">V2</span>
+                          <span class="evo-date" id="evoDate2">28 Sep 2026</span>
+                        </div>
+                      </div>
+                      <div class="evo-connector"></div>
+                      <div class="evo-step active" id="evoStep3">
+                        <div class="evo-dot dot-active"></div>
+                        <div class="evo-content">
+                          <span class="evo-version">V3</span>
+                          <span class="evo-date" id="evoDate3">04 Oct 2026</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Delta badges row -->
+                    <div class="evolution-deltas-row" id="evolutionDeltasRow">
+                      <div class="delta-badge delta-amber">
+                        <span class="delta-label">Waist</span>
+                        <span class="delta-val" id="deltaWaistVal">-0.5"</span>
+                        <span class="delta-ref">(Since V1)</span>
+                      </div>
+                      <div class="delta-badge delta-lime">
+                        <span class="delta-label">Armhole</span>
+                        <span class="delta-val" id="deltaArmholeVal">+0.25"</span>
+                        <span class="delta-ref">(Since V2)</span>
+                      </div>
+                      <div class="delta-badge delta-amber">
+                        <span class="delta-label">Sleeve</span>
+                        <span class="delta-val" id="deltaSleeveVal">-0.5"</span>
+                        <span class="delta-ref">(Since V2)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 3. Measurement Change Impact Banner Card -->
+                  <div class="impact-alert-banner" id="impactAlertBanner">
+                    <div class="impact-alert-left">
+                      <div class="impact-icon-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                          <line x1="12" y1="9" x2="12" y2="13"></line>
+                          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                      </div>
+                      <div class="impact-alert-text">
+                        <p id="impactMessage">A 0.25" armhole change can affect fit across multiple garment styles. Recommendations update automatically.</p>
+                      </div>
+                    </div>
+                    <button class="btn-create-v4" id="btnCreateV4" onclick="createNextVersion()">
+                      Create V4 for future garments →
                     </button>
                   </div>
                 </div>
-              </div>
-              <!-- Sort Button & Dropdown Trigger -->
-              <div class="popover-anchor">
-                <button class="ctrl-btn" id="sortBtn"
-                                onclick="toggleSortDropdown(event)" aria-haspopup="true" aria-expanded="false">
-                  <svg
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19">
-                    </line>
-                    <polyline points="19 12 12 19 5 12">
-                    </polyline>
-                  </svg>
-                  <span id="sortBtnLabel">
-                    Sort by
-                  </span>
-                  <svg class="chevron-down"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9">
-                    </polyline>
-                  </svg>
-                </button>
-                <!-- Sort Dropdown Menu -->
-                <div class="sort-dropdown" id="sortDropdown">
-                  <button class="sort-option active"
-                                    data-sort="recent" onclick="setSortOption('recent')">
-                    <span>
-                      Recently Updated
-                    </span>
-                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12">
-                      </polyline>
-                    </svg>
-                  </button>
-                  <button class="sort-option" data-sort="oldest"
-                                    onclick="setSortOption('oldest')">
-                    <span>
-                      Oldest Updated
-                    </span>
-                    <svg
-                                        class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12">
-                      </polyline>
-                    </svg>
-                  </button>
-                  <button class="sort-option" data-sort="name-asc" onclick="setSortOption('name-asc')">
-                    <span>Customer Name (A–Z)</span>
-                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </button>
-                  <button class="sort-option" data-sort="name-desc" onclick="setSortOption('name-desc')">
-                    <span>Customer Name (Z–A)</span>
-                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </button>
-                  <button class="sort-option" data-sort="status-priority"
-                                    onclick="setSortOption('status-priority')">
-                    <span>
-                      Needs Update First
-                    </span>
-                    <svg
-                                        class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12">
-                      </polyline>
-                    </svg>
-                  </button>
+
+                <!-- ══ RIGHT SUB-COLUMN: SPECS + FIT MEMORY + GARMENTS + AUDIT ══ -->
+                <div class="cockpit-right-col">
+                  <!-- 1. Measurement Set — V3 Card -->
+                  <div class="cockpit-card card-spec-set">
+                    <div class="cockpit-card-header">
+                      <h3 class="cockpit-card-title" id="specSetTitle">Measurement Set — V3</h3>
+                      <span class="badge-verified" id="specSetVerifiedBadge">
+                        <span class="dot-green">●</span> Current - Verified
+                      </span>
+                    </div>
+                    <div class="spec-columns-grid">
+                      <!-- Column 1: Upper Body -->
+                      <div class="spec-col">
+                        <h4 class="spec-col-heading">Upper Body</h4>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Bust</span>
+                          <span class="spec-val" id="specValBust">36.5"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Waist</span>
+                          <span class="spec-val" id="specValWaist">30"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Hip</span>
+                          <span class="spec-val" id="specValHip">39"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Shoulder</span>
+                          <span class="spec-val" id="specValShoulder">14.25"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Armhole</span>
+                          <span class="spec-val" id="specValArmhole">16.75"</span>
+                        </div>
+                      </div>
+
+                      <!-- Column 2: Sleeves -->
+                      <div class="spec-col">
+                        <h4 class="spec-col-heading">Sleeves</h4>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Sleeve Length</span>
+                          <span class="spec-val" id="specValSleeve">11"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Bicep</span>
+                          <span class="spec-val" id="specValBicep">12.5"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Sleeve Opening</span>
+                          <span class="spec-val" id="specValSleeveOpening">10.5"</span>
+                        </div>
+                      </div>
+
+                      <!-- Column 3: Lengths -->
+                      <div class="spec-col">
+                        <h4 class="spec-col-heading">Lengths</h4>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Blouse Length</span>
+                          <span class="spec-val" id="specValBlouseLength">14.5"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Front Neck</span>
+                          <span class="spec-val" id="specValFrontNeck">7.5"</span>
+                        </div>
+                        <div class="spec-item-row">
+                          <span class="spec-lbl">Back Neck</span>
+                          <span class="spec-val" id="specValBackNeck">10"</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. Fit Memory Card (Luxury Deep Purple Glowing Glass) -->
+                  <div class="cockpit-card card-fit-memory" id="cardFitMemory">
+                    <div class="fit-memory-header">
+                      <div class="fit-memory-title-wrap">
+                        <svg class="icon-sparkle" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"></path>
+                        </svg>
+                        <h3 class="fit-memory-title">Fit Memory</h3>
+                      </div>
+                      <span class="fit-memory-subtitle" id="fitMemorySubtitle">
+                        Learned from 3 garments · 2 trials · last confirmed 10 Oct
+                      </span>
+                    </div>
+                    <div class="fit-memory-grid">
+                      <!-- Tile 1 -->
+                      <div class="memory-tile">
+                        <div class="memory-tile-icon icon-purple-circle">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <span class="memory-tile-text" id="memoryTile1">Prefers +0.25" armhole ease on fitted blouses</span>
+                      </div>
+                      <!-- Tile 2 -->
+                      <div class="memory-tile">
+                        <div class="memory-tile-icon icon-purple-circle">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
+                        </div>
+                        <span class="memory-tile-text" id="memoryTile2">Sleeve comfort improves with +0.5" bicep ease</span>
+                      </div>
+                      <!-- Tile 3 -->
+                      <div class="memory-tile">
+                        <div class="memory-tile-icon icon-purple-circle">
+                          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                        </div>
+                        <span class="memory-tile-text" id="memoryTile3">Prefers slightly lower back neckline</span>
+                      </div>
+                      <!-- Tile 4 -->
+                      <div class="memory-tile">
+                        <div class="memory-tile-icon icon-purple-circle">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <span class="memory-tile-text" id="memoryTile4">Avoids very tight waist finishing</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 3. Split Sub-Cards (Side-by-Side) -->
+                  <div class="cockpit-split-subcards">
+                    <!-- Subcard A: Garment-Specific Measurements -->
+                    <div class="cockpit-card subcard-garment-spec">
+                      <div class="cockpit-card-header">
+                        <div class="card-title-icon-wrap">
+                          <svg class="header-icon-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
+                          <h4 class="cockpit-card-title">Garment-Specific Measurements</h4>
+                        </div>
+                        <select class="subcard-dropdown" id="garmentProfileSelect" onchange="switchGarmentProfile(this.value)">
+                          <option value="blouse">Blouse Profile ▾</option>
+                          <option value="lehenga">Lehenga Profile ▾</option>
+                          <option value="gown">Gown Profile ▾</option>
+                        </select>
+                      </div>
+                      <div class="subcard-rows-list" id="garmentSpecRowsList">
+                        <div class="subcard-row">
+                          <span class="subcard-lbl">Finished Bust</span>
+                          <span class="subcard-val" id="specFinishedBust">37"</span>
+                        </div>
+                        <div class="subcard-row">
+                          <span class="subcard-lbl">Blouse Length</span>
+                          <span class="subcard-val" id="specGarmentLength">14.5"</span>
+                        </div>
+                        <div class="subcard-row">
+                          <span class="subcard-lbl">Front Neck</span>
+                          <span class="subcard-val" id="specGarmentFrontNeck">7.5"</span>
+                        </div>
+                        <div class="subcard-row">
+                          <span class="subcard-lbl">Back Neck</span>
+                          <span class="subcard-val" id="specGarmentBackNeck">10"</span>
+                        </div>
+                        <div class="subcard-row">
+                          <span class="subcard-lbl">Sleeve Opening</span>
+                          <span class="subcard-val" id="specGarmentSleeveOpen">10.5"</span>
+                        </div>
+                      </div>
+                      <div class="subcard-footnote" id="garmentSpecFootnote">
+                        <span class="dot-purple">●</span> This garment profile references Body Set V3.
+                      </div>
+                    </div>
+
+                    <!-- Subcard B: Garments Using This Profile -->
+                    <div class="cockpit-card subcard-garments-using">
+                      <div class="cockpit-card-header">
+                        <h4 class="cockpit-card-title">Garments Using This Profile</h4>
+                        <a href="javascript:void(0)" class="link-view-all" onclick="viewAllGarmentsForCustomer()">View All</a>
+                      </div>
+                      <div class="garment-using-list" id="garmentsUsingList">
+                        <!-- Injected dynamically -->
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 4. Recent Measurement Activity Card -->
+                  <div class="cockpit-card card-recent-activity">
+                    <div class="cockpit-card-header">
+                      <h4 class="cockpit-card-title">Recent Measurement Activity</h4>
+                      <a href="javascript:void(0)" class="link-view-all" onclick="openHistoryModal()">View All</a>
+                    </div>
+                    <div class="activity-timeline-strip" id="activityTimelineStrip">
+                      <div class="activity-node">
+                        <div class="activity-dot dot-green"></div>
+                        <div class="activity-info">
+                          <span class="activity-date">10 Oct</span>
+                          <span class="activity-text">V3 confirmed incorporated</span>
+                        </div>
+                      </div>
+                      <div class="activity-node">
+                        <div class="activity-dot dot-neutral"></div>
+                        <div class="activity-info">
+                          <span class="activity-date">07 Oct</span>
+                          <span class="activity-text">B/blk measurements imported</span>
+                        </div>
+                      </div>
+                      <div class="activity-node">
+                        <div class="activity-dot dot-neutral"></div>
+                        <div class="activity-info">
+                          <span class="activity-date">04 Oct</span>
+                          <span class="activity-text">V3 created</span>
+                        </div>
+                      </div>
+                      <div class="activity-node">
+                        <div class="activity-dot dot-neutral"></div>
+                        <div class="activity-info">
+                          <span class="activity-date">28 Sep</span>
+                          <span class="activity-text">Trial feedback incorporated</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <!-- Grid / List View Toggle -->
-              <div class="view-toggle-wrap">
-                <button class="view-btn active" id="btnViewGrid"
-                                onclick="setViewMode('grid')" title="Grid view" aria-label="Grid view">
-                  <svg
-                                    viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5">
-                    </rect>
-                    <rect x="14" y="3" width="7" height="7" rx="1.5">
-                    </rect>
-                    <rect x="14" y="14" width="7" height="7" rx="1.5">
-                    </rect>
-                    <rect x="3" y="14" width="7" height="7" rx="1.5">
-                    </rect>
-                  </svg>
-                </button>
-                <button class="view-btn" id="btnViewList" onclick="setViewMode('list')"
-                                title="List view" aria-label="List view">
-                  <svg viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                    <line x1="8" y1="6" x2="21" y2="6">
-                    </line>
-                    <line x1="8" y1="12" x2="21" y2="12">
-                    </line>
-                    <line x1="8" y1="18" x2="21" y2="18">
-                    </line>
-                    <line x1="3" y1="6" x2="3.01" y2="6">
-                    </line>
-                    <line x1="3" y1="12" x2="3.01" y2="12">
-                    </line>
-                    <line x1="3" y1="18" x2="3.01" y2="18">
-                    </line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </section>
-          <!-- ==========================================             4. CUSTOMER MEASUREMENT CARDS (5-COL GRID)             ========================================== -->
-          <section class="cards-grid-section">
-            <!-- Dynamic Grid Container -->
-            <div class="cards-grid" id="measurementCardsGrid">
-              <!-- 10 Customer Cards rendered dynamically by measurement-overview.js -->
-            </div>
-            <!-- Dynamic List / Table Container (hidden by default) -->
-            <div class="list-table-wrapper" id="measurementListWrapper" style="display:none;">
-              <table class="measurements-table">
-                <thead>
-                  <tr>
-                    <th>
-                      Customer
-                    </th>
-                    <th>
-                      Contact
-                    </th>
-                    <th>
-                      Garment Type
-                    </th>
-                    <th>
-                      Bust
-                    </th>
-                    <th>
-                      Waist
-                    </th>
-                    <th>
-                      Shoulder
-                    </th>
-                    <th>
-                      Length
-                    </th>
-                    <th>
-                      Last Updated
-                    </th>
-                    <th>
-                      Status
-                    </th>
-                    <th class="th-actions">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="measurementListTableBody">
-                  <!-- Rows injected dynamically -->
-                </tbody>
-              </table>
-            </div>
-            <!-- Empty Search/Filter State -->
-            <div class="empty-state-card" id="emptyStateCard" style="display:none;">
-              <div class="empty-icon-wrap">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.5">
-                  <circle cx="11" cy="11" r="8">
-                  </circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65">
-                  </line>
-                </svg>
-              </div>
-              <h3 class="empty-title">
-                No customer measurements found
-              </h3>
-              <p class="empty-desc">
-                We couldn't find any profiles matching your search or filter criteria.
-              </p>
-              <button class="btn-reset-filters" onclick="resetAllFilters()">
-                Reset All Filters
-              </button>
-            </div>
-          </section>
-          <!-- ==========================================             5. PAGINATION ROW             ========================================== -->
-          <footer class="pagination-row">
-            <div class="pagination-info" id="paginationInfo">
-              Showing <strong id="pagRangeStart">0</strong>–<strong id="pagRangeEnd">0</strong> of <strong id="pagTotalCount">0</strong> customers
-            </div>
-            <div class="pagination-controls" id="paginationControls">
-              <button class="pag-btn pag-prev" id="pagPrevBtn" onclick="goToPrevPage()" aria-label="Previous page">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              <div class="pag-pages-group" id="pagPagesGroup"></div>
-              <button class="pag-btn pag-next" id="pagNextBtn" onclick="goToNextPage()" aria-label="Next page">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-            </div>
-          </footer>
+            </section>
+          </div>
         </main>
 
         <!-- Footer / Status Bar Slot -->
         <div id="footerSlot"></div>
       </div>
     </div>
-    <!-- ==========================================       6. MODALS & POPUP OVERLAYS       ========================================== -->
+
+    <!-- ==========================================
+         6. MODALS & POPUP OVERLAYS
+         ========================================== -->
     <!-- Modal 1: Add New Measurement Profile -->
     <div class="modal-backdrop" id="addMeasurementModal" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-header">
           <div class="modal-header-titles">
-            <h2 class="modal-title">
-              + Add New Measurement
-            </h2>
-            <p class="modal-subtitle">
-              Create a precision fitting profile for a boutique customer
-            </p>
+            <h2 class="modal-title">+ Add New Measurement</h2>
+            <p class="modal-subtitle">Create a precision fitting profile for a boutique customer</p>
           </div>
-          <button class="modal-close-btn" onclick="closeAddMeasurementModal()" aria-label="Close modal">
-            ✕
-          </button>
+          <button class="modal-close-btn" onclick="closeAddMeasurementModal()" aria-label="Close modal">✕</button>
         </div>
         <form id="addMeasurementForm" onsubmit="handleAddMeasurementSubmit(event)">
           <div class="modal-body">
@@ -693,249 +731,132 @@
               <div class="form-group">
                 <label class="form-label" for="addGarmentType">Garment Type <span class="req">*</span></label>
                 <select id="addGarmentType" class="form-select" required>
-                  <option value="Blouse">
-                    Blouse
-                  </option>
-                  <option value="Chudi Set">
-                    Chudi Set
-                  </option>
-                  <option value="Lehenga">
-                    Lehenga
-                  </option>
-                  <option value="Saree">
-                    Saree
-                  </option>
-                  <option value="Gown">
-                    Gown
-                  </option>
-                  <option value="Custom">
-                    Custom
-                  </option>
+                  <option value="Blouse">Blouse</option>
+                  <option value="Chudi Set">Chudi Set</option>
+                  <option value="Lehenga">Lehenga</option>
+                  <option value="Saree">Saree</option>
+                  <option value="Gown">Gown</option>
+                  <option value="Custom">Custom</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label" for="addVipToggle">
-                  Client Tier
-                </label>
+                <label class="form-label" for="addVipToggle">Client Tier</label>
                 <div class="form-toggle-wrap">
-                  <input type="checkbox" id="addVipToggle"
-                                    class="toggle-checkbox" />
-                  <label for="addVipToggle" class="toggle-label-text">
-                    Mark
-                                    as VIP Client
-                  </label>
+                  <input type="checkbox" id="addVipToggle" class="toggle-checkbox" />
+                  <label for="addVipToggle" class="toggle-label-text">Mark as VIP Client</label>
                 </div>
               </div>
               <!-- Core Dimensions Section -->
-              <div class="form-section-title col-span-2">
-                Key Body Measurements (Inches)
+              <div class="form-section-title col-span-2">Key Body Measurements (Inches)</div>
+              <div class="form-group">
+                <label class="form-label" for="addBust">Bust (in) <span class="req">*</span></label>
+                <input type="number" step="0.1" id="addBust" class="form-input" placeholder="34.0" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="addBust">
-                  Bust (in)
-                  <span
-                                    class="req">
-                    *
-                  </span>
-                </label>
-                <input type="number" step="0.1" id="addBust"
-                                class="form-input" placeholder="34.0" required />
+                <label class="form-label" for="addWaist">Waist (in) <span class="req">*</span></label>
+                <input type="number" step="0.1" id="addWaist" class="form-input" placeholder="28.0" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="addWaist">
-                  Waist (in)
-                  <span
-                                    class="req">
-                    *
-                  </span>
-                </label>
-                <input type="number" step="0.1" id="addWaist"
-                                class="form-input" placeholder="28.0" required />
+                <label class="form-label" for="addShoulder">Shoulder (in) <span class="req">*</span></label>
+                <input type="number" step="0.1" id="addShoulder" class="form-input" placeholder="14.0" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="addShoulder">
-                  Shoulder (in)
-                  <span
-                                    class="req">
-                    *
-                  </span>
-                </label>
-                <input type="number" step="0.1" id="addShoulder"
-                                class="form-input" placeholder="14.0" required />
+                <label class="form-label" for="addLength">Garment Length (in) <span class="req">*</span></label>
+                <input type="number" step="0.1" id="addLength" class="form-input" placeholder="14.0" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="addLength">
-                  Garment Length (in)
-                  <span
-                                    class="req">
-                    *
-                  </span>
-                </label>
-                <input type="number" step="0.1" id="addLength"
-                                class="form-input" placeholder="14.0" required />
+                <label class="form-label" for="addArmhole">Armhole (in)</label>
+                <input type="number" step="0.1" id="addArmhole" class="form-input" placeholder="16.0" />
               </div>
               <div class="form-group">
-                <label class="form-label" for="addArmhole">
-                  Armhole (in)
-                </label>
-                <input
-                                type="number" step="0.1" id="addArmhole" class="form-input" placeholder="16.0" />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="addTailor">
-                  Master Tailor / Recorded
-                                By
-                </label>
-                <input type="text" id="addTailor" class="form-input"
-                                placeholder="e.g. Master Tailor" />
+                <label class="form-label" for="addTailor">Master Tailor / Recorded By</label>
+                <input type="text" id="addTailor" class="form-input" placeholder="e.g. Master Tailor" />
               </div>
               <div class="form-group col-span-2">
-                <label class="form-label" for="addFittingNotes">
-                  Fit
-                                Instructions / Styling Notes
-                </label>
-                <textarea id="addFittingNotes"
-                                class="form-textarea" rows="2"
-                                placeholder="e.g. Needs 0.25 inch ease on armhole; customer prefers soft lining.">
-                </textarea>
+                <label class="form-label" for="addFittingNotes">Fit Instructions / Styling Notes</label>
+                <textarea id="addFittingNotes" class="form-textarea" rows="2" placeholder="e.g. Needs 0.25 inch ease on armhole; customer prefers soft lining."></textarea>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn-cancel"
-                        onclick="closeAddMeasurementModal()">
-              Cancel
-            </button>
-            <button type="submit"
-                        class="btn-save-primary">
-              Save Measurement
-            </button>
+            <button type="button" class="btn-cancel" onclick="closeAddMeasurementModal()">Cancel</button>
+            <button type="submit" class="btn-save-primary">Save Measurement</button>
           </div>
         </form>
       </div>
     </div>
+
     <!-- Modal 2: Edit Measurement Profile -->
     <div class="modal-backdrop" id="editMeasurementModal" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-header">
           <div class="modal-header-titles">
-            <h2 class="modal-title">
-              Edit Measurement Profile
-            </h2>
-            <p class="modal-subtitle" id="editModalSub">
-              Update fitting specs for customer
-            </p>
+            <h2 class="modal-title">Edit Measurement Profile</h2>
+            <p class="modal-subtitle" id="editModalSub">Update fitting specs for customer</p>
           </div>
-          <button class="modal-close-btn" onclick="closeEditMeasurementModal()" aria-label="Close modal">
-            ✕
-          </button>
+          <button class="modal-close-btn" onclick="closeEditMeasurementModal()" aria-label="Close modal">✕</button>
         </div>
         <form id="editMeasurementForm" onsubmit="handleEditMeasurementSubmit(event)">
-          <input type="hidden"
-                    id="editCustId" />
+          <input type="hidden" id="editCustId" />
           <div class="modal-body">
             <div class="form-grid">
               <div class="form-group col-span-2">
-                <label class="form-label">
-                  Customer Name
-                </label>
-                <input
-                                type="text" id="editCustName" class="form-input" readonly />
+                <label class="form-label">Customer Name</label>
+                <input type="text" id="editCustName" class="form-input" readonly />
               </div>
               <div class="form-group">
-                <label class="form-label">
-                  Garment Type
-                </label>
-                <input type="text"
-                                id="editGarmentType" class="form-input" readonly />
+                <label class="form-label">Garment Type</label>
+                <input type="text" id="editGarmentType" class="form-input" readonly />
               </div>
               <div class="form-group">
-                <label class="form-label" for="editStatus">
-                  Status
-                </label>
-                <select
-                                id="editStatus" class="form-select">
-                  <option value="Up to Date">
-                    Up to Date
-                  </option>
-                  <option value="Needs Update">
-                    Needs Update
-                  </option>
-                  <option value="Due Soon">
-                    Due Soon
-                  </option>
-                  <option value="Overdue">
-                    Overdue
-                  </option>
+                <label class="form-label" for="editStatus">Status</label>
+                <select id="editStatus" class="form-select">
+                  <option value="Up to Date">Up to Date</option>
+                  <option value="Needs Update">Needs Update</option>
+                  <option value="Due Soon">Due Soon</option>
+                  <option value="Overdue">Overdue</option>
                 </select>
               </div>
-              <div class="form-section-title col-span-2">
-                Dimensions (Inches)
+              <div class="form-section-title col-span-2">Dimensions (Inches)</div>
+              <div class="form-group">
+                <label class="form-label" for="editBust">Bust (in)</label>
+                <input type="number" step="0.1" id="editBust" class="form-input" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="editBust">
-                  Bust (in)
-                </label>
-                <input
-                                type="number" step="0.1" id="editBust" class="form-input" required />
+                <label class="form-label" for="editWaist">Waist (in)</label>
+                <input type="number" step="0.1" id="editWaist" class="form-input" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="editWaist">
-                  Waist (in)
-                </label>
-                <input
-                                type="number" step="0.1" id="editWaist" class="form-input" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="editShoulder">
-                  Shoulder (in)
-                </label>
+                <label class="form-label" for="editShoulder">Shoulder (in)</label>
                 <input type="number" step="0.1" id="editShoulder" class="form-input" required />
               </div>
               <div class="form-group">
-                <label class="form-label" for="editLength">
-                  Length (in)
-                </label>
-                <input
-                                type="number" step="0.1" id="editLength" class="form-input" required />
+                <label class="form-label" for="editLength">Length (in)</label>
+                <input type="number" step="0.1" id="editLength" class="form-input" required />
               </div>
               <div class="form-group col-span-2">
-                <label class="form-label" for="editNotes">
-                  Fit Notes
-                </label>
-                <textarea id="editNotes" class="form-textarea" rows="2">
-                </textarea>
+                <label class="form-label" for="editNotes">Fit Notes</label>
+                <textarea id="editNotes" class="form-textarea" rows="2"></textarea>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn-cancel"
-                        onclick="closeEditMeasurementModal()">
-              Cancel
-            </button>
-            <button type="submit"
-                        class="btn-save-primary">
-              Save Changes
-            </button>
+            <button type="button" class="btn-cancel" onclick="closeEditMeasurementModal()">Cancel</button>
+            <button type="submit" class="btn-save-primary">Save Changes</button>
           </div>
         </form>
       </div>
     </div>
+
     <!-- Modal 3: Measurement History Timeline -->
     <div class="modal-backdrop" id="historyModal" aria-hidden="true">
       <div class="modal-dialog modal-dialog-lg">
         <div class="modal-header">
           <div class="modal-header-titles">
-            <h2 class="modal-title" id="historyModalTitle">
-              Measurement History
-            </h2>
-            <p class="modal-subtitle" id="historyModalSub">
-              Historical fitting sessions and alterations log
-            </p>
+            <h2 class="modal-title" id="historyModalTitle">Measurement History</h2>
+            <p class="modal-subtitle" id="historyModalSub">Historical fitting sessions and alterations log</p>
           </div>
-          <button class="modal-close-btn" onclick="closeHistoryModal()" aria-label="Close modal">
-            ✕
-          </button>
+          <button class="modal-close-btn" onclick="closeHistoryModal()" aria-label="Close modal">✕</button>
         </div>
         <div class="modal-body">
           <div class="history-timeline" id="historyTimelineContainer">
@@ -943,53 +864,36 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-cancel"
-                    onclick="closeHistoryModal()">
-            Close
-          </button>
+          <button type="button" class="btn-cancel" onclick="closeHistoryModal()">Close</button>
         </div>
       </div>
     </div>
+
     <!-- Modal 4: Quick View 360 Summary Drawer / Modal -->
     <div class="modal-backdrop" id="viewDetailModal" aria-hidden="true">
       <div class="modal-dialog modal-dialog-md">
         <div class="modal-header">
           <div class="modal-header-titles">
-            <h2 class="modal-title" id="viewDetailTitle">
-              Customer Measurement Profile
-            </h2>
-            <p class="modal-subtitle" id="viewDetailSub">
-              Detailed precision fitting metrics
-            </p>
+            <h2 class="modal-title" id="viewDetailTitle">Customer Measurement Profile</h2>
+            <p class="modal-subtitle" id="viewDetailSub">Detailed precision fitting metrics</p>
           </div>
-          <button class="modal-close-btn" onclick="closeViewDetailModal()"
-                    aria-label="Close modal">
-            ✕
-          </button>
+          <button class="modal-close-btn" onclick="closeViewDetailModal()" aria-label="Close modal">✕</button>
         </div>
         <div class="modal-body" id="viewDetailBody">
           <!-- Injected dynamically -->
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-cancel"
-                    onclick="closeViewDetailModal()">
-            Close
-          </button>
-          <button type="button" class="btn-save-primary"
-                    id="btnLaunch360Profile">
-            Open in 360° Workspace
-          </button>
+          <button type="button" class="btn-cancel" onclick="closeViewDetailModal()">Close</button>
+          <button type="button" class="btn-save-primary" id="btnLaunch360Profile">Open in 360° Workspace</button>
         </div>
       </div>
     </div>
+
     <!-- Toast Notification Container -->
-    <div class="toast-container" id="toastContainer" aria-live="polite">
-    </div>
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
     <!-- Application JS Controller -->
-    <script type="module" src="../../api.js">
-    </script>
-    <script src="measurement-overview.js">
-    </script>
+    <script type="module" src="../../api.js"></script>
+    <script src="measurement-overview.js"></script>
   </body>
 </html>
-

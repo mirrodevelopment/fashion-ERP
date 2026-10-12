@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title data-brand-title="Users &amp; Roles">Users &amp; Roles</title>
-  <meta name="description" content="Manage system users, assign roles, and control access permissions across the boutique ERP platform." />
+  <title data-brand-title="Users &amp; Roles">Users &amp; Roles — Haulo Boutique ERP</title>
+  <meta name="description" content="Control who can access what, where, and at what authority across your boutique ERP." />
+
   <!-- Central Boutique Typography Design System -->
   <link rel="stylesheet" href="../fragments/font/font.css" />
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-  <!-- Shared Fragments CSS -->
+  <!-- Standard ERP Fragments CSS & Navigation -->
   <link rel="stylesheet" href="../fragments/fragments.css" />
   <link rel="stylesheet" href="../fragments/nav.css" />
   <link rel="stylesheet" href="users-roles.css" />
 
-  <!-- Fragment base path (one level up from users-roles/) -->
+  <!-- Fragment base path -->
   <script>
     window.FRAGMENT_BASE = '../fragments/';
   </script>
@@ -25,25 +26,21 @@
   <script src="../fragments/fragments.js"></script>
 </head>
 
-<!--
-  data-module="users-roles" — picked up by fragments.js to highlight the correct
-  sidebar nav link and by nav.js highlightActiveRoute().
--->
 <body data-module="users-roles">
 
   <!-- Background gradient layer -->
   <div class="app-bg"></div>
 
-  <!-- App Shell — sidebar + main-wrapper side by side -->
+  <!-- App Shell -->
   <div class="app-shell" id="appShell">
 
-    <!-- Sidebar injected by fragments.js -->
+    <!-- Standard ERP Sidebar injected by fragments.js -->
     <div id="sidebarSlot"></div>
 
-    <!-- Main Wrapper: navbar on top, content below -->
+    <!-- Main Wrapper: navbar on top, content below, status bar footer at bottom -->
     <div class="main-wrapper" id="mainWrapper">
 
-      <!-- Top navbar injected by fragments.js -->
+      <!-- Standard ERP Top navbar injected by fragments.js -->
       <div id="navbarSlot"></div>
 
       <!-- ═══════════════════════════════════════════════════════════
@@ -51,219 +48,524 @@
       ═══════════════════════════════════════════════════════════ -->
       <main class="ur-root" id="urRoot">
 
-        <!-- Page Header -->
-        <div class="ur-page-header">
-          <div class="ur-page-header-left">
-            <h1 class="ur-page-title">
-              <i data-lucide="shield" class="ur-title-icon"></i>
-              Users &amp; Roles
-            </h1>
-            <p class="ur-page-subtitle">Manage system users and control access permissions</p>
+        <!-- ── Top Header Row: Title & 6 KPI Metric Cards ── -->
+        <header class="ur-top-header">
+          <div class="ur-header-left">
+            <div id="breadcrumbSlot"></div>
+            <h1 class="ur-page-title">Users &amp; Roles</h1>
+            <p class="ur-page-subtitle">Control who can access what, where, and at what authority.</p>
           </div>
-          <div class="ur-page-header-right">
-            <a href="create-user/create-user.html" class="ur-btn-add" id="btnAddUser" style="text-decoration:none;">
-              <i data-lucide="user-plus"></i>
-              <span>Add User</span>
-            </a>
-          </div>
-        </div>
 
-        <!-- KPI Stats Row — values injected by renderStats(), not hardcoded -->
-        <div class="ur-stats-row" id="statsRow">
-          <div class="ur-stat-card" id="statCardTotal">
-            <div class="ur-stat-icon">
-              <i data-lucide="users"></i>
+          <!-- 6 Stat Cards Aligned Across the Top Row -->
+          <div class="ur-kpi-grid" id="statCardsRow">
+
+            <!-- Card 1: Total Users -->
+            <div class="ur-kpi-card" id="cardTotalUsers">
+              <div class="ur-kpi-icon-wrap icon-lime">
+                <i data-lucide="user"></i>
+              </div>
+              <div class="ur-kpi-body">
+                <span class="ur-kpi-value" id="statTotalUsers">—</span>
+                <span class="ur-kpi-label">Total Users</span>
+                <div class="ur-kpi-trend trend-up">
+                  <i data-lucide="arrow-up"></i>
+                  <span id="statTotalUsersTrend">Stable</span>
+                </div>
+              </div>
             </div>
-            <div class="ur-stat-body">
-              <span class="ur-stat-value" id="statTotal">—</span>
-              <span class="ur-stat-label">Total Users</span>
+
+            <!-- Card 2: Active Users -->
+            <div class="ur-kpi-card" id="cardActiveUsers">
+              <div class="ur-kpi-icon-wrap icon-purple">
+                <i data-lucide="users"></i>
+              </div>
+              <div class="ur-kpi-body">
+                <span class="ur-kpi-value" id="statActiveUsers">—</span>
+                <span class="ur-kpi-label">Active Users</span>
+                <div class="ur-kpi-trend trend-up">
+                  <i data-lucide="arrow-up"></i>
+                  <span id="statActiveUsersTrend">Stable</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <!-- Per-role cards rendered by JS into #dynamicRoleCards -->
-          <div id="dynamicRoleCards" style="display:contents;"></div>
-        </div>
 
-        <!-- Toolbar -->
-        <div class="ur-toolbar" id="toolbar">
-          <div class="ur-search-wrap">
-            <i data-lucide="search" class="ur-search-icon"></i>
-            <input
-              type="text"
-              id="searchInput"
-              class="ur-search-input"
-              placeholder="Search by name, username or email…"
-              autocomplete="off"
-              oninput="applyFilters()"
-            />
-          </div>
-          <div class="ur-filter-group">
-            <!-- Role filter — options populated by JS from API data -->
-            <select id="roleFilter" class="ur-filter-select" onchange="applyFilters()">
-              <option value="">All Roles</option>
-            </select>
-            <select id="activeFilter" class="ur-filter-select" onchange="applyFilters()">
-              <option value="">All Status</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
-            </select>
-          </div>
-        </div>
+            <!-- Card 3: Pending Invites -->
+            <div class="ur-kpi-card" id="cardPendingInvites">
+              <div class="ur-kpi-icon-wrap icon-amber">
+                <i data-lucide="clock"></i>
+              </div>
+              <div class="ur-kpi-body">
+                <span class="ur-kpi-value" id="statPendingInvites">—</span>
+                <span class="ur-kpi-label">Pending Invites</span>
+                <div class="ur-kpi-trend trend-down">
+                  <i data-lucide="arrow-down"></i>
+                  <span id="statPendingInvitesTrend">0</span>
+                </div>
+              </div>
+            </div>
 
-        <!-- Users Table -->
-        <div class="ur-table-container" id="tableContainer">
-          <table class="ur-table" id="usersTable">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Branch</th>
-                <th>Last Login</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <!-- Rows injected by renderTable() -->
-            </tbody>
-          </table>
+            <!-- Card 4: Admin Level -->
+            <div class="ur-kpi-card" id="cardAdminLevel">
+              <div class="ur-kpi-icon-wrap icon-rose">
+                <i data-lucide="shield"></i>
+              </div>
+              <div class="ur-kpi-body">
+                <span class="ur-kpi-value" id="statAdminLevel">—</span>
+                <span class="ur-kpi-label">Admin Level</span>
+                <div class="ur-kpi-trend trend-neutral">
+                  <span id="statAdminLevelTrend">No change</span>
+                </div>
+              </div>
+            </div>
 
-          <!-- Empty state -->
-          <div class="ur-empty-state" id="emptyState" style="display:none;">
-            <i data-lucide="user-x" class="ur-empty-icon"></i>
-            <p class="ur-empty-title">No users found</p>
-            <p class="ur-empty-sub">Try adjusting your search or filters</p>
-          </div>
+            <!-- Card 5: Elevated Access -->
+            <div class="ur-kpi-card" id="cardElevatedAccess">
+              <div class="ur-kpi-icon-wrap icon-lavender">
+                <i data-lucide="key"></i>
+              </div>
+              <div class="ur-kpi-body">
+                <span class="ur-kpi-value" id="statElevatedAccess">—</span>
+                <span class="ur-kpi-label">Elevated Access</span>
+                <div class="ur-kpi-trend trend-up">
+                  <i data-lucide="arrow-up"></i>
+                  <span id="statElevatedAccessTrend">Standard</span>
+                </div>
+              </div>
+            </div>
 
-          <!-- Loading state -->
-          <div class="ur-loading-state" id="loadingState">
-            <div class="ur-spinner"></div>
-            <p>Loading users…</p>
+            <!-- Card 6: Access Review Due -->
+            <div class="ur-kpi-card" id="cardAccessReviewDue">
+              <div class="ur-kpi-icon-wrap icon-coral">
+                <i data-lucide="alert-triangle"></i>
+              </div>
+              <div class="ur-kpi-body">
+                <span class="ur-kpi-value" id="statAccessReviewDue">—</span>
+                <span class="ur-kpi-label">Access Review Due</span>
+                <div class="ur-kpi-trend trend-down">
+                  <i data-lucide="arrow-down"></i>
+                  <span id="statAccessReviewDueTrend">All clear</span>
+                </div>
+              </div>
+            </div>
+
           </div>
+        </header>
+
+        <!-- ── Main Workspace: Two-Panel Split Layout ── -->
+        <div class="ur-split-grid">
+
+          <!-- ═════════════════════════════════════════════════════════
+               LEFT PANEL: USERS LIST TABLE & FILTER TOOLBAR
+          ═════════════════════════════════════════════════════════ -->
+          <section class="ur-table-pane">
+
+            <!-- Action & Tabs Toolbar -->
+            <div class="ur-table-toolbar">
+
+              <!-- View Tabs -->
+              <div class="ur-view-tabs" id="urTabBar" role="tablist">
+                <button class="ur-tab-btn active" id="tabAllUsers" data-tab="ALL" role="tab" aria-selected="true">
+                  <span>All Users</span>
+                  <span class="ur-tab-count" id="tabCountAll">0</span>
+                </button>
+                <button class="ur-tab-btn" id="tabRoles" data-tab="ROLES" role="tab" aria-selected="false">
+                  <span>Roles</span>
+                </button>
+                <button class="ur-tab-btn" id="tabRequests" data-tab="REQUESTS" role="tab" aria-selected="false">
+                  <span>Access Requests</span>
+                </button>
+                <button class="ur-tab-btn" id="tabSuspended" data-tab="SUSPENDED" role="tab" aria-selected="false">
+                  <span>Suspended</span>
+                </button>
+              </div>
+
+              <!-- Action Controls -->
+              <div class="ur-toolbar-actions">
+                <div class="ur-search-wrap">
+                  <i data-lucide="search" class="ur-search-icon"></i>
+                  <input
+                    type="text"
+                    id="userSearchInput"
+                    placeholder="Search users, roles or email..."
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+
+                <button class="ur-btn-icon-subtle" id="btnFilterToggle" title="Filter options">
+                  <i data-lucide="filter"></i>
+                </button>
+
+                <a href="create-user/create-user.html" class="ur-btn-add-user" id="btnAddUser">
+                  <i data-lucide="plus"></i>
+                  <span>Add User</span>
+                </a>
+
+                <button class="ur-btn-icon-subtle" id="btnTableMore" title="More options">
+                  <i data-lucide="more-horizontal"></i>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Filter Dropdowns Row -->
+            <div class="ur-filter-dropdowns-row">
+              <div class="ur-select-wrap">
+                <select id="filterRole" aria-label="Filter by role">
+                  <option value="ALL">All Roles</option>
+                </select>
+                <i data-lucide="chevron-down" class="ur-select-arrow"></i>
+              </div>
+
+              <div class="ur-select-wrap">
+                <select id="filterBranch" aria-label="Filter by branch">
+                  <option value="ALL">All Branches</option>
+                </select>
+                <i data-lucide="chevron-down" class="ur-select-arrow"></i>
+              </div>
+
+              <div class="ur-select-wrap">
+                <select id="filterStatus" aria-label="Filter by status">
+                  <option value="ALL">All Status</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="REVIEW">Review</option>
+                  <option value="SUSPENDED">Suspended</option>
+                  <option value="INVITED">Invited</option>
+                </select>
+                <i data-lucide="chevron-down" class="ur-select-arrow"></i>
+              </div>
+
+              <div class="ur-select-wrap">
+                <select id="filterScope" aria-label="Filter by access scope">
+                  <option value="ALL">All Access Scope</option>
+                  <option value="Full System">Full System</option>
+                  <option value="Branch + Production">Branch + Production</option>
+                  <option value="Production Only">Production Only</option>
+                  <option value="Customers + Orders">Customers + Orders</option>
+                  <option value="Finance + Purchases">Finance + Purchases</option>
+                  <option value="Customer + Appointments">Customer + Appointments</option>
+                  <option value="Inventory Only">Inventory Only</option>
+                  <option value="QC + Production">QC + Production</option>
+                  <option value="Purchases Only">Purchases Only</option>
+                  <option value="Designs + Samples">Designs + Samples</option>
+                </select>
+                <i data-lucide="chevron-down" class="ur-select-arrow"></i>
+              </div>
+            </div>
+
+            <!-- Users Table Wrap -->
+            <div class="ur-table-wrap">
+              <table class="ur-users-table" id="usersTable">
+                <thead>
+                  <tr>
+                    <th>USER</th>
+                    <th>ROLE</th>
+                    <th>BRANCH</th>
+                    <th>ACCESS SCOPE</th>
+                    <th>APPROVAL LIMIT</th>
+                    <th>LAST ACTIVE</th>
+                    <th>ACCESS HEALTH</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+
+              <!-- Empty State -->
+              <div class="ur-table-empty" id="tableEmpty" style="display: none;">
+                <i data-lucide="users" class="ur-empty-icon"></i>
+                <div class="ur-empty-title">No users found</div>
+                <div class="ur-empty-desc">No accounts match the current filter criteria.</div>
+              </div>
+
+              <!-- Loading State -->
+              <div class="ur-table-loading" id="tableLoading" style="display: none;">
+                <div class="ur-spinner"></div>
+                <span>Loading users...</span>
+              </div>
+            </div>
+
+            <!-- Table Pagination Bar -->
+            <div class="ur-pagination-bar">
+              <div class="ur-pagination-info" id="footerCountText">Showing 1-10 of 0 users</div>
+              <div class="ur-pagination-controls">
+                <button class="ur-page-btn" id="btnPrevPage" title="Previous page" disabled>
+                  <i data-lucide="chevron-left"></i>
+                </button>
+                <div class="ur-page-numbers" id="pageNumbers">
+                  <button class="ur-page-num active">1</button>
+                </div>
+                <button class="ur-page-btn" id="btnNextPage" title="Next page" disabled>
+                  <i data-lucide="chevron-right"></i>
+                </button>
+                <div class="ur-page-size-wrap">
+                  <select id="pageSizeSelect" aria-label="Page size">
+                    <option value="10">10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="ur-select-arrow"></i>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- ═════════════════════════════════════════════════════════
+               RIGHT PANEL: SELECTED USER ACCESS INTELLIGENCE & GOVERNANCE
+          ═════════════════════════════════════════════════════════ -->
+          <aside class="ur-detail-pane" id="detailPane">
+
+            <!-- Detail Loading -->
+            <div class="ur-detail-loading" id="detailLoading" style="display: none;">
+              <div class="ur-spinner"></div>
+              <span>Fetching access intelligence...</span>
+            </div>
+
+            <!-- Detail Empty State -->
+            <div class="ur-detail-empty" id="detailEmpty" style="display: none;">
+              <i data-lucide="shield-check" class="ur-empty-icon"></i>
+              <div class="ur-empty-title">No User Selected</div>
+              <div class="ur-empty-desc">Select a user from the table to inspect real-time governance, permissions, and authority limits.</div>
+            </div>
+
+            <!-- Detail Content -->
+            <div class="ur-detail-content" id="detailContent">
+
+              <!-- ── 1. Profile Header Card ── -->
+              <div class="ur-profile-card">
+                <div class="ur-profile-header-row">
+                  <div class="ur-profile-avatar-wrap" id="dAvatar">
+                    <!-- Initials or image -->
+                  </div>
+
+                  <div class="ur-profile-meta-wrap">
+                    <div class="ur-profile-name-row">
+                      <h2 class="ur-profile-name" id="dFullName">—</h2>
+                      <span class="ur-role-pill-outline" id="dRoleTitle">—</span>
+                    </div>
+
+                    <div class="ur-profile-badges-row">
+                      <span class="ur-scope-tag">
+                        <i data-lucide="map-pin"></i>
+                        <span id="dBranchName">All Branches</span>
+                      </span>
+                      <span class="ur-scope-tag">
+                        <i data-lucide="shield"></i>
+                        <span id="dScopeName">Full System Access</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="ur-profile-actions">
+                    <button class="ur-btn-edit-access" id="btnEditAccess">
+                      <i data-lucide="edit-3"></i>
+                      <span>Edit Access</span>
+                    </button>
+                    <button class="ur-btn-icon-subtle" id="btnDetailMore" title="More user actions">
+                      <i data-lucide="more-horizontal"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Contact & Joined Info Line -->
+                <div class="ur-profile-contact-row">
+                  <span class="ur-contact-item">
+                    <i data-lucide="phone"></i>
+                    <span id="dPhone">—</span>
+                  </span>
+                  <span class="ur-contact-item">
+                    <i data-lucide="mail"></i>
+                    <span id="dEmail">—</span>
+                  </span>
+                  <span class="ur-contact-item">
+                    <i data-lucide="calendar"></i>
+                    <span id="dJoined">—</span>
+                  </span>
+                </div>
+
+                <!-- 4 Mini KPI Cards Row -->
+                <div class="ur-mini-kpi-grid">
+                  <div class="ur-mini-card">
+                    <div class="ur-mini-icon icon-lime">
+                      <i data-lucide="user"></i>
+                    </div>
+                    <div class="ur-mini-body">
+                      <span class="ur-mini-label">Role</span>
+                      <span class="ur-mini-val" id="dMiniRole">—</span>
+                    </div>
+                  </div>
+
+                  <div class="ur-mini-card">
+                    <div class="ur-mini-icon icon-purple">
+                      <i data-lucide="building-2"></i>
+                    </div>
+                    <div class="ur-mini-body">
+                      <span class="ur-mini-label">Branches Accessible</span>
+                      <span class="ur-mini-val" id="dMiniBranches">—</span>
+                    </div>
+                  </div>
+
+                  <div class="ur-mini-card">
+                    <div class="ur-mini-icon icon-amber">
+                      <i data-lucide="target"></i>
+                    </div>
+                    <div class="ur-mini-body">
+                      <span class="ur-mini-label">Approval Limit</span>
+                      <span class="ur-mini-val" id="dMiniLimit">—</span>
+                    </div>
+                  </div>
+
+                  <div class="ur-mini-card">
+                    <div class="ur-mini-icon health-icon ring-high" id="dMiniHealthRing">
+                      <span id="dMiniHealthScore">98</span>
+                    </div>
+                    <div class="ur-mini-body">
+                      <span class="ur-mini-label">Access Health</span>
+                      <span class="ur-mini-val" id="dMiniHealthLabel">Excellent</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ── 2. Access Intelligence (2-Column Allowed vs Denied) ── -->
+              <div class="ur-detail-card">
+                <div class="ur-card-header">
+                  <div class="ur-card-title">Access Intelligence</div>
+                  <a href="#" class="ur-card-link-btn" id="btnViewFullPermissions">
+                    <span>View Full Permissions</span>
+                    <i data-lucide="arrow-right"></i>
+                  </a>
+                </div>
+
+                <div class="ur-perm-two-col">
+                  <!-- Allowed Permissions -->
+                  <div class="ur-perm-col" id="permAllowedList">
+                    <!-- Checkmark items populated dynamically -->
+                  </div>
+
+                  <!-- Prohibited Permissions -->
+                  <div class="ur-perm-col" id="permDeniedList">
+                    <!-- Cross items populated dynamically -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- ── 3. Paired Row: Access Risk & Conflict + Authority Limits ── -->
+              <div class="ur-paired-cards-grid grid-risk-auth">
+
+                <!-- Access Risk & Conflict -->
+                <div class="ur-detail-card card-risk">
+                  <div class="ur-card-header">
+                    <div class="ur-card-title">Access Risk &amp; Conflict</div>
+                    <button class="ur-card-close-btn" title="Dismiss notice">✕</button>
+                  </div>
+                  <div class="ur-risk-body">
+                    <div class="ur-risk-badge badge-low" id="dRiskBadge">
+                      <i data-lucide="shield-check"></i>
+                      <span>LOW RISK</span>
+                    </div>
+                    <p class="ur-risk-notes" id="dRiskNotes">No critical permission conflicts detected.</p>
+                  </div>
+                </div>
+
+                <!-- Authority & Approval Limits -->
+                <div class="ur-detail-card card-auth-limits">
+                  <div class="ur-card-header">
+                    <div class="ur-card-title">Authority &amp; Approval Limits</div>
+                    <button class="ur-card-link-btn" id="btnEditLimits">Edit Limits</button>
+                  </div>
+                  <div class="ur-limits-list" id="authorityLimitsList">
+                    <!-- Progress bars populated dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- ── 4. Paired Row: Branch Access Scope + Temporary Delegations ── -->
+              <div class="ur-paired-cards-grid grid-branch-delegation">
+
+                <!-- Branch Access Scope -->
+                <div class="ur-detail-card card-branch-scope">
+                  <div class="ur-card-header">
+                    <div class="ur-card-title">Branch Access Scope</div>
+                    <button class="ur-card-link-btn" id="btnEditScope">Edit Scope</button>
+                  </div>
+                  <div class="ur-branch-scopes-list" id="branchScopesList">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Temporary Access / Delegation -->
+                <div class="ur-detail-card card-delegation">
+                  <div class="ur-card-header">
+                    <div class="ur-card-title">Temporary Access / Delegation</div>
+                    <button class="ur-card-link-btn" id="btnGrantAccess">
+                      <i data-lucide="plus"></i>
+                      <span>Grant Access</span>
+                    </button>
+                  </div>
+                  <div class="ur-delegations-list" id="delegationsList">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- ── 5. Paired Row: Recent Access Activity + Active Sessions ── -->
+              <div class="ur-paired-cards-grid grid-activity-sessions">
+
+                <!-- Recent Access Activity -->
+                <div class="ur-detail-card card-activity">
+                  <div class="ur-card-header">
+                    <div class="ur-card-title">Recent Access Activity</div>
+                    <button class="ur-card-link-btn" id="btnViewAllActivity">
+                      <span>View All</span>
+                      <i data-lucide="arrow-right"></i>
+                    </button>
+                  </div>
+                  <div class="ur-activity-timeline" id="activityTimeline">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Active Sessions -->
+                <div class="ur-detail-card card-sessions">
+                  <div class="ur-card-header">
+                    <div class="ur-card-title-group">
+                      <span class="ur-card-title">Active Sessions</span>
+                      <span class="ur-badge-counter" id="activeSessionsCount">0</span>
+                    </div>
+                  </div>
+                  <div class="ur-sessions-list" id="activeSessionsList">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </aside>
+
         </div>
 
       </main>
 
-      <!-- Footer / Status Bar Slot -->
+      <!-- Standard ERP Footer Status Bar injected by fragments.js -->
       <div id="footerSlot"></div>
-    </div><!-- /main-wrapper -->
-  </div><!-- /app-shell -->
 
-  <!-- ═══════════════════════════════════════════════════════════
-       SLIDE-IN DRAWER (Create / Edit)
-  ═══════════════════════════════════════════════════════════ -->
-  <div class="ur-drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-  <aside class="ur-drawer" id="userDrawer" aria-label="User form panel">
-
-    <div class="ur-drawer-header">
-      <h2 class="ur-drawer-title" id="drawerTitle">Add User</h2>
-      <button class="ur-drawer-close" id="btnDrawerClose" onclick="closeDrawer()" aria-label="Close">
-        <i data-lucide="x"></i>
-      </button>
     </div>
 
-    <form class="ur-drawer-form" id="userForm" onsubmit="handleSave(event)">
-
-      <div class="ur-form-section-label">Identity</div>
-
-      <div class="ur-form-row">
-        <div class="ur-form-group">
-          <label for="fUsername">Username <span class="ur-required">*</span></label>
-          <input type="text" id="fUsername" name="username" class="ur-form-input"
-                 placeholder="e.g. priya.sharma" required autocomplete="off" />
-        </div>
-        <div class="ur-form-group">
-          <label for="fFullName">Full Name <span class="ur-required">*</span></label>
-          <input type="text" id="fFullName" name="fullName" class="ur-form-input"
-                 placeholder="e.g. Priya Sharma" required />
-        </div>
-      </div>
-
-      <div class="ur-form-group" style="grid-column:1/-1">
-        <label for="fPassword">
-          Password
-          <span class="ur-required" id="passwordRequired">*</span>
-          <span class="ur-form-hint" id="passwordHint" style="display:none;">Leave blank to keep current password</span>
-        </label>
-        <input type="password" id="fPassword" name="password" class="ur-form-input"
-               placeholder="Min 6 characters" autocomplete="new-password" />
-      </div>
-
-      <div class="ur-form-section-label">Role &amp; Access</div>
-
-      <div class="ur-form-row">
-        <div class="ur-form-group">
-          <label for="fRole">Role <span class="ur-required">*</span></label>
-          <select id="fRole" name="role" class="ur-form-input" required></select>
-        </div>
-        <div class="ur-form-group">
-          <label for="fBranch">Assigned Branch</label>
-          <input type="text" id="fBranch" name="assignedBranch" class="ur-form-input"
-                 placeholder="e.g. Main Flagship" />
-        </div>
-      </div>
-
-      <div class="ur-form-section-label">Professional Details</div>
-
-      <div class="ur-form-row">
-        <div class="ur-form-group">
-          <label for="fDesignation">Designation</label>
-          <input type="text" id="fDesignation" name="designation" class="ur-form-input"
-                 placeholder="e.g. Senior Tailor" />
-        </div>
-        <div class="ur-form-group">
-          <label for="fDepartment">Department</label>
-          <input type="text" id="fDepartment" name="department" class="ur-form-input"
-                 placeholder="e.g. Atelier" />
-        </div>
-      </div>
-
-      <div class="ur-form-section-label">Contact</div>
-
-      <div class="ur-form-row">
-        <div class="ur-form-group">
-          <label for="fEmail">Email</label>
-          <input type="email" id="fEmail" name="email" class="ur-form-input"
-                 placeholder="user@yourdomain.com" data-brand-placeholder="employeeEmail" />
-        </div>
-        <div class="ur-form-group">
-          <label for="fPhone">Phone</label>
-          <input type="tel" id="fPhone" name="phone" class="ur-form-input"
-                 placeholder="+91 XXXXX XXXXX" data-brand-placeholder="phone" />
-        </div>
-      </div>
-
-      <div class="ur-drawer-actions">
-        <button type="button" class="ur-btn-cancel" onclick="closeDrawer()">Cancel</button>
-        <button type="submit" class="ur-btn-save" id="btnSave">
-          <i data-lucide="save"></i>
-          <span id="btnSaveLabel">Save User</span>
-        </button>
-      </div>
-
-    </form>
-  </aside>
-
-  <!-- ═══════════════════════════════════════════════════════════
-       CONFIRMATION MODAL (Toggle Active)
-  ═══════════════════════════════════════════════════════════ -->
-  <div class="ur-modal-overlay" id="confirmModalOverlay" style="display:none;">
-    <div class="ur-confirm-modal" id="confirmModal" role="dialog" aria-modal="true">
-      <div class="ur-confirm-icon" id="confirmIcon">
-        <i data-lucide="alert-triangle"></i>
-      </div>
-      <h3 class="ur-confirm-title" id="confirmTitle">Confirm Action</h3>
-      <p class="ur-confirm-body" id="confirmBody">Are you sure?</p>
-      <div class="ur-confirm-actions">
-        <button class="ur-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
-        <button class="ur-btn-confirm" id="btnConfirmAction">Confirm</button>
-      </div>
-    </div>
   </div>
 
-  <!-- Toast notification container -->
-  <div class="ur-toast-container" id="toastContainer"></div>
+  <!-- Central toast notifications container -->
+  <div id="toastContainer" class="ur-toast-container"></div>
 
-  <!-- Page script -->
+  <!-- Page Script -->
   <script type="module" src="users-roles.js"></script>
 
 </body>

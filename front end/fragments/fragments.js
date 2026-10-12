@@ -21,6 +21,17 @@
 (function () {
   const BASE = window.FRAGMENT_BASE || '../fragments/';
 
+  const getApiBase = () => {
+    if (typeof window !== 'undefined' && window.HAULO_API_BASE) return window.HAULO_API_BASE;
+    if (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:')) {
+      return `${window.location.origin}/api/v1`;
+    }
+    return 'http://localhost:8080/api/v1';
+  };
+  if (typeof window !== 'undefined' && !window.HAULO_API_BASE) {
+    window.HAULO_API_BASE = getApiBase();
+  }
+
   // Auto-load theme switch controller if not already present
   if (!window.HauloTheme && !document.querySelector('script[src*="theme-switch.js"]')) {
     const ts = document.createElement('script');
@@ -65,6 +76,24 @@
     const sysScript = document.createElement('script');
     sysScript.src = BASE + 'system-bridge.js';
     document.head.appendChild(sysScript);
+  }
+
+  // Auto-load common breadcrumbs controller and styles if not already present
+  if (!document.querySelector('link[href*="breadcrumbs.css"]')) {
+    const bcCss = document.createElement('link');
+    bcCss.rel = 'stylesheet';
+    bcCss.href = BASE + 'breadcrumbs/breadcrumbs.css';
+    document.head.appendChild(bcCss);
+  }
+  if (!window.HauloBreadcrumbs && !document.querySelector('script[src*="breadcrumbs.js"]')) {
+    const bcs = document.createElement('script');
+    bcs.src = BASE + 'breadcrumbs/breadcrumbs.js';
+    bcs.onload = () => {
+      if (window.HauloBreadcrumbs && typeof window.HauloBreadcrumbs.init === 'function') {
+        window.HauloBreadcrumbs.init();
+      }
+    };
+    document.head.appendChild(bcs);
   }
 
   /* â”€â”€ Load a fragment and inject into a slot â”€â”€
@@ -126,7 +155,7 @@
     // If the company has not yet been configured and the user is authenticated,
     // redirect them to the setup wizard before anything else loads.
     try {
-      const setupRes = await fetch('http://localhost:8080/api/v1/company/status');
+      const setupRes = await fetch(`${window.HAULO_API_BASE}/company/status`);
       if (setupRes.ok) {
         const statusData = await setupRes.json();
         if (!statusData.configured) {
@@ -223,6 +252,7 @@
       else if (path.includes('/quality-control') || path.includes('/qc')) currentModule = 'quality-control';
       else if (path.includes('/inventory') || path.includes('/stock')) currentModule = 'stock';
       else if (path.includes('/purchases')) currentModule = 'purchases';
+      else if (path.includes('/suppliers')) currentModule = 'suppliers';
       else if (path.includes('/delivery') || path.includes('/dispatch')) currentModule = 'delivery';
       else if (path.includes('/workforcemanagement') || path.includes('/workforce') || path.includes('/employee')) currentModule = 'employees';
       else if (path.includes('/branches')) currentModule = 'branches';
@@ -259,6 +289,7 @@
         (activeMod === 'quality-control' && (itemId === 'nav-quality-control' || itemMod === 'quality-control' || tooltip.includes('quality'))) ||
         (activeMod === 'stock' && (itemId === 'nav-stock' || itemMod === 'stock' || tooltip.includes('stock') || tooltip.includes('inventory'))) ||
         (activeMod === 'purchases' && (itemId === 'nav-purchases' || itemMod === 'purchases' || tooltip.includes('purchase'))) ||
+        (activeMod === 'suppliers' && (itemId === 'nav-suppliers' || itemMod === 'suppliers' || tooltip.includes('supplier'))) ||
         (activeMod === 'delivery' && (itemId === 'nav-packages' || itemId === 'nav-delivery' || itemMod === 'delivery' || tooltip.includes('delivery'))) ||
         (activeMod === 'employees' && (itemId === 'nav-employees' || itemId === 'nav-workforce' || itemMod === 'employees' || tooltip.includes('employee'))) ||
         (activeMod === 'branches' && (itemId === 'nav-branches' || itemMod === 'branches' || tooltip.includes('branch'))) ||
@@ -280,19 +311,74 @@
 
   /* ── Tag uncompleted nav items with red glow ── */
   function markUncompletedNav() {
-    const uncompletedList = ['job-cards', 'suppliers', 'reports', 'expenses', 'profitability', 'whatsapp', 'campaigns'];
+    const uncompletedList = ['job-cards', 'reports', 'expenses', 'profitability', 'whatsapp', 'campaigns'];
     document.querySelectorAll('.nav-item').forEach(item => {
       const href = item.getAttribute('href');
       const mod = item.dataset.module;
-      const isUncompleted = href === '#' || href === '' || item.classList.contains('uncompleted') || uncompletedList.includes(mod);
+      const isUncompleted = (href === '#' || href === '' || uncompletedList.includes(mod)) && mod !== 'suppliers' && mod !== 'purchases';
       if (isUncompleted && !item.classList.contains('active')) {
         item.classList.add('uncompleted');
-        const tt = item.getAttribute('data-tooltip');
+        const tt = item.getAttribute('data-tooltip') || '';
         if (tt && !tt.includes('In Progress')) {
           item.setAttribute('data-tooltip', `${tt} (In Progress)`);
         }
+      } else {
+        item.classList.remove('uncompleted');
+        const tt = item.getAttribute('data-tooltip') || '';
+        if (tt.includes(' (In Progress)')) {
+          item.setAttribute('data-tooltip', tt.replace(' (In Progress)', ''));
+        }
       }
     });
+  }
+
+  /* ── Normalize sidebar href links based on page depth prefix ── */
+  function normalizeSidebarLinks() {
+    const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
+    const sidebar = document.getElementById('appSidebar') || document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    const moduleHrefMap = {
+      'dashboard': `${prefix}dashboard/dashboard.html`,
+      'enquiries': `${prefix}enquiries/enquiries.html`,
+      'appointments': `${prefix}appointments/appointments.html`,
+      'customers': `${prefix}customer/customer-overview/customer-overview.html`,
+      'orders': `${prefix}orders/order-overview/order-over.html`,
+      'payments': `${prefix}payments/payments.html`,
+      'garments': `${prefix}garments/garments.html`,
+      'designs': `${prefix}DesignStudio/design-studio.html`,
+      'design-studio': `${prefix}DesignStudio/design-studio.html`,
+      'measurements': `${prefix}Measurements/measurement-overview/measurement-overview.html`,
+      'fabrics': `${prefix}fabrics-materials/fabrics-materials.html`,
+      'collections': `${prefix}collections/collections.html`,
+      'production-room': `${prefix}production/production.html`,
+      'trials-alterations': `${prefix}trials-alterations/trials-alterations.html`,
+      'quality-control': `${prefix}quality-control/quality-control.html`,
+      'stock': `${prefix}inventory/inventory.html`,
+      'purchases': `${prefix}purchases/purchases.html`,
+      'delivery': `${prefix}delivery/delivery.html`,
+      'suppliers': `${prefix}suppliers/suppliers.html`,
+      'employees': `${prefix}WorkforceManagement/workforce.html`,
+      'branches': `${prefix}branches/branches.html`,
+      'company': `${prefix}company/company.html`,
+      'profile': `${prefix}profile/profile.html`,
+      'users-roles': `${prefix}users-roles/users-roles.html`,
+      'settings': `${prefix}settings/settings.html`
+    };
+
+    sidebar.querySelectorAll('.nav-item').forEach(item => {
+      const mod = item.getAttribute('data-module') || (item.id || '').replace(/^nav-/, '');
+      if (mod && moduleHrefMap[mod]) {
+        item.setAttribute('href', moduleHrefMap[mod]);
+      }
+    });
+
+    const supLink = sidebar.querySelector('#nav-suppliers, [data-module="suppliers"]');
+    if (supLink) {
+      supLink.setAttribute('href', `${prefix}suppliers/suppliers.html`);
+      supLink.classList.remove('uncompleted');
+      supLink.setAttribute('data-tooltip', 'Suppliers');
+    }
   }
 
   /* â”€â”€ Restore sidebar collapsed state â”€â”€ */
@@ -325,10 +411,14 @@
 
   // ── Fetch company settings from backend API and hydrate sidebar & navbar ──
   async function _fetchCompanyAndHydrate() {
+    if (window.CompanyBridge && typeof window.CompanyBridge.init === 'function') {
+      window.CompanyBridge.init();
+      return;
+    }
     try {
       const token = _fragmentsGetToken();
       if (!token) return;
-      const res = await fetch('http://localhost:8080/api/v1/company', {
+      const res = await fetch(`${window.HAULO_API_BASE}/company`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) return;
@@ -344,8 +434,9 @@
       // Update navbar branch selector prefix
       const selText = document.querySelector('#branchSelText, .branch-sel-text');
       if (selText && co.companyName) {
-        const savedBranch = localStorage.getItem('haulo_active_branch') || 'Main Branch';
-        selText.textContent = `${co.companyName} — ${savedBranch}`;
+        const savedBranch = localStorage.getItem('haulo_active_branch') || 'ALL';
+        const displayBranch = (savedBranch === 'ALL' || savedBranch === 'All Company Data') ? 'All Company Data' : savedBranch;
+        selText.textContent = `${co.companyName} — ${displayBranch}`;
       }
 
       if (window.CompanyBridge && typeof window.CompanyBridge.applyToDOM === 'function') {
@@ -369,8 +460,9 @@
     if (brandSubEl  && co.companyName) brandSubEl.textContent  = co.companyName;
     const selText = document.querySelector('#branchSelText, .branch-sel-text');
     if (selText && co.companyName) {
-      const savedBranch = localStorage.getItem('haulo_active_branch') || 'Main Branch';
-      selText.textContent = `${co.companyName} — ${savedBranch}`;
+      const savedBranch = localStorage.getItem('haulo_active_branch') || 'ALL';
+      const displayBranch = (savedBranch === 'ALL' || savedBranch === 'All Company Data') ? 'All Company Data' : savedBranch;
+      selText.textContent = `${co.companyName} — ${displayBranch}`;
     }
     if (window.CompanyBridge && typeof window.CompanyBridge.applyToDOM === 'function') {
       window.CompanyBridge.applyToDOM();
@@ -383,14 +475,16 @@
   // Listen for branch changes across components
   document.addEventListener('haulo:branch-changed', (e) => {
     const branch = e.detail;
-    if (!branch || !branch.name) return;
+    if (!branch) return;
+    const branchName = branch.name || (branch.id === 'ALL' ? 'All Company Data' : '');
     const selText = document.querySelector('#branchSelText, .branch-sel-text');
     if (selText) {
       if (window.CompanyBridge && typeof window.CompanyBridge.formatBranch === 'function') {
-        selText.textContent = window.CompanyBridge.formatBranch(branch.name);
+        selText.textContent = window.CompanyBridge.formatBranch(branchName);
       } else {
-        const brandSub = document.querySelector('.brand-sub')?.textContent || 'Haulo Designs';
-        selText.textContent = `${brandSub} — ${branch.name}`;
+        const brandSub = document.querySelector('.brand-sub')?.textContent || 'Boutique';
+        const displayBranch = (!branchName || branchName === 'ALL' || branchName === 'All Company Data') ? 'All Company Data' : branchName;
+        selText.textContent = `${brandSub} — ${displayBranch}`;
       }
     }
     if (window.CompanyBridge && typeof window.CompanyBridge.applyToDOM === 'function') {
@@ -598,11 +692,13 @@
     await Promise.all([
       loadFragment('sidebarSlot', 'sidebar.html'),
       loadFragment('navbarSlot', 'navbar.html'),
+      loadFragment('breadcrumbSlot', 'breadcrumbs/breadcrumbs.html'),
       loadFragment('footerSlot', 'footer.html'),
     ]);
     if (window.BrandIdentity && typeof window.BrandIdentity.applyToDOM === 'function') {
       window.BrandIdentity.applyToDOM();
     }
+    normalizeSidebarLinks();
     markActiveNav();
     markUncompletedNav();
     restoreSidebarState();
@@ -627,7 +723,16 @@
         document.querySelectorAll('.u-name').forEach(el => el.textContent = storedUser.fullName);
       }
       if (storedUser && storedUser.role) {
-        document.querySelectorAll('.u-role').forEach(el => el.textContent = storedUser.role);
+        let displayRole = storedUser.role;
+        const norm = (storedUser.role || '').toUpperCase();
+        if (norm === 'OWNER') displayRole = '👑 Boutique Owner';
+        else if (norm === 'BRANCH_ADMIN') displayRole = `🏢 Branch Admin${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
+        else if (norm === 'ADMIN') displayRole = 'Super Administrator';
+        else if (norm === 'DESIGNER') displayRole = `✂️ Designer${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
+        else if (norm === 'TAILOR') displayRole = `🪡 Master Tailor${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
+        else if (norm === 'RECEPTIONIST') displayRole = `🛎️ Receptionist${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
+        else if (norm === 'STAFF') displayRole = `Staff Member${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
+        document.querySelectorAll('.u-role').forEach(el => el.textContent = displayRole);
       }
     } catch (_) {}
 
@@ -688,6 +793,10 @@
 
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
+    }
+
+    if (window.HauloBreadcrumbs && typeof window.HauloBreadcrumbs.init === 'function') {
+      window.HauloBreadcrumbs.init();
     }
 
     // Fire a custom event so page JS can hook in after fragments load
@@ -755,11 +864,339 @@
       });
     });
 
-    // Branch selector
+    // Helper to get auth token
+    function _getAuthToken() {
+      if (window.Auth && typeof window.Auth.getToken === 'function') {
+        const t = window.Auth.getToken();
+        if (t) return t;
+      }
+      const keys = ['erp_token', 'haulo_token', 'fashion_erp_token'];
+      for (const k of keys) {
+        const t = sessionStorage.getItem(k) || localStorage.getItem(k);
+        if (t) {
+          try {
+            const p = JSON.parse(atob(t.split('.')[1]));
+            if (!p.exp || p.exp * 1000 > Date.now()) return t;
+          } catch (_) {}
+        }
+      }
+      return null;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function syncNavbarBranches(topBarEl) {
+      if (!topBarEl) topBarEl = document.getElementById('appTopBar') || document.querySelector('.top-bar');
+      if (!topBarEl) return;
+
+      const branchSel = topBarEl.querySelector('#branchSel');
+      const branchDd = topBarEl.querySelector('#branchDd');
+      if (!branchSel || !branchDd) return;
+
+      const selText = branchSel.querySelector('.branch-sel-text, #branchSelText');
+      const branchListEl = branchDd.querySelector('#branchDdList') || branchDd;
+      const manageLink = branchDd.querySelector('#branchManageLink');
+      if (manageLink) {
+        manageLink.href = `${BASE}../branches/branches.html`;
+      }
+
+      function updateTopBarText(branchName) {
+        if (!selText) return;
+        if (window.CompanyBridge && typeof window.CompanyBridge.formatBranch === 'function') {
+          selText.textContent = window.CompanyBridge.formatBranch(branchName);
+        } else {
+          const brandSub = document.querySelector('.brand-sub')?.textContent || 'Boutique';
+          if (!branchName || branchName === 'ALL' || branchName === 'All Company Data') {
+            selText.textContent = `${brandSub} — All Company Data`;
+          } else {
+            selText.textContent = `${brandSub} — ${branchName}`;
+          }
+        }
+      }
+
+      try {
+        let branches = [];
+        const token = _getAuthToken();
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(`${getApiBase()}/branches?active=true&size=100`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          branches = Array.isArray(data) ? data : (data.content || []);
+        }
+
+        const storedUser = (() => {
+          try {
+            return JSON.parse(sessionStorage.getItem('erp_user') || localStorage.getItem('erp_user') || 'null');
+          } catch { return null; }
+        })();
+        const role = (storedUser && storedUser.role) ? storedUser.role.replace('ROLE_', '').toUpperCase() : '';
+        const isOwner = (role === 'OWNER' || role === 'ADMIN');
+        let allowedBranches = (storedUser && Array.isArray(storedUser.allowedBranches) && storedUser.allowedBranches.length > 0)
+          ? storedUser.allowedBranches
+          : (storedUser && storedUser.assignedBranch ? [storedUser.assignedBranch] : []);
+
+        const isSingleBranch = !isOwner && (allowedBranches.length <= 1);
+        const isMultiBranch = !isOwner && (allowedBranches.length > 1);
+
+        const chevron = branchSel.querySelector('.branch-chevron');
+        const lockIcon = branchSel.querySelector('.branch-lock-icon');
+
+        if (isSingleBranch) {
+          const singleBranchName = allowedBranches[0] || storedUser?.assignedBranch || 'Main Branch';
+          branchSel.classList.add('locked');
+          branchSel.setAttribute('title', `Assigned Branch: ${singleBranchName} (Locked)`);
+          branchSel.setAttribute('aria-disabled', 'true');
+          if (chevron) chevron.style.display = 'none';
+          if (lockIcon) lockIcon.style.display = 'inline-block';
+          branchDd.style.display = 'none';
+          branchDd.classList.remove('open');
+
+          try {
+            localStorage.setItem('haulo_active_branch', singleBranchName);
+            localStorage.setItem('haulo_active_branch_id', singleBranchName);
+          } catch (_) {}
+          updateTopBarText(singleBranchName);
+          return;
+        }
+
+        branchSel.classList.remove('locked');
+        branchSel.removeAttribute('aria-disabled');
+        branchSel.setAttribute('title', isOwner ? 'Switch Branch / View' : 'Switch Assigned Branch');
+        if (chevron) chevron.style.display = '';
+        if (lockIcon) lockIcon.style.display = 'none';
+        branchDd.style.display = '';
+
+        // Read saved active branch
+        let savedName = localStorage.getItem('haulo_active_branch');
+        let savedId = localStorage.getItem('haulo_active_branch_id');
+
+        let displayBranches = branches;
+        if (isMultiBranch) {
+          const allowedLower = allowedBranches.map(b => b.toLowerCase().trim());
+          displayBranches = branches.filter(b => 
+            allowedLower.includes((b.name || '').toLowerCase().trim()) ||
+            allowedLower.includes((b.branchCode || '').toLowerCase().trim()) ||
+            allowedLower.includes((b.id || '').toLowerCase().trim())
+          );
+
+          if (displayBranches.length === 0 && allowedBranches.length > 0) {
+            displayBranches = allowedBranches.map((name, i) => ({
+              id: `custom-${i}`,
+              name: name,
+              branchCode: `BRN-${i+1}`
+            }));
+          }
+
+          const matchesAllowed = displayBranches.some(b => b.id === savedId || (b.name && b.name.toLowerCase() === (savedName || '').toLowerCase()));
+          if (!savedName || savedName === 'ALL' || savedName === 'All Company Data' || !matchesAllowed) {
+            savedName = displayBranches[0]?.name || allowedBranches[0];
+            savedId = displayBranches[0]?.id || savedName;
+            try {
+              localStorage.setItem('haulo_active_branch', savedName);
+              localStorage.setItem('haulo_active_branch_id', savedId);
+            } catch (_) {}
+          }
+        } else {
+          const matchesBranch = branches.some(b => b.id === savedId || (b.name && b.name.toLowerCase() === (savedName || '').toLowerCase()));
+          if (!savedName || (!matchesBranch && savedName !== 'ALL' && savedName !== 'All Company Data')) {
+            savedName = 'ALL';
+            savedId = 'ALL';
+            try {
+              localStorage.setItem('haulo_active_branch', 'ALL');
+              localStorage.setItem('haulo_active_branch_id', 'ALL');
+              localStorage.removeItem('haulo_active_branch_code');
+            } catch (_) {}
+          }
+        }
+
+        const isAllActive = isOwner && (savedName === 'ALL' || savedName === 'All Company Data' || !savedName);
+        updateTopBarText(isAllActive ? 'ALL' : savedName);
+
+        if (manageLink) {
+          manageLink.style.display = isOwner ? 'flex' : 'none';
+        }
+
+        let html = '';
+        if (isOwner) {
+          html += `
+            <div class="dd-item company-all-item ${isAllActive ? 'active' : ''}" 
+                 data-branch="ALL" 
+                 data-branch-id="ALL">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:${isAllActive ? '1' : '0'};"><polyline points="20 6 9 17 4 12"/></svg>
+              <div class="branch-item-body">
+                <div class="branch-item-top">
+                  <span class="branch-item-name" style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:12px;">🏢</span> All Company Data
+                  </span>
+                  <span class="branch-pill-company">All Branches</span>
+                </div>
+                <div class="branch-item-meta">
+                  <span>Consolidated company-wide view</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        html += `<div class="branch-dd-section-title">${isOwner ? 'BRANCHES' : 'YOUR ASSIGNED BRANCHES'}</div>`;
+
+        if (displayBranches && displayBranches.length > 0) {
+          html += displayBranches.map(b => {
+            const isAct = !isAllActive && (savedId === b.id || (savedName && b.name && b.name.toLowerCase() === savedName.toLowerCase()));
+            const isHq = !!(b.isHeadquarters || b.headquarters);
+            const typeLabel = b.type ? (b.type.charAt(0).toUpperCase() + b.type.slice(1).toLowerCase()) : '';
+            const metaInfo = [b.city, typeLabel].filter(Boolean).join(' • ');
+
+            return `
+              <div class="dd-item ${isAct ? 'active' : ''}" 
+                   data-branch="${escapeHtml(b.name)}" 
+                   data-branch-id="${b.id}"
+                   data-branch-code="${escapeHtml(b.branchCode || '')}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:${isAct ? '1' : '0'};"><polyline points="20 6 9 17 4 12"/></svg>
+                <div class="branch-item-body">
+                  <div class="branch-item-top">
+                    <span class="branch-item-name">${escapeHtml(b.name)}</span>
+                    ${isHq ? '<span class="branch-pill-hq">HQ</span>' : ''}
+                  </div>
+                  ${(metaInfo || b.branchCode) ? `
+                    <div class="branch-item-meta">
+                      ${b.branchCode ? `<span class="branch-code-badge">${escapeHtml(b.branchCode)}</span>` : ''}
+                      <span>${escapeHtml(metaInfo)}</span>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          html += '<div class="branch-empty-state">No individual branches assigned</div>';
+        }
+
+        branchListEl.innerHTML = html;
+
+        // Click listeners for items
+        branchListEl.querySelectorAll('.dd-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const bId = item.getAttribute('data-branch-id');
+            const bName = item.getAttribute('data-branch');
+            const bCode = item.getAttribute('data-branch-code');
+
+            branchListEl.querySelectorAll('.dd-item').forEach(i => {
+              i.classList.remove('active');
+              const chk = i.querySelector('.branch-check');
+              if (chk) chk.style.opacity = '0';
+            });
+            item.classList.add('active');
+            const chk = item.querySelector('.branch-check');
+            if (chk) {
+              chk.style.opacity = '1';
+              chk.style.color = 'var(--nav-lime)';
+            }
+
+            let evtDetail;
+            if (bId === 'ALL') {
+              try {
+                localStorage.setItem('haulo_active_branch', 'ALL');
+                localStorage.setItem('haulo_active_branch_id', 'ALL');
+                localStorage.removeItem('haulo_active_branch_code');
+              } catch (_) {}
+              updateTopBarText('ALL');
+              evtDetail = { id: 'ALL', name: 'All Company Data', isAll: true, isCompanyWide: true };
+            } else {
+              const clickedBranch = branches.find(b => b.id === bId) || { id: bId, name: bName, branchCode: bCode };
+              try {
+                localStorage.setItem('haulo_active_branch', clickedBranch.name);
+                localStorage.setItem('haulo_active_branch_id', clickedBranch.id);
+                if (clickedBranch.branchCode) {
+                  localStorage.setItem('haulo_active_branch_code', clickedBranch.branchCode);
+                }
+              } catch (_) {}
+              updateTopBarText(clickedBranch.name);
+              evtDetail = {
+                id: clickedBranch.id,
+                name: clickedBranch.name,
+                branchCode: clickedBranch.branchCode,
+                branch: clickedBranch,
+                isAll: false,
+                isCompanyWide: false
+              };
+            }
+
+            if (window.CompanyBridge && typeof window.CompanyBridge.applyToDOM === 'function') {
+              window.CompanyBridge.applyToDOM();
+            }
+
+            branchDd.classList.remove('open');
+            branchSel.classList.remove('active');
+            branchSel.setAttribute('aria-expanded', 'false');
+
+            window.dispatchEvent(new CustomEvent('haulo:branch-changed', { detail: evtDetail }));
+            document.dispatchEvent(new CustomEvent('haulo:branch-changed', { detail: evtDetail }));
+
+            try {
+              if (window.BroadcastChannel) {
+                const bc = new BroadcastChannel('haulo_branches');
+                bc.postMessage({ type: 'BRANCH_CHANGED', payload: evtDetail });
+                bc.close();
+              }
+            } catch (_) {}
+
+            // Refresh the project so all active queries, metrics, and page tables reload with the new branch/company data context
+            setTimeout(() => {
+              window.location.reload();
+            }, 60);
+          });
+        });
+
+      } catch (err) {
+        console.warn('Branch sync error:', err);
+        branchListEl.innerHTML = `
+          <div class="dd-item company-all-item active" data-branch="ALL" data-branch-id="ALL">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:1;"><polyline points="20 6 9 17 4 12"/></svg>
+            <div class="branch-item-body">
+              <div class="branch-item-top">
+                <span class="branch-item-name" style="display:flex;align-items:center;gap:6px;">
+                  <span style="font-size:12px;">🏢</span> All Company Data
+                </span>
+                <span class="branch-pill-company">All Branches</span>
+              </div>
+              <div class="branch-item-meta"><span>Consolidated company-wide view</span></div>
+            </div>
+          </div>
+        `;
+        const fbItem = branchListEl.querySelector('.dd-item');
+        if (fbItem) {
+          fbItem.addEventListener('click', (e) => {
+            e.stopPropagation();
+            try {
+              localStorage.setItem('haulo_active_branch', 'ALL');
+              localStorage.setItem('haulo_active_branch_id', 'ALL');
+              localStorage.removeItem('haulo_active_branch_code');
+            } catch (_) {}
+            setTimeout(() => { window.location.reload(); }, 60);
+          });
+        }
+        updateTopBarText('ALL');
+      }
+    }
+
+    // Branch selector dropdown toggle
     const branchSel = topBar.querySelector('#branchSel');
     const branchDd = topBar.querySelector('#branchDd');
     if (branchSel && branchDd) {
       branchSel.addEventListener('click', (e) => {
+        if (branchSel.classList.contains('locked')) return;
         if (e.target.closest('#branchDd')) return;
         e.stopPropagation();
         const isOpen = branchDd.classList.contains('open');
@@ -771,10 +1208,13 @@
         }
       });
 
-      if (window.Nav && typeof window.Nav.syncNavbarBranches === 'function') {
-        window.Nav.syncNavbarBranches(topBar);
-      }
+      // Synchronize branches
+      syncNavbarBranches(topBar);
     }
+
+    window.syncNavbarBranches = syncNavbarBranches;
+    window.Nav = window.Nav || {};
+    window.Nav.syncNavbarBranches = syncNavbarBranches;
 
     // Notifications Integration with Dynamic NotificationCenter
     const notifBtn = topBar.querySelector('#notifBtn');
@@ -904,7 +1344,7 @@ function navNavigate(module, event) {
     'packages': `${prefix}delivery/delivery.html`,
     'delivery': `${prefix}delivery/delivery.html`,
     'purchases': `${prefix}purchases/purchases.html`,
-    'suppliers': null,
+    'suppliers': `${prefix}suppliers/suppliers.html`,
     'reports': null,
     'expenses': null,
     'profitability': null,

@@ -30,6 +30,14 @@ public class BranchDto {
         private String workingHours;
         private String features;
         private String notes;
+
+        // Branch Administrator Account Provisioning (Default root user for this branch)
+        private Boolean createDefaultAdmin;
+        private String adminUsername;
+        private String adminFullName;
+        private String adminPassword;
+        private String adminEmail;
+        private String adminPhone;
     }
 
     @Getter
@@ -53,13 +61,20 @@ public class BranchDto {
         private boolean active;
         private boolean isHeadquarters;
         private UUID managerId;
+        private String managerName;
         private String workingHours;
         private String features;
         private String notes;
+        private String provisionedAdminUsername;
+        private String provisionedAdminPassword;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
         public static Response from(Branch b) {
+            return from(b, null, null, null);
+        }
+
+        public static Response from(Branch b, String provisionedAdminUsername, String provisionedAdminPassword, String managerName) {
             return Response.builder()
                 .id(b.getId())
                 .branchCode(b.getBranchCode())
@@ -78,6 +93,9 @@ public class BranchDto {
                 .active(b.isActive())
                 .isHeadquarters(b.isHeadquarters())
                 .managerId(b.getManagerId())
+                .managerName(managerName)
+                .provisionedAdminUsername(provisionedAdminUsername)
+                .provisionedAdminPassword(provisionedAdminPassword)
                 .workingHours(b.getWorkingHours())
                 .features(b.getFeatures())
                 .notes(b.getNotes())

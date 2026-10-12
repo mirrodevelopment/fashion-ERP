@@ -100,6 +100,7 @@ public class TrialDto {
         private LocalDateTime completedAt;
         private String completedBy;
         private List<AlterationItem> alterations;
+        private String branch;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
@@ -132,6 +133,7 @@ public class TrialDto {
                     .id(t.getId())
                     .trialCode(t.getTrialCode())
                     .orderCode(t.getOrderCode())
+                    .branch(t.getBranch())
                     .customerMobile(mobile)
                     .customerName(name)
                     .customerEmail(email)

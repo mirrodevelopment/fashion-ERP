@@ -25,23 +25,12 @@
   };
 
   function parseFitCheckpoints(raw) {
-    const defaultCheckpoints = {
-      "Neck": "PERFECT",
-      "Chest / Bust": "PERFECT",
-      "Waist": "PERFECT",
-      "Hip": "PERFECT",
-      "Shoulders": "PERFECT",
-      "Armhole": "PERFECT",
-      "Sleeves": "PERFECT",
-      "Total Length": "PERFECT"
-    };
-    if (!raw) return defaultCheckpoints;
-    if (typeof raw === 'object') return { ...defaultCheckpoints, ...raw };
+    if (!raw) return {};
+    if (typeof raw === 'object') return raw;
     try {
-      const parsed = JSON.parse(raw);
-      return { ...defaultCheckpoints, ...parsed };
+      return JSON.parse(raw) || {};
     } catch (e) {
-      return defaultCheckpoints;
+      return {};
     }
   }
 
@@ -68,7 +57,73 @@
     }
   }
 
-  // ── Load Trials from API ──
+  // ── Luxury Boutique Human-Readable Formatters (Zero Raw Code Values) ──
+  function formatDisplayDate(val) {
+    if (!val || val === '—' || val === 'null' || val === 'undefined') return '—';
+    const s = String(val).trim();
+    if (/^\d{2}\s+[A-Za-z]{3}\s+\d{4}$/.test(s)) return s;
+    try {
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return s;
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (_) {
+      return s;
+    }
+  }
+
+  function formatDisplayTime(val) {
+    if (!val || val === '—' || val === 'null' || val === 'undefined') return '—';
+    const s = String(val).trim();
+    if (/^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(s)) return s;
+    if (/^\d{1,2}:\d{2}/.test(s)) {
+      const parts = s.split(':');
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) || 0;
+      const period = h >= 12 ? 'PM' : 'AM';
+      const hours12 = h % 12 || 12;
+      return `${String(hours12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
+    }
+    return s;
+  }
+
+  function formatDisplayStatus(statusRaw, dateStr) {
+    if (!statusRaw) return 'Upcoming';
+    const s = String(statusRaw).toUpperCase().replace(/[\s_-]+/g, '');
+    if (s === 'TODAY') return 'Today';
+    if (s === 'OVERDUE') return 'Overdue';
+    if (s === 'UPCOMING') return 'Upcoming';
+    if (s === 'SCHEDULED' || s === 'READYFORTRIAL') {
+      if (dateStr) {
+        const d = new Date(dateStr);
+        const now = new Date();
+        if (!isNaN(d.getTime())) {
+          if (d.toDateString() === now.toDateString()) return 'Today';
+          if (d < now) return 'Overdue';
+          return 'Upcoming';
+        }
+      }
+      return 'Upcoming';
+    }
+    if (s === 'COMPLETED' || s === 'DONE') return 'Completed';
+    return String(statusRaw).charAt(0).toUpperCase() + String(statusRaw).slice(1).toLowerCase();
+  }
+
+  function formatDisplayGarment(garmentRaw) {
+    if (!garmentRaw || garmentRaw === '—' || garmentRaw === 'null') return '—';
+    const g = String(garmentRaw).replace(/_/g, ' ').toLowerCase();
+    return g.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+
+  function formatDisplayStage(stageRaw) {
+    if (!stageRaw || stageRaw === '—' || stageRaw === 'null') return 'Trial';
+    const s = String(stageRaw).toUpperCase().replace(/[\s_-]+/g, '');
+    if (s.includes('TRIAL') || s.includes('FITTING')) return 'Trial';
+    if (s.includes('ALTER')) return 'Alteration';
+    if (s.includes('COMPLETE') || s.includes('READY')) return 'Completed';
+    return String(stageRaw).charAt(0).toUpperCase() + String(stageRaw).slice(1).toLowerCase();
+  }
+
+  // Master dataset loaded exclusively from PostgreSQL database via API
   async function loadTrialsFromApi() {
     try {
       const { default: api, Auth } = await import('../api.js');
@@ -80,70 +135,67 @@
       const res = await api.trials.list({ page: 0, size: 50 }).catch(() => null);
       const items = Array.isArray(res) ? res : (res?.content || []);
 
-      if (items.length > 0) {
-        TRIALS_DATA.length = 0;
-        items.forEach(t => {
+      if (items && items.length > 0) {
+        TRIALS_DATA = items.map(t => {
           const rawFit = (t.fitStatus || '').toUpperCase();
-          let initialFit = 'minor';
+          let initialFit = null;
           if (rawFit === 'PERFECT') initialFit = 'perfect';
           else if (rawFit === 'MINOR' || rawFit === 'ALTERATIONS_NEEDED') initialFit = 'minor';
           else if (rawFit === 'MAJOR') initialFit = 'major';
           else if (rawFit === 'RETRIAL') initialFit = 'retrial';
           else if ((t.status || '').toUpperCase() === 'COMPLETED') initialFit = 'perfect';
           else if ((t.alterations || []).length > 0) initialFit = 'minor';
-          else initialFit = 'perfect';
 
           const alts = (t.alterations || []).map((a, i) => ({
-            id: a.id ? String(a.id) : ('ALT-' + i),
+            id: a.id ? String(a.id) : ('ALT-' + (i + 1)),
             dbId: a.id || null,
-            desc: a.description || a.desc || a,
+            desc: a.description || a.desc || '',
             category: a.category || 'General',
             checked: a.completed || a.checked || false,
-            assignedTailor: a.assignedTailor || 'Master Tailor',
+            assignedTailor: a.assignedTailor || '—',
             priority: a.priority || 'Normal',
-            targetDate: a.targetDate || '',
+            targetDate: formatDisplayDate(a.targetDate),
             tailorNotes: a.tailorNotes || ''
           }));
 
-          const references = (Array.isArray(t.referenceImages) && t.referenceImages.length > 0)
-            ? t.referenceImages
-            : [];
+          const references = Array.isArray(t.referenceImages) ? t.referenceImages : [];
 
-          TRIALS_DATA.push({
-            id: t.id || t.trialId || ('TRIAL-' + Date.now()),
-            trialCode: t.trialCode || '',
-            orderId: t.orderCode || t.orderId || '',
+          const custName = t.customerName || t.customer?.name || '—';
+          const custImg = t.customerAvatar || t.customer?.avatarUrl || '';
+
+          return {
+            id: String(t.id || t.trialId || ''),
+            trialCode: t.trialCode || '—',
+            orderId: t.orderCode || t.orderId || '—',
             trialAttempt: t.trialAttempt != null ? t.trialAttempt : 1,
             alterationCount: t.alterationCount != null ? t.alterationCount : alts.length,
             customerFeedback: t.customerFeedback || '',
-            customerRating: t.customerRating != null ? t.customerRating : 5,
-            fitPreference: t.fitPreference || 'Comfort / Regular Fit',
+            customerRating: t.customerRating != null ? t.customerRating : null,
+            fitPreference: t.fitPreference || t.customer?.fitPreference || '—',
             fitCheckpoints: parseFitCheckpoints(t.fitCheckpoints),
             fitNotes: t.fitNotes || '',
             customer: {
-              name: t.customerName || t.customer?.name || '—',
-              phone: t.customerMobile || t.customer?.phone || '—',
-              email: t.customerEmail || '—',
-              location: t.customerLocation || '—',
-              vip: t.vip || false,
-              image: t.customerAvatar || ''
+              name: custName,
+              phone: t.customerMobile || t.customer?.mobileNumber || t.customer?.phone || '',
+              email: t.customerEmail || t.customer?.email || '',
+              location: t.customerLocation || t.customer?.location || '',
+              vip: t.vip != null ? Boolean(t.vip) : (t.customer?.tier ? String(t.customer.tier).startsWith('VIP') : false),
+              image: custImg
             },
             garment: {
-              type: t.garmentType || '—',
-              collection: t.collection || ''
+              type: formatDisplayGarment(t.garmentType || '—'),
+              collection: t.collection || '—'
             },
             trial: {
-              date: t.trialDate || t.appointmentDate || '—',
-              time: t.trialTime || t.appointmentTime || '',
+              date: formatDisplayDate(t.trialDate || t.appointmentDate),
+              time: formatDisplayTime(t.trialTime || t.appointmentTime),
               rawDate: t.trialDate || '',
-              status: t.status || t.trialStatus || 'Scheduled',
+              status: formatDisplayStatus(t.status || t.trialStatus, t.trialDate),
               fitStatus: initialFit
             },
             designer: t.designerName || t.staffName || '—',
-            deliveryDate: t.deliveryDate || '',
-            sendProdDate: null,
-            expectedCompDate: null,
-            nextTrialDate: null,
+            deliveryDate: formatDisplayDate(t.deliveryDate),
+            stage: formatDisplayStage(t.stage),
             specs: {
               neck: t.neckStyle || '—',
               sleeve: t.sleeveStyle || '—',
@@ -155,48 +207,43 @@
             references: references,
             alterations: alts,
             additionalNotes: t.notes || '',
+            nextSteps: {
+              sendProd: formatDisplayDate(t.trialDate),
+              expectedComp: formatDisplayDate(alts?.[0]?.targetDate || t.nextTrialDate),
+              nextTrial: formatDisplayDate(t.nextTrialDate),
+              finalDeliv: formatDisplayDate(t.deliveryDate)
+            },
             measurements: {},
             fullMeasurements: [],
             _measurementsLoaded: false,
             previousTrials: [],
-            notes: t.notes ? [
-              {
-                text: t.notes,
-                author: t.designerName || t.staffName || 'Staff',
-                date: t.trialDate || 'Consultation'
-              }
-            ] : [],
-            history: [
-              {
-                action: `Trial Session (Attempt #${t.trialAttempt || 1} • ${t.stage || 'Fitting Stage'})`,
-                time: t.trialDate || 'Scheduled',
-                staff: t.designerName || t.staffName || 'Staff'
-              }
-            ]
-          });
+            notes: t.notes ? [{ text: t.notes, author: t.designerName || t.staffName || '', date: formatDisplayDate(t.trialDate) }] : [],
+            history: t.trialDate ? [{ action: `Trial Session (Attempt #${t.trialAttempt || 1} • Fitting Stage)`, time: formatDisplayDate(t.trialDate), staff: t.designerName || t.staffName || '' }] : []
+          };
         });
 
-        // Link real previous trials for the same order
-        TRIALS_DATA.forEach(cur => {
-          const prior = TRIALS_DATA.filter(o => o.orderId && o.orderId === cur.orderId && o.id !== cur.id);
-          if (prior.length > 0) {
-            cur.previousTrials = prior.map(p => ({
-              date: p.trial.date || p.trial.rawDate || 'Previous Session',
-              attempt: p.trialAttempt || 1,
-              result: p.trial.fitStatus === 'perfect' ? 'Perfect Fit' :
-                      p.trial.fitStatus === 'major' ? 'Major Alterations' :
-                      p.trial.fitStatus === 'retrial' ? 'Re-trial Required' : 'Minor Alterations',
-              alterations: p.alterations && p.alterations.length > 0
-                ? p.alterations.map(a => `${a.desc} [${a.assignedTailor || 'Tailor'}]`).join('; ')
-                : (p.additionalNotes || 'Fit assessed.'),
-              tailor: (p.designer && p.designer !== '—') ? p.designer : 'Tailor'
-            }));
-          }
+        // Dynamic sorting: Today trials first, then chronologically by date
+        TRIALS_DATA.sort((a, b) => {
+          const isTodayA = (a.trial.status || '').toLowerCase() === 'today';
+          const isTodayB = (b.trial.status || '').toLowerCase() === 'today';
+          if (isTodayA && !isTodayB) return -1;
+          if (!isTodayA && isTodayB) return 1;
+          const dateA = a.trial.rawDate ? new Date(a.trial.rawDate).getTime() : 0;
+          const dateB = b.trial.rawDate ? new Date(b.trial.rawDate).getTime() : 0;
+          return dateB - dateA;
         });
+      } else {
+        TRIALS_DATA = [];
+      }
 
-        if (TRIALS_DATA.length > 0) {
+      // Default selection is first trial
+      if (TRIALS_DATA.length > 0) {
+        if (!state.selectedTrialId || !TRIALS_DATA.some(d => d.id === state.selectedTrialId)) {
           state.selectedTrialId = TRIALS_DATA[0].id;
-          loadMeasurementsForTrial(TRIALS_DATA[0]);
+        }
+        const active = getActiveTrial();
+        if (active && !active._measurementsLoaded) {
+          loadMeasurementsForTrial(active);
         }
       }
 
@@ -214,7 +261,9 @@
         console.warn('[TrialsAlterations] Employee load error:', empErr.message);
       }
     } catch (err) {
-      console.warn('[TrialsAlterations] API load error:', err.message);
+      console.warn('[TrialsAlterations] Database API load error:', err.message);
+      TRIALS_DATA = [];
+      state.selectedTrialId = null;
     } finally {
       renderTrialList();
       renderTrialDetails();
@@ -235,10 +284,10 @@
       if (list && list.length > 0) {
         const gType = (trial.garment.type || '').toUpperCase();
         let matched = list.find(m => gType.includes(m.garmentType)) ||
-                      list.find(m => m.garmentType === 'BLOUSE' && (gType.includes('SAREE') || gType.includes('BLOUSE'))) ||
-                      list.find(m => m.garmentType === 'CHUDI' && (gType.includes('KURTI') || gType.includes('SUIT') || gType.includes('ANARKALI'))) ||
-                      list.find(m => m.garmentType === 'LEHENGA' && gType.includes('LEHENGA')) ||
-                      list[0];
+          list.find(m => m.garmentType === 'BLOUSE' && (gType.includes('SAREE') || gType.includes('BLOUSE'))) ||
+          list.find(m => m.garmentType === 'CHUDI' && (gType.includes('KURTI') || gType.includes('SUIT') || gType.includes('ANARKALI'))) ||
+          list.find(m => m.garmentType === 'LEHENGA' && gType.includes('LEHENGA')) ||
+          list[0];
 
         if (matched) {
           const u = matched.unit === 'in' ? '"' : (matched.unit ? ` ${matched.unit}` : '"');
@@ -372,9 +421,9 @@
   // ── Update Dynamic Counts on Filter Pills ──
   function updateFilterCounts() {
     const total = TRIALS_DATA.length;
-    const todayCount = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'today').length;
-    const overdueCount = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'overdue').length;
-    const weekCount = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() !== 'overdue').length;
+    const todayCount = TRIALS_DATA.filter(t => (t.trial?.status || '').toLowerCase() === 'today').length;
+    const overdueCount = TRIALS_DATA.filter(t => (t.trial?.status || '').toLowerCase() === 'overdue').length;
+    const weekCount = TRIALS_DATA.filter(t => (t.trial?.status || '').toLowerCase() === 'upcoming' || (t.trial?.status || '').toLowerCase() === 'scheduled').length;
 
     const elAll = document.getElementById('countAll');
     if (elAll) elAll.textContent = total;
@@ -429,32 +478,33 @@
 
     container.innerHTML = filtered.map(item => {
       const isSelected = item.id === state.selectedTrialId;
-      const statusClass = (item.trial.status || 'scheduled').toLowerCase().replace(/\s+/g, '-');
+      const statusText = item.trial.status || 'Upcoming';
+      const statusClass = statusText.toLowerCase();
+
+      const avatarHtml = item.customer.image
+        ? `<img src="${item.customer.image}" alt="${item.customer.name}" class="trial-avatar-img" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'haulo-patron-avatar-initials haulo-avatar-sm\\' style=\\'width:44px;height:44px;border-radius:10px;\\'>${item.customer.name.split(' ').map(n=>n[0]).join('').substring(0,2)}</div>';" />`
+        : `<div class="haulo-patron-avatar-initials haulo-avatar-sm" style="width:44px;height:44px;border-radius:10px;">${item.customer.name.split(' ').map(n=>n[0]).join('').substring(0,2)}</div>`;
 
       return `
         <div class="trial-item ${isSelected ? 'selected' : ''}" 
              data-trial-code="${item.trialCode || ''}" 
              onclick="window.selectTrial('${item.id}')">
-          <div class="trial-item-avatar-col">
-            ${typeof window.renderPatronAvatarHtml === 'function'
-              ? window.renderPatronAvatarHtml(item.customer.name, item.customer.image, 'haulo-avatar-sm', 'width:38px;height:38px;border-radius:10px;')
-              : `<div class="haulo-patron-avatar-initials haulo-avatar-sm" style="width:38px;height:38px;border-radius:10px;">${typeof window.getPatronInitials === 'function' ? window.getPatronInitials(item.customer.name) : 'CU'}</div>`}
+          <div class="trial-item-left">
+            <div class="trial-avatar-box">
+              ${avatarHtml}
+            </div>
+            <div class="trial-info-text">
+              <div class="trial-customer-name" title="${item.customer.name}">${item.customer.name}</div>
+              <div class="trial-garment-name" title="${item.garment.type}">${item.garment.type}</div>
+              <div class="trial-order-id">${item.orderId}</div>
+            </div>
           </div>
-          <div class="trial-item-body">
-            <div class="trial-row-top">
-              <span class="trial-customer-name" title="${item.customer.name}">${item.customer.name}</span>
-              <span class="status-badge-sm ${statusClass}">${item.trial.status}</span>
+          <div class="trial-item-right">
+            <div class="trial-datetime-group">
+              <span class="trial-date-text">${item.trial.date}</span>
+              <span class="trial-time-text">${item.trial.time}</span>
             </div>
-            <div class="trial-row-garment" title="${item.garment.type}">${item.garment.type}</div>
-            <div class="trial-row-meta">
-              <span class="trial-order-chip">${item.orderId}</span>
-              <span class="trial-meta-dot">&bull;</span>
-              <span class="trial-schedule-info">
-                <i data-lucide="clock" class="mini-icon"></i>
-                <span>${item.trial.date}</span>
-                <span class="trial-schedule-time">${item.trial.time}</span>
-              </span>
-            </div>
+            <span class="status-badge-sm ${statusClass}">${statusText}</span>
           </div>
         </div>
       `;
@@ -516,13 +566,16 @@
     // 1. Customer Card & Order Meta (Universal Patron Engine)
     const avatarBox = document.getElementById('detailCustomerAvatarBox');
     if (avatarBox) {
-      if (typeof window.applyPatronAvatarElement === 'function') {
-        window.applyPatronAvatarElement(avatarBox, trial.customer.name, trial.customer.image, 'haulo-avatar-md', 'width:48px;height:48px;border-radius:12px;');
-      } else if (typeof window.renderPatronAvatarHtml === 'function') {
-        avatarBox.innerHTML = window.renderPatronAvatarHtml(trial.customer.name, trial.customer.image, 'haulo-avatar-md', 'width:48px;height:48px;border-radius:12px;');
+      if (trial.customer && trial.customer.image) {
+        avatarBox.innerHTML = `
+          <img src="${trial.customer.image}" 
+               alt="${trial.customer.name}" 
+               style="width:100%;height:100%;object-fit:cover;border-radius:14px;display:block;"
+               onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'haulo-patron-avatar-initials\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;background:#3f3f46;border-radius:14px;\\'>${(trial.customer.name||'CU').split(' ').map(n=>n[0]).join('').substring(0,2)}</div>';" />
+        `;
       } else {
         const inits = typeof window.getPatronInitials === 'function' ? window.getPatronInitials(trial.customer.name) : 'CU';
-        avatarBox.innerHTML = `<div class="haulo-patron-avatar-initials haulo-avatar-md" style="width:48px;height:48px;border-radius:12px;">${inits}</div>`;
+        avatarBox.innerHTML = `<div class="haulo-patron-avatar-initials" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;background:#3f3f46;border-radius:14px;">${inits}</div>`;
       }
     }
 
@@ -558,7 +611,7 @@
     if (designerEl) designerEl.textContent = trial.designer;
 
     const stageEl = document.getElementById('detailStage');
-    if (stageEl) stageEl.textContent = (trial.trial.status || '').toLowerCase() === 'completed' ? 'Completed' : 'Trial & Fitting';
+    if (stageEl) stageEl.textContent = trial.stage || 'Trial';
 
     // 2. Garment Specifications
     const specNeck = document.getElementById('specNeck');
@@ -604,36 +657,25 @@
       return dateObj.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
     }
 
-    const isFitApproved = trial.trial.fitStatus === 'perfect';
-
+    // 7. Dynamic Milestone Dates for Next Steps
     const stepSendProd = document.getElementById('stepSendProd');
     if (stepSendProd) {
-      stepSendProd.textContent = isFitApproved
-        ? 'Not required (Fit Approved)'
-        : (trial.sendProdDate ? formatDisplayDate(trial.sendProdDate) : '—');
+      stepSendProd.textContent = trial.nextSteps?.sendProd || '—';
     }
 
     const stepExp = document.getElementById('stepExpectedComp');
     if (stepExp) {
-      stepExp.textContent = isFitApproved
-        ? 'Ready for Final Pressing'
-        : (trial.expectedCompDate ? formatDisplayDate(trial.expectedCompDate) : '—');
+      stepExp.textContent = trial.nextSteps?.expectedComp || '—';
     }
 
     const stepNext = document.getElementById('stepNextTrial');
     if (stepNext) {
-      if (trial.trial.fitStatus === 'retrial') {
-        stepNext.textContent = trial.nextTrialDate ? formatDisplayDate(trial.nextTrialDate) : 'To be scheduled';
-      } else if (trial.trial.fitStatus === 'minor' || trial.trial.fitStatus === 'major') {
-        stepNext.textContent = 'Optional on request';
-      } else {
-        stepNext.textContent = 'Not required (Fit Approved)';
-      }
+      stepNext.textContent = trial.nextSteps?.nextTrial || '—';
     }
 
     const stepFinal = document.getElementById('stepFinalDeliv');
     if (stepFinal) {
-      stepFinal.textContent = trial.deliveryDate ? formatDisplayDate(trial.deliveryDate) : '—';
+      stepFinal.textContent = trial.nextSteps?.finalDeliv || '—';
     }
 
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -724,10 +766,10 @@
       <div style="margin-bottom: 12px; padding: 10px 14px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: var(--radius-inner);">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:12px; font-weight:700; color:#c084fc;">Current Session: Attempt #${attempt} ${attempt > 1 ? `(Re-trial ×${attempt - 1})` : '(First Fitting)'}</span>
-          <span style="font-size:11px; color:#fbbf24; font-weight:600;">Rating: ${trial.customerRating || 5} ★</span>
+          <span style="font-size:11px; color:#fbbf24; font-weight:600;">Rating: ${trial.customerRating != null ? `${trial.customerRating} ★` : '—'}</span>
         </div>
         <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px;">
-          Fit Style: <strong>${trial.fitPreference || 'Comfort / Regular Fit'}</strong> &bull; Alterations Cycle: <strong>Round ${altsCount}</strong>
+          Fit Style: <strong>${trial.fitPreference || '—'}</strong> &bull; Alterations Cycle: <strong>Round ${altsCount}</strong>
         </div>
         ${trial.customerFeedback ? `<div style="font-size:11px; color:rgba(255,255,255,0.55); font-style:italic; margin-top:4px;">&ldquo;${trial.customerFeedback}&rdquo;</div>` : ''}
       </div>
@@ -827,8 +869,8 @@
         const { default: api } = await import('../api.js');
         if (trial.id) {
           const apiStatus = fitKey === 'perfect' ? 'PERFECT' :
-                            fitKey === 'minor' ? 'MINOR' :
-                            fitKey === 'major' ? 'MAJOR' : 'RETRIAL';
+            fitKey === 'minor' ? 'MINOR' :
+              fitKey === 'major' ? 'MAJOR' : 'RETRIAL';
           await api.trials.updateFitStatus(trial.id, apiStatus);
         }
       } catch (err) {
@@ -879,24 +921,13 @@
 
     container.innerHTML = trial.alterations.map(alt => {
       const catClass = (alt.category || 'general').toLowerCase();
-      const priorityClass = (alt.priority || 'normal').toLowerCase();
       return `
         <div class="alt-item">
           <div class="alt-left">
             <input type="checkbox" class="alt-checkbox" ${alt.checked ? 'checked' : ''} onchange="window.toggleAlterationCheck('${alt.id}', this.checked)" />
-            <div>
-              <span class="alt-desc" style="${alt.checked ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${alt.desc}</span>
-              <div class="alt-meta-sub">
-                <span class="alt-tailor-tag">✂ ${alt.assignedTailor || 'Master Tailor'}</span>
-                <span class="alt-priority-tag ${priorityClass}">${alt.priority || 'Normal'}</span>
-                ${alt.targetDate ? `<span>• Due ${alt.targetDate}</span>` : ''}
-              </div>
-            </div>
+            <span class="alt-desc" style="${alt.checked ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${alt.desc}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="alt-badge ${catClass}">${alt.category || 'General'}</span>
-            <button type="button" class="btn-alt-delete" onclick="window.deleteAlterationItem('${alt.id}')" title="Delete alteration" style="background:transparent;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:16px;line-height:1;padding:2px 5px;border-radius:4px;transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">&times;</button>
-          </div>
+          <span class="alt-badge ${catClass}">${alt.category || 'General'}</span>
         </div>
       `;
     }).join('');
@@ -1189,10 +1220,10 @@
     }
     const filtered = AVAILABLE_ORDERS.filter(o => {
       return (o.orderCode || '').toLowerCase().includes(q) ||
-             (o.customerName || '').toLowerCase().includes(q) ||
-             (o.customerMobile || '').toLowerCase().includes(q) ||
-             (o.garmentType || '').toLowerCase().includes(q) ||
-             (o.currentStage || '').toLowerCase().includes(q);
+        (o.customerName || '').toLowerCase().includes(q) ||
+        (o.customerMobile || '').toLowerCase().includes(q) ||
+        (o.garmentType || '').toLowerCase().includes(q) ||
+        (o.currentStage || '').toLowerCase().includes(q);
     });
     renderOrderPickerList(filtered);
 
@@ -1204,7 +1235,7 @@
         if (Array.isArray(serverOrders) && serverOrders.length > 0) {
           renderOrderPickerList(serverOrders);
         }
-      } catch (_) {}
+      } catch (_) { }
     }, 300);
   };
 
@@ -1229,7 +1260,7 @@
           <div class="order-picker-card-left">
             <div class="order-picker-code-row">
               <span class="order-picker-code">${o.orderCode}</span>
-              <span class="order-picker-stage-pill">${o.currentStage || 'PRODUCTION'}</span>
+              <span class="order-picker-stage-pill">${formatDisplayStage(o.currentStage)}</span>
             </div>
             <div class="order-picker-cust-name">${o.customerName || 'Customer'} &bull; ${o.customerMobile || '—'}</div>
             <div class="order-picker-garment-meta">${o.garmentType || 'Garment'} ${o.collection ? `(${o.collection})` : ''} &bull; Delivery: ${o.deliveryDate || '—'}</div>
@@ -1507,7 +1538,6 @@
     let pendingAlts = 0;
     let retrials = 0;
     let readyDelivery = 0;
-    let fromBackend = false;
 
     try {
       const { default: api } = await import('../api.js');
@@ -1518,30 +1548,18 @@
         retrials = kpis.retrialsRequired != null ? kpis.retrialsRequired : (kpis.retrial != null ? kpis.retrial : 0);
         pendingAlts = kpis.pendingAlterations != null ? kpis.pendingAlterations : 0;
         readyDelivery = kpis.completed != null ? kpis.completed : 0;
-        fromBackend = true;
+      } else if (TRIALS_DATA.length > 0) {
+        today = TRIALS_DATA.filter(t => (t.trial?.status || '').toLowerCase() === 'today').length;
+        upcoming = TRIALS_DATA.filter(t => (t.trial?.status || '').toLowerCase() === 'upcoming' || (t.trial?.status || '').toLowerCase() === 'scheduled').length;
+        pendingAlts = TRIALS_DATA.reduce((acc, t) => acc + (t.alterations || []).filter(a => !a.checked).length, 0);
+        retrials = TRIALS_DATA.filter(t => t.trial?.fitStatus === 'retrial' || (t.trialAttempt || 1) > 1).length;
+        readyDelivery = TRIALS_DATA.filter(t => (t.trial?.status || '').toLowerCase() === 'completed' || t.trial?.fitStatus === 'perfect').length;
       }
     } catch (err) {
       console.warn('[TrialsAlterations] KPI fetch error:', err.message);
     }
 
-    // Dynamic fallbacks only if backend call failed
-    if (!fromBackend) {
-      if (upcoming === 0 && TRIALS_DATA.length > 0) {
-        upcoming = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'upcoming' || (t.trial.status || '').toLowerCase() === 'scheduled').length;
-      }
-      if (today === 0 && TRIALS_DATA.length > 0) {
-        today = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'today').length;
-      }
-      pendingAlts = TRIALS_DATA.reduce((acc, t) => acc + (t.alterations || []).filter(a => !a.checked).length, 0);
-      if (retrials === 0 && TRIALS_DATA.length > 0) {
-        retrials = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase().includes('retrial') || t.trial.fitStatus === 'retrial' || (t.trialAttempt || 1) > 1).length;
-      }
-      if (readyDelivery === 0 && TRIALS_DATA.length > 0) {
-        readyDelivery = TRIALS_DATA.filter(t => (t.trial.status || '').toLowerCase() === 'completed' || t.trial.fitStatus === 'perfect').length;
-      }
-    }
-
-    // Bind values and meaningful subtexts
+    // Bind values and meaningful subtexts purely from data
     const elUpcoming = document.getElementById('kpiValUpcoming');
     if (elUpcoming) elUpcoming.textContent = upcoming;
     const subUpcoming = document.getElementById('kpiSubUpcoming');
@@ -1555,17 +1573,17 @@
     const elAlterations = document.getElementById('kpiValAlterations');
     if (elAlterations) elAlterations.textContent = pendingAlts;
     const subAlterations = document.getElementById('kpiSubAlterations');
-    if (subAlterations) subAlterations.textContent = `${pendingAlts} in progress`;
+    if (subAlterations) subAlterations.textContent = pendingAlts > 0 ? `${pendingAlts} in progress` : 'None pending';
 
     const elRetrials = document.getElementById('kpiValRetrials');
     if (elRetrials) elRetrials.textContent = retrials;
     const subRetrials = document.getElementById('kpiSubRetrials');
-    if (subRetrials) subRetrials.textContent = retrials > 0 ? `${retrials} requested` : 'Follow-up sessions';
+    if (subRetrials) subRetrials.textContent = retrials > 0 ? `${retrials} requested` : 'None pending';
 
     const elDelivery = document.getElementById('kpiValDelivery');
     if (elDelivery) elDelivery.textContent = readyDelivery;
     const subDelivery = document.getElementById('kpiSubDelivery');
-    if (subDelivery) subDelivery.textContent = `${readyDelivery} ready for pickup`;
+    if (subDelivery) subDelivery.textContent = `${readyDelivery} ready`;
   }
 
   // ── Modal Utilities ──

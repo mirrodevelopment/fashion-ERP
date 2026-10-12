@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="New Garment">New Garment</title>
+  <meta name="description" content="Register a bespoke garment silhouette, link customer and order, route atelier stages, and schedule milestones." />
+
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="new-garment.css" />
+
+  <script src="../../fragments/nav.js"></script>
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+
+<body data-module="garments" class="new-garment-page">
+
+  <!-- Background Atmospheric Layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell Matching Standard ERP Architecture -->
+  <main class="app-shell" id="appShell">
+
+    <!-- Shared Sidebar Fragment Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-area" id="mainArea">
+
+      <!-- Global Top Header Bar -->
+      <div id="navbarSlot"></div>
+
+      <!-- New Garment Scrollable Workspace -->
+      <div class="new-garment-scroll" id="newGarmentScroll">
+
+        <!-- Page Operations Header with 5-Step Workflow Progress -->
+        <div class="page-header-row">
+          <div class="page-title-group">
+            <div id="breadcrumbSlot"></div>
+            <h1 class="page-title">New Garment</h1>
+            <p class="page-subtitle">Register a bespoke garment silhouette, link customer &amp; order, route atelier stages, and schedule milestones</p>
+          </div>
+
+          <!-- 5-Step Horizontal Workflow Stepper -->
+          <div class="workflow-stepper" id="workflowStepper">
+            <div class="step-node active" data-step="1" title="Garment Identity &amp; Silhouette" onclick="jumpToStep(1)">
+              <div class="step-circle">1</div>
+              <div class="step-label">Identity</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="2" title="Customer &amp; Order Linkage" onclick="jumpToStep(2)">
+              <div class="step-circle">2</div>
+              <div class="step-label">Customer</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="3" title="Blueprint &amp; Specifications" onclick="jumpToStep(3)">
+              <div class="step-circle">3</div>
+              <div class="step-label">Blueprint</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="4" title="Atelier Routing &amp; Artisan" onclick="jumpToStep(4)">
+              <div class="step-circle">4</div>
+              <div class="step-label">Routing</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="5" title="Schedule &amp; Costing" onclick="jumpToStep(5)">
+              <div class="step-circle">5</div>
+              <div class="step-label">Schedule</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================
+             MAIN THREE-COLUMN GRID WORKSPACE (36fr 36fr 28fr)
+             ===================================================== -->
+        <form id="newGarmentForm" onsubmit="handleGarmentSubmit(event)" novalidate>
+          <div class="garment-grid">
+
+            <!-- ================= LEFT COLUMN ================= -->
+            <div class="col-left">
+
+              <!-- STEP 1: GARMENT IDENTITY & SILHOUETTE CARD -->
+              <section class="section-card" id="cardIdentity">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">1</div>
+                    <div>
+                      <h2 class="card-title">Garment Identity</h2>
+                      <p class="card-subtitle">System identification code, title, silhouette &amp; collection</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 1: Garment Code & Title -->
+                <div class="field-row-2col">
+                  <div class="form-group">
+                    <div class="label-with-action">
+                      <label for="txtGarmentCode" class="form-label required">Garment Code</label>
+                      <button type="button" class="btn-text-action" onclick="generateNewGarmentCode()" title="Generate next sequential code">
+                        <i data-lucide="sparkles" style="width:12px;height:12px;"></i> Auto-code
+                      </button>
+                    </div>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="hash" class="input-icon"></i>
+                      <input type="text" id="txtGarmentCode" class="form-input" placeholder="GAR-2026-0001" required />
+                    </div>
+                    <span class="field-hint">Unique tracking identifier across production ledger</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="txtTitle" class="form-label required">Garment Title</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="tag" class="input-icon"></i>
+                      <input type="text" id="txtTitle" class="form-input" placeholder="e.g. Royal Zardozi Bridal Blouse" required oninput="updateLivePreview()" />
+                    </div>
+                    <span class="field-hint">Client-facing artisan title</span>
+                  </div>
+                </div>
+
+                <!-- Row 2: Garment Type & Collection -->
+                <div class="field-row-2col">
+                  <div class="form-group">
+                    <label for="selGarmentType" class="form-label required">Silhouette Type</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="shirt" class="input-icon"></i>
+                      <select id="selGarmentType" class="form-select" required onchange="handleTypeChange()">
+                        <option value="BRIDAL" selected>Bridal Blouse</option>
+                        <option value="LEHENGA">Lehenga / Skirt</option>
+                        <option value="ANARKALI">Anarkali Suit</option>
+                        <option value="SHERWANI">Sherwani / Achkan</option>
+                        <option value="SAREE_BLOUSE">Saree Blouse</option>
+                        <option value="KURTA_SET">Kurta &amp; Palazzo</option>
+                        <option value="GOWN">Evening Gown</option>
+                        <option value="INDO_WESTERN">Indo-Western Jacket</option>
+                        <option value="BESPOKE">Custom Bespoke Silhouette</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="selCollection" class="form-label">Collection</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="layers" class="input-icon"></i>
+                      <select id="selCollection" class="form-select" onchange="updateLivePreview()">
+                        <option value="Heritage Bridal 2026" selected>Heritage Bridal 2026</option>
+                        <option value="Awadh Nazakat Chikankari">Awadh Nazakat Chikankari</option>
+                        <option value="Contemporary Banarasi">Contemporary Banarasi</option>
+                        <option value="Royal Velvet Soirée">Royal Velvet Soirée</option>
+                        <option value="Main Boutique Edit">Main Boutique Edit</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 3: Design Code & Reference -->
+                <div class="form-group">
+                  <label for="txtDesignCode" class="form-label">Design Source / Catalog Reference</label>
+                  <div class="input-icon-wrap">
+                    <i data-lucide="pen-tool" class="input-icon"></i>
+                    <input type="text" id="txtDesignCode" class="form-input" placeholder="e.g. Custom Silhouette or DES-2026-B08" oninput="updateLivePreview()" />
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 2: CUSTOMER & ORDER LINKAGE CARD -->
+              <section class="section-card" id="cardCustomer">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">2</div>
+                    <div>
+                      <h2 class="card-title">Customer &amp; Order Linkage</h2>
+                      <p class="card-subtitle">Connect this garment to a client ledger and active sales order</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Customer Search with Autocomplete Dropdown -->
+                <div class="form-group relative-pos">
+                  <label for="txtCustomerSearch" class="form-label required">Customer Search (Name or Mobile)</label>
+                  <div class="input-icon-wrap">
+                    <i data-lucide="search" class="input-icon"></i>
+                    <input type="text" id="txtCustomerSearch" class="form-input" placeholder="Type customer name or mobile e.g. Radhika, Pragya, or 98111..." autocomplete="off" oninput="handleCustomerSearch(this.value)" />
+                  </div>
+
+                  <!-- Dropdown Search Results -->
+                  <div class="customer-search-dropdown" id="customerDropdownList" style="display:none;"></div>
+
+                  <!-- Selected Customer Card -->
+                  <div class="selected-customer-pill" id="selectedCustomerCard" style="display:none;">
+                    <div class="cust-pill-avatar" id="custAvatarChar">A</div>
+                    <div class="cust-pill-info">
+                      <strong id="custSelectedName">—</strong>
+                      <span id="custSelectedPhone">—</span>
+                    </div>
+                    <button type="button" class="btn-pill-remove" onclick="clearSelectedCustomer()" title="Change customer">
+                      <i data-lucide="x" style="width:14px;height:14px;"></i>
+                    </button>
+                  </div>
+                  <input type="hidden" id="hiddenCustomerName" required />
+                  <input type="hidden" id="hiddenCustomerMobile" />
+                </div>
+
+                <!-- Row 2: Order Code & Branch -->
+                <div class="field-row-2col">
+                  <div class="form-group">
+                    <label for="txtOrderCode" class="form-label required">Order Code</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="package" class="input-icon"></i>
+                      <input type="text" id="txtOrderCode" class="form-input" placeholder="e.g. ORD-2841" required oninput="updateLivePreview()" />
+                    </div>
+                    <span class="field-hint">Links to master production order</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="selBranch" class="form-label required">Atelier Branch</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="building" class="input-icon"></i>
+                      <select id="selBranch" class="form-select" required onchange="updateLivePreview()">
+                        <option value="Hazratganj Flagship HQ" selected>Hazratganj Flagship HQ</option>
+                        <option value="Agra Taj View Lounge">Agra Taj View Lounge</option>
+                        <option value="Kanpur Civil Lines Studio">Kanpur Civil Lines Studio</option>
+                        <option value="Main Branch">Main Branch</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Atelier Ledger Guidance Mini Card -->
+              <div class="atelier-guide-card">
+                <div class="guide-icon">
+                  <i data-lucide="shield-check" style="width:15px;height:15px;color:var(--lime);"></i>
+                </div>
+                <div class="guide-text">
+                  <strong>Atelier Production Protocol</strong>
+                  <span>Auto-generates Garment 360° record with live QR barcode and routes directly to master cutting ledger upon creation.</span>
+                </div>
+              </div>
+
+            </div><!-- /col-left -->
+
+            <!-- ================= CENTER COLUMN ================= -->
+            <div class="col-center">
+
+              <!-- STEP 3: BLUEPRINT & SPECIFICATIONS CARD -->
+              <section class="section-card" id="cardBlueprint">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">3</div>
+                    <div>
+                      <h2 class="card-title">Blueprint &amp; Specifications</h2>
+                      <p class="card-subtitle">Necklines, cuts, trims, ornamentation &amp; construction blueprint</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Specs Textarea -->
+                <div class="form-group">
+                  <label for="txtSpecs" class="form-label required">Silhouette &amp; Construction Specs</label>
+                  <textarea id="txtSpecs" class="form-textarea" rows="3" placeholder="e.g. Deep square neckline 7.5&quot;, structured cuff, gold zari embroidery, cotton silk lining, reinforced side hooks" required oninput="updateLivePreview()"></textarea>
+                </div>
+
+                <!-- Quick Specification Pill Tags -->
+                <div class="form-group">
+                  <span class="sub-label">Quick Specification Tags (Click to append)</span>
+                  <div class="spec-pills-wrap">
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Deep Square Neckline 7.5&quot;')">+ Deep Square Neck</button>
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Sweetheart Neckline')">+ Sweetheart Neck</button>
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Structured Elbow Sleeve')">+ Structured Elbow Sleeve</button>
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Gold Zari Embroidery')">+ Gold Zari Work</button>
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Anatomical Medium Padding')">+ Medium Padding</button>
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Pre-shrunk Cotton Silk Lining')">+ Cotton Silk Lining</button>
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Deep U Back with Dori Ties')">+ Deep U Back with Ties</button>
+                    <button type="button" class="spec-tag-pill" onclick="appendSpec('Reinforced Side Brass Hooks')">+ Side Hooks</button>
+                  </div>
+                </div>
+
+                <!-- Garment Image Upload & Reference Zone -->
+                <div class="form-group">
+                  <div class="label-with-action">
+                    <label class="form-label">Garment Reference Image / Sketch</label>
+                    <span style="font-size:10.5px;color:var(--text-muted);">JPG, PNG, WEBP (Max 5MB)</span>
+                  </div>
+
+                  <!-- Drag & Drop Upload Zone -->
+                  <div class="image-upload-dropzone" id="imageDropzone" onclick="triggerImageUpload()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                    <input type="file" id="fileGarmentImage" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="handleFileSelect(event)" />
+
+                    <!-- Empty / Default State -->
+                    <div class="dropzone-content" id="dropzoneEmpty">
+                      <div class="dropzone-icon-circle">
+                        <i data-lucide="upload-cloud" style="width:20px;height:20px;color:var(--lime);"></i>
+                      </div>
+                      <div class="dropzone-text">
+                        <strong>Click to upload</strong> or drag and drop artwork/photo
+                        <span>Supports smartphone camera photos, sketches &amp; fabric swatches</span>
+                      </div>
+                    </div>
+
+                    <!-- Active Uploaded Preview State -->
+                    <div class="dropzone-preview-wrap" id="dropzonePreview" style="display:none;">
+                      <img id="uploadedImgThumb" src="" alt="Garment Upload" class="dropzone-thumb" />
+                      <div class="dropzone-preview-info">
+                        <strong id="uploadedFileName">garment_photo.png</strong>
+                        <span id="uploadedFileSize">File ready for atelier</span>
+                        <button type="button" class="btn-change-image" onclick="event.stopPropagation(); triggerImageUpload();">Change Photo</button>
+                      </div>
+                      <button type="button" class="btn-remove-upload" onclick="event.stopPropagation(); removeUploadedImage();" title="Remove uploaded photo">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Direct URL Input Toggle & Presets -->
+                  <div class="url-input-toggle-row">
+                    <button type="button" class="btn-text-action" onclick="toggleUrlInput()">
+                      <i data-lucide="link" style="width:11px;height:11px;"></i> Or enter image URL
+                    </button>
+                    <div class="image-preset-row" style="flex-wrap:wrap;gap:4px;">
+                      <span style="font-size:10px;color:var(--text-muted);align-self:center;">Presets:</span>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/bridal_blouse_zardozi.jpg')">Blouse</button>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/heritage_lehenga_pink.jpg')">Lehenga</button>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/anarkali_chikankari.jpg')">Anarkali</button>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/raw_silk_sherwani.jpg')">Sherwani</button>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/banarasi_organza_saree.jpg')">Saree</button>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/champagne_evening_gown.jpg')">Gown</button>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/zardozi_handwork.jpg')">Gharara</button>
+                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/blouse_back_cut.jpg')">Back Cut</button>
+                    </div>
+                  </div>
+
+                  <div class="input-icon-wrap" id="urlInputContainer" style="display:none;margin-top:6px;">
+                    <i data-lucide="image" class="input-icon"></i>
+                    <input type="text" id="txtImageUrl" class="form-input" value="../../assets/garments/bridal_blouse_zardozi.jpg" placeholder="../../assets/garments/bridal_blouse_zardozi.jpg" oninput="handleUrlInputChange()" />
+                  </div>
+                </div>
+
+                <!-- Atelier Notes / Directives -->
+                <div class="form-group">
+                  <label for="txtNotes" class="form-label">Client Directives &amp; Fit Memory Notes</label>
+                  <textarea id="txtNotes" class="form-textarea" rows="2" placeholder="e.g. Customer previously requested +0.25&quot; armhole ease on fitted blouses" oninput="updateLivePreview()"></textarea>
+                </div>
+              </section>
+
+              <!-- STEP 4: ATELIER ROUTING & ARTISAN CARD -->
+              <section class="section-card" id="cardRouting">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">4</div>
+                    <div>
+                      <h2 class="card-title">Atelier Routing</h2>
+                      <p class="card-subtitle">Initial production stage, artisan routing &amp; priority level</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 1: Initial Stage & Priority -->
+                <div class="field-row-2col">
+                  <div class="form-group">
+                    <label for="selProductionStage" class="form-label required">Initial Stage</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="milestone" class="input-icon"></i>
+                      <select id="selProductionStage" class="form-select" required onchange="updateLivePreview()">
+                        <option value="Designing">Designing</option>
+                        <option value="Pattern">Pattern</option>
+                        <option value="Cutting">Cutting</option>
+                        <option value="Embroidery">Embroidery</option>
+                        <option value="Stitching" selected>Stitching</option>
+                        <option value="Trial">Trial</option>
+                        <option value="QC">Quality Control</option>
+                        <option value="Ready">Ready for Delivery</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label required">Priority Level</label>
+                    <div class="priority-toggle-group">
+                      <label class="priority-pill">
+                        <input type="radio" name="priority" value="NORMAL" checked onchange="updateLivePreview()" />
+                        <span class="pill-btn normal">Normal</span>
+                      </label>
+                      <label class="priority-pill">
+                        <input type="radio" name="priority" value="HIGH" onchange="updateLivePreview()" />
+                        <span class="pill-btn high">High</span>
+                      </label>
+                      <label class="priority-pill">
+                        <input type="radio" name="priority" value="URGENT" onchange="updateLivePreview()" />
+                        <span class="pill-btn urgent">Urgent</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 2: Assigned Artisan & Designer -->
+                <div class="field-row-2col">
+                  <div class="form-group">
+                    <label for="selAssignedTo" class="form-label required">Assigned Master Tailor / Artisan</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="user-check" class="input-icon"></i>
+                      <select id="selAssignedTo" class="form-select" required onchange="updateLivePreview()">
+                        <option value="Ravi M" selected>Ravi M (Master Tailor)</option>
+                        <option value="Suresh K">Suresh K (Pattern Master)</option>
+                        <option value="Meena P">Meena P (Zardozi Specialist)</option>
+                        <option value="Aslam Khan">Aslam Khan (Artisan Tailor)</option>
+                        <option value="Arun S">Arun S (Finishing Tailor)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="selDesigner" class="form-label">Lead Designer</label>
+                    <div class="input-icon-wrap">
+                      <i data-lucide="palette" class="input-icon"></i>
+                      <select id="selDesigner" class="form-select" onchange="updateLivePreview()">
+                        <option value="Meera S" selected>Meera S (Haute Couture Lead)</option>
+                        <option value="Ananya Sen">Ananya Sen (Handloom Designer)</option>
+                        <option value="Begum Noor Jahan">Begum Noor Jahan (Atelier Principal)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+            </div><!-- /col-center -->
+
+            <!-- ================= RIGHT COLUMN (SUMMARY & ACTIONS) ================= -->
+            <div class="col-right">
+
+              <!-- STEP 5: SCHEDULE, MATERIAL & COSTING CARD -->
+              <section class="section-card" id="cardSchedule">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">5</div>
+                    <div>
+                      <h2 class="card-title">Schedule &amp; Costing</h2>
+                      <p class="card-subtitle">Commitment dates, material readiness &amp; financial tracking</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Due Date & Trial Date -->
+                <div class="field-row-2col">
+                  <div class="form-group">
+                    <label for="txtDueDate" class="form-label required">Due Date (Delivery)</label>
+                    <input type="date" id="txtDueDate" class="form-input" required onchange="updateLivePreview()" />
+                  </div>
+                  <div class="form-group">
+                    <label for="txtTrialDate" class="form-label">Trial Fitting Date</label>
+                    <input type="date" id="txtTrialDate" class="form-input" onchange="updateLivePreview()" />
+                  </div>
+                </div>
+
+                <!-- Material Status -->
+                <div class="form-group">
+                  <label for="selMaterialStatus" class="form-label required">Material Status</label>
+                  <select id="selMaterialStatus" class="form-select" required onchange="updateLivePreview()">
+                    <option value="READY" selected>Materials Ready in Atelier</option>
+                    <option value="ALLOCATING">Allocating from Inventory</option>
+                    <option value="PENDING">Procurement Pending</option>
+                  </select>
+                </div>
+
+                <!-- Total Amount & Paid Amount -->
+                <div class="field-row-2col">
+                  <div class="form-group">
+                    <label for="numTotalAmount" class="form-label required">Total Price (₹)</label>
+                    <input type="number" id="numTotalAmount" class="form-input" value="18400" placeholder="18400" min="0" step="100" required oninput="calculateBalance()" />
+                  </div>
+                  <div class="form-group">
+                    <label for="numPaidAmount" class="form-label">Advance Paid (₹)</label>
+                    <input type="number" id="numPaidAmount" class="form-input" value="10000" placeholder="12000" min="0" step="100" oninput="calculateBalance()" />
+                  </div>
+                </div>
+
+                <!-- Payment Status & Balance Display -->
+                <div class="balance-calc-row">
+                  <div>
+                    <span style="font-size:11px;color:var(--text-muted);">Balance Due:</span>
+                    <strong style="color:var(--lime);font-size:15px;display:block;" id="lblBalanceDue">₹0</strong>
+                  </div>
+                  <div style="text-align:right;">
+                    <span style="font-size:11px;color:var(--text-muted);">Payment Status:</span>
+                    <span class="badge-payment-status" id="badgePaymentStatus">PENDING</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- LIVE DOSSIER PREVIEW CARD (Interactive Image Upload) -->
+              <section class="section-card preview-card" aria-label="Garment Live Preview">
+                <div class="preview-hero-wrap" id="previewHeroWrap" onclick="triggerImageUpload()" ondragover="handleDragOverPreview(event)" ondragleave="handleDragLeavePreview(event)" ondrop="handleDropPreview(event)" title="Click or drop photo here to upload garment image">
+                  
+                  <!-- Empty Placeholder Upload Prompt -->
+                  <div class="preview-upload-placeholder" id="previewUploadPlaceholder">
+                    <div class="preview-camera-circle">
+                      <i data-lucide="camera" style="width:22px;height:22px;color:var(--lime);"></i>
+                    </div>
+                    <strong class="preview-upload-title">Upload Garment Photo</strong>
+                    <span class="preview-upload-subtitle">Click to browse or drag &amp; drop artwork/photo</span>
+                  </div>
+
+                  <!-- Uploaded Image -->
+                  <img id="previewImg" src="" alt="Garment Preview" class="preview-thumb" style="display:none;" />
+
+                  <!-- Hover Action Overlay (Visible when image is uploaded) -->
+                  <div class="preview-hover-overlay" id="previewHoverOverlay" style="display:none;">
+                    <span class="btn-change-preview-action">
+                      <i data-lucide="camera" style="width:13px;height:13px;"></i> Change Photo
+                    </span>
+                    <button type="button" class="btn-remove-preview-action" onclick="event.stopPropagation(); removeUploadedImage();" title="Remove photo">
+                      <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                    </button>
+                  </div>
+
+                  <!-- Header Tag Overlay -->
+                  <div class="preview-hero-overlay">
+                    <span class="preview-code-tag" id="previewCode">GAR-2026-0001</span>
+                    <span class="preview-stage-tag" id="previewStage">STITCHING</span>
+                  </div>
+                </div>
+
+                <div class="preview-body">
+                  <h3 class="preview-title" id="previewTitle">Royal Zardozi Bridal Blouse</h3>
+                  <div class="preview-meta-row">
+                    <span id="previewCustomer"><i data-lucide="user" style="width:12px;height:12px;"></i> Client: —</span>
+                    <span id="previewOrder"><i data-lucide="package" style="width:12px;height:12px;"></i> Order: —</span>
+                  </div>
+                  <div class="preview-meta-row">
+                    <span id="previewTailor"><i data-lucide="user-check" style="width:12px;height:12px;"></i> Tailor: Ravi M</span>
+                    <span id="previewDelivery"><i data-lucide="calendar" style="width:12px;height:12px;"></i> Due: —</span>
+                  </div>
+                  <div class="preview-footer-row">
+                    <span class="preview-price" id="previewPrice">₹18,400</span>
+                    <span class="preview-priority-badge" id="previewPriority">NORMAL PRIORITY</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- FORM ACTIONS STICKY BAR -->
+              <div class="form-actions-card">
+                <button type="submit" class="btn btn-lime-cta" id="btnSubmitGarment">
+                  <span>Create Garment &amp; Launch 360°</span>
+                  <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+                </button>
+                <div class="secondary-actions-row">
+                  <button type="button" class="btn btn-glass-sub" onclick="history.back()">Cancel</button>
+                  <button type="button" class="btn btn-glass-sub" onclick="saveFormDraft()">Save Draft</button>
+                </div>
+              </div>
+
+            </div><!-- /col-right -->
+
+          </div><!-- /garment-grid -->
+        </form>
+
+      </div><!-- /new-garment-scroll -->
+
+      <!-- Universal Status Bar Footer Slot -->
+      <div id="footerSlot"></div>
+
+    </div><!-- /main-area -->
+  </main><!-- /app-shell -->
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Success Confirmation Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-card">
+      <div class="modal-icon-circle">
+        <i data-lucide="check" style="width:28px;height:28px;color:#121808;"></i>
+      </div>
+      <h3 class="modal-title">Garment Registered Successfully!</h3>
+      <p class="modal-desc" id="modalSuccessDesc">Garment GAR-2026-0001 has been registered and routed to active atelier production.</p>
+
+      <div class="modal-btn-row">
+        <button type="button" class="btn btn-glass-sub" onclick="createAnotherGarment()">Create Another</button>
+        <button type="button" class="btn btn-glass-sub" onclick="window.location.href='../garments.html'">Garments List</button>
+        <button type="button" class="btn btn-lime-cta" id="btnLaunch360Modal">Open Garment 360° &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Shared Fragments Scripts -->
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="new-garment.js"></script>
+</body>
+
+</html>

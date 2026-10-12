@@ -40,39 +40,36 @@ public class AppointmentController {
 
     @PatchMapping("/{id}/status")
     public AppointmentDto.Response updateStatus(@PathVariable UUID id,
-                                                @RequestParam String status) {
+            @RequestParam String status) {
         return appointmentService.updateStatus(id, AppointmentStatus.valueOf(status.toUpperCase()));
     }
 
     @PatchMapping("/{id}/reschedule")
     public AppointmentDto.Response reschedule(@PathVariable UUID id,
-                                              @RequestBody Map<String, Object> body) {
+            @RequestBody Map<String, Object> body) {
         return appointmentService.reschedule(id, body);
     }
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-        LocalDateTime todayEnd   = todayStart.plusDays(1).minusSeconds(1);
-        long todayCount     = (companyId != null
-                ? appointmentRepository.findByCompanyIdAndScheduledAtBetweenOrderByScheduledAtAsc(companyId, todayStart, todayEnd)
-                : appointmentRepository.findByScheduledAtBetweenOrderByScheduledAtAsc(todayStart, todayEnd)).size();
-        long upcomingCount  = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CONFIRMED) : appointmentRepository.countByStatus(AppointmentStatus.CONFIRMED);
-        long completedCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.COMPLETED) : appointmentRepository.countByStatus(AppointmentStatus.COMPLETED);
-        long cancelledCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CANCELLED) : appointmentRepository.countByStatus(AppointmentStatus.CANCELLED);
-        long noShowCount    = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.NO_SHOW) : appointmentRepository.countByStatus(AppointmentStatus.NO_SHOW);
-        long confirmedCount = companyId != null ? appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CONFIRMED) : appointmentRepository.countByStatus(AppointmentStatus.CONFIRMED);
+        LocalDateTime todayEnd = todayStart.plusDays(1).minusSeconds(1);
+        long todayCount = appointmentRepository
+                .findByCompanyIdAndScheduledAtBetweenOrderByScheduledAtAsc(companyId, todayStart, todayEnd).size();
+        long upcomingCount = appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CONFIRMED);
+        long completedCount = appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.COMPLETED);
+        long cancelledCount = appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CANCELLED);
+        long noShowCount = appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.NO_SHOW);
+        long confirmedCount = appointmentRepository.countByCompanyIdAndStatus(companyId, AppointmentStatus.CONFIRMED);
 
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("todayCount",     todayCount);
-        m.put("upcomingCount",  upcomingCount);
+        m.put("todayCount", todayCount);
+        m.put("upcomingCount", upcomingCount);
         m.put("completedCount", completedCount);
         m.put("cancelledCount", cancelledCount);
-        m.put("noShowCount",    noShowCount);
+        m.put("noShowCount", noShowCount);
         m.put("confirmedCount", confirmedCount);
         return m;
     }
 }
-
-

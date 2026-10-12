@@ -32,10 +32,35 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String role = jwtUtil.getRole(token);
                     java.util.UUID companyId = jwtUtil.getCompanyId(token);
                     String assignedBranch = jwtUtil.getAssignedBranch(token);
+                    List<String> allowedBranches = jwtUtil.getAllowedBranches(token);
+                    if ((allowedBranches == null || allowedBranches.isEmpty()) && assignedBranch != null && !assignedBranch.isBlank()) {
+                        allowedBranches = List.of(assignedBranch.trim());
+                    }
 
                     com.fashionerp.common.TenantContext.setCompanyId(companyId);
                     com.fashionerp.common.TenantContext.setAssignedBranch(assignedBranch);
                     com.fashionerp.common.TenantContext.setUserRole(role);
+                    com.fashionerp.common.TenantContext.setAllowedBranches(allowedBranches);
+
+                    boolean isOwner = "OWNER".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role);
+                    String activeBranchHeader = request.getHeader("X-Active-Branch");
+
+                    if (activeBranchHeader != null && !activeBranchHeader.isBlank()
+                            && !"ALL".equalsIgnoreCase(activeBranchHeader.trim())
+                            && !"All Company Data".equalsIgnoreCase(activeBranchHeader.trim())) {
+                        String branch = activeBranchHeader.trim();
+                        if (isOwner || (allowedBranches != null && allowedBranches.contains(branch))) {
+                            com.fashionerp.common.TenantContext.setActiveBranchFilter(branch);
+                        } else {
+                            com.fashionerp.common.TenantContext.setActiveBranchFilter(assignedBranch);
+                        }
+                    } else {
+                        if (isOwner) {
+                            com.fashionerp.common.TenantContext.setActiveBranchFilter(null);
+                        } else {
+                            com.fashionerp.common.TenantContext.setActiveBranchFilter(assignedBranch);
+                        }
+                    }
 
                     var auth = new UsernamePasswordAuthenticationToken(
                             username, null,

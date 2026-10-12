@@ -126,19 +126,16 @@ public class EnquiryController {
     public Map<String, Object> kpis() {
         UUID companyId = TenantContext.getCompanyId();
         long total = companyId != null ? enquiryRepository.countByCompanyId(companyId) : enquiryRepository.count();
-        long newCount = (companyId != null
-                ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW") + enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "PENDING")
-                : enquiryRepository.countByStatusIgnoreCase("NEW") + enquiryRepository.countByStatusIgnoreCase("PENDING"));
-        long inDiscussion = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_DISCUSSION") : enquiryRepository.countByStatusIgnoreCase("IN_DISCUSSION");
-        long quotationSent = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "QUOTATION_SENT") : enquiryRepository.countByStatusIgnoreCase("QUOTATION_SENT");
-        long converted = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED") : enquiryRepository.countByStatusIgnoreCase("CONVERTED");
-        long followUp = companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP") : enquiryRepository.countByStatusIgnoreCase("FOLLOW_UP");
-        long closed = (companyId != null ? enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") : enquiryRepository.countByStatusIgnoreCase("CLOSED")) + followUp;
+        long newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW")
+                + enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "PENDING");
+        long inDiscussion = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_DISCUSSION");
+        long quotationSent = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "QUOTATION_SENT");
+        long converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED");
+        long followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP");
+        long closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") + followUp;
 
         // Dynamic KPI queries directly from database
-        long newThisWeek = companyId != null
-                ? enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7))
-                : enquiryRepository.countByCreatedAtAfter(LocalDateTime.now().minusDays(7));
+        long newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7));
         if (newThisWeek == 0) newThisWeek = newCount;
 
         long pendingFollowUp = followUp;

@@ -23,7 +23,8 @@ const userState = {
   rolesList: [],
   branchesList: [],
   moduleRegistry: [],
-  selectedModules: new Set()
+  selectedModules: new Set(),
+  selectedBranches: new Set()
 };
 
 const DRAFT_KEY = 'haulo_create_user_draft';
@@ -54,6 +55,8 @@ function cacheDom() {
     designationInput: document.getElementById('designationInput'),
     departmentInput: document.getElementById('departmentInput'),
     assignedBranchSelect: document.getElementById('assignedBranchSelect'),
+    branchClearanceContainer: document.getElementById('branchClearanceContainer'),
+    branchClearanceActionBtns: document.getElementById('branchClearanceActionBtns'),
     // Contact inputs
     emailInput: document.getElementById('emailInput'),
     phoneInput: document.getElementById('phoneInput'),
@@ -101,6 +104,7 @@ function formatCurrentDateTime() {
 // ─── Initialization ───
 document.addEventListener('DOMContentLoaded', async () => {
   if (window.Auth && !Auth.requireLogin()) return;
+  userState.currentUser = (window.Auth && window.Auth.getUser()) || {};
   cacheDom();
 
   // Set provision date in preview
@@ -133,7 +137,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ─── Fetch Roles (Zero Raw Values) ───
 async function fetchAvailableRoles() {
   try {
-    const roles = await window.api.users.roles();
+    let roles = await window.api.users.roles();
+    if (userState.currentUser && userState.currentUser.role === 'BRANCH_ADMIN') {
+      roles = roles.filter(r => r.name !== 'OWNER' && r.name !== 'ADMIN' && r.name !== 'BRANCH_ADMIN');
+    }
     if (Array.isArray(roles) && roles.length > 0) {
       userState.rolesList = roles;
       renderRoleCards(roles);
@@ -160,6 +167,12 @@ function renderRoleCards(roles) {
   dom.rolesContainer.innerHTML = roles.map(r => {
     const isSelected = (r.name === userState.role);
     const iconName = getRoleIconName(r.name);
+    const badgeHtml = r.isSystemDefault
+      ? `<span style="font-size:10px; font-weight:700; color:#d4af37; background:rgba(212,175,55,0.14); border:1px solid rgba(212,175,55,0.35); padding:2px 6px; border-radius:4px; margin-left:auto;">DEFAULT ROOT</span>`
+      : (r.isCustom
+        ? `<span style="font-size:10px; font-weight:700; color:hsl(270,75%,70%); background:rgba(168,85,247,0.14); border:1px solid rgba(168,85,247,0.35); padding:2px 6px; border-radius:4px; margin-left:auto;">CUSTOM ROLE</span>`
+        : `<span style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px; margin-left:auto;">PRESET</span>`);
+
     return `
       <label class="cu-role-card ${isSelected ? 'active' : ''}" data-role-name="${escapeHtml(r.name)}" onclick="selectRole('${escapeHtml(r.name)}')">
         <input type="radio" name="userRole" value="${escapeHtml(r.name)}" ${isSelected ? 'checked' : ''} />
@@ -167,7 +180,8 @@ function renderRoleCards(roles) {
           <div class="cu-role-icon-box">
             <i data-lucide="${iconName}" style="width:16px;height:16px;"></i>
           </div>
-          <div class="cu-role-radio-dot"></div>
+          ${badgeHtml}
+          <div class="cu-role-radio-dot" style="margin-left:8px;"></div>
         </div>
         <div class="cu-role-name">${escapeHtml(r.displayName || r.name)}</div>
         <p class="cu-role-desc">${escapeHtml(r.description || '')}</p>
@@ -182,15 +196,29 @@ function renderRoleCards(roles) {
 
 function getRoleIconName(roleName) {
   const norm = (roleName || '').toUpperCase();
-  if (norm.includes('ADMIN')) return 'shield';
-  if (norm.includes('STAFF')) return 'scissors';
-  if (norm.includes('RECEPTION')) return 'calendar';
-  return 'user-check';
+  if (norm.includes('OWNER')) return 'crown';
+  if (norm.includes('BRANCH_ADMIN')) return 'shield';
+  if (norm.includes('ADMIN')) return 'crown';
+  if (norm.includes('CUSTOM')) return 'sparkles';
+  return 'user';
 }
 
 // ─── Select Role & Update Capabilities ───
 window.selectRole = function(roleName) {
   userState.role = roleName;
+
+  // Toggle custom role title input group
+  const customGroup = document.getElementById('customRoleInputGroup');
+  if (customGroup) {
+    customGroup.style.display = (roleName === 'CUSTOM') ? 'block' : 'none';
+    if (roleName === 'CUSTOM') {
+      const inp = document.getElementById('customRoleTitleInput');
+      if (inp) {
+        if (!inp.value && userState.designation) inp.value = userState.designation;
+        inp.focus();
+      }
+    }
+  }
 
   // Update card visual active states
   document.querySelectorAll('.cu-role-card').forEach(card => {
@@ -224,6 +252,14 @@ window.selectRole = function(roleName) {
   syncUserPreview();
 };
 
+window.handleCustomRoleTitle = function(val) {
+  userState.designation = val || '';
+  if (dom.designationInput) {
+    dom.designationInput.value = val || '';
+  }
+  syncUserPreview();
+};
+
 // ─── Fetch Branches (Zero Raw Values) ───
 async function fetchActiveBranches() {
   try {
@@ -231,18 +267,134 @@ async function fetchActiveBranches() {
     userState.branchesList = Array.isArray(branches) ? branches : [];
 
     if (dom.assignedBranchSelect) {
-      // Clear all except unassigned
-      dom.assignedBranchSelect.innerHTML = '<option value="">— Unassigned (All Branches / Central HQ) —</option>';
+      dom.assignedBranchSelect.innerHTML = '<option value="">— Select Primary Branch Location —</option>';
       userState.branchesList.forEach(b => {
         const opt = document.createElement('option');
-        opt.value = b.name;
-        opt.textContent = `${b.name}${b.type ? ' (' + b.type + ')' : ''}`;
+        opt.value = b.branchCode || b.name;
+        opt.textContent = `${b.name} (${b.branchCode || b.type || 'BRN'})`;
         dom.assignedBranchSelect.appendChild(opt);
       });
+
+      // Branch Admin lock
+      if (userState.currentUser && userState.currentUser.role === 'BRANCH_ADMIN' && userState.currentUser.assignedBranch) {
+        const myBranch = userState.currentUser.assignedBranch;
+        for (let i = 0; i < dom.assignedBranchSelect.options.length; i++) {
+          const optVal = dom.assignedBranchSelect.options[i].value;
+          if (optVal.toLowerCase() === myBranch.toLowerCase()) {
+            dom.assignedBranchSelect.selectedIndex = i;
+            break;
+          }
+        }
+        dom.assignedBranchSelect.disabled = true;
+        userState.assignedBranch = myBranch;
+        userState.selectedBranches.clear();
+        userState.selectedBranches.add(myBranch);
+
+        const hint = document.getElementById('assignedBranchHint') || dom.assignedBranchSelect.parentElement?.nextElementSibling;
+        if (hint) {
+          hint.innerHTML = `<span style="color:#d4af37;font-weight:600;">🔒 Locked to your assigned branch: ${escapeHtml(myBranch)}</span> (Branch Admin scope)`;
+        }
+        if (dom.branchClearanceActionBtns) {
+          dom.branchClearanceActionBtns.style.display = 'none';
+        }
+      }
     }
+
+    renderBranchClearanceCards();
   } catch (err) {
     console.warn('[CreateUser] Failed to fetch branches, defaulting to empty:', err);
   }
+}
+
+window.handlePrimaryBranchChange = function(branch) {
+  userState.assignedBranch = branch || '';
+  if (branch) {
+    userState.selectedBranches.add(branch);
+  }
+  renderBranchClearanceCards();
+  syncUserPreview();
+};
+
+window.toggleBranchClearance = function(branch) {
+  if (userState.currentUser && userState.currentUser.role === 'BRANCH_ADMIN') return;
+  if (userState.selectedBranches.has(branch)) {
+    userState.selectedBranches.delete(branch);
+    if (dom.assignedBranchSelect && dom.assignedBranchSelect.value === branch) {
+      const remaining = Array.from(userState.selectedBranches);
+      dom.assignedBranchSelect.value = remaining.length > 0 ? remaining[0] : '';
+      userState.assignedBranch = dom.assignedBranchSelect.value;
+    }
+  } else {
+    userState.selectedBranches.add(branch);
+    if (dom.assignedBranchSelect && !dom.assignedBranchSelect.value) {
+      dom.assignedBranchSelect.value = branch;
+      userState.assignedBranch = branch;
+    }
+  }
+  renderBranchClearanceCards();
+  syncUserPreview();
+};
+
+window.selectAllBranches = function() {
+  if (userState.currentUser && userState.currentUser.role === 'BRANCH_ADMIN') return;
+  userState.branchesList.forEach(b => {
+    const val = b.branchCode || b.name;
+    userState.selectedBranches.add(val);
+  });
+  if (dom.assignedBranchSelect && !dom.assignedBranchSelect.value && userState.branchesList.length > 0) {
+    dom.assignedBranchSelect.value = userState.branchesList[0].branchCode || userState.branchesList[0].name;
+    userState.assignedBranch = dom.assignedBranchSelect.value;
+  }
+  renderBranchClearanceCards();
+  syncUserPreview();
+};
+
+window.clearAllBranches = function() {
+  if (userState.currentUser && userState.currentUser.role === 'BRANCH_ADMIN') return;
+  userState.selectedBranches.clear();
+  if (dom.assignedBranchSelect) {
+    dom.assignedBranchSelect.value = '';
+    userState.assignedBranch = '';
+  }
+  renderBranchClearanceCards();
+  syncUserPreview();
+};
+
+function renderBranchClearanceCards() {
+  if (!dom.branchClearanceContainer) return;
+  const primaryVal = dom.assignedBranchSelect ? dom.assignedBranchSelect.value : '';
+  const isBranchAdmin = (userState.currentUser && userState.currentUser.role === 'BRANCH_ADMIN');
+
+  let html = '';
+  userState.branchesList.forEach(b => {
+    const val = b.branchCode || b.name;
+    const isSelected = userState.selectedBranches.has(val) || (primaryVal && primaryVal.toLowerCase() === val.toLowerCase());
+    const isPrimary = (primaryVal && primaryVal.toLowerCase() === val.toLowerCase());
+    const isDisabled = isBranchAdmin && userState.currentUser.assignedBranch && userState.currentUser.assignedBranch.toLowerCase() !== val.toLowerCase();
+
+    html += `
+      <div class="cu-branch-card ${isSelected ? 'selected' : ''} ${isPrimary ? 'is-primary' : ''}" 
+           style="${isDisabled ? 'opacity:0.35;cursor:not-allowed;pointer-events:none;' : ''}"
+           onclick="toggleBranchClearance('${escapeHtml(val)}')">
+        <div class="cu-branch-card-info">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="cu-branch-card-name">${escapeHtml(b.name)}</span>
+            ${isPrimary ? '<span class="cu-branch-primary-badge">PRIMARY</span>' : ''}
+          </div>
+          <span class="cu-branch-card-meta">
+            ${b.branchCode ? `<span>${escapeHtml(b.branchCode)}</span> • ` : ''}
+            <span>${escapeHtml(b.city || 'Atelier')}</span>
+          </span>
+        </div>
+        <div class="cu-tile-checkbox">
+          <svg class="cu-tile-check-icon" viewBox="0 0 24 24" stroke="currentColor">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+    `;
+  });
+  dom.branchClearanceContainer.innerHTML = html;
 }
 
 // ─── Live User Preview Synchronization ───
@@ -294,7 +446,16 @@ window.syncUserPreview = function() {
 
   if (dom.sumDesignation) dom.sumDesignation.textContent = desig || '—';
   if (dom.sumDepartment) dom.sumDepartment.textContent = dept || '—';
-  if (dom.sumBranch) dom.sumBranch.textContent = branch || 'Central HQ';
+  if (dom.sumBranch) {
+    const branchCount = userState.selectedBranches.size;
+    if (branchCount > 1) {
+      dom.sumBranch.textContent = `${branchCount} Branches (${Array.from(userState.selectedBranches).join(', ')})`;
+    } else if (branchCount === 1) {
+      dom.sumBranch.textContent = Array.from(userState.selectedBranches)[0];
+    } else {
+      dom.sumBranch.textContent = branch || 'Central HQ';
+    }
+  }
 
   // Contact
   const email = dom.emailInput ? dom.emailInput.value.trim() : '';
@@ -594,27 +755,22 @@ function syncAccessCounter() {
   }
 }
 
-// ─── Apply Role Defaults ───
 function applyRoleDefaultModules(roleName) {
   const r = (roleName || '').toUpperCase();
   userState.selectedModules.clear();
 
-  if (r === 'ADMIN') {
+  if (r === 'OWNER' || r === 'ADMIN') {
     userState.moduleRegistry.forEach(m => userState.selectedModules.add(m.key));
-  } else if (r === 'STAFF') {
-    const staffDefaults = [
-      'dashboard', 'garments', 'orders', 'measurements', 'customers',
-      'enquiries', 'fabrics', 'collections', 'production-room',
-      'trials-alterations', 'quality-control', 'stock', 'delivery'
+  } else if (r === 'BRANCH_ADMIN') {
+    const branchDefaults = [
+      'dashboard', 'enquiries', 'appointments', 'customers', 'orders', 'payments',
+      'garments', 'designs', 'measurements', 'fabrics', 'collections',
+      'production-room', 'job-cards', 'trials-alterations', 'quality-control',
+      'stock', 'purchases', 'delivery', 'employees', 'branches', 'users-roles'
     ];
-    staffDefaults.forEach(k => userState.selectedModules.add(k));
-  } else if (r === 'RECEPTIONIST') {
-    const recDefaults = [
-      'dashboard', 'enquiries', 'appointments', 'customers',
-      'orders', 'measurements', 'payments'
-    ];
-    recDefaults.forEach(k => userState.selectedModules.add(k));
+    branchDefaults.forEach(k => userState.selectedModules.add(k));
   } else {
+    // Custom user created as needed: initial default is dashboard; user customizes access
     userState.selectedModules.add('dashboard');
   }
 
@@ -740,6 +896,15 @@ window.handleUserSubmit = async function(event) {
     return;
   }
 
+  const branchVal = (userState.currentUser && userState.currentUser.role === 'BRANCH_ADMIN' && userState.currentUser.assignedBranch)
+    ? userState.currentUser.assignedBranch
+    : (dom.assignedBranchSelect && dom.assignedBranchSelect.value ? dom.assignedBranchSelect.value : null);
+
+  const selectedBranchesList = Array.from(userState.selectedBranches);
+  if (branchVal && !selectedBranchesList.includes(branchVal)) {
+    selectedBranchesList.unshift(branchVal);
+  }
+
   // Construct payload with strict types
   const payload = {
     username: username,
@@ -749,7 +914,8 @@ window.handleUserSubmit = async function(event) {
     active: dom.userActiveToggle ? dom.userActiveToggle.checked : true,
     designation: dom.designationInput && dom.designationInput.value.trim() ? dom.designationInput.value.trim() : null,
     department: dom.departmentInput && dom.departmentInput.value.trim() ? dom.departmentInput.value.trim() : null,
-    assignedBranch: dom.assignedBranchSelect && dom.assignedBranchSelect.value ? dom.assignedBranchSelect.value : null,
+    assignedBranch: branchVal || (selectedBranchesList.length > 0 ? selectedBranchesList[0] : null),
+    allowedBranches: selectedBranchesList,
     email: email || null,
     phone: phoneRaw ? `+91 ${phoneRaw}` : null,
     allowedModules: Array.from(userState.selectedModules)

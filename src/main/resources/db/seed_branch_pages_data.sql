@@ -1910,6 +1910,54 @@ SELECT
     'Initial stock intake audit for boutique branch inventory.'
 FROM inventory_items;
 
+-- Active Cross-Branch Material Transfers
+INSERT INTO stock_movements (id, item_id, quantity, movement_type, moved_by, reference, moved_at, notes, company_id)
+VALUES
+(
+    gen_random_uuid(),
+    (SELECT id FROM inventory_items WHERE item_code = 'MAT-LKO-001' LIMIT 1),
+    45.00,
+    'ISSUE',
+    'Sunita Rajput',
+    'TR-2026-0101',
+    NOW() - INTERVAL '2 hours',
+    'Transfer: Lucknow HQ -> Agra Showroom | Urgent atelier silk batch',
+    'c0000000-0000-0000-0000-000000000001'
+),
+(
+    gen_random_uuid(),
+    (SELECT id FROM inventory_items WHERE item_code = 'MAT-AGR-001' LIMIT 1),
+    30.00,
+    'ISSUE',
+    'Priya Kashyap',
+    'TR-2026-0102',
+    NOW() - INTERVAL '6 hours',
+    'Transfer: Agra Showroom -> Kanpur Studio | Bridal velvet couture dispatch',
+    'c0000000-0000-0000-0000-000000000001'
+),
+(
+    gen_random_uuid(),
+    (SELECT id FROM inventory_items WHERE item_code = 'MAT-KNP-001' LIMIT 1),
+    50.00,
+    'ISSUE',
+    'Vandana Kapoor',
+    'TR-2026-0103',
+    NOW() - INTERVAL '18 hours',
+    'Transfer: Kanpur Studio -> Lucknow HQ | Flagship pure katan restock',
+    'c0000000-0000-0000-0000-000000000001'
+),
+(
+    gen_random_uuid(),
+    (SELECT id FROM inventory_items WHERE item_code = 'MAT-LKO-004' LIMIT 1),
+    25.00,
+    'ISSUE',
+    'Mohammad Irfan',
+    'TR-2026-0104',
+    NOW() - INTERVAL '1 day',
+    'Transfer: Lucknow HQ -> Kanpur Studio | Zardozi border embellishments',
+    'c0000000-0000-0000-0000-000000000001'
+);
+
 
 -- =============================================================================
 -- 5. GARMENTS (Update existing garments & add 25 new branch-specific garments)

@@ -136,6 +136,16 @@ try {
         Write-Host $output2
     }
 
+    $V5Sql = Join-Path $ScriptDir "migration\V5__design_studio_catalog_seed_data.sql"
+    if (-not (Test-Path $V5Sql)) {
+        $V5Sql = "d:\fashion ERP\FASHION-ERP\src\main\resources\db\migration\V5__design_studio_catalog_seed_data.sql"
+    }
+    if (Test-Path $V5Sql) {
+        Write-Host "`nExecuting Design Studio catalog migration (17 core designs with specs & intel)..." -ForegroundColor Cyan
+        $output3 = & "$PsqlPath" -h $DbHost -p $DbPort -U $DbUser -d $DbName -f "$V5Sql" 2>&1
+        Write-Host $output3
+    }
+
     Write-Host "`n=================================================================" -ForegroundColor Green
     Write-Host " [SUCCESS] DEMO DATA SEEDED SUCCESSFULLY!" -ForegroundColor Green
     Write-Host " Company      : Riwayat Haute Couture" -ForegroundColor Green

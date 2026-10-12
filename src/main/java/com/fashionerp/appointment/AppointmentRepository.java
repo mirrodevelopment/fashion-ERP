@@ -33,15 +33,12 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
     List<Appointment> findByScheduledAtBetweenOrderByScheduledAtAsc(LocalDateTime from, LocalDateTime to);
 
     List<Appointment> findByCompanyIdAndCustomerMobileNumberOrderByScheduledAtDesc(UUID companyId, String customerMobile);
-    List<Appointment> findByCustomerMobileNumberOrderByScheduledAtDesc(String customerMobile);
 
     Optional<Appointment> findByIdAndCompanyId(UUID id, UUID companyId);
 
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatus(UUID companyId, AppointmentStatus status);
-    long countByStatus(AppointmentStatus status);
 
     List<Appointment> findByCompanyIdAndOrderId(UUID companyId, UUID orderId);
-    List<Appointment> findByOrderId(UUID orderId);
 }
 

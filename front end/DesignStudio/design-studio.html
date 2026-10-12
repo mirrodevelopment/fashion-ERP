@@ -55,165 +55,47 @@
              =================================================================== -->
         <header class="page-header-row">
           <div class="header-left">
-            <span class="page-section-label">Design</span>
-            <h1 class="page-title">Design Studio / Design Library</h1>
-            <p class="page-subtitle">Create, manage and organise your design collections. From concept to creation.</p>
+            <h1 class="page-title">Design Library</h1>
+            <p class="page-subtitle">Create, organise and reuse the house's design intelligence.</p>
           </div>
+
+          <!-- Inline KPI Mini Strip (Matching Reference Screenshot media_1791789041112.png) -->
+          <div class="header-kpi-strip" id="headerKpiStrip" aria-label="Design Library Quick Metrics">
+            <div class="header-kpi-card" id="kpiTotalDesignsCard">
+              <span class="header-kpi-val" id="kpiTotalDesignsVal">0</span>
+              <span class="header-kpi-lbl">Total Designs</span>
+            </div>
+            <div class="header-kpi-card" id="kpiProdReadyCard">
+              <span class="header-kpi-val" id="kpiProdReadyVal">0</span>
+              <span class="header-kpi-lbl"><span class="kpi-dot dot-green"></span> Production Ready</span>
+            </div>
+            <div class="header-kpi-card" id="kpiInDevCard">
+              <span class="header-kpi-val" id="kpiInDevVal">0</span>
+              <span class="header-kpi-lbl"><span class="kpi-dot dot-purple"></span> In Development</span>
+            </div>
+            <div class="header-kpi-card" id="kpiSamplesPendingCard">
+              <span class="header-kpi-val" id="kpiSamplesPendingVal">0</span>
+              <span class="header-kpi-lbl"><span class="kpi-dot dot-orange"></span> Samples Pending</span>
+            </div>
+            <div class="header-kpi-card" id="kpiUsedMonthCard">
+              <span class="header-kpi-val" id="kpiUsedMonthVal">0</span>
+              <span class="header-kpi-lbl"><i data-lucide="bar-chart-2" style="width:11px;height:11px;"></i> Used This Month</span>
+            </div>
+          </div>
+
           <div class="header-actions">
-            <button type="button" class="btn-new-design" id="btnNewDesign" aria-label="Create New Design">
-              <i data-lucide="plus" style="width:16px;height:16px;"></i>
-              <span>New Design</span>
+            <!-- Context action buttons for selected design -->
+            <button type="button" class="btn-use-in-order" id="btnHeaderUseInOrder" aria-label="Use Selected Design in New Order">
+              Use in New Order
+              <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
             </button>
+            <button type="button" class="btn-create-variant" id="btnCreateVariant" aria-label="Create a Variant of This Design">Create Variant</button>
+            <button type="button" class="btn-secondary-glass btn-header-edit" id="btnHeaderEditDesign" aria-label="Edit Selected Design">Edit Design</button>
             <button type="button" class="btn-icon-more" id="btnMoreHeaderOptions" aria-label="More Options">
               <i data-lucide="more-horizontal" style="width:18px;height:18px;"></i>
             </button>
           </div>
         </header>
-
-        <!-- ===================================================================
-             2. KPI ANALYTICS STRIP (6 CARDS)
-             =================================================================== -->
-        <section class="kpi-grid" aria-label="Design Analytics Summary">
-
-          <!-- KPI 1: Total Designs -->
-          <div class="kpi-card" id="kpiTotalDesigns">
-            <div class="kpi-icon-box icon-yellow">
-              <i data-lucide="palette" style="width:18px;height:18px;"></i>
-            </div>
-            <div class="kpi-info">
-              <span class="kpi-label">Total Designs</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiTotalDesignsVal">0</span>
-              </div>
-              <span class="kpi-trend trend-up" id="kpiTotalDesignsTrend">
-                <i data-lucide="arrow-up-right" style="width:13px;height:13px;"></i>
-                Catalog
-              </span>
-            </div>
-          </div>
-
-          <!-- KPI 2: Active Collections -->
-          <div class="kpi-card" id="kpiActiveCollections">
-            <div class="kpi-icon-box icon-lavender">
-              <i data-lucide="shopping-bag" style="width:18px;height:18px;"></i>
-            </div>
-            <div class="kpi-info">
-              <span class="kpi-label">Active Collections</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiActiveCollectionsVal">0</span>
-              </div>
-              <span class="kpi-subtext" id="kpiActiveCollectionsSub">Curated collections</span>
-            </div>
-          </div>
-
-          <!-- KPI 3: Most Used Fabric -->
-          <div class="kpi-card" id="kpiMostUsedFabric">
-            <div class="kpi-icon-box icon-green">
-              <i data-lucide="layers" style="width:18px;height:18px;"></i>
-            </div>
-            <div class="kpi-info">
-              <span class="kpi-label">Most Used Fabric</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value-text" id="kpiMostUsedFabricVal">—</span>
-              </div>
-              <span class="kpi-subtext" id="kpiMostUsedFabricSub">By design usage</span>
-            </div>
-          </div>
-
-          <!-- KPI 4: Popular Category -->
-          <div class="kpi-card" id="kpiPopularCategory">
-            <div class="kpi-icon-box icon-gold">
-              <i data-lucide="crown" style="width:18px;height:18px;"></i>
-            </div>
-            <div class="kpi-info">
-              <span class="kpi-label">Popular Category</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value-text" id="kpiPopularCategoryVal">—</span>
-              </div>
-              <span class="kpi-subtext" id="kpiPopularCategorySub">Top garment type</span>
-            </div>
-          </div>
-
-          <!-- KPI 5: Designs to Production -->
-          <div class="kpi-card" id="kpiDesignsProduction">
-            <div class="kpi-icon-box icon-pink">
-              <i data-lucide="scissors" style="width:18px;height:18px;"></i>
-            </div>
-            <div class="kpi-info">
-              <span class="kpi-label">Designs to Production</span>
-              <div class="kpi-value-row">
-                <span class="kpi-value" id="kpiDesignsProductionVal">0</span>
-              </div>
-              <span class="kpi-trend trend-up" id="kpiDesignsProductionTrend">
-                <i data-lucide="arrow-up-right" style="width:13px;height:13px;"></i>
-                Active pipeline
-              </span>
-            </div>
-          </div>
-
-          <!-- KPI 6: By Category Donut Chart -->
-          <div class="kpi-card kpi-chart-card" id="kpiCategoryChart">
-            <div class="donut-container">
-              <canvas id="categoryDonutChart" width="70" height="70"></canvas>
-              <div class="donut-center-text">
-                <span class="donut-center-number" id="donutTotalCount">0</span>
-              </div>
-            </div>
-            <div class="donut-legend-col">
-              <div class="donut-title">By Category</div>
-              <div class="donut-legend-items">
-                <!-- Rendered dynamically via design-studio.js based on live database data -->
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===================================================================
-             3. CATEGORY TABS & SEARCH / FILTER / SORT BAR
-             =================================================================== -->
-        <div class="filter-action-toolbar">
-
-          <!-- Category Filter Tabs (Populated 100% Dynamically from Database via JS) -->
-          <nav class="category-tabs" id="categoryTabs" aria-label="Design Categories"></nav>
-
-          <!-- Search, Filter, Sort, and View Controls -->
-          <div class="toolbar-controls">
-
-            <!-- Live Search Bar -->
-            <div class="search-input-wrap">
-              <i data-lucide="search" class="search-icon"></i>
-              <input type="text" id="designSearchInput" placeholder="Search designs, code..." aria-label="Search designs" />
-              <button type="button" class="clear-search-btn" id="btnClearSearch" title="Clear Search" style="display:none;">&times;</button>
-            </div>
-
-            <!-- Filter Trigger Button -->
-            <div class="dropdown-wrap">
-              <button type="button" class="btn-tool" id="btnToggleFilter" aria-label="Open Filter Options">
-                <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i>
-                <span>Filter</span>
-                <span class="filter-active-indicator" id="filterActiveBadge" style="display:none;"></span>
-              </button>
-            </div>
-
-            <!-- Sort Trigger Button -->
-            <div class="dropdown-wrap">
-              <button type="button" class="btn-tool" id="btnSortDropdown" aria-label="Sort options">
-                <i data-lucide="arrow-up-down" style="width:14px;height:14px;"></i>
-                <span id="sortButtonLabel">Sort</span>
-              </button>
-            </div>
-
-            <!-- View Toggle: Grid vs List -->
-            <div class="view-toggle-group" role="group" aria-label="View toggle">
-              <button type="button" class="btn-view-toggle active" id="btnViewGrid" title="Grid View" aria-label="Grid View">
-                <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
-              </button>
-              <button type="button" class="btn-view-toggle" id="btnViewList" title="List View" aria-label="List View">
-                <i data-lucide="list" style="width:14px;height:14px;"></i>
-              </button>
-            </div>
-          </div>
-        </div>
 
         <!-- ===================================================================
              4. MAIN WORKSPACE: GALLERY GRID & DETAIL PANEL
@@ -223,7 +105,50 @@
           <!-- LEFT COLUMN: CARDS GALLERY / LIST VIEW -->
           <div class="gallery-column">
 
-            <!-- Grid Mode Container (5 Columns Matching Reference) -->
+            <!-- Category Filter Tabs & Search / Filter Controls inside Gallery Column -->
+            <div class="gallery-controls-wrap">
+              <!-- Category Filter Tabs (Populated Dynamically via JS) -->
+              <nav class="category-tabs" id="categoryTabs" aria-label="Design Categories"></nav>
+
+              <!-- Search, Filter, Sort, and View Controls -->
+              <div class="toolbar-controls">
+                <!-- Live Search Bar -->
+                <div class="search-input-wrap">
+                  <i data-lucide="search" class="search-icon"></i>
+                  <input type="text" id="designSearchInput" placeholder="Search design code, name, feature, collection..." aria-label="Search designs" />
+                  <button type="button" class="clear-search-btn" id="btnClearSearch" title="Clear Search" style="display:none;">&times;</button>
+                </div>
+
+                <!-- Filter Trigger Button -->
+                <div class="dropdown-wrap">
+                  <button type="button" class="btn-tool" id="btnToggleFilter" aria-label="Open Filter Options">
+                    <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i>
+                    <span>Filters</span>
+                    <span class="filter-active-indicator" id="filterActiveBadge" style="display:none;"></span>
+                  </button>
+                </div>
+
+                <!-- Sort Trigger Button -->
+                <div class="dropdown-wrap">
+                  <button type="button" class="btn-tool" id="btnSortDropdown" aria-label="Sort options">
+                    <span id="sortButtonLabel">Newest</span>
+                    <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+                  </button>
+                </div>
+
+                <!-- View Toggle: Grid vs List -->
+                <div class="view-toggle-group" role="group" aria-label="View toggle">
+                  <button type="button" class="btn-view-toggle active" id="btnViewGrid" title="Grid View" aria-label="Grid View">
+                    <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
+                  </button>
+                  <button type="button" class="btn-view-toggle" id="btnViewList" title="List View" aria-label="List View">
+                    <i data-lucide="list" style="width:14px;height:14px;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grid Mode Container (4 Columns Matching Reference) -->
             <div class="gallery-grid" id="designGrid">
               <!-- Rendered dynamically via design-studio.js -->
             </div>
@@ -293,87 +218,67 @@
           <!-- RIGHT COLUMN: SELECTED DESIGN DETAIL PANEL -->
           <aside class="detail-column" id="selectedDesignPanel" aria-label="Design Details" style="display:none;">
 
-            <!-- Top Hero Section: Gallery on Left + Info on Right -->
-            <div class="detail-hero-section">
-
-              <!-- Left Gallery: 4 Vertical Thumbnails + Large Preview -->
-              <div class="detail-gallery-wrap">
-                <div class="thumbnail-strip" id="thumbnailStrip">
-                  <!-- Thumbnails rendered dynamically via design-studio.js -->
+            <!-- ── PANEL HEADER: Code + Status Badges + Title ─────────────── -->
+            <div class="detail-panel-header">
+              <div class="detail-header-top-line">
+                <div class="detail-code-copy-wrap">
+                  <span class="detail-code" id="detailCode">—</span>
+                  <button type="button" class="btn-copy-code" id="btnCopyCode" title="Copy design code" aria-label="Copy design code">
+                    <i data-lucide="copy" style="width:12px;height:12px;"></i>
+                  </button>
                 </div>
-                <div class="main-preview-wrap" id="mainPreviewWrap">
-                  <img id="detailMainImage" src="" alt="Selected Design Main Image" />
+                <div class="detail-badges" id="detailBadges"><!-- rendered by JS --></div>
+              </div>
+              <h2 class="detail-title" id="detailTitle">Select a Design</h2>
+            </div>
+
+            <!-- ── META INFO ROW: Collection | Garment Type | Version | Last Updated ── -->
+            <div class="detail-meta-info-row" id="detailMetaRow"><!-- rendered by JS --></div>
+
+            <!-- ── BLUEPRINT ROW: Main Image + Production Readiness ───────── -->
+            <div class="detail-blueprint-row">
+              <!-- Left: Design image (acts as blueprint view) -->
+              <div class="blueprint-wrap" id="blueprintWrap">
+                <div class="blueprint-image-area" id="mainPreviewWrap">
+                  <img id="detailMainImage" src="" alt="Selected Design Blueprint" />
                   <span class="preview-category-chip" id="previewCategoryChip" style="display:none;"></span>
-                  <div class="zoom-overlay-hint">
-                    <i data-lucide="maximize-2" style="width:14px;height:14px;"></i>
+                  <!-- Interactive Blueprint Callouts Layer -->
+                  <div class="blueprint-callouts-layer" id="blueprintCalloutsLayer"></div>
+                  <div class="zoom-overlay-hint" id="zoomHint">
+                    <i data-lucide="maximize-2" style="width:13px;height:13px;"></i>
                   </div>
                 </div>
+                <!-- Thumbnail strip below blueprint image -->
+                <div class="thumbnail-strip" id="thumbnailStrip"><!-- rendered by JS --></div>
               </div>
-
-              <!-- Right Info: Code, Title, Badges, Desc, Swatches, Buttons -->
-              <div class="detail-info-wrap">
-                <div class="detail-header-row">
-                  <div class="detail-code" id="detailCode">—</div>
-                  <div class="detail-header-actions">
-                    <button type="button" class="btn-detail-icon" id="btnDetailFavorite" title="Add to Favorites" aria-label="Favorite this design">
-                      <i data-lucide="heart" class="heart-icon"></i>
-                    </button>
-                    <button type="button" class="btn-detail-icon" id="btnDetailMoreMenu" title="More Actions" aria-label="More actions for this design">
-                      <i data-lucide="more-horizontal" style="width:16px;height:16px;"></i>
-                    </button>
-                    <button type="button" class="btn-detail-icon" id="btnDetailClose" title="Close Panel" aria-label="Close detail panel" style="display:none;">
-                      <i data-lucide="x" style="width:15px;height:15px;"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <h2 class="detail-title" id="detailTitle">Select a Design</h2>
-
-                <div class="detail-badges" id="detailBadges">
-                  <!-- Rendered dynamically -->
-                </div>
-
-                <p class="detail-description" id="detailDescription"></p>
-
-                <!-- Color Swatches Row -->
-                <div class="detail-colors-wrap">
-                  <div class="color-swatches-list" id="colorSwatchesList">
-                    <!-- Rendered dynamically -->
-                  </div>
-                </div>
-
-                <!-- Action Buttons: Use in New Order & Edit Design -->
-                <div class="detail-actions-row">
-                  <button type="button" class="btn-primary-dark" id="btnUseInNewOrder">
-                    <span>Use in New Order</span>
-                  </button>
-                  <button type="button" class="btn-secondary-glass" id="btnEditDesign">
-                    <span>Edit Design</span>
-                  </button>
-                </div>
-              </div>
+              <!-- Right: Production Readiness donut + checklist -->
+              <div class="readiness-wrap" id="readinessWrap"><!-- rendered by JS --></div>
             </div>
 
-            <!-- Detail Tabs: Details, Materials, Measurements, Production, Related Orders -->
-            <div class="detail-tabs-bar" id="detailTabsBar">
-              <button type="button" class="detail-tab active" data-tab="details">Details</button>
-              <button type="button" class="detail-tab" data-tab="materials">Materials</button>
-              <button type="button" class="detail-tab" data-tab="measurements">Measurements</button>
-              <button type="button" class="detail-tab" data-tab="production">Production</button>
-              <button type="button" class="detail-tab" data-tab="orders" title="Related Orders">Related Orders</button>
+            <!-- ── INTEL CARDS ROW: Fit Intelligence | Material Compatibility | Production Complexity ── -->
+            <div class="detail-intel-row">
+              <div class="intel-card" id="fitIntelCard"><!-- rendered by JS --></div>
+              <div class="intel-card" id="materialCompatCard"><!-- rendered by JS --></div>
+              <div class="intel-card" id="prodComplexityCard"><!-- rendered by JS --></div>
             </div>
 
-            <!-- Tab Content Display Pane -->
-            <div class="detail-tab-pane" id="detailTabPane">
-              <!-- Rendered dynamically via design-studio.js -->
+            <!-- ── FAMILY / HISTORY / PERFORMANCE ROW ────────────────────── -->
+            <div class="detail-family-row">
+              <div class="intel-card" id="variantFamilyCard"><!-- rendered by JS --></div>
+              <div class="intel-card" id="versionHistoryCard"><!-- rendered by JS --></div>
+              <div class="intel-card" id="designPerfCard"><!-- rendered by JS --></div>
             </div>
 
-            <!-- Tags Section at Bottom -->
+            <!-- ── COLOR SWATCHES ─────────────────────────────────────────── -->
+            <div class="detail-colors-wrap">
+              <span class="tags-title">Colour Options</span>
+              <div class="color-swatches-list" id="colorSwatchesList"><!-- rendered by JS --></div>
+            </div>
+
+            <!-- ── TAGS ───────────────────────────────────────────────────── -->
             <div class="detail-tags-section">
               <span class="tags-title">Tags</span>
-              <div class="tags-list" id="detailTagsList">
-                <!-- Rendered dynamically via design-studio.js -->
-              </div>
+              <div class="tags-list" id="detailTagsList"><!-- rendered by JS --></div>
               <button type="button" class="btn-add-tag" id="btnAddTag" title="Add Tag" aria-label="Add new tag">+</button>
             </div>
           </aside>

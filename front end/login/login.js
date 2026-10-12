@@ -1,13 +1,19 @@
 /**
  * HAULO BOUTIQUE ERP — Login Controller
- * Redesigned Luxury Fashion Interface
- * Handles form validation, interactive password toggle, JWT auth, and redirects.
- * Supports Sign In and Create Account (register) tabs.
+ * Multi-Step Login Flow:
+ *   Step 1 → Company Name  (validated against backend)
+ *   Step 2 → Username + Password  (JWT auth)
+ *
+ * Supports Sign In (2-step) and Create Account (register) tabs.
+ * Developer auto-login panel is preserved on Step 1.
  */
 
 import api, { Auth } from '../api.js';
 
 function getApiBase() {
+  if (typeof window !== 'undefined' && window.HAULO_API_BASE) {
+    return window.HAULO_API_BASE;
+  }
   if (typeof window !== 'undefined' && window.location) {
     const p = window.location.port;
     if (p === '8080' || p === '' || p === '80' || p === '443') {
@@ -17,9 +23,15 @@ function getApiBase() {
   return 'http://localhost:8080/api/v1';
 }
 
-// ── Pre-flight: already-logged-in redirect ─────────────────────────────────
+// ── Pre-flight: Clear stale auth if logging out or stay on login desk ──────────
 const urlParams = new URLSearchParams(window.location.search);
-if (Auth.isLoggedIn() && !urlParams.has('force') && !urlParams.has('logout') && urlParams.get('reason') !== 'session_expired') {
+if (urlParams.has('logout')) {
+  Auth.clear();
+}
+
+// When navigating to the login desk, remain on the login page without auto-logging in.
+// Only auto-redirect to dashboard if explicitly requested via ?auto_redirect=1
+if (urlParams.has('auto_redirect') && Auth.isLoggedIn() && !urlParams.has('force') && urlParams.get('reason') !== 'session_expired') {
   fetch(`${getApiBase()}/customers?size=1`, {
     headers: { 'Authorization': 'Bearer ' + Auth.getToken() }
   }).then(res => {
@@ -31,7 +43,6 @@ if (Auth.isLoggedIn() && !urlParams.has('force') && !urlParams.has('logout') && 
       }
       localStorage.setItem('haulo_last_activity', String(Date.now()));
       sessionStorage.setItem('haulo_last_activity', String(Date.now()));
-      // Check if company setup is needed even for existing sessions
       _redirectPostAuth(null);
     } else {
       Auth.clear();
@@ -40,49 +51,70 @@ if (Auth.isLoggedIn() && !urlParams.has('force') && !urlParams.has('logout') && 
 }
 
 // ── DOM Elements ───────────────────────────────────────────────────────────
-const form            = document.getElementById('login-form');
-const usernameInput   = document.getElementById('username');
-const passwordInput   = document.getElementById('password');
-const rememberChk     = document.getElementById('remember');
-const btnLogin        = document.getElementById('btn-login');
-const btnText         = document.getElementById('btn-text');
-const btnSpinner      = document.getElementById('btn-spinner');
-const arrowIcon       = document.getElementById('signin-arrow-icon');
-const errorBanner     = document.getElementById('error-banner');
-const errorMsg        = document.getElementById('error-msg');
-const togglePw        = document.getElementById('toggle-pw');
-const eyeIconSvg      = document.getElementById('eye-icon-svg');
-const btnAutoLogin    = document.getElementById('btn-auto-login');
-const btnAutoText     = document.getElementById('btn-auto-text');
-const btnContact      = document.getElementById('btn-contact');
-const forgotPwLink    = document.getElementById('link-forgot-pw');
-const btnGoogle       = document.getElementById('btn-google-login');
-const btnMicrosoft    = document.getElementById('btn-ms-login');
+const form             = document.getElementById('login-form');
+const usernameInput    = document.getElementById('username');
+const passwordInput    = document.getElementById('password');
+const rememberChk      = document.getElementById('remember');
+const btnLogin         = document.getElementById('btn-login');
+const btnText          = document.getElementById('btn-text');
+const btnSpinner       = document.getElementById('btn-spinner');
+const arrowIcon        = document.getElementById('signin-arrow-icon');
+const errorBanner      = document.getElementById('error-banner');
+const errorMsg         = document.getElementById('error-msg');
+const togglePw         = document.getElementById('toggle-pw');
+const eyeIconSvg       = document.getElementById('eye-icon-svg');
+const btnAutoLogin     = document.getElementById('btn-auto-login');
+const btnAutoText      = document.getElementById('btn-auto-text');
+const btnContact       = document.getElementById('btn-contact');
+const forgotPwLink     = document.getElementById('link-forgot-pw');
+const btnGoogle        = document.getElementById('btn-google-login');
+const btnMicrosoft     = document.getElementById('btn-ms-login');
 
-// Register form elements
-const registerForm    = document.getElementById('register-form');
-const regFullname     = document.getElementById('reg-fullname');
-const regUsername     = document.getElementById('reg-username');
-const regPhone        = document.getElementById('reg-phone');
-const regPassword     = document.getElementById('reg-password');
-const regConfirm      = document.getElementById('reg-confirm');
-const regTogglePw     = document.getElementById('reg-toggle-pw');
-const regEyeSvg       = document.getElementById('reg-eye-svg');
-const regErrorBanner  = document.getElementById('reg-error-banner');
-const regErrorMsg     = document.getElementById('reg-error-msg');
-const regBtnText      = document.getElementById('reg-btn-text');
-const regSpinner      = document.getElementById('reg-spinner');
-const regArrow        = document.getElementById('reg-arrow');
+// Step elements
+const loginStep1       = document.getElementById('login-step-1');
+const loginStep2       = document.getElementById('login-step-2');
+const companyNameInput = document.getElementById('company-name');
+const btnContinue      = document.getElementById('btn-company-continue');
+const btnContinueText  = document.getElementById('btn-continue-text');
+const btnContinueSpin  = document.getElementById('btn-continue-spinner');
+const continueArrow    = document.getElementById('continue-arrow-icon');
+const companyBadge     = document.getElementById('company-badge');
+const companyBadgeName = document.getElementById('company-badge-name');
+const btnBackToCompany = document.getElementById('btn-back-to-company');
 
 // Tab / heading elements
-const cardTitle       = document.getElementById('card-title');
-const cardSubtitle    = document.getElementById('card-subtitle');
-const tabLogin        = document.getElementById('tab-login');
-const tabRegister     = document.getElementById('tab-register');
-const sectionLogin    = document.getElementById('section-login');
-const sectionRegister = document.getElementById('section-register');
+const cardTitle        = document.getElementById('card-title');
+const cardSubtitle     = document.getElementById('card-subtitle');
+const tabLogin         = document.getElementById('tab-login');
+const tabRegister      = document.getElementById('tab-register');
+const sectionLogin     = document.getElementById('section-login');
+const sectionRegister  = document.getElementById('section-register');
 
-// ── 1. Tab Mode Switcher ───────────────────────────────────────────────────
+// ── Step State ─────────────────────────────────────────────────────────────
+let resolvedCompanyId   = null;   // UUID string from lookup response
+let resolvedCompanyName = null;   // Exact name from server
+
+// ── 1. Step Transition ─────────────────────────────────────────────────────
+function showStep(stepNumber) {
+  if (loginStep1) loginStep1.style.display = (stepNumber === 1) ? '' : 'none';
+  if (loginStep2) loginStep2.style.display = (stepNumber === 2) ? '' : 'none';
+  hideError();
+  if (stepNumber === 1) {
+    companyNameInput?.focus();
+    // Update heading back to "Welcome Back"
+    if (cardTitle)    cardTitle.textContent    = 'Welcome Back';
+    if (cardSubtitle) cardSubtitle.textContent = 'Sign in to your account and continue building something beautiful.';
+  } else {
+    usernameInput?.focus();
+    // Update heading to show which company they're signing into
+    if (cardTitle)    cardTitle.textContent    = 'Sign In';
+    if (cardSubtitle) cardSubtitle.textContent = resolvedCompanyName
+      ? `Signing in to ${resolvedCompanyName}`
+      : 'Enter your credentials to continue.';
+  }
+}
+
+// ── 2. Tab Mode Switcher ───────────────────────────────────────────────────
 let currentMode = 'login';
 
 window.switchAuthMode = function(mode) {
@@ -98,10 +130,15 @@ window.switchAuthMode = function(mode) {
   if (sectionRegister) sectionRegister.style.display = isLogin ? 'none' : '';
 
   // Heading
-  if (cardTitle)    cardTitle.textContent    = isLogin ? 'Welcome Back' : 'Register Your Boutique';
-  if (cardSubtitle) cardSubtitle.textContent = isLogin
-    ? 'Sign in to your account and continue building something beautiful.'
-    : 'Configure your boutique details first. You will create your admin login at the end.';
+  if (isLogin) {
+    // Reset to Step 1 whenever switching back to login tab
+    resolvedCompanyId   = null;
+    resolvedCompanyName = null;
+    showStep(1);
+  } else {
+    if (cardTitle)    cardTitle.textContent    = 'Register Your Boutique';
+    if (cardSubtitle) cardSubtitle.textContent = 'Configure your boutique details first. You will create your admin login at the end.';
+  }
 
   hideError();
 };
@@ -114,7 +151,7 @@ if (urlParams.get('tab') === 'register') {
   switchAuthMode('register');
 }
 
-// ── 2. Password Visibility Toggle (Login) ─────────────────────────────────
+// ── 3. Password Visibility Toggle (Login Step 2) ───────────────────────────
 if (togglePw && passwordInput && eyeIconSvg) {
   togglePw.addEventListener('click', () => {
     const isMasked = passwordInput.type === 'password';
@@ -127,33 +164,23 @@ if (togglePw && passwordInput && eyeIconSvg) {
   });
 }
 
-// Password Visibility Toggle (Register)
-if (regTogglePw && regPassword && regEyeSvg) {
-  regTogglePw.addEventListener('click', () => {
-    const isMasked = regPassword.type === 'password';
-    regPassword.type = isMasked ? 'text' : 'password';
-    regTogglePw.setAttribute('aria-label', isMasked ? 'Hide password' : 'Show password');
-    regEyeSvg.innerHTML = isMasked
-      ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
-      : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  });
-}
-
-// ── 3. Error Helpers ───────────────────────────────────────────────────────
+// ── 4. Error Helpers ───────────────────────────────────────────────────────
 function showError(message) {
   if (errorMsg && errorBanner) { errorMsg.textContent = message; errorBanner.style.display = 'flex'; }
 }
 function hideError() {
   if (errorBanner) errorBanner.style.display = 'none';
 }
-function showRegError(message) {
-  if (regErrorMsg && regErrorBanner) { regErrorMsg.textContent = message; regErrorBanner.style.display = 'flex'; }
-}
-function hideRegError() {
-  if (regErrorBanner) regErrorBanner.style.display = 'none';
+
+// ── 5. Loading States ──────────────────────────────────────────────────────
+function setContinueLoading(loading) {
+  if (!btnContinue) return;
+  btnContinue.disabled = loading;
+  if (btnContinueText) btnContinueText.textContent = loading ? 'Checking...' : 'Continue';
+  if (continueArrow)  continueArrow.style.display  = loading ? 'none' : 'inline-block';
+  if (btnContinueSpin) btnContinueSpin.style.display = loading ? 'inline-block' : 'none';
 }
 
-// ── 4. Loading State ───────────────────────────────────────────────────────
 function setLoading(loading) {
   if (!btnLogin) return;
   btnLogin.disabled = loading;
@@ -163,18 +190,70 @@ function setLoading(loading) {
   if (btnAutoLogin) btnAutoLogin.style.pointerEvents = loading ? 'none' : 'auto';
 }
 
-function setRegLoading(loading) {
-  const btn = document.getElementById('btn-register');
-  if (!btn) return;
-  btn.disabled = loading;
-  if (regBtnText) regBtnText.textContent = loading ? 'Creating account...' : 'Create My Boutique';
-  if (regArrow)   regArrow.style.display   = loading ? 'none' : 'inline-block';
-  if (regSpinner) regSpinner.style.display = loading ? 'inline-block' : 'none';
+// ── 6. Step 1: Company Name Lookup ─────────────────────────────────────────
+async function handleCompanyContinue() {
+  const name = (companyNameInput?.value || '').trim();
+  if (!name) {
+    showError('Please enter your company name.');
+    companyNameInput?.focus();
+    return;
+  }
+
+  setContinueLoading(true);
+  hideError();
+
+  try {
+    const data = await api.auth.lookupCompany(name);
+
+    if (!data || !data.found) {
+      showError(`No company found with the name "${name}". Please check and try again.`);
+      companyNameInput?.select();
+      return;
+    }
+
+    // Store resolved company context
+    resolvedCompanyId   = data.companyId;
+    resolvedCompanyName = data.companyName;
+
+    // Update the confirmed badge
+    if (companyBadgeName) companyBadgeName.textContent = data.companyName;
+
+    // Transition to Step 2
+    showStep(2);
+
+  } catch (err) {
+    console.error('Company lookup error:', err);
+    showError('Unable to reach the server. Please check your connection.');
+  } finally {
+    setContinueLoading(false);
+  }
 }
 
-// ── 5. Post-Auth Redirect with Company Setup Guard ─────────────────────────
+// Wire up the Continue button and Enter key on company input
+if (btnContinue) {
+  btnContinue.addEventListener('click', handleCompanyContinue);
+}
+if (companyNameInput) {
+  companyNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); handleCompanyContinue(); }
+  });
+}
+
+// ── 7. Step 2: "Change" (Back) Link ───────────────────────────────────────
+if (btnBackToCompany) {
+  btnBackToCompany.addEventListener('click', (e) => {
+    e.preventDefault();
+    resolvedCompanyId   = null;
+    resolvedCompanyName = null;
+    // Clear credentials for security
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    showStep(1);
+  });
+}
+
+// ── 8. Post-Auth Redirect with Company Setup Guard ─────────────────────────
 async function _redirectPostAuth(needsCompanySetup) {
-  // If the server told us explicitly whether setup is needed, use that
   if (needsCompanySetup === true) {
     window.location.href = '../company/setup/setup.html';
     return;
@@ -192,12 +271,15 @@ async function _redirectPostAuth(needsCompanySetup) {
     if (res.ok) {
       const data = await res.json();
       if (!data.configured) {
-        window.location.href = '../company/setup/setup.html';
+        // Do not redirect to setup wizard if user is visiting login page.
+        // Clear stale unconfigured session so the login page stays open.
+        Auth.clear();
         return;
       }
     }
   } catch (_) {
-    // If can't reach server just go to dashboard
+    // If can't reach server remain on login page
+    return;
   }
   _goToDashboard();
 }
@@ -214,21 +296,32 @@ function _goToDashboard() {
   window.location.href = destination;
 }
 
-// ── 6. Perform Login ───────────────────────────────────────────────────────
-async function performLogin(username, password, remember) {
+// ── 9. Perform Login (Step 2 Submit) ───────────────────────────────────────
+async function performLogin(username, password, remember, companyName) {
   hideError();
   setLoading(true);
 
   try {
-    const resp = await api.auth.login(username, password);
+    const resp = await api.auth.login(username, password, companyName || resolvedCompanyName);
     Auth.setToken(resp.token, remember);
+    const allowedBranches = Array.isArray(resp.allowedBranches) ? resp.allowedBranches : (resp.assignedBranch ? [resp.assignedBranch] : []);
     Auth.setUser({
       userId:   resp.userId,
       username: resp.username,
       fullName: resp.fullName,
       role:     resp.role,
+      assignedBranch: resp.assignedBranch,
+      allowedBranches: allowedBranches
     });
     sessionStorage.removeItem('erp_allowed_modules');
+
+    const roleNorm = (resp.role || '').replace('ROLE_', '').toUpperCase();
+    const isOwner = (roleNorm === 'OWNER' || roleNorm === 'ADMIN');
+    if (!isOwner) {
+      const initBranch = resp.assignedBranch || (allowedBranches.length > 0 ? allowedBranches[0] : 'Main Branch');
+      localStorage.setItem('haulo_active_branch', initBranch);
+      localStorage.setItem('haulo_active_branch_id', initBranch);
+    }
 
     const loginTime = Date.now();
     sessionStorage.setItem('haulo_session_start', String(loginTime));
@@ -238,7 +331,6 @@ async function performLogin(username, password, remember) {
 
     if (btnText) btnText.textContent = 'Welcome back!';
 
-    // Use the needsCompanySetup flag from the response
     const needsSetup = resp.needsCompanySetup === true;
     setTimeout(() => _redirectPostAuth(needsSetup), 250);
 
@@ -246,7 +338,7 @@ async function performLogin(username, password, remember) {
     console.error('Login error:', err);
     showError(
       err.message === 'Invalid username or password' || err.status === 401
-        ? 'Incorrect email/username or password. Please verify your credentials.'
+        ? 'Incorrect username or password. Please verify your credentials.'
         : (err.message || 'Unable to connect to the server. Please check your network.')
     );
     if (passwordInput) { passwordInput.value = ''; passwordInput.focus(); }
@@ -256,7 +348,25 @@ async function performLogin(username, password, remember) {
   }
 }
 
-// ── 7. Start Setup Flow ────────────────────────────────────────────────────
+// ── 10. Form Submit Handler (Step 2) ───────────────────────────────────────
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError();
+
+    const username = (usernameInput?.value || '').trim();
+    const password = passwordInput?.value || '';
+    const remember = rememberChk ? rememberChk.checked : true;
+
+    if (!username && !password) { showError('Please enter your username and password.'); usernameInput?.focus(); return; }
+    if (!username) { showError('Please enter your email or username.'); usernameInput?.focus(); return; }
+    if (!password) { showError('Please enter your password.'); passwordInput?.focus(); return; }
+
+    await performLogin(username, password, remember, resolvedCompanyName);
+  });
+}
+
+// ── 11. Start Setup Flow (Register Tab) ────────────────────────────────────
 function startSetupFlow() {
   const compInput = document.getElementById('reg-company-name');
   const compName  = (compInput?.value || '').trim();
@@ -285,52 +395,57 @@ if (regCompInput) {
   });
 }
 
-// ── 8. Form Submit Handlers ────────────────────────────────────────────────
-if (form) {
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideError();
-
-    const username = (usernameInput?.value || '').trim();
-    const password = passwordInput?.value || '';
-    const remember = rememberChk ? rememberChk.checked : true;
-
-    if (!username && !password) { showError('Please enter your email address and password.'); usernameInput?.focus(); return; }
-    if (!username) { showError('Please enter your email or username.'); usernameInput?.focus(); return; }
-    if (!password) { showError('Please enter your password.'); passwordInput?.focus(); return; }
-
-    await performLogin(username, password, remember);
-  });
-}
-
-if (registerForm) {
-  registerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    startSetupFlow();
-  });
-}
-
-// ── 9. Auto-Fill Admin Shortcut ────────────────────────────────────────────
+// ── 12. Auto-Fill Admin Shortcut (Step 1 → auto-advance to Step 2) ─────────
 if (btnAutoLogin) {
   btnAutoLogin.addEventListener('click', async () => {
     hideError();
-    if (usernameInput) usernameInput.value = 'admin';
-    if (passwordInput) passwordInput.value = 'Admin@123';
-    if (rememberChk)   rememberChk.checked = true;
-    if (btnAutoText)   btnAutoText.textContent = 'Signing in as Admin...';
+    if (btnAutoText) btnAutoText.textContent = 'Fetching company...';
 
-    usernameInput?.closest('.input-glass-wrap')?.classList.add('highlight-lime');
-    passwordInput?.closest('.input-glass-wrap')?.classList.add('highlight-lime');
-    setTimeout(() => {
-      usernameInput?.closest('.input-glass-wrap')?.classList.remove('highlight-lime');
-      passwordInput?.closest('.input-glass-wrap')?.classList.remove('highlight-lime');
-    }, 500);
+    try {
+      // Try to lookup the first available company from the server
+      // and auto-fill the company name before advancing to Step 2.
+      const res = await fetch(`${getApiBase()}/company`);
+      if (res.ok) {
+        const compData = await res.json();
+        const cName = compData.companyName || compData.shortName || '';
+        if (cName && companyNameInput) {
+          companyNameInput.value = cName;
+          // Highlight field briefly
+          companyNameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+          setTimeout(() => companyNameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+        }
+      }
+    } catch (_) {
+      // If company fetch fails, leave field empty — user can still type it
+    }
 
-    await performLogin('admin', 'Admin@123', true);
+    if (btnAutoText) btnAutoText.textContent = 'Checking company...';
+
+    // Advance to Step 2 and pre-fill credentials
+    await handleCompanyContinue();
+
+    // Fill credentials on Step 2 after transition
+    if (usernameInput) {
+      usernameInput.value = 'admin';
+      usernameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+      setTimeout(() => usernameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+    }
+    if (passwordInput) {
+      passwordInput.value = 'Admin@123';
+      passwordInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+      setTimeout(() => passwordInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+    }
+    if (rememberChk) rememberChk.checked = true;
+    if (btnAutoText) btnAutoText.textContent = 'Auto-Fill Admin Credentials';
+
+    // Auto-submit
+    if (resolvedCompanyName) {
+      await performLogin('admin', 'Admin@123', true, resolvedCompanyName);
+    }
   });
 }
 
-// ── 10. Contact / Forgot PW / Social ──────────────────────────────────────
+// ── 13. Contact / Forgot PW / Social ──────────────────────────────────────
 if (btnContact) {
   btnContact.addEventListener('click', () => {
     const sysName = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('systemName')) || 'Haulo Boutique ERP';

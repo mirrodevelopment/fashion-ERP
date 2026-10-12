@@ -42,13 +42,7 @@
         <!-- Page Operations Header -->
         <div class="cu-page-header-row">
           <div class="cu-page-title-group">
-            <div class="cu-breadcrumb-nav">
-              <a href="../../dashboard/dashboard.html" class="cu-bc-item cu-bc-link">Dashboard</a>
-              <span class="cu-bc-sep">&gt;</span>
-              <a href="../users-roles.html" class="cu-bc-item cu-bc-link">Users &amp; Roles</a>
-              <span class="cu-bc-sep">&gt;</span>
-              <span class="cu-bc-item current">Create User</span>
-            </div>
+            <div id="breadcrumbSlot"></div>
             <h1 class="cu-page-title">
               <i data-lucide="user-plus" class="cu-title-icon"></i>
               Create New User
@@ -238,6 +232,25 @@
                   </div>
                 </div>
 
+                <!-- Custom Role Title / Designation (Shown when Custom Role is selected) -->
+                <div id="customRoleInputGroup" style="display:none; margin-top:16px; padding:16px; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.25); border-radius:10px;">
+                  <label class="cu-label" for="customRoleTitleInput" style="color:#d4af37; font-weight:600; display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+                    <span>Custom Role Title / Designation</span>
+                    <span class="cu-req">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="customRoleTitleInput"
+                    class="cu-input"
+                    placeholder="e.g. Master Pattern Cutter, Bridal Stylist, Lead Karigar, Inventory Head"
+                    oninput="handleCustomRoleTitle(this.value)"
+                  />
+                  <span class="cu-field-hint" style="color:rgba(255,255,255,0.6); margin-top:6px; display:block;">
+                    Define a bespoke role for your atelier. In Step 5 (Access), select the exact ERP modules this user can access.
+                  </span>
+                </div>
+
                 <!-- Role Capability Summary Checklist -->
                 <div class="cu-capability-box" id="roleCapabilitiesBox">
                   <div class="cu-cap-header">
@@ -317,18 +330,41 @@
                   </div>
                 </div>
 
-                <!-- Assigned Branch (Dynamic from GET /api/v1/branches) -->
+                <!-- Primary Assigned Branch -->
                 <div class="cu-field">
-                  <label class="cu-label" for="assignedBranchSelect">Assigned Branch Location</label>
+                  <label class="cu-label" for="assignedBranchSelect">
+                    Primary Branch Location <span class="cu-req">*</span>
+                  </label>
                   <div class="cu-select-wrapper">
                     <i data-lucide="map-pin" class="cu-select-icon"></i>
-                    <select id="assignedBranchSelect" class="cu-select" onchange="syncUserPreview()">
-                      <option value="">— Unassigned (All Branches / Central HQ) —</option>
+                    <select id="assignedBranchSelect" class="cu-select" onchange="handlePrimaryBranchChange(this.value)">
+                      <option value="">— Select Primary Branch Location —</option>
                       <!-- Branches injected dynamically by JS -->
                     </select>
                     <i data-lucide="chevron-down" class="cu-select-arrow"></i>
                   </div>
-                  <span class="cu-field-hint">Restricts or tags activities to this boutique atelier location.</span>
+                  <span class="cu-field-hint" id="assignedBranchHint">Primary operational workstation where this user is based.</span>
+                </div>
+
+                <!-- Multi-Branch Access Clearance Grid -->
+                <div class="cu-field" style="margin-top: 18px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+                    <label class="cu-label" style="margin-bottom:0; display:flex; align-items:center; gap:6px;">
+                      <i data-lucide="building-2" style="width:14px;height:14px;color:var(--nav-lime,#a3e635);"></i>
+                      <span>Branch Access Clearance (Multiple Branches)</span>
+                    </label>
+                    <div style="display:flex; gap:8px;" id="branchClearanceActionBtns">
+                      <button type="button" class="cu-btn-ghost-sm" onclick="selectAllBranches()" style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.12);cursor:pointer;">Select All</button>
+                      <button type="button" class="cu-btn-ghost-sm" onclick="clearAllBranches()" style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.12);cursor:pointer;">Clear</button>
+                    </div>
+                  </div>
+                  
+                  <div id="branchClearanceContainer" class="cu-branch-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:10px; margin-top:8px;">
+                    <!-- Injected dynamically by JS -->
+                  </div>
+                  <span class="cu-field-hint" style="margin-top:8px; display:block;">
+                    Owners can grant access to multiple boutique branches. Users granted multiple branches can switch in the top navbar between permitted branches. Single-branch users are locked.
+                  </span>
                 </div>
               </section>
 

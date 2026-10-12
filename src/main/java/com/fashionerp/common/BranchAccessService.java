@@ -36,16 +36,28 @@ public class BranchAccessService {
      *         or the specific branch name if restricted to their assigned branch.
      */
     public String getEffectiveBranchFilter(BranchModule module) {
+        // 1. If user is BRANCH_ADMIN, always enforce their assigned branch
+        if (TenantContext.isBranchAdmin()) {
+            String b = TenantContext.getAssignedBranch();
+            return (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : null;
+        }
+
         String role = TenantContext.getUserRole();
-        // Admins, Owners, and Super Admins always possess full visibility across all branches
+        // 2. Admins, Owners, and Super Admins: check if an active branch filter is selected
         if (role != null) {
             String upper = role.toUpperCase();
             if (upper.contains("ADMIN") || upper.contains("OWNER") || upper.contains("SUPER")) {
-                return null;
+                String activeFilter = TenantContext.getActiveBranchFilter();
+                if (activeFilter != null && !activeFilter.isBlank() && !"ALL".equalsIgnoreCase(activeFilter.trim())) {
+                    return activeFilter.trim();
+                }
+                return null; // "All Company Data" - see all company records
             }
         }
 
-        String userBranch = TenantContext.getAssignedBranch();
+        // 3. Other users (e.g. staff with multiple branches or single branch):
+        String activeFilter = TenantContext.getActiveBranchFilter();
+        String userBranch = (activeFilter != null && !activeFilter.isBlank()) ? activeFilter.trim() : TenantContext.getAssignedBranch();
         if (userBranch == null || userBranch.isBlank() || "ALL".equalsIgnoreCase(userBranch.trim())) {
             return null;
         }
@@ -77,6 +89,10 @@ public class BranchAccessService {
      * Returns the branch to tag on new records created during this request.
      */
     public String getDefaultBranchForCreation() {
+        String activeFilter = TenantContext.getActiveBranchFilter();
+        if (activeFilter != null && !activeFilter.isBlank() && !"ALL".equalsIgnoreCase(activeFilter.trim())) {
+            return activeFilter.trim();
+        }
         String userBranch = TenantContext.getAssignedBranch();
         if (userBranch != null && !userBranch.isBlank() && !"ALL".equalsIgnoreCase(userBranch.trim())) {
             return userBranch.trim();

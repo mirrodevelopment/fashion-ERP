@@ -127,7 +127,7 @@ window.FRAGMENT_HTML = {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
         <span>Delivery</span>
       </a>
-      <a href="#" class="nav-item uncompleted" id="nav-suppliers" data-tooltip="Suppliers (In Progress)" data-module="suppliers" onclick="navNavigate('suppliers',event)">
+      <a href="../suppliers/suppliers.html" class="nav-item" id="nav-suppliers" data-tooltip="Suppliers" data-module="suppliers" onclick="navNavigate('suppliers',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
         <span>Suppliers</span>
       </a>
@@ -206,11 +206,24 @@ window.FRAGMENT_HTML = {
     <!-- Branch Selector Dropdown -->
     <div class="branch-sel" id="branchSel" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" title="Switch Branch">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:0.75;"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-      <span class="branch-sel-text" id="branchSelText" data-company="branchTitle">Loading branch...</span>
+      <span class="branch-sel-text" id="branchSelText" data-company="branchTitle">All Company Data</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-chevron" style="width:11px;height:11px;opacity:0.6;"><polyline points="6 9 12 15 18 9"/></svg>
       <div class="branch-dd dd-panel" id="branchDd">
-        <div class="dd-panel-header">Active Branch</div>
+        <div class="dd-panel-header">Select Branch / View</div>
         <div class="branch-dd-list" id="branchDdList">
+          <div class="dd-item company-all-item active" data-branch="ALL" data-branch-id="ALL">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:1;"><polyline points="20 6 9 17 4 12"/></svg>
+            <div class="branch-item-body">
+              <div class="branch-item-top">
+                <span class="branch-item-name" style="display:flex;align-items:center;gap:6px;">
+                  <span style="font-size:12px;">🏢</span> All Company Data
+                </span>
+                <span class="branch-pill-company">All Branches</span>
+              </div>
+              <div class="branch-item-meta"><span>Consolidated company-wide view</span></div>
+            </div>
+          </div>
+          <div class="branch-dd-section-title">BRANCHES</div>
           <div class="branch-empty-state">Loading branches...</div>
         </div>
         <a href="../branches/branches.html" class="branch-dd-footer" id="branchManageLink">
@@ -390,7 +403,21 @@ window.FRAGMENT_HTML = {
     <span class="status-bar-sep">|</span>
     <span id="lastUpdated"></span>
   </div>
-</footer>`
+</footer>`,
+
+  breadcrumbs: `<nav class="haulo-bc-nav" id="appBreadcrumbs" aria-label="Breadcrumb navigation">
+  <ol class="haulo-bc-list" id="hauloBcList">
+    <li class="haulo-bc-item">
+      <a href="../dashboard/dashboard.html" class="haulo-bc-link haulo-bc-home" title="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="haulo-bc-icon" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span class="haulo-bc-label">Dashboard</span>
+      </a>
+    </li>
+  </ol>
+</nav>`
 
 };
 

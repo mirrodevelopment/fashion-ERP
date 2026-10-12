@@ -36,8 +36,6 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, UUID> 
                                Pageable pageable);
 
 
-    long countByStatus(InventoryStatus status);
-
     long countByCompanyId(UUID companyId);
 
     long countByCompanyIdAndStatus(UUID companyId, InventoryStatus status);

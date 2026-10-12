@@ -3,7 +3,6 @@ package com.fashionerp.auth;
 import com.fashionerp.company.CompanySettings;
 import com.fashionerp.company.CompanySettingsRepository;
 import com.fashionerp.company.CompanySettingsService;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,45 +22,27 @@ public class AuthService {
     private final LoginRateLimiter rateLimiter;
     private final CompanySettingsService companySettingsService;
     private final CompanySettingsRepository companySettingsRepository;
+    private final UserAccessLogRepository accessLogRepository;
 
-    @PostConstruct
-    public void initAdmin() {
-        try {
-            CompanySettings defaultCompany = companySettingsRepository.findFirstByOrderByCreatedAtAsc().orElse(null);
-            UUID companyId = defaultCompany != null ? defaultCompany.getId() : null;
+    // ── Company Lookup (multi-step login Step 1) ───────────────────────────
 
-            userRepository.findByUsernameAndActiveTrue("admin").ifPresentOrElse(
-                user -> {
-                    boolean changed = false;
-                    if (!passwordEncoder.matches("Admin@123", user.getPasswordHash())) {
-                        user.setPasswordHash(passwordEncoder.encode("Admin@123"));
-                        changed = true;
-                    }
-                    if (user.getCompanyId() == null && companyId != null) {
-                        user.setCompanyId(companyId);
-                        changed = true;
-                    }
-                    if (changed) {
-                        userRepository.save(user);
-                        log.info("Updated admin user credentials and company association");
-                    }
-                },
-                () -> {
-                    AppUser admin = AppUser.builder()
-                            .username("admin")
-                            .passwordHash(passwordEncoder.encode("Admin@123"))
-                            .fullName("Boutique Admin")
-                            .role(UserRole.ADMIN)
-                            .active(true)
-                            .companyId(companyId)
-                            .build();
-                    userRepository.save(admin);
-                    log.info("Created default admin user with username 'admin'");
-                }
-            );
-        } catch (Exception e) {
-            log.error("Error initializing admin user: {}", e.getMessage());
+    /**
+     * Checks whether a company with the given name exists in this installation.
+     * Called by the login page Step 1 before asking for username/password.
+     * No authentication required — only reveals if the name exists.
+     */
+    public AuthDto.CompanyLookupResponse lookupCompany(String name) {
+        if (name == null || name.isBlank()) {
+            return AuthDto.CompanyLookupResponse.builder().found(false).build();
         }
+        return companySettingsRepository.findByCompanyNameIgnoreCase(name.trim())
+            .map(c -> AuthDto.CompanyLookupResponse.builder()
+                    .found(true)
+                    .companyId(c.getId())
+                    .companyName(c.getCompanyName())
+                    .shortName(c.getShortName())
+                    .build())
+            .orElseGet(() -> AuthDto.CompanyLookupResponse.builder().found(false).build());
     }
 
     // ── Login ──────────────────────────────────────────────────────────────
@@ -111,8 +92,23 @@ public class AuthService {
             }
         }
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), companyId, companyName, user.getAssignedBranch());
+        java.util.List<String> userAllowedBranches = UserManagementService.resolveAllowedBranches(user);
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), companyId, companyName, user.getAssignedBranch(), userAllowedBranches);
         updateLastLogin(user);
+
+        if (companyId != null && accessLogRepository != null) {
+            try {
+                accessLogRepository.save(UserAccessLog.builder()
+                        .companyId(companyId)
+                        .userId(user.getId())
+                        .actionType("LOGIN")
+                        .description("Logged into workspace (" + (user.getRole() != null ? user.getRole().name() : "USER") + ")")
+                        .location(user.getAssignedBranch() != null ? user.getAssignedBranch() : (clientIp != null ? clientIp : "Primary Terminal"))
+                        .clientInfo(clientIp != null ? "IP: " + clientIp : "Web Client")
+                        .createdAt(LocalDateTime.now())
+                        .build());
+            } catch (Exception ignored) {}
+        }
 
         boolean needsSetup = !companySettingsService.isConfigured();
 
@@ -122,6 +118,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
+                .assignedBranch(user.getAssignedBranch())
+                .allowedBranches(userAllowedBranches)
                 .companyId(companyId)
                 .companyName(companyName)
                 .expiresAt(LocalDateTime.now().plusHours(24))
@@ -167,7 +165,7 @@ public class AuthService {
                 .fullName(req.getFullName().trim())
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
                 .phone(req.getPhone() != null ? req.getPhone().trim() : null)
-                .role(UserRole.ADMIN)   // first registrant is always owner-admin
+                .role(UserRole.OWNER)   // First registrant is the Company Owner
                 .active(true)
                 .companyId(company.getId())
                 .build();
@@ -175,7 +173,8 @@ public class AuthService {
         userRepository.save(user);
         log.info("New boutique admin registered: {}", user.getUsername());
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName(), user.getAssignedBranch());
+        java.util.List<String> userAllowedBranches = UserManagementService.resolveAllowedBranches(user);
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName(), user.getAssignedBranch(), userAllowedBranches);
 
         // New registrants always need company setup
         return AuthDto.LoginResponse.builder()
@@ -184,6 +183,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
+                .assignedBranch(user.getAssignedBranch())
+                .allowedBranches(userAllowedBranches)
                 .companyId(company.getId())
                 .companyName(company.getCompanyName())
                 .expiresAt(LocalDateTime.now().plusHours(24))
@@ -246,7 +247,7 @@ public class AuthService {
                 .fullName(req.getFullName().trim())
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
                 .phone(req.getUserPhone() != null ? req.getUserPhone().trim() : req.getPrimaryPhone())
-                .role(UserRole.ADMIN)
+                .role(UserRole.OWNER)   // Onboarded boutique owner is the Company Owner
                 .active(true)
                 .companyId(company.getId())
                 .build();
@@ -255,7 +256,8 @@ public class AuthService {
         log.info("New boutique admin registered via onboarding: {}", user.getUsername());
 
         // 3. Issue JWT Token
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName(), user.getAssignedBranch());
+        java.util.List<String> userAllowedBranches = UserManagementService.resolveAllowedBranches(user);
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name(), company.getId(), company.getCompanyName(), user.getAssignedBranch(), userAllowedBranches);
 
         return AuthDto.LoginResponse.builder()
                 .token(token)
@@ -263,6 +265,8 @@ public class AuthService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
+                .assignedBranch(user.getAssignedBranch())
+                .allowedBranches(userAllowedBranches)
                 .companyId(company.getId())
                 .companyName(company.getCompanyName())
                 .expiresAt(LocalDateTime.now().plusHours(24))

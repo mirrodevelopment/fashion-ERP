@@ -12,6 +12,9 @@
 
 // ── 1. Helpers ────────────────────────────────────────────────────────────────
 function getApiBase() {
+  if (typeof window !== 'undefined' && window.HAULO_API_BASE) {
+    return window.HAULO_API_BASE;
+  }
   if (typeof window !== 'undefined' && window.location) {
     const p = window.location.port;
     if (p === '8080' || p === '' || p === '80' || p === '443') {
@@ -567,9 +570,5 @@ if (companyNameInput && shortNameInput) {
     if (submitText)         submitText.textContent = 'Save Boutique & Launch ERP';
   }
 
-  // Brand text in header
-  try {
-    const hdrBrand = document.getElementById('hdr-brand-name');
-    if (hdrBrand && formData.shortName) hdrBrand.textContent = formData.shortName;
-  } catch (_) {}
+  // Header brand remains official HAULO BOUTIQUE ERP
 })();

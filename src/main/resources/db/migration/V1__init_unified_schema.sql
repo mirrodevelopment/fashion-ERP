@@ -1,6 +1,7 @@
 ﻿-- =======================================================================
--- HAULO BOUTIQUE FASHION ERP — UNIFIED DATABASE SCHEMA (V1)
+-- HAULO BOUTIQUE FASHION ERP -- UNIFIED DATABASE SCHEMA (V1)
 -- Complete consolidated DDL: 32 tables, constraints, indexes, sequences
+-- Full Multi-Company Isolation & Granular Branch Data Sharing
 -- Baseline bootstrap: Admin user, core stages, and clean company settings
 -- =======================================================================
 
@@ -27,6 +28,20 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -52,7 +67,8 @@ CREATE TABLE public.app_users (
     department character varying(100),
     bio text,
     assigned_branch character varying(150),
-    allowed_modules text
+    allowed_modules text,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -78,7 +94,8 @@ CREATE TABLE public.appointments (
     notes text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    customer_mobile character varying(30) NOT NULL
+    customer_mobile character varying(30) NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -108,7 +125,8 @@ CREATE TABLE public.branches (
     features text,
     notes text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -123,7 +141,8 @@ CREATE TABLE public.collection_activities (
     description text NOT NULL,
     activity_type character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL,
     color character varying(30) DEFAULT '#a855f7'::character varying,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -153,7 +172,8 @@ CREATE TABLE public.collections (
     design_progress integer DEFAULT 0,
     materials_progress integer DEFAULT 0,
     production_progress integer DEFAULT 0,
-    qc_progress integer DEFAULT 0
+    qc_progress integer DEFAULT 0,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -181,7 +201,14 @@ CREATE TABLE public.company_settings (
     country character varying(100) DEFAULT 'India'::character varying,
     logo_base64 text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    share_customers_across_branches boolean DEFAULT true NOT NULL,
+    share_orders_across_branches boolean DEFAULT true NOT NULL,
+    share_enquiries_across_branches boolean DEFAULT true NOT NULL,
+    share_measurements_across_branches boolean DEFAULT true NOT NULL,
+    share_inventory_across_branches boolean DEFAULT true NOT NULL,
+    share_garments_across_branches boolean DEFAULT true NOT NULL,
+    share_trials_across_branches boolean DEFAULT true NOT NULL
 );
 
 
@@ -237,7 +264,8 @@ CREATE TABLE public.customer_body_measurements (
     notes text,
     recorded_by character varying(100) DEFAULT 'Master Tailor'::character varying,
     recorded_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -271,7 +299,8 @@ CREATE TABLE public.customer_measurements (
     recorded_by character varying(100),
     is_active_profile boolean DEFAULT true NOT NULL,
     recorded_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -287,7 +316,8 @@ CREATE TABLE public.customer_notes (
     author_badge character varying(10) DEFAULT 'AS'::character varying NOT NULL,
     category character varying(50) DEFAULT 'GENERAL'::character varying,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -329,7 +359,9 @@ CREATE TABLE public.customers (
     preferred_neck character varying(100),
     preferred_sleeve character varying(100),
     preferred_occasions character varying(200),
-    delivery_preference character varying(100)
+    delivery_preference character varying(100),
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL,
+    branch character varying(100) DEFAULT 'Main Branch'::character varying
 );
 
 
@@ -369,7 +401,8 @@ CREATE TABLE public.designs (
     image_urls text,
     swatches text,
     notes text,
-    created_by character varying(100)
+    created_by character varying(100),
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -390,7 +423,8 @@ CREATE TABLE public.employees (
     specialization character varying(200),
     notes text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -418,7 +452,9 @@ CREATE TABLE public.enquiries (
     estimated_budget numeric(12,2),
     next_action character varying(150),
     fabric_brought boolean DEFAULT false,
-    avatar_url character varying(255)
+    avatar_url character varying(255),
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL,
+    branch character varying(100) DEFAULT 'Main Branch'::character varying
 );
 
 
@@ -454,7 +490,8 @@ CREATE TABLE public.garments (
     image_url text,
     notes text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -489,7 +526,9 @@ CREATE TABLE public.inventory_items (
     location character varying(100),
     lead_time character varying(50),
     supplier_contact character varying(100),
-    notes text
+    notes text,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL,
+    branch character varying(100) DEFAULT 'Main Branch'::character varying
 );
 
 
@@ -504,7 +543,8 @@ CREATE TABLE public.measurement_points (
     value numeric(8,2) NOT NULL,
     unit character varying(10) DEFAULT '"'::character varying NOT NULL,
     marker_index integer,
-    sort_order integer DEFAULT 0 NOT NULL
+    sort_order integer DEFAULT 0 NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -519,7 +559,9 @@ CREATE TABLE public.measurement_profiles (
     notes text,
     recorded_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    customer_mobile character varying(30) NOT NULL
+    customer_mobile character varying(30) NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL,
+    branch character varying(100) DEFAULT 'Main Branch'::character varying
 );
 
 
@@ -533,7 +575,8 @@ CREATE TABLE public.order_progress_stages (
     stage character varying(50) NOT NULL,
     completed_at timestamp without time zone,
     completed_by character varying(100),
-    notes text
+    notes text,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -564,7 +607,9 @@ CREATE TABLE public.orders (
     current_stage character varying(50) DEFAULT 'ORDER'::character varying,
     reference_images text DEFAULT '[]'::text,
     production_notes text,
-    qc_rework_count integer DEFAULT 0 NOT NULL
+    qc_rework_count integer DEFAULT 0 NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL,
+    branch character varying(100) DEFAULT 'Main Branch'::character varying
 );
 
 
@@ -580,7 +625,8 @@ CREATE TABLE public.payment_transactions (
     received_by character varying(100),
     reference_no character varying(100),
     transaction_date timestamp without time zone DEFAULT now() NOT NULL,
-    notes text
+    notes text,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -599,7 +645,8 @@ CREATE TABLE public.payments (
     notes text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    customer_mobile character varying(30) NOT NULL
+    customer_mobile character varying(30) NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -616,7 +663,8 @@ CREATE TABLE public.production_stages (
     started_at timestamp without time zone,
     completed_at timestamp without time zone,
     notes text,
-    sort_order integer DEFAULT 0 NOT NULL
+    sort_order integer DEFAULT 0 NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -633,7 +681,8 @@ CREATE TABLE public.purchase_order_items (
     unit character varying(30) NOT NULL,
     unit_price numeric(10,2) NOT NULL,
     total_price numeric(12,2) GENERATED ALWAYS AS ((quantity * unit_price)) STORED,
-    received_qty numeric(10,2) DEFAULT 0 NOT NULL
+    received_qty numeric(10,2) DEFAULT 0 NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -652,7 +701,8 @@ CREATE TABLE public.purchase_orders (
     received_date date,
     notes text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -668,7 +718,8 @@ CREATE TABLE public.qc_checklists (
     checked_by uuid,
     checked_at timestamp without time zone,
     remarks text,
-    sort_order integer DEFAULT 0 NOT NULL
+    sort_order integer DEFAULT 0 NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -681,7 +732,8 @@ CREATE TABLE public.stage_definition_employees (
     stage_def_id uuid NOT NULL,
     employee_id uuid NOT NULL,
     assignment_type character varying(30) DEFAULT 'AVAILABLE'::character varying NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -701,7 +753,8 @@ CREATE TABLE public.stage_definitions (
     active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    image_url text
+    image_url text,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -717,7 +770,8 @@ CREATE TABLE public.stock_movements (
     reference character varying(100),
     notes text,
     moved_by character varying(100),
-    moved_at timestamp without time zone DEFAULT now() NOT NULL
+    moved_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -735,7 +789,8 @@ CREATE TABLE public.suppliers (
     address text,
     specialization character varying(200),
     notes text,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -756,7 +811,8 @@ CREATE TABLE public.trial_alterations (
     tailor_notes text,
     status character varying(30) DEFAULT 'PENDING'::character varying NOT NULL,
     completed_at timestamp without time zone,
-    completed_by character varying(100)
+    completed_by character varying(100),
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -798,7 +854,9 @@ CREATE TABLE public.trials (
     fit_notes text,
     completed_at timestamp without time zone,
     completed_by character varying(100),
-    next_trial_date date
+    next_trial_date date,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL,
+    branch character varying(100) DEFAULT 'Main Branch'::character varying
 );
 
 
@@ -827,7 +885,8 @@ CREATE TABLE public.user_profiles (
     emergency_contact character varying(100),
     work_shift character varying(100),
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    company_id uuid DEFAULT 'c0000000-0000-0000-0000-000000000001'::uuid NOT NULL
 );
 
 
@@ -1136,19 +1195,19 @@ ALTER TABLE ONLY public.stage_definition_employees
 
 
 --
+-- Name: stage_definitions stage_definitions_company_stage_key_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stage_definitions
+    ADD CONSTRAINT stage_definitions_company_stage_key_unique UNIQUE (company_id, stage_key);
+
+
+--
 -- Name: stage_definitions stage_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stage_definitions
     ADD CONSTRAINT stage_definitions_pkey PRIMARY KEY (id);
-
-
---
--- Name: stage_definitions stage_definitions_stage_key_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.stage_definitions
-    ADD CONSTRAINT stage_definitions_stage_key_key UNIQUE (stage_key);
 
 
 --
@@ -1223,6 +1282,20 @@ CREATE INDEX idx_alterations_trial ON public.trial_alterations USING btree (tria
 
 
 --
+-- Name: idx_app_users_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_app_users_company_id ON public.app_users USING btree (company_id);
+
+
+--
+-- Name: idx_appointments_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_appointments_company_id ON public.appointments USING btree (company_id);
+
+
+--
 -- Name: idx_appt_scheduled; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1248,6 +1321,20 @@ CREATE INDEX idx_branches_active ON public.branches USING btree (active);
 --
 
 CREATE INDEX idx_branches_city ON public.branches USING btree (city);
+
+
+--
+-- Name: idx_branches_company_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_branches_company_code ON public.branches USING btree (company_id, branch_code);
+
+
+--
+-- Name: idx_branches_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_branches_company_id ON public.branches USING btree (company_id);
 
 
 --
@@ -1307,6 +1394,20 @@ CREATE INDEX idx_col_act_col_id ON public.collection_activities USING btree (col
 
 
 --
+-- Name: idx_collection_activities_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_collection_activities_company_id ON public.collection_activities USING btree (company_id);
+
+
+--
+-- Name: idx_collections_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_collections_company_id ON public.collections USING btree (company_id);
+
+
+--
 -- Name: idx_collections_feat; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1346,6 +1447,48 @@ CREATE INDEX idx_cust_notes_date ON public.customer_notes USING btree (created_a
 --
 
 CREATE INDEX idx_cust_notes_mobile ON public.customer_notes USING btree (customer_mobile);
+
+
+--
+-- Name: idx_customer_body_measurements_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_customer_body_measurements_company_id ON public.customer_body_measurements USING btree (company_id);
+
+
+--
+-- Name: idx_customer_measurements_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_customer_measurements_company_id ON public.customer_measurements USING btree (company_id);
+
+
+--
+-- Name: idx_customer_notes_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_customer_notes_company_id ON public.customer_notes USING btree (company_id);
+
+
+--
+-- Name: idx_customers_company_branch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_customers_company_branch ON public.customers USING btree (company_id, branch);
+
+
+--
+-- Name: idx_customers_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_customers_company_id ON public.customers USING btree (company_id);
+
+
+--
+-- Name: idx_customers_company_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_customers_company_name ON public.customers USING btree (company_id, name);
 
 
 --
@@ -1405,6 +1548,13 @@ CREATE INDEX idx_design_status ON public.designs USING btree (status);
 
 
 --
+-- Name: idx_designs_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_designs_company_id ON public.designs USING btree (company_id);
+
+
+--
 -- Name: idx_emp_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1423,6 +1573,13 @@ CREATE INDEX idx_emp_role ON public.employees USING btree (role);
 --
 
 CREATE INDEX idx_emp_status ON public.employees USING btree (status);
+
+
+--
+-- Name: idx_employees_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_employees_company_id ON public.employees USING btree (company_id);
 
 
 --
@@ -1447,6 +1604,20 @@ CREATE INDEX idx_enq_status ON public.enquiries USING btree (status);
 
 
 --
+-- Name: idx_enquiries_company_branch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enquiries_company_branch ON public.enquiries USING btree (company_id, branch);
+
+
+--
+-- Name: idx_enquiries_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enquiries_company_id ON public.enquiries USING btree (company_id);
+
+
+--
 -- Name: idx_garments_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1458,6 +1629,27 @@ CREATE INDEX idx_garments_code ON public.garments USING btree (garment_code);
 --
 
 CREATE INDEX idx_garments_col ON public.garments USING btree (collection_name);
+
+
+--
+-- Name: idx_garments_company_branch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_garments_company_branch ON public.garments USING btree (company_id, branch);
+
+
+--
+-- Name: idx_garments_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_garments_company_id ON public.garments USING btree (company_id);
+
+
+--
+-- Name: idx_garments_company_stage; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_garments_company_stage ON public.garments USING btree (company_id, production_stage);
 
 
 --
@@ -1510,10 +1702,52 @@ CREATE INDEX idx_inventory_code ON public.inventory_items USING btree (item_code
 
 
 --
+-- Name: idx_inventory_company_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_inventory_company_status ON public.inventory_items USING btree (company_id, status);
+
+
+--
+-- Name: idx_inventory_items_company_branch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_inventory_items_company_branch ON public.inventory_items USING btree (company_id, branch);
+
+
+--
+-- Name: idx_inventory_items_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_inventory_items_company_id ON public.inventory_items USING btree (company_id);
+
+
+--
 -- Name: idx_inventory_status; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_inventory_status ON public.inventory_items USING btree (status);
+
+
+--
+-- Name: idx_measurement_points_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_measurement_points_company_id ON public.measurement_points USING btree (company_id);
+
+
+--
+-- Name: idx_measurement_profiles_company_branch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_measurement_profiles_company_branch ON public.measurement_profiles USING btree (company_id, branch);
+
+
+--
+-- Name: idx_measurement_profiles_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_measurement_profiles_company_id ON public.measurement_profiles USING btree (company_id);
 
 
 --
@@ -1538,10 +1772,45 @@ CREATE INDEX idx_order_progress_stage_key ON public.order_progress_stages USING 
 
 
 --
+-- Name: idx_order_progress_stages_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_order_progress_stages_company_id ON public.order_progress_stages USING btree (company_id);
+
+
+--
 -- Name: idx_orders_code; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_orders_code ON public.orders USING btree (order_code);
+
+
+--
+-- Name: idx_orders_company_branch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_orders_company_branch ON public.orders USING btree (company_id, branch);
+
+
+--
+-- Name: idx_orders_company_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_orders_company_date ON public.orders USING btree (company_id, order_date DESC);
+
+
+--
+-- Name: idx_orders_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_orders_company_id ON public.orders USING btree (company_id);
+
+
+--
+-- Name: idx_orders_company_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_orders_company_status ON public.orders USING btree (company_id, status);
 
 
 --
@@ -1577,6 +1846,27 @@ CREATE INDEX idx_orders_order_date ON public.orders USING btree (order_date);
 --
 
 CREATE INDEX idx_orders_status ON public.orders USING btree (status);
+
+
+--
+-- Name: idx_payment_transactions_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_payment_transactions_company_id ON public.payment_transactions USING btree (company_id);
+
+
+--
+-- Name: idx_payments_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_payments_company_id ON public.payments USING btree (company_id);
+
+
+--
+-- Name: idx_payments_company_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_payments_company_status ON public.payments USING btree (company_id, status);
 
 
 --
@@ -1629,10 +1919,38 @@ CREATE INDEX idx_prod_status ON public.production_stages USING btree (status);
 
 
 --
+-- Name: idx_production_stages_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_production_stages_company_id ON public.production_stages USING btree (company_id);
+
+
+--
 -- Name: idx_progress_order; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_progress_order ON public.order_progress_stages USING btree (order_id);
+
+
+--
+-- Name: idx_purchase_order_items_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_purchase_order_items_company_id ON public.purchase_order_items USING btree (company_id);
+
+
+--
+-- Name: idx_purchase_orders_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_purchase_orders_company_id ON public.purchase_orders USING btree (company_id);
+
+
+--
+-- Name: idx_qc_checklists_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_qc_checklists_company_id ON public.qc_checklists USING btree (company_id);
 
 
 --
@@ -1678,6 +1996,34 @@ CREATE INDEX idx_stage_def_order ON public.stage_definitions USING btree (sort_o
 
 
 --
+-- Name: idx_stage_definition_employees_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_stage_definition_employees_company_id ON public.stage_definition_employees USING btree (company_id);
+
+
+--
+-- Name: idx_stage_definitions_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_stage_definitions_company_id ON public.stage_definitions USING btree (company_id);
+
+
+--
+-- Name: idx_stage_defs_company_sort; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_stage_defs_company_sort ON public.stage_definitions USING btree (company_id, sort_order);
+
+
+--
+-- Name: idx_stock_movements_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_stock_movements_company_id ON public.stock_movements USING btree (company_id);
+
+
+--
 -- Name: idx_stockmov_item; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1685,10 +2031,45 @@ CREATE INDEX idx_stockmov_item ON public.stock_movements USING btree (item_id);
 
 
 --
+-- Name: idx_suppliers_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_suppliers_company_id ON public.suppliers USING btree (company_id);
+
+
+--
+-- Name: idx_trial_alterations_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_trial_alterations_company_id ON public.trial_alterations USING btree (company_id);
+
+
+--
 -- Name: idx_trials_code; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_trials_code ON public.trials USING btree (trial_code);
+
+
+--
+-- Name: idx_trials_company_branch; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_trials_company_branch ON public.trials USING btree (company_id, branch);
+
+
+--
+-- Name: idx_trials_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_trials_company_id ON public.trials USING btree (company_id);
+
+
+--
+-- Name: idx_trials_company_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_trials_company_status ON public.trials USING btree (company_id, status);
 
 
 --
@@ -1727,6 +2108,13 @@ CREATE INDEX idx_txn_payment ON public.payment_transactions USING btree (payment
 
 
 --
+-- Name: idx_user_profiles_company_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_profiles_company_id ON public.user_profiles USING btree (company_id);
+
+
+--
 -- Name: idx_users_username; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1739,14 +2127,6 @@ CREATE INDEX idx_users_username ON public.app_users USING btree (username);
 
 ALTER TABLE ONLY public.appointments
     ADD CONSTRAINT appointments_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;
-
-
---
--- Name: branches branches_manager_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.branches
-    ADD CONSTRAINT branches_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.employees(id) ON DELETE SET NULL;
 
 
 --
@@ -1790,11 +2170,35 @@ ALTER TABLE ONLY public.enquiries
 
 
 --
+-- Name: app_users fk_app_users_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.app_users
+    ADD CONSTRAINT fk_app_users_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: appointments fk_appointments_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.appointments
+    ADD CONSTRAINT fk_appointments_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
 -- Name: appointments fk_appointments_customer_mobile; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.appointments
     ADD CONSTRAINT fk_appointments_customer_mobile FOREIGN KEY (customer_mobile) REFERENCES public.customers(mobile_number) ON DELETE CASCADE;
+
+
+--
+-- Name: branches fk_branches_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.branches
+    ADD CONSTRAINT fk_branches_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
 
 
 --
@@ -1806,11 +2210,115 @@ ALTER TABLE ONLY public.customer_measurements
 
 
 --
+-- Name: collection_activities fk_collection_activities_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.collection_activities
+    ADD CONSTRAINT fk_collection_activities_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: collections fk_collections_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.collections
+    ADD CONSTRAINT fk_collections_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: customer_body_measurements fk_customer_body_measurements_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_body_measurements
+    ADD CONSTRAINT fk_customer_body_measurements_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: customer_measurements fk_customer_measurements_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_measurements
+    ADD CONSTRAINT fk_customer_measurements_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: customer_notes fk_customer_notes_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_notes
+    ADD CONSTRAINT fk_customer_notes_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: customers fk_customers_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customers
+    ADD CONSTRAINT fk_customers_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: designs fk_designs_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.designs
+    ADD CONSTRAINT fk_designs_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
 -- Name: designs fk_designs_customer_mobile; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.designs
     ADD CONSTRAINT fk_designs_customer_mobile FOREIGN KEY (customer_mobile) REFERENCES public.customers(mobile_number) ON DELETE SET NULL;
+
+
+--
+-- Name: employees fk_employees_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.employees
+    ADD CONSTRAINT fk_employees_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: enquiries fk_enquiries_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.enquiries
+    ADD CONSTRAINT fk_enquiries_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: garments fk_garments_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.garments
+    ADD CONSTRAINT fk_garments_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: inventory_items fk_inventory_items_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inventory_items
+    ADD CONSTRAINT fk_inventory_items_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: measurement_points fk_measurement_points_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.measurement_points
+    ADD CONSTRAINT fk_measurement_points_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: measurement_profiles fk_measurement_profiles_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.measurement_profiles
+    ADD CONSTRAINT fk_measurement_profiles_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
 
 
 --
@@ -1822,6 +2330,22 @@ ALTER TABLE ONLY public.measurement_profiles
 
 
 --
+-- Name: order_progress_stages fk_order_progress_stages_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_progress_stages
+    ADD CONSTRAINT fk_order_progress_stages_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: orders fk_orders_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_orders_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
 -- Name: orders fk_orders_customer_mobile; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1830,11 +2354,115 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: payment_transactions fk_payment_transactions_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_transactions
+    ADD CONSTRAINT fk_payment_transactions_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: payments fk_payments_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT fk_payments_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
 -- Name: payments fk_payments_customer_mobile; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT fk_payments_customer_mobile FOREIGN KEY (customer_mobile) REFERENCES public.customers(mobile_number) ON DELETE RESTRICT;
+
+
+--
+-- Name: production_stages fk_production_stages_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.production_stages
+    ADD CONSTRAINT fk_production_stages_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: purchase_order_items fk_purchase_order_items_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_items
+    ADD CONSTRAINT fk_purchase_order_items_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: purchase_orders fk_purchase_orders_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_orders
+    ADD CONSTRAINT fk_purchase_orders_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: qc_checklists fk_qc_checklists_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.qc_checklists
+    ADD CONSTRAINT fk_qc_checklists_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: stage_definition_employees fk_stage_definition_employees_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stage_definition_employees
+    ADD CONSTRAINT fk_stage_definition_employees_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: stage_definitions fk_stage_definitions_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stage_definitions
+    ADD CONSTRAINT fk_stage_definitions_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: stock_movements fk_stock_movements_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements
+    ADD CONSTRAINT fk_stock_movements_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: suppliers fk_suppliers_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.suppliers
+    ADD CONSTRAINT fk_suppliers_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: trial_alterations fk_trial_alterations_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trial_alterations
+    ADD CONSTRAINT fk_trial_alterations_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: trials fk_trials_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trials
+    ADD CONSTRAINT fk_trials_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_profiles fk_user_profiles_company; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_profiles
+    ADD CONSTRAINT fk_user_profiles_company FOREIGN KEY (company_id) REFERENCES public.company_settings(id) ON DELETE CASCADE;
 
 
 --
@@ -1996,15 +2624,35 @@ ALTER TABLE ONLY public.user_profiles
 
 
 -- =======================================================================
--- ESSENTIAL BOOTSTRAP MASTER DATA (Admin user & Core Stages)
+-- SECTION 4 -- INITIAL SEED DATA & SYSTEM BOOTSTRAP
 -- =======================================================================
 
+-- 1. Guarantee Default Company Exists in company_settings
+INSERT INTO public.company_settings (
+    id, company_name, short_name, tagline, business_type, 
+    primary_phone, email, street_address, city, state, country
+) VALUES (
+    'c0000000-0000-0000-0000-000000000001',
+    'Riwayat Haute Couture',
+    'RIWAYAT',
+    'Haute Couture & Bespoke Bridal Atelier',
+    'Luxury Bespoke Tailoring',
+    '+91 98400 12345',
+    'contact@riwayat.com',
+    '12, Cathedral Road, Gopalapuram',
+    'Chennai',
+    'Tamil Nadu',
+    'India'
+) ON CONFLICT (id) DO NOTHING;
+
+-- 2. Bootstrap Administrator Account (admin / Admin@123)
 INSERT INTO public.app_users (
-    id, username, password_hash, full_name, role, active, created_at, updated_at
+    id, company_id, username, password_hash, full_name, role, active, created_at, updated_at
 ) VALUES (
     'd74e0819-2f3d-401b-a5ab-102d02ae74b8',
+    'c0000000-0000-0000-0000-000000000001',
     'admin',
-    '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '',
     'Boutique Admin',
     'ADMIN',
     true,
@@ -2012,21 +2660,25 @@ INSERT INTO public.app_users (
     NOW()
 ) ON CONFLICT (username) DO UPDATE SET active = true, role = 'ADMIN', updated_at = NOW();
 
+-- 3. Bootstrap Administrator Profile
 INSERT INTO public.user_profiles (
-    id, user_id, full_name, created_at, updated_at
+    id, company_id, user_id, full_name, created_at, updated_at
 ) VALUES (
     'd44afacf-256f-427f-9140-c8d93bab72c1',
+    'c0000000-0000-0000-0000-000000000001',
     'd74e0819-2f3d-401b-a5ab-102d02ae74b8',
     'Boutique Admin',
     NOW(),
     NOW()
 ) ON CONFLICT (user_id) DO UPDATE SET full_name = 'Boutique Admin', updated_at = NOW();
 
+-- 4. Bootstrap Core Production Stage Definitions
 INSERT INTO public.stage_definitions (
-    id, stage_key, display_name, description, required_role, dept_label, color_class, sort_order, active, created_at, updated_at
+    id, company_id, stage_key, display_name, description, required_role, dept_label, color_class, sort_order, active, created_at, updated_at
 ) VALUES
 (
     '49d1deb1-0cd1-4fff-b54b-833df0783abf',
+    'c0000000-0000-0000-0000-000000000001',
     'ORDER_TAKEN',
     'Order Taken',
     'Order intake: fabric requirements noted, advance received, and order committed to the production schedule.',
@@ -2040,6 +2692,7 @@ INSERT INTO public.stage_definitions (
 ),
 (
     'b0000001-0000-0000-0000-000000000001',
+    'c0000000-0000-0000-0000-000000000001',
     'QC',
     'Quality Control',
     'Final inspection before dispatch: stitching, measurements, finishing, and fabric quality verified by QC team.',
@@ -2053,6 +2706,7 @@ INSERT INTO public.stage_definitions (
 ),
 (
     'c0000002-0000-0000-0000-000000000008',
+    'c0000000-0000-0000-0000-000000000001',
     'READY_TO_DELIVER',
     'Ready to Deliver',
     'Quality approved, packed with care and awaiting customer pickup or boutique handover.',
@@ -2063,17 +2717,4 @@ INSERT INTO public.stage_definitions (
     true,
     NOW(),
     NOW()
-) ON CONFLICT (stage_key) DO UPDATE SET display_name = EXCLUDED.display_name, sort_order = EXCLUDED.sort_order, updated_at = NOW();
-
-INSERT INTO public.company_settings (
-    id, company_name, short_name, tagline, owner_name, business_type, country
-) VALUES (
-    'dbd45e9d-a976-4d2e-8b04-04194619973c',
-    'Haulo Designs',
-    'HAULO',
-    'Bespoke Couture · Luxury Tailoring',
-    'Boutique Admin',
-    'Bespoke Atelier',
-    'India'
-) ON CONFLICT (id) DO NOTHING;
-
+) ON CONFLICT (company_id, stage_key) DO UPDATE SET display_name = EXCLUDED.display_name, sort_order = EXCLUDED.sort_order, updated_at = NOW();

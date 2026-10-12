@@ -212,6 +212,12 @@ function formatStageImg(url) {
   return origin ? `${origin}/front%20end/${clean}` : `/${clean}`;
 }
 
+window.__handleStageImgError = function(img, iconName, color) {
+  if (!img || !img.parentElement) return;
+  img.parentElement.classList.remove('has-img');
+  img.parentElement.innerHTML = icon(iconName || 'needle', 17, color, 2);
+};
+
 function renderProduction() {
   const el = document.getElementById('productionPipeline');
   if (!el) return;
@@ -224,7 +230,7 @@ function renderProduction() {
   stages.forEach((s, i) => {
     const imgSrc = s.imageUrl ? formatStageImg(s.imageUrl) : '';
     const circleContent = imgSrc
-      ? `<img src="${imgSrc}" alt="${s.name}" class="prod-circle-img" onerror="this.onerror=null; this.parentElement.classList.remove('has-img'); this.parentElement.innerHTML='${icon(s.icon || 'needle', 17, s.color, 2)}';" />`
+      ? `<img src="${imgSrc}" alt="${s.name}" class="prod-circle-img" onerror="this.onerror=null; window.__handleStageImgError && window.__handleStageImgError(this, '${s.icon || 'needle'}', '${s.color || ''}');" />`
       : `${icon(s.icon || 'needle', 17, s.color, 2)}`;
 
     html += `
@@ -654,6 +660,8 @@ function navigate(module) {
     'employees':       '../WorkforceManagement/workforce.html',
     'attendance':      '../WorkforceManagement/workforce.html',
     'stock':           '../inventory/inventory.html',
+    'purchases':       '../purchases/purchases.html',
+    'suppliers':       '../suppliers/suppliers.html',
     'payments':        '../payments/payments.html',
     'production-room': '../production/production.html',
     'production-floor':'../production/production.html',
@@ -1035,3 +1043,16 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+// ── Re-fetch live dashboard data whenever active branch changes ──
+window.addEventListener('haulo:branch-changed', (e) => {
+  const detail = e.detail;
+  const label = (detail && detail.isAll) ? 'All Company Data' : (detail?.name || 'Selected Branch');
+  showToast(`Viewing: ${label}`, 'lime');
+  init();
+});
+
+document.addEventListener('haulo:branch-changed', () => {
+  init();
+});
+

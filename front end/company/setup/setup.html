@@ -21,18 +21,28 @@
 
     <!-- Header -->
     <header class="setup-header">
-      <a href="#" class="setup-brand" aria-label="Haulo ERP">
-        <svg viewBox="0 0 36 36" fill="none" width="34" height="34" aria-hidden="true">
-          <rect x="3.5" y="3.5" width="8" height="29" rx="4" fill="#B7FF3C"/>
-          <rect x="24.5" y="3.5" width="8" height="29" rx="4" fill="#B7FF3C"/>
-          <rect x="7" y="14" width="22" height="8" rx="4" fill="#B7FF3C"/>
-        </svg>
-        <div class="setup-brand-text">
-          <span class="setup-brand-name" id="hdr-brand-name">HAULO</span>
-          <span class="setup-brand-sub">Boutique ERP</span>
+      <div class="setup-brand-wrapper">
+        <a href="#" class="setup-brand" aria-label="Haulo ERP">
+          <div class="setup-brand-logo-box">
+            <svg viewBox="0 0 36 36" fill="none" width="26" height="26" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="8" height="29" rx="4" fill="#B7FF3C"/>
+              <rect x="24.5" y="3.5" width="8" height="29" rx="4" fill="#B7FF3C"/>
+              <rect x="7" y="14" width="22" height="8" rx="4" fill="#B7FF3C"/>
+            </svg>
+          </div>
+          <div class="setup-brand-text">
+            <span class="setup-brand-name" id="hdr-brand-name">HAULO</span>
+            <span class="setup-brand-sub">Boutique ERP</span>
+          </div>
+        </a>
+      </div>
+      <div class="setup-header-right">
+        <div class="setup-onboarding-tag">
+          <span class="setup-pulse-dot"></span>
+          <span>Boutique Setup</span>
         </div>
-      </a>
-      <span class="setup-step-counter">Step <span id="hdr-step-num">1</span> of 4</span>
+        <div class="setup-step-counter">Step <span id="hdr-step-num">1</span> of 4</div>
+      </div>
     </header>
 
     <!-- Progress Bar -->
@@ -73,9 +83,11 @@
 
       <!-- ═══════════════════ STEP 1 — Boutique Identity ═══════════════════ -->
       <div class="step-panel active" id="step-1">
-        <p class="step-eyebrow">Step 1</p>
-        <h1 class="step-title">Boutique Identity</h1>
-        <p class="step-subtitle">Tell us about your fashion business. This information appears on invoices, receipts, and across the ERP.</p>
+        <div class="step-header-box">
+          <p class="step-eyebrow">STEP 1 OF 4</p>
+          <h1 class="step-title">Boutique Identity</h1>
+          <p class="step-subtitle">Tell us about your fashion business. This information appears on invoices, receipts, and across the ERP.</p>
+        </div>
 
         <div class="form-grid form-grid-2">
 
@@ -105,17 +117,24 @@
 
           <div class="setup-field">
             <label class="setup-label" for="f-businessType">Business Type</label>
-            <select id="f-businessType" class="setup-select">
-              <option value="Bespoke Atelier">Bespoke Atelier</option>
-              <option value="Boutique Fashion House">Boutique Fashion House</option>
-              <option value="Bridal Studio">Bridal Studio</option>
-              <option value="Tailoring Shop">Tailoring Shop</option>
-              <option value="Luxury Couture">Luxury Couture</option>
-              <option value="Fashion Design Studio">Fashion Design Studio</option>
-              <option value="Garment Manufacturer">Garment Manufacturer</option>
-              <option value="Embroidery Studio">Embroidery Studio</option>
-              <option value="Other">Other</option>
-            </select>
+            <div class="setup-input-wrap">
+              <span class="setup-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
+                </svg>
+              </span>
+              <select id="f-businessType" class="setup-select" style="padding-left:42px;">
+                <option value="Bespoke Atelier">Bespoke Atelier</option>
+                <option value="Boutique Fashion House">Boutique Fashion House</option>
+                <option value="Bridal Studio">Bridal Studio</option>
+                <option value="Tailoring Shop">Tailoring Shop</option>
+                <option value="Luxury Couture">Luxury Couture</option>
+                <option value="Fashion Design Studio">Fashion Design Studio</option>
+                <option value="Garment Manufacturer">Garment Manufacturer</option>
+                <option value="Embroidery Studio">Embroidery Studio</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
 
           <div class="setup-field" style="grid-column:1/-1">
@@ -132,7 +151,7 @@
 
           <!-- Logo Upload -->
           <div class="setup-field" style="grid-column:1/-1">
-            <label class="setup-label">Business Logo <small>(optional — PNG/JPG, max 2MB)</small></label>
+            <label class="setup-label">Business Logo <small>(optional — PNG/JPG/SVG, max 2MB)</small></label>
             <label class="logo-upload-zone" id="logo-upload-zone" for="f-logo">
               <input type="file" id="f-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
               <div class="logo-preview" id="logo-preview">
@@ -140,12 +159,14 @@
               </div>
               <div class="logo-placeholder" id="logo-placeholder">
                 <div class="logo-upload-icon">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                   </svg>
                 </div>
-                <span class="logo-upload-label">Drag & drop or click to upload your logo</span>
-                <span class="logo-upload-hint">PNG, JPG, SVG — Max 2 MB</span>
+                <div class="logo-upload-text">
+                  <span class="logo-upload-label">Drag &amp; drop or click to upload your boutique logo</span>
+                  <span class="logo-upload-hint">PNG, JPG, SVG — Max 2 MB</span>
+                </div>
                 <span class="logo-upload-btn">Browse File</span>
               </div>
             </label>
@@ -157,7 +178,7 @@
           <div class="setup-nav-left"></div>
           <div class="setup-nav-right">
             <button type="button" class="btn-setup-next" id="btn-next-1" onclick="goNext(1)">
-              <span>Continue</span>
+              <span>Continue to Contact</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
           </div>
@@ -166,9 +187,11 @@
 
       <!-- ═══════════════════ STEP 2 — Contact Details ════════════════════ -->
       <div class="step-panel" id="step-2">
-        <p class="step-eyebrow">Step 2</p>
-        <h1 class="step-title">Contact Details</h1>
-        <p class="step-subtitle">How can clients and partners reach your boutique? These appear on printed documents and invoices.</p>
+        <div class="step-header-box">
+          <p class="step-eyebrow">STEP 2 OF 4</p>
+          <h1 class="step-title">Contact Details</h1>
+          <p class="step-subtitle">How can clients and partners reach your boutique? These appear on printed documents and invoices.</p>
+        </div>
 
         <div class="form-grid form-grid-2">
 
@@ -228,11 +251,11 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
               Back
             </button>
-            <button type="button" class="btn-setup-skip" id="btn-skip-2" onclick="skipTo(3)">Skip</button>
+            <button type="button" class="btn-setup-skip" id="btn-skip-2" onclick="skipTo(3)">Skip to Location</button>
           </div>
           <div class="setup-nav-right">
             <button type="button" class="btn-setup-next" onclick="goNext(2)">
-              <span>Continue</span>
+              <span>Continue to Location</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
           </div>
@@ -241,9 +264,11 @@
 
       <!-- ═══════════════════ STEP 3 — Location & Tax ═══════════════════ -->
       <div class="step-panel" id="step-3">
-        <p class="step-eyebrow">Step 3</p>
-        <h1 class="step-title">Location &amp; Tax</h1>
-        <p class="step-subtitle">Your boutique address and tax details appear on customer invoices and receipts. Skip if not applicable.</p>
+        <div class="step-header-box">
+          <p class="step-eyebrow">STEP 3 OF 4</p>
+          <h1 class="step-title">Location &amp; Tax</h1>
+          <p class="step-subtitle">Your boutique address and tax details appear on customer invoices and receipts. Skip if not applicable.</p>
+        </div>
 
         <div class="form-grid form-grid-2">
 
@@ -336,7 +361,7 @@
           </div>
           <div class="setup-nav-right">
             <button type="button" class="btn-setup-next" onclick="goNext(3)">
-              <span>Continue</span>
+              <span>Continue to Account</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
           </div>
@@ -345,9 +370,11 @@
 
       <!-- ═══════════════════ STEP 4 — Administrator Account ════════════════════════ -->
       <div class="step-panel" id="step-4">
-        <p class="step-eyebrow">Step 4</p>
-        <h1 class="step-title">Administrator Account</h1>
-        <p class="step-subtitle">Create your owner-admin account to securely manage your ERP, staff, and operations.</p>
+        <div class="step-header-box">
+          <p class="step-eyebrow">STEP 4 OF 4</p>
+          <h1 class="step-title">Administrator Account</h1>
+          <p class="step-subtitle">Create your owner-admin account to securely manage your ERP, staff, and operations.</p>
+        </div>
 
         <!-- Shown if user is already authenticated -->
         <div id="already-logged-in-box" style="display:none;background:rgba(183,255,60,0.06);border:1px solid rgba(183,255,60,0.22);border-radius:12px;padding:16px 18px;margin-bottom:20px;">

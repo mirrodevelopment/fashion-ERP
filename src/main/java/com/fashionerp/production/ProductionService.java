@@ -30,10 +30,8 @@ public class ProductionService {
      */
     @Transactional(readOnly = true)
     public Map<String, Object> getNextStageAfterQc() {
-        UUID companyId = TenantContext.getCompanyId();
-        List<StageDefinition> activeStages = companyId != null
-                ? stageDefinitionRepository.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(companyId)
-                : stageDefinitionRepository.findAllByActiveTrueOrderBySortOrderAsc();
+        UUID companyId = TenantContext.requireCompanyId();
+        List<StageDefinition> activeStages = stageDefinitionRepository.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(companyId);
         int qcSortOrder = -1;
         for (StageDefinition sd : activeStages) {
             if ("QC".equalsIgnoreCase(sd.getStageKey())) {
@@ -125,16 +123,12 @@ public class ProductionService {
 
         if (matchingStage.isPresent() && matchingStage.get().getSortOrder() != null) {
             targetSortOrder = matchingStage.get().getSortOrder();
-        } else {
-            Optional<StageDefinition> def = companyId != null
-                    ? stageDefinitionRepository.findByCompanyIdAndStageKey(companyId, stUpper)
-                    : stageDefinitionRepository.findByStageKey(stUpper);
+        } else if (companyId != null) {
+            Optional<StageDefinition> def = stageDefinitionRepository.findByCompanyIdAndStageKey(companyId, stUpper);
             if (def.isPresent() && def.get().getSortOrder() != null) {
                 targetSortOrder = def.get().getSortOrder();
             } else {
-                List<StageDefinition> allDefs = companyId != null
-                        ? stageDefinitionRepository.findAllByCompanyIdOrderBySortOrderAsc(companyId)
-                        : stageDefinitionRepository.findAllByOrderBySortOrderAsc();
+                List<StageDefinition> allDefs = stageDefinitionRepository.findAllByCompanyIdOrderBySortOrderAsc(companyId);
                 for (StageDefinition d : allDefs) {
                     if ((d.getStageKey() != null && d.getStageKey().equalsIgnoreCase(stUpper)) ||
                         (d.getDisplayName() != null && d.getDisplayName().equalsIgnoreCase(stUpper))) {

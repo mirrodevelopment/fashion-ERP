@@ -76,10 +76,10 @@ public class InventoryController {
     @GetMapping("/kpis")
     @SuppressWarnings("unchecked")
     public Map<String, Object> kpis() {
-        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
-        long totalItems      = companyId != null ? inventoryRepository.countByCompanyId(companyId) : inventoryRepository.count();
-        long lowStockCount   = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK) : inventoryRepository.countByStatus(InventoryStatus.LOW_STOCK);
-        long outOfStockCount = companyId != null ? inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK) : inventoryRepository.countByStatus(InventoryStatus.OUT_OF_STOCK);
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
+        long totalItems      = inventoryRepository.countByCompanyId(companyId);
+        long lowStockCount   = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK);
+        long outOfStockCount = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK);
 
         var valQuery = em.createQuery(
             "SELECT COALESCE(SUM(i.stockQty * i.purchasePrice), 0) FROM InventoryItem i WHERE (:companyId IS NULL OR i.companyId = :companyId)"

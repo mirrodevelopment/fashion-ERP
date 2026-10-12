@@ -81,4 +81,28 @@ public class GarmentController {
     ) {
         return ResponseEntity.ok(garmentService.update(id, req));
     }
+
+    /**
+     * POST /api/v1/garments/upload-image
+     */
+    @PostMapping("/upload-image")
+    public ResponseEntity<java.util.Map<String, String>> uploadImage(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam(value = "garmentCode", required = false) String garmentCode
+    ) {
+        String url = garmentService.uploadImage(file, garmentCode);
+        return ResponseEntity.ok(java.util.Map.of("imageUrl", url));
+    }
+
+    /**
+     * POST /api/v1/garments/{id}/image
+     */
+    @PostMapping("/{id}/image")
+    public ResponseEntity<GarmentDto.SummaryResponse> uploadGarmentImage(
+            @PathVariable UUID id,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file
+    ) {
+        return ResponseEntity.ok(garmentService.uploadGarmentImage(id, file));
+    }
 }
+

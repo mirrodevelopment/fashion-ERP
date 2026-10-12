@@ -14,7 +14,6 @@ import java.util.UUID;
 @Repository
 public interface TrialRepository extends JpaRepository<Trial, UUID> {
 
-    Optional<Trial> findByTrialCode(String trialCode);
     Optional<Trial> findByTrialCodeAndCompanyId(String trialCode, UUID companyId);
 
     @Query(value = """
@@ -57,22 +56,11 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
 
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);
-    long countByStatusIgnoreCase(String status);
-
     long countByCompanyIdAndFitStatusIgnoreCase(UUID companyId, String fitStatus);
-    long countByFitStatusIgnoreCase(String fitStatus);
-
     long countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCase(UUID companyId, LocalDate date, String status);
-    long countByTrialDateGreaterThanAndStatusNotIgnoreCase(LocalDate date, String status);
-
     long countByCompanyIdAndTrialDateAndStatusNotIgnoreCase(UUID companyId, LocalDate date, String status);
-    long countByTrialDateAndStatusNotIgnoreCase(LocalDate date, String status);
-
     long countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCase(UUID companyId, LocalDate date, String status);
-    long countByTrialDateLessThanAndStatusNotIgnoreCase(LocalDate date, String status);
-
     long countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCase(UUID companyId, Integer attempt, String status);
-    long countByTrialAttemptGreaterThanAndStatusNotIgnoreCase(Integer attempt, String status);
 
     long countByOrderCode(String orderCode);
     java.util.List<Trial> findByOrderCodeOrderByCreatedAtAsc(String orderCode);

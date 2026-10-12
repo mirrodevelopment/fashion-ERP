@@ -32,13 +32,13 @@ public class BranchController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<BranchDto.Response> create(@RequestBody BranchDto.Request request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(branchService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<BranchDto.Response> update(
             @PathVariable UUID id,
             @RequestBody BranchDto.Request request) {
@@ -46,25 +46,25 @@ public class BranchController {
     }
 
     @PatchMapping("/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<BranchDto.Response> activate(@PathVariable UUID id) {
         return ResponseEntity.ok(branchService.activate(id));
     }
 
     @PatchMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<BranchDto.Response> deactivate(@PathVariable UUID id) {
         return ResponseEntity.ok(branchService.deactivate(id));
     }
 
     @PatchMapping("/{id}/headquarters")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<BranchDto.Response> setHeadquarters(@PathVariable UUID id) {
         return ResponseEntity.ok(branchService.setHeadquarters(id));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         branchService.delete(id);
         return ResponseEntity.noContent().build();

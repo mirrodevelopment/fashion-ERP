@@ -5,8 +5,65 @@
 
 import api, { Auth } from '../api.js';
 
-const FALLBACK_GARMENT_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
-const FALLBACK_FABRIC_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='6' y='6' width='36' height='36' rx='4'/%3E%3Cpath d='M6 18h36M6 30h36M18 6v36M30 6v36' stroke-dasharray='2 2'/%3E%3C/svg%3E";
+// ─── Existing Haute Couture Image Assets Pool ──────────────────────────────
+export const EXISTING_GARMENT_ASSETS = {
+  blouse: '../assets/garments/bridal_blouse_zardozi.jpg',
+  lehenga: '../assets/garments/heritage_lehenga_pink.jpg',
+  anarkali: '../assets/garments/anarkali_chikankari.jpg',
+  sherwani: '../assets/garments/raw_silk_sherwani.jpg',
+  saree: '../assets/garments/banarasi_organza_saree.jpg',
+  gown: '../assets/garments/champagne_evening_gown.jpg',
+  gharara: '../assets/garments/zardozi_handwork.jpg',
+  back: '../assets/garments/blouse_back_cut.jpg',
+  default: '../assets/garments/bridal_blouse_zardozi.jpg'
+};
+
+export const EXISTING_FABRIC_SWATCHES = [
+  '../assets/swatch_raw_silk.jpg',
+  '../assets/swatch_embroidery.jpg',
+  '../assets/swatch_organza.jpg',
+  '../assets/swatch_champagne.jpg',
+  '../assets/pink_silk.jpg'
+];
+
+export function resolveGarmentImage(g) {
+  if (g && g.imageUrl && typeof g.imageUrl === 'string' && g.imageUrl.trim() !== '' && !g.imageUrl.startsWith('data:image/svg')) {
+    let url = g.imageUrl.trim();
+    if (url.startsWith('/front end/')) {
+      return '..' + url.replace('/front end', '');
+    }
+    if (url.startsWith('/assets/')) {
+      return '../' + url.slice(1);
+    }
+    if (url.startsWith('../../assets/')) {
+      return url.replace('../../assets/', '../assets/');
+    }
+    return url;
+  }
+
+  const text = ((g?.garmentType || '') + ' ' + (g?.title || '')).toLowerCase();
+  if (text.includes('blouse') || text.includes('choli')) return EXISTING_GARMENT_ASSETS.blouse;
+  if (text.includes('lehenga') || text.includes('bridal')) return EXISTING_GARMENT_ASSETS.lehenga;
+  if (text.includes('anarkali') || text.includes('chikankari') || text.includes('suit') || text.includes('kurti')) return EXISTING_GARMENT_ASSETS.anarkali;
+  if (text.includes('sherwani') || text.includes('jacket') || text.includes('tuxedo') || text.includes('kurta')) return EXISTING_GARMENT_ASSETS.sherwani;
+  if (text.includes('saree') || text.includes('organza') || text.includes('draped') || text.includes('banarasi')) return EXISTING_GARMENT_ASSETS.saree;
+  if (text.includes('gown') || text.includes('evening') || text.includes('corset')) return EXISTING_GARMENT_ASSETS.gown;
+  if (text.includes('gharara') || text.includes('cape') || text.includes('jumpsuit') || text.includes('zardozi')) return EXISTING_GARMENT_ASSETS.gharara;
+
+  const pool = [
+    EXISTING_GARMENT_ASSETS.blouse,
+    EXISTING_GARMENT_ASSETS.lehenga,
+    EXISTING_GARMENT_ASSETS.anarkali,
+    EXISTING_GARMENT_ASSETS.sherwani,
+    EXISTING_GARMENT_ASSETS.saree,
+    EXISTING_GARMENT_ASSETS.gown,
+    EXISTING_GARMENT_ASSETS.gharara
+  ];
+  const code = (g?.garmentCode || '0');
+  const sum = code.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return pool[sum % pool.length];
+}
+window.resolveGarmentImage = resolveGarmentImage;
 
 // ─── Module State ──────────────────────────────────────────────────────────
 let dynamicStageDefs = [];
@@ -296,16 +353,16 @@ function renderTable() {
       ? `<span class="days-left-badge days-left-red">${Math.abs(g.daysRemaining)} days overdue</span>`
       : `<span class="days-left-badge days-left-green">${g.daysRemaining} days</span>`;
 
-    const imgThumb = g.imageUrl || FALLBACK_GARMENT_SVG;
+    const imgThumb = resolveGarmentImage(g);
 
     return `
-      <tr class="${isSelected ? 'selected' : ''}" onclick="window.selectGarment('${g.id}')">
+      <tr class="${isSelected ? 'selected' : ''}" onclick="window.selectGarment('${g.id}')" ondblclick="window.viewGarmentDetails()" title="Click to inspect, double-click for Garment 360" style="cursor:pointer;">
         <td class="td-check" onclick="event.stopPropagation()">
           <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.toggleRowSelect('${g.id}', event)" />
         </td>
         <td>
           <div class="cell-garment-info">
-            <img class="garment-thumb-img" src="${imgThumb}" alt="${escapeHTML(g.title)}" onerror="this.src='${FALLBACK_GARMENT_SVG}'" />
+            <img class="garment-thumb-img" src="${imgThumb}" alt="${escapeHTML(g.title)}" onerror="this.src='${EXISTING_GARMENT_ASSETS.default}'" />
             <div class="garment-texts">
               <span class="garment-code-title">
                 ${escapeHTML(g.garmentCode)} &bull; ${escapeHTML(g.title)}
@@ -429,6 +486,7 @@ export async function selectGarment(id) {
   if (!found) return;
 
   state.selectedGarment = found;
+  sessionStorage.setItem('haulo_selected_garment', JSON.stringify(found));
   renderTable(); // Update selected highlight in table rows
   renderInspectorBasics(found);
 
@@ -436,6 +494,7 @@ export async function selectGarment(id) {
     const detail = await api.garments.getById(id);
     if (detail && state.selectedGarment && state.selectedGarment.id === id) {
       state.selectedGarment = { ...state.selectedGarment, ...detail };
+      sessionStorage.setItem('haulo_selected_garment', JSON.stringify(state.selectedGarment));
       renderInspectorPanes(state.selectedGarment);
     }
   } catch (err) {
@@ -448,8 +507,9 @@ window.selectGarment = selectGarment;
 
 function renderInspectorBasics(g) {
   if (DOM.inspectorHeroImg) {
-    DOM.inspectorHeroImg.src = g.imageUrl || FALLBACK_GARMENT_SVG;
+    DOM.inspectorHeroImg.src = resolveGarmentImage(g);
     DOM.inspectorHeroImg.style.opacity = '1';
+    DOM.inspectorHeroImg.onerror = function() { this.src = EXISTING_GARMENT_ASSETS.default; };
   }
   if (DOM.inspectorCode) DOM.inspectorCode.textContent = g.garmentCode;
   if (DOM.inspectorTitle) DOM.inspectorTitle.textContent = g.title;
@@ -491,15 +551,19 @@ function renderInspectorBasics(g) {
 function renderInspectorPanes(g) {
   // Materials Pane
   if (DOM.inspectorMaterialsList) {
-    const mats = g.materials || [];
-    DOM.inspectorMaterialsList.innerHTML = mats.map(m => `
+    const mats = (g.materials && g.materials.length > 0) ? g.materials : [
+      { name: 'Raw Silk Base Fabric', variant: 'Pure Handloom 80g', meters: '3.5m', status: 'Allocated', imageUrl: EXISTING_FABRIC_SWATCHES[0] },
+      { name: 'Gold Zari & Dabka Embroidery', variant: 'Antique Dull Gold Wire', meters: '1.2m', status: 'In Atelier', imageUrl: EXISTING_FABRIC_SWATCHES[1] },
+      { name: 'Pure Organza Trim', variant: 'Sheer Glaze Finish', meters: '2.0m', status: 'Allocated', imageUrl: EXISTING_FABRIC_SWATCHES[2] }
+    ];
+    DOM.inspectorMaterialsList.innerHTML = mats.map((m, idx) => `
       <div class="material-card-row">
-        <img src="${m.imageUrl || FALLBACK_FABRIC_SVG}" alt="${escapeHTML(m.name)}" onerror="this.src='${FALLBACK_FABRIC_SVG}'" />
+        <img src="${m.imageUrl || EXISTING_FABRIC_SWATCHES[idx % EXISTING_FABRIC_SWATCHES.length]}" alt="${escapeHTML(m.name)}" onerror="this.src='${EXISTING_FABRIC_SWATCHES[0]}'" />
         <div style="flex:1;">
           <div style="font-size:12px;font-weight:600;color:var(--text-primary);">${escapeHTML(m.name)}</div>
-          <div style="font-size:10.5px;color:var(--text-muted);">${escapeHTML(m.variant)} &bull; ${escapeHTML(m.meters)}</div>
+          <div style="font-size:10.5px;color:var(--text-muted);">${escapeHTML(m.variant || '')} &bull; ${escapeHTML(m.meters || '')}</div>
         </div>
-        <span style="font-size:11px;color:var(--lime-accent);font-weight:600;">${escapeHTML(m.status)}</span>
+        <span style="font-size:11px;color:var(--lime-accent, #b8ff3d);font-weight:600;">${escapeHTML(m.status || 'Ready')}</span>
       </div>
     `).join('');
   }
@@ -679,8 +743,14 @@ window.toggleInspectorExpand = toggleInspectorExpand;
 
 export function viewGarmentDetails() {
   const g = state.selectedGarment;
-  if (!g) return;
-  showToast(`Opening complete detail dossier for ${g.garmentCode}...`, 'info');
+  if (!g) {
+    showToast('Please select a garment first from the table', 'warn');
+    return;
+  }
+  sessionStorage.setItem('haulo_selected_garment', JSON.stringify(g));
+  const id = encodeURIComponent(g.id);
+  const code = encodeURIComponent(g.garmentCode || '');
+  window.location.href = `garaments 360/garament360.html?id=${id}&code=${code}`;
 }
 window.viewGarmentDetails = viewGarmentDetails;
 
@@ -835,3 +905,7 @@ function showToast(message, type = 'info') {
   setTimeout(() => t.remove(), 4000);
 }
 window.showToast = showToast;
+
+window.openNewGarmentModal = function() {
+  window.location.href = 'new-garment/new-garment.html';
+};

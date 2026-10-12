@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    HAULO BOUTIQUE ERP — CREATE NEW USER WORKSPACE STYLESHEET
    Path: front end/users-roles/create-user/create-user.css
    Haute Couture Luxury Dark Glassmorphic Theme
@@ -1324,5 +1324,66 @@ body {
 .cu-step-node {
   cursor: pointer;
   user-select: none;
+}
+
+/* Multi-Branch Clearance Cards */
+.cu-branch-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+.cu-branch-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+.cu-branch-card.selected {
+  background: rgba(184, 255, 61, 0.08);
+  border-color: rgba(184, 255, 61, 0.35);
+  box-shadow: 0 0 12px rgba(184, 255, 61, 0.10);
+}
+.cu-branch-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cu-branch-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+.cu-branch-card-meta {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cu-branch-card.selected .cu-tile-checkbox {
+  background: var(--lime);
+  border-color: var(--lime);
+}
+.cu-branch-card.selected .cu-tile-check-icon {
+  display: block;
+}
+.cu-branch-card.is-primary {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+.cu-branch-primary-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffd700;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
 }
 

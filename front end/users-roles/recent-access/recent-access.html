@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Recent Access">Recent Access &amp; Audit Logs — Haulo Boutique ERP</title>
+  <meta name="description" content="Immutable security audit trail and tenant-scoped recent access logs." />
+
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Standard ERP Fragments CSS & Navigation -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="recent-access.css" />
+
+  <!-- Fragment base path -->
+  <script>
+    window.FRAGMENT_BASE = '../../fragments/';
+  </script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="../../dev/dev-auto-login.js"></script>
+</head>
+
+<body data-module="users-roles">
+
+  <!-- Background gradient layer -->
+  <div class="app-bg"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Standard ERP Sidebar injected by fragments.js -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Wrapper: navbar on top, content below, status bar footer at bottom -->
+    <div class="main-wrapper" id="mainWrapper">
+
+      <!-- Standard ERP Top navbar injected by fragments.js -->
+      <div id="navbarSlot"></div>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           PAGE CONTENT: RECENT ACCESS & AUDIT LOGS
+      ═══════════════════════════════════════════════════════════ -->
+      <main class="ra-root" id="raRoot">
+
+        <!-- ── Top Header Row: Breadcrumbs, Title, Live Badge & Actions ── -->
+        <header class="ra-top-header">
+          <div class="ra-header-left">
+            <div id="breadcrumbSlot"></div>
+            <div class="ra-title-row">
+              <h1 class="ra-page-title">Recent Access &amp; Audit Trail</h1>
+              <div class="ra-live-badge">
+                <span class="ra-pulse-dot"></span>
+                <span>LIVE AUDIT STREAM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ra-header-actions">
+            <button class="ra-btn ra-btn-secondary" id="btnRefreshLogs" title="Fetch latest logs from database">
+              <i data-lucide="refresh-cw" id="refreshIcon"></i>
+              <span>Refresh Feed</span>
+            </button>
+            <button class="ra-btn ra-btn-primary" id="btnExportCsv" title="Export currently filtered audit logs">
+              <i data-lucide="download"></i>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- ── 4 KPI Metric Cards (Compact Row) ── -->
+        <section class="ra-kpi-grid" id="raKpiGrid" aria-label="Security Metrics">
+          <!-- KPI 1: Total Audit Events -->
+          <div class="ra-kpi-card" id="cardTotalEvents">
+            <div class="ra-kpi-icon-wrap kpi-blue">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="ra-kpi-body">
+              <div class="ra-kpi-label">Total Audit Events</div>
+              <div class="ra-kpi-value" id="kpiTotalEvents">—</div>
+              <div class="ra-kpi-subtext">Tenant lifetime activity trail</div>
+            </div>
+          </div>
+
+          <!-- KPI 2: Logins Today (24 Hours) -->
+          <div class="ra-kpi-card" id="cardLoginsToday">
+            <div class="ra-kpi-icon-wrap kpi-emerald">
+              <i data-lucide="log-in"></i>
+            </div>
+            <div class="ra-kpi-body">
+              <div class="ra-kpi-label">Logins (Past 24h)</div>
+              <div class="ra-kpi-value" id="kpiLoginsToday">—</div>
+              <div class="ra-kpi-subtext">Authenticated staff sessions</div>
+            </div>
+          </div>
+
+          <!-- KPI 3: Elevated Operations -->
+          <div class="ra-kpi-card" id="cardElevatedOps">
+            <div class="ra-kpi-icon-wrap kpi-amber">
+              <i data-lucide="key-round"></i>
+            </div>
+            <div class="ra-kpi-body">
+              <div class="ra-kpi-label">Elevated Operations</div>
+              <div class="ra-kpi-value" id="kpiElevatedOps">—</div>
+              <div class="ra-kpi-subtext">Role assignments &amp; provisioning</div>
+            </div>
+          </div>
+
+          <!-- KPI 4: Security Alerts -->
+          <div class="ra-kpi-card" id="cardSecurityAlerts">
+            <div class="ra-kpi-icon-wrap kpi-crimson">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+            <div class="ra-kpi-body">
+              <div class="ra-kpi-label">Security Alerts</div>
+              <div class="ra-kpi-value" id="kpiSecurityAlerts">—</div>
+              <div class="ra-kpi-subtext">Suspensions &amp; policy reviews</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Master Audit Ledger Card (Integrated Toolbar, Table, Pagination) ── -->
+        <section class="ra-table-card" id="mainLedgerCard">
+          <!-- Two-Line Filter Toolbar integrated inside Card Header -->
+          <div class="ra-card-toolbar">
+            <!-- Line 1: Category Filter Tabs & Live Search -->
+            <div class="ra-toolbar-line-1">
+              <nav class="ra-tab-group" id="actionTabGroup" aria-label="Event Category Tabs">
+                <button class="ra-tab active" data-action="ALL">
+                  <i data-lucide="layers"></i>
+                  <span>All Events</span>
+                </button>
+                <button class="ra-tab" data-action="LOGIN">
+                  <i data-lucide="log-in"></i>
+                  <span>User Logins</span>
+                </button>
+                <button class="ra-tab" data-action="ROLE_UPDATE">
+                  <i data-lucide="shield"></i>
+                  <span>Roles &amp; Permissions</span>
+                </button>
+                <button class="ra-tab" data-action="USER_CREATED">
+                  <i data-lucide="user-plus"></i>
+                  <span>User Provisioning</span>
+                </button>
+                <button class="ra-tab" data-action="USER_SUSPENDED">
+                  <i data-lucide="alert-octagon"></i>
+                  <span>Suspensions</span>
+                </button>
+              </nav>
+
+              <div class="ra-search-wrap">
+                <i data-lucide="search" class="ra-search-icon"></i>
+                <input
+                  type="text"
+                  id="logSearchInput"
+                  class="ra-search-input"
+                  placeholder="Search descriptions, users, locations, terminals, IPs..."
+                  autocomplete="off"
+                />
+                <button class="ra-search-clear" id="btnSearchClear" style="display: none;" title="Clear search">
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Line 2: Granular Filters (User, Action Type, Severity, Reset, Result counter, Page size) -->
+            <div class="ra-toolbar-line-2">
+              <div class="ra-filter-select-group">
+                <!-- User Filter (Populated from Live Database) -->
+                <div class="ra-select-wrap">
+                  <label for="filterUserSelect" class="ra-filter-label">User</label>
+                  <select id="filterUserSelect" class="ra-filter-select">
+                    <option value="">All Users</option>
+                  </select>
+                </div>
+
+                <!-- Action Type Select -->
+                <div class="ra-select-wrap">
+                  <label for="filterActionSelect" class="ra-filter-label">Action</label>
+                  <select id="filterActionSelect" class="ra-filter-select">
+                    <option value="">All Actions</option>
+                    <option value="LOGIN">LOGIN</option>
+                    <option value="ROLE_UPDATE">ROLE_UPDATE</option>
+                    <option value="USER_CREATED">USER_CREATED</option>
+                    <option value="USER_UPDATED">USER_UPDATED</option>
+                    <option value="USER_SUSPENDED">USER_SUSPENDED</option>
+                    <option value="USER_ACTIVATED">USER_ACTIVATED</option>
+                  </select>
+                </div>
+
+                <!-- Severity Select -->
+                <div class="ra-select-wrap">
+                  <label for="filterSeveritySelect" class="ra-filter-label">Severity</label>
+                  <select id="filterSeveritySelect" class="ra-filter-select">
+                    <option value="">All Severities</option>
+                    <option value="INFO">INFO (Normal Ops)</option>
+                    <option value="WARNING">WARNING (Elevated)</option>
+                    <option value="CRITICAL">CRITICAL (Suspensions &amp; Alerts)</option>
+                  </select>
+                </div>
+
+                <!-- Reset Filters Button -->
+                <button class="ra-btn-reset-filters" id="btnResetFilters" title="Clear all active filters">
+                  <i data-lucide="rotate-ccw"></i>
+                  <span>Reset</span>
+                </button>
+              </div>
+
+              <!-- Right side: Results Count Badge & Page Size -->
+              <div class="ra-toolbar-meta">
+                <span class="ra-results-counter" id="resultsCountBadge">Total: 0 events</span>
+                <div class="ra-pagesize-wrap">
+                  <label for="pageSizeSelect">Per page:</label>
+                  <select id="pageSizeSelect" class="ra-pagesize-select">
+                    <option value="10">10</option>
+                    <option value="15" selected>15</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="ra-table-container">
+            <table class="ra-table" id="accessLogsTable">
+              <thead>
+                <tr>
+                  <th class="th-time">Timestamp</th>
+                  <th class="th-user">User Account</th>
+                  <th class="th-action">Action Type</th>
+                  <th class="th-desc">Audit Description</th>
+                  <th class="th-location">Location / Branch</th>
+                  <th class="th-client">Client / Terminal</th>
+                  <th class="th-severity">Severity</th>
+                  <th class="th-actions">Inspect</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody">
+                <!-- Populated dynamically via recent-access.js -->
+              </tbody>
+            </table>
+
+            <!-- Loading State Container -->
+            <div class="ra-loading-state" id="logsLoadingState">
+              <div class="ra-spinner"></div>
+              <span>Querying database access log ledger...</span>
+            </div>
+          </div>
+
+          <!-- ── Pagination Bar ── -->
+          <footer class="ra-pagination-bar">
+            <div class="ra-pagination-info" id="paginationInfo">
+              Page 1 of 1 (0 total events)
+            </div>
+            <div class="ra-pagination-controls">
+              <button class="ra-page-btn" id="btnPrevPage" disabled title="Previous page">
+                <i data-lucide="chevron-left"></i>
+                <span>Previous</span>
+              </button>
+              <div class="ra-page-numbers" id="pageNumberButtons">
+                <!-- Page chips injected dynamically -->
+              </div>
+              <button class="ra-page-btn" id="btnNextPage" disabled title="Next page">
+                <span>Next</span>
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+          </footer>
+        </section>
+
+      </main>
+
+      <!-- Standard ERP Footer injected by fragments.js -->
+      <div id="footerSlot"></div>
+
+    </div><!-- /.main-wrapper -->
+  </div><!-- /.app-shell -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL: AUDIT EVENT INSPECTOR (RAW JSON & SECURITY HEADERS)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="ra-modal-backdrop" id="eventModalBackdrop" style="display: none;">
+    <div class="ra-modal" id="eventModal" role="dialog" aria-modal="true" aria-labelledby="modalEventTitle">
+      <div class="ra-modal-header">
+        <div class="ra-modal-title-wrap">
+          <i data-lucide="file-code" class="ra-modal-icon"></i>
+          <div>
+            <h2 class="ra-modal-title" id="modalEventTitle">Audit Event Inspection</h2>
+            <div class="ra-modal-subtitle" id="modalEventSubtitle">UUID: —</div>
+          </div>
+        </div>
+        <button class="ra-modal-close" id="btnModalClose" aria-label="Close modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="ra-modal-body">
+        <!-- Event Overview Cards -->
+        <div class="ra-modal-summary-grid">
+          <div class="ra-modal-summary-item">
+            <span class="ra-summary-label">Timestamp</span>
+            <span class="ra-summary-value" id="modalTimestamp">—</span>
+          </div>
+          <div class="ra-modal-summary-item">
+            <span class="ra-summary-label">Action</span>
+            <span class="ra-summary-value" id="modalActionType">—</span>
+          </div>
+          <div class="ra-modal-summary-item">
+            <span class="ra-summary-label">User</span>
+            <span class="ra-summary-value" id="modalUserName">—</span>
+          </div>
+          <div class="ra-modal-summary-item">
+            <span class="ra-summary-label">Severity</span>
+            <span class="ra-summary-value" id="modalSeverity">—</span>
+          </div>
+        </div>
+
+        <div class="ra-modal-section">
+          <h4 class="ra-section-title">Audit Description</h4>
+          <p class="ra-desc-box" id="modalDescription">—</p>
+        </div>
+
+        <div class="ra-modal-details-grid">
+          <div class="ra-detail-field">
+            <span class="ra-detail-label">Location / Assigned Branch</span>
+            <span class="ra-detail-value" id="modalLocation">—</span>
+          </div>
+          <div class="ra-detail-field">
+            <span class="ra-detail-label">Client / Terminal Agent</span>
+            <span class="ra-detail-value" id="modalClientInfo">—</span>
+          </div>
+          <div class="ra-detail-field">
+            <span class="ra-detail-label">User Identifier (UUID)</span>
+            <span class="ra-detail-value font-mono" id="modalUserId">—</span>
+          </div>
+          <div class="ra-detail-field">
+            <span class="ra-detail-label">User Role</span>
+            <span class="ra-detail-value" id="modalUserRole">—</span>
+          </div>
+        </div>
+
+        <!-- Raw JSON Payload -->
+        <div class="ra-modal-section">
+          <div class="ra-code-header">
+            <span class="ra-code-title">Raw Database Event Ledger Payload</span>
+            <button class="ra-btn-copy-json" id="btnCopyJson">
+              <i data-lucide="copy"></i>
+              <span>Copy JSON</span>
+            </button>
+          </div>
+          <pre class="ra-code-block"><code id="modalJsonCode">{ }</code></pre>
+        </div>
+      </div>
+
+      <div class="ra-modal-footer">
+        <button class="ra-btn ra-btn-secondary" id="btnModalCloseFooter">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="ra-toast-container" id="raToastContainer"></div>
+
+  <!-- Page Logic (ES Module) -->
+  <script type="module" src="recent-access.js"></script>
+</body>
+</html>

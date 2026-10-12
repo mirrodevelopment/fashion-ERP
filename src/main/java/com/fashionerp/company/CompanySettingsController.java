@@ -40,7 +40,7 @@ public class CompanySettingsController {
      * Restricted to ADMIN role.
      */
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<CompanySettingsDto.Response> update(
             @RequestBody CompanySettingsDto.Request request) {
         return ResponseEntity.ok(service.update(request));

@@ -114,28 +114,22 @@ public class ProductionController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
-        long totalOrders = companyId != null ? orderRepository.countByCompanyId(companyId) : orderRepository.count();
-        long inProduction = companyId != null
-                ? stageRepository.countOrdersInProduction(companyId)
-                : stageRepository.countOrdersInProduction();
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
+        long totalOrders = orderRepository.countByCompanyId(companyId);
+        long inProduction = stageRepository.countOrdersInProduction(companyId);
         if (inProduction == 0) {
-            inProduction = companyId != null
-                    ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS)
-                    : orderRepository.countByStatus(OrderStatus.IN_PROGRESS);
+            inProduction = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS);
         }
 
-        long completedStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "COMPLETED") : stageRepository.countByStatus("COMPLETED");
-        long inProgressStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "IN_PROGRESS") : stageRepository.countByStatus("IN_PROGRESS");
-        long notStartedStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "NOT_STARTED") : stageRepository.countByStatus("NOT_STARTED");
-        long blockedStages = companyId != null ? stageRepository.countByCompanyIdAndStatus(companyId, "BLOCKED") : stageRepository.countByStatus("BLOCKED");
+        long completedStages = stageRepository.countByCompanyIdAndStatus(companyId, "COMPLETED");
+        long inProgressStages = stageRepository.countByCompanyIdAndStatus(companyId, "IN_PROGRESS");
+        long notStartedStages = stageRepository.countByCompanyIdAndStatus(companyId, "NOT_STARTED");
+        long blockedStages = stageRepository.countByCompanyIdAndStatus(companyId, "BLOCKED");
 
         long onTrack = Math.max(0, inProduction - blockedStages);
         long delayed = blockedStages;
 
-        List<Object[]> activeStages = companyId != null
-                ? stageRepository.countActiveByStageName(companyId)
-                : stageRepository.countActiveByStageName();
+        List<Object[]> activeStages = stageRepository.countActiveByStageName(companyId);
         List<Map<String, Object>> stageBreakdown = new ArrayList<>();
         for (Object[] row : activeStages) {
             Map<String, Object> m = new LinkedHashMap<>();

@@ -78,10 +78,9 @@
                     (typeof localStorage !== 'undefined' && localStorage.getItem('erp_token'));
       if (!token) return;
 
-      const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
-      const baseUrl = (typeof window !== 'undefined' && window.location && window.location.origin)
+      const baseUrl = window.HAULO_API_BASE || ((typeof window !== 'undefined' && window.location && window.location.origin)
         ? `${window.location.origin}/api/v1`
-        : 'http://localhost:8080/api/v1';
+        : 'http://localhost:8080/api/v1');
 
       // 1. Check real low-stock inventory items
       try {

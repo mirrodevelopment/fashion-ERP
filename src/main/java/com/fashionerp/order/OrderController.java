@@ -76,16 +76,16 @@ public class OrderController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("pendingCount",    companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING) : orderRepository.countByStatus(OrderStatus.PENDING));
-        m.put("inProgressCount", companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS) : orderRepository.countByStatus(OrderStatus.IN_PROGRESS));
-        m.put("readyCount",      companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY) : orderRepository.countByStatus(OrderStatus.READY));
-        m.put("deliveredCount",  companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED) : orderRepository.countByStatus(OrderStatus.DELIVERED));
-        m.put("cancelledCount",  companyId != null ? orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED) : orderRepository.countByStatus(OrderStatus.CANCELLED));
+        m.put("pendingCount",    orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING));
+        m.put("inProgressCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS));
+        m.put("readyCount",      orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY));
+        m.put("deliveredCount",  orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED));
+        m.put("cancelledCount",  orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED));
 
-        BigDecimal totalRev = companyId != null ? paymentRepository.sumPaidAmount(companyId) : paymentRepository.sumPaidAmount();
-        BigDecimal thisMonthRev = companyId != null ? paymentRepository.sumThisMonthPaidAmount(companyId) : paymentRepository.sumThisMonthPaidAmount();
+        BigDecimal totalRev = paymentRepository.sumPaidAmount(companyId);
+        BigDecimal thisMonthRev = paymentRepository.sumThisMonthPaidAmount(companyId);
         m.put("totalRevenue",     totalRev != null ? totalRev : BigDecimal.ZERO);
         m.put("thisMonthRevenue", thisMonthRev != null ? thisMonthRev : BigDecimal.ZERO);
         return m;

@@ -1,0 +1,174 @@
+/* =======================================================================
+   HAULO BOUTIQUE ERP — COMMON BREADCRUMBS STYLES
+   Path: front end/fragments/breadcrumbs/breadcrumbs.css
+   Theme: Obsidian Glassmorphism / Haulo Modern Tailoring
+   ======================================================================= */
+
+:root {
+  --bc-lime: #b8ff3d;
+  --bc-text-dim: rgba(255, 255, 255, 0.45);
+  --bc-text-mid: rgba(255, 255, 255, 0.72);
+  --bc-text-bright: #ffffff;
+  --bc-sep-color: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Container / Navigation Bar ── */
+.haulo-bc-nav,
+.breadcrumb-nav,
+.cu-breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Slot wrapper */
+#breadcrumbSlot,
+.haulo-bc-slot {
+  display: block;
+  width: 100%;
+}
+
+/* Ordered list reset */
+.haulo-bc-list {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+}
+
+/* Breadcrumb item */
+.haulo-bc-item,
+.bc-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Interactive link */
+.haulo-bc-link,
+.bc-link,
+.cu-bc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--bc-text-mid);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: 5px;
+  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+
+.haulo-bc-link:hover,
+.bc-link:hover,
+.cu-bc-link:hover {
+  color: var(--bc-lime);
+  background: rgba(184, 255, 61, 0.08);
+  text-decoration: none;
+  transform: translateY(-0.5px);
+}
+
+.haulo-bc-link:active {
+  transform: translateY(0);
+}
+
+/* Home button specific icon */
+.haulo-bc-home {
+  padding-left: 2px;
+}
+
+.haulo-bc-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  vertical-align: middle;
+}
+
+/* Separator */
+.haulo-bc-sep,
+.bc-sep,
+.cu-bc-sep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bc-sep-color);
+  font-size: 12px;
+  line-height: 1;
+  user-select: none;
+  padding: 0 1px;
+}
+
+.haulo-bc-sep svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+}
+
+/* Current / Active Leaf Page */
+.haulo-bc-current,
+.bc-current,
+.bc-item.current,
+.cu-bc-item.cu-bc-current {
+  color: var(--bc-text-bright);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.01em;
+}
+
+/* Optional dynamic tag accent inside current */
+.haulo-bc-current .bc-accent-pill {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(184, 255, 61, 0.15);
+  color: var(--bc-lime);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Mobile responsive collapse */
+@media (max-width: 768px) {
+  .haulo-bc-nav,
+  .breadcrumb-nav,
+  .cu-breadcrumb-nav {
+    font-size: 11px;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .haulo-bc-link,
+  .bc-link,
+  .haulo-bc-current,
+  .bc-current {
+    font-size: 11px;
+    padding: 1px 4px;
+  }
+
+  .haulo-bc-icon {
+    width: 12px;
+    height: 12px;
+  }
+}

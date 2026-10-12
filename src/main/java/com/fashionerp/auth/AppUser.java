@@ -29,7 +29,7 @@ public class AppUser {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private UserRole role = UserRole.STAFF;
+    private UserRole role = UserRole.CUSTOM;
 
     @Column(nullable = false)
     @Builder.Default
@@ -57,6 +57,14 @@ public class AppUser {
     private String assignedBranch;
 
     /**
+     * JSON array of branch codes or names the user may access.
+     * e.g. ["BRN-001","BRN-002"] or ["siva 2","Flagship Atelier"]
+     * NULL/empty means: apply default branch policy (assignedBranch).
+     */
+    @Column(name = "allowed_branches", columnDefinition = "TEXT")
+    private String allowedBranches;
+
+    /**
      * JSON array of module key strings the user may access.
      * e.g. ["dashboard","customers","orders","garments"]
      * NULL means: apply role-based defaults at login time (ADMIN = unrestricted).
@@ -67,6 +75,37 @@ public class AppUser {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    @Column(name = "access_scope", length = 100)
+    @Builder.Default
+    private String accessScope = "Full System";
+
+    @Column(name = "approval_limit", precision = 14, scale = 2)
+    private java.math.BigDecimal approvalLimit;
+
+    @Column(name = "access_health_score")
+    private Integer accessHealthScore;
+
+    @Column(name = "status", length = 30)
+    @Builder.Default
+    private String status = "ACTIVE";
+
+    @Column(name = "last_active_at")
+    private LocalDateTime lastActiveAt;
+
+    @Column(name = "risk_level", length = 20)
+    @Builder.Default
+    private String riskLevel = "LOW";
+
+    @Column(name = "risk_notes", columnDefinition = "TEXT")
+    @Builder.Default
+    private String riskNotes = "No critical permission conflicts detected.";
+
+    @Column(name = "authority_limits", columnDefinition = "TEXT")
+    private String authorityLimits;
+
+    @Column(name = "branch_access_details", columnDefinition = "TEXT")
+    private String branchAccessDetails;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -75,3 +114,4 @@ public class AppUser {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }
+

@@ -259,7 +259,8 @@
     applyToDOM(root = (typeof document !== 'undefined' ? document : null)) {
       if (!root) return;
 
-      const activeBranch = (typeof localStorage !== 'undefined' && localStorage.getItem('haulo_active_branch')) || 'Gandhipuram Atelier';
+      const rawBranch = (typeof localStorage !== 'undefined' && localStorage.getItem('haulo_active_branch')) || 'ALL';
+      const activeBranch = (!rawBranch || rawBranch === 'ALL' || rawBranch === 'All Company Data') ? 'All Company Data' : rawBranch;
       const currentYear = new Date().getFullYear();
 
       // 1. Hydrate document title if data-brand-title exists

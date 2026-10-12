@@ -67,7 +67,8 @@ async function loadProfile() {
 
     // Fallback: direct fetch
     try {
-      const res = await fetch('http://localhost:8080/api/v1/profile', {
+      const apiBase = window.HAULO_API_BASE || (window.api?.baseUrl) || '/api/v1';
+      const res = await fetch(`${apiBase}/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -705,6 +706,9 @@ function switchProfileTab(tabName, btn) {
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
   }
+}
+window.switchProfileTab = switchProfileTab;
+
 // ─── Dynamic Branch Options Population ─────────────────────────────────────
 async function populateBranchSelect(selectedBranch) {
   const branchSelect = document.getElementById('inputAssignedBranch');

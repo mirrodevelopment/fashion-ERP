@@ -44,11 +44,15 @@
         <!-- 1. Page Header -->
         <div class="page-header">
           <div class="header-left">
-            <span class="header-overline">Procurement</span>
+            <div id="breadcrumbSlot"></div>
             <h1 class="page-title">Purchase &amp; Supplier Management</h1>
             <p class="page-subtitle">Manage purchase requests, orders, suppliers and incoming stock.</p>
           </div>
           <div class="header-right">
+            <a href="../suppliers/suppliers.html" class="btn-secondary-nav" id="viewSuppliersBtn" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9999px;font-size:13px;font-weight:600;color:#d1d5db;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);text-decoration:none;transition:all 0.2s ease;">
+              <i data-lucide="users" style="width:14px;height:14px;"></i>
+              <span>Suppliers Directory</span>
+            </a>
             <button type="button" class="btn-primary-create" id="openCreatePoModalBtn">
               <span class="plus-icon">+</span>
               <span>Create Purchase Order</span>

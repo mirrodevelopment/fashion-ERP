@@ -64,10 +64,10 @@ public class EmployeeController {
 
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
-        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
-        long activeCount    = companyId != null ? employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE") : employeeRepository.countByStatus("ACTIVE");
-        long onLeaveCount   = companyId != null ? employeeRepository.countByCompanyIdAndStatus(companyId, "ON_LEAVE") : employeeRepository.countByStatus("ON_LEAVE");
-        long totalCount     = companyId != null ? employeeRepository.countByCompanyId(companyId) : employeeRepository.count();
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
+        long activeCount    = employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE");
+        long onLeaveCount   = employeeRepository.countByCompanyIdAndStatus(companyId, "ON_LEAVE");
+        long totalCount     = employeeRepository.countByCompanyId(companyId);
 
         List<Map<String, Object>> deptBreakdown = employeeRepository.countByRole(companyId);
 

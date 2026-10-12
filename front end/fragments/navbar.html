@@ -20,11 +20,25 @@
     <!-- Branch Selector Dropdown -->
     <div class="branch-sel" id="branchSel" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" title="Switch Branch">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;opacity:0.75;"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-      <span class="branch-sel-text" id="branchSelText" data-company="branchTitle">Loading branch...</span>
+      <span class="branch-sel-text" id="branchSelText" data-company="branchTitle">All Company Data</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-chevron" style="width:11px;height:11px;opacity:0.6;"><polyline points="6 9 12 15 18 9"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-lock-icon" style="width:11px;height:11px;display:none;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <div class="branch-dd dd-panel" id="branchDd">
-        <div class="dd-panel-header">Active Branch</div>
+        <div class="dd-panel-header">Select Branch / View</div>
         <div class="branch-dd-list" id="branchDdList">
+          <div class="dd-item company-all-item active" data-branch="ALL" data-branch-id="ALL">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="branch-check" style="width:13px;height:13px;flex-shrink:0;opacity:1;"><polyline points="20 6 9 17 4 12"/></svg>
+            <div class="branch-item-body">
+              <div class="branch-item-top">
+                <span class="branch-item-name" style="display:flex;align-items:center;gap:6px;">
+                  <span style="font-size:12px;">🏢</span> All Company Data
+                </span>
+                <span class="branch-pill-company">All Branches</span>
+              </div>
+              <div class="branch-item-meta"><span>Consolidated company-wide view</span></div>
+            </div>
+          </div>
+          <div class="branch-dd-section-title">BRANCHES</div>
           <div class="branch-empty-state">Loading branches...</div>
         </div>
         <a href="../branches/branches.html" class="branch-dd-footer" id="branchManageLink">

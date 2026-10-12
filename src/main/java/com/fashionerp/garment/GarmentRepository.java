@@ -59,9 +59,10 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
     );
 
     long countByCompanyId(UUID companyId);
-    long countByCompanyIdAndProductionStageIgnoreCase(UUID companyId, String productionStage);
-    long countByProductionStageIgnoreCase(String productionStage);
 
-    long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);
-    long countByStatusIgnoreCase(String status);
+    @Query("SELECT COUNT(g) FROM Garment g WHERE (:companyId IS NULL OR g.companyId = :companyId) AND UPPER(g.productionStage) = UPPER(:productionStage)")
+    long countByCompanyIdAndProductionStageIgnoreCase(@Param("companyId") UUID companyId, @Param("productionStage") String productionStage);
+
+    @Query("SELECT COUNT(g) FROM Garment g WHERE (:companyId IS NULL OR g.companyId = :companyId) AND UPPER(g.status) = UPPER(:status)")
+    long countByCompanyIdAndStatusIgnoreCase(@Param("companyId") UUID companyId, @Param("status") String status);
 }

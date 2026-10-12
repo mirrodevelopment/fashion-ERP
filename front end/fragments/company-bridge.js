@@ -7,7 +7,19 @@
 'use strict';
 
 const CompanyBridge = (() => {
-  const API_URL = 'http://localhost:8080/api/v1/company';
+  const getApiBase = () => {
+    if (typeof window !== 'undefined' && window.HAULO_API_BASE) return window.HAULO_API_BASE;
+    if (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:')) {
+      return `${window.location.origin}/api/v1`;
+    }
+    return 'http://localhost:8080/api/v1';
+  };
+
+  if (typeof window !== 'undefined' && !window.HAULO_API_BASE) {
+    window.HAULO_API_BASE = getApiBase();
+  }
+
+  const API_URL = `${window.HAULO_API_BASE}/company`;
   const STORAGE_KEY = 'haulo_company_settings';
   const CHANNEL_NAME = 'haulo_company_sync';
   const TOKEN_STORAGE_KEYS = ['erp_token', 'haulo_token', 'fashion_erp_token'];
@@ -216,8 +228,9 @@ const CompanyBridge = (() => {
      */
     formatBranch(branchName) {
       const co = this.get();
-      const b = branchName || localStorage.getItem('haulo_active_branch') || 'Main Branch';
-      return `${co.companyName || 'Haulo Designs'} — ${b}`;
+      const b = branchName || localStorage.getItem('haulo_active_branch') || 'ALL';
+      const display = (!b || b === 'ALL' || b === 'All Company Data') ? 'All Company Data' : b;
+      return `${co.companyName || 'Haulo ERP'} — ${display}`;
     },
 
     /**
@@ -242,7 +255,8 @@ const CompanyBridge = (() => {
     applyToDOM(root = document) {
       if (_isCanonicalBrandOnly() || !root) return;
       const co = this.get();
-      const activeBranch = localStorage.getItem('haulo_active_branch') || 'Main Branch';
+      const rawBranch = localStorage.getItem('haulo_active_branch') || 'ALL';
+      const activeBranch = (!rawBranch || rawBranch === 'ALL' || rawBranch === 'All Company Data') ? 'All Company Data' : rawBranch;
 
       // 1. Declarative data-company and data-company-field bindings
       root.querySelectorAll('[data-company], [data-company-field]').forEach(el => {

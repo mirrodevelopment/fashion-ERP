@@ -14,17 +14,11 @@ import java.util.UUID;
 @Repository
 public interface CollectionRepository extends JpaRepository<Collection, UUID> {
 
-    Optional<Collection> findByCode(String code);
     Optional<Collection> findByCodeAndCompanyId(String code, UUID companyId);
-
-    Optional<Collection> findByNameIgnoreCase(String name);
     Optional<Collection> findByNameIgnoreCaseAndCompanyId(String name, UUID companyId);
     Optional<Collection> findByIdAndCompanyId(UUID id, UUID companyId);
 
-    boolean existsByCode(String code);
     boolean existsByCodeAndCompanyId(String code, UUID companyId);
-
-    boolean existsByNameIgnoreCase(String name);
     boolean existsByNameIgnoreCaseAndCompanyId(String name, UUID companyId);
 
     List<Collection> findByCompanyIdAndIsFeaturedTrueOrderByCreatedAtDesc(UUID companyId);

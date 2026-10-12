@@ -419,7 +419,8 @@ const Settings = (() => {
         <span class="health-status ${h.status}"><span class="health-dot"></span>${h.label}</span>
       </div>`).join('');
     // Live probe: check actuator health without throwing login bad credential warnings
-    fetch('http://localhost:8080/actuator/health')
+    const healthBase = window.HAULO_API_BASE ? window.HAULO_API_BASE.replace('/api/v1', '') : '';
+    fetch(`${healthBase}/actuator/health`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data && data.status === 'UP') {
@@ -437,7 +438,8 @@ const Settings = (() => {
   function exportData(module) {
     showToast(`Preparing ${module} export…`, 'success');
     const token = localStorage.getItem('erp_token') || sessionStorage.getItem('erp_token') || localStorage.getItem('haulo_token') || '';
-    const url = `http://localhost:8080/api/v1/${module}?size=9999`;
+    const apiBase = window.HAULO_API_BASE || '/api/v1';
+    const url = `${apiBase}/${module}?size=9999`;
     fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

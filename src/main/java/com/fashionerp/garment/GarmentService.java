@@ -45,32 +45,16 @@ public class GarmentService {
     public GarmentDto.KpiResponse getKpis() {
         UUID companyId = TenantContext.getCompanyId();
         long total = companyId != null ? garmentRepository.countByCompanyId(companyId) : garmentRepository.count();
-        long inProd = companyId != null
-                ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production")
-                : garmentRepository.countByStatusIgnoreCase("In Production");
-        long inTrial = companyId != null
-                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial")
-                : garmentRepository.countByProductionStageIgnoreCase("Trial");
-        long awaitingQc = companyId != null
-                ? garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC")
-                : garmentRepository.countByStatusIgnoreCase("Awaiting QC");
+        long inProd = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production");
+        long inTrial = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial");
+        long awaitingQc = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC");
         if (awaitingQc == 0) {
-            awaitingQc = companyId != null
-                    ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC")
-                    : garmentRepository.countByProductionStageIgnoreCase("QC");
+            awaitingQc = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC");
         }
-        long ready = companyId != null
-                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready")
-                : garmentRepository.countByProductionStageIgnoreCase("Ready");
-        long delivered = companyId != null
-                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered")
-                : garmentRepository.countByProductionStageIgnoreCase("Delivered");
-        long designing = companyId != null
-                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing")
-                : garmentRepository.countByProductionStageIgnoreCase("Designing");
-        long onHold = companyId != null
-                ? garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold")
-                : garmentRepository.countByProductionStageIgnoreCase("On Hold");
+        long ready = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready");
+        long delivered = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered");
+        long designing = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing");
+        long onHold = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold");
 
         // Real month-over-month deltas require historical data queries; return null
         // until implemented.
@@ -193,10 +177,53 @@ public class GarmentService {
         return toSummaryResponse(saved);
     }
 
+    // ─── Image Upload & Storage ─────────────────────────────────────────────
+
+    @Transactional
+    public String uploadImage(org.springframework.web.multipart.MultipartFile file, String garmentCode) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
+        }
+
+        try {
+            String originalFilename = file.getOriginalFilename();
+            String ext = ".jpg";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                ext = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase();
+            }
+            if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext)) {
+                throw new IllegalArgumentException("Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
+            }
+
+            String prefix = (garmentCode != null && !garmentCode.isBlank())
+                    ? garmentCode.trim().replaceAll("[^a-zA-Z0-9_-]", "")
+                    : "GAR_" + System.currentTimeMillis();
+            int randSuffix = 1000 + new java.util.Random().nextInt(9000);
+            String filename = prefix + "_" + randSuffix + ext;
+
+            java.nio.file.Path storageDir = java.nio.file.Paths.get("front end", "assets", "garments").toAbsolutePath();
+            java.nio.file.Files.createDirectories(storageDir);
+            java.nio.file.Files.write(storageDir.resolve(filename), file.getBytes());
+
+            return "/front end/assets/garments/" + filename;
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed to store garment image: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public GarmentDto.SummaryResponse uploadGarmentImage(UUID id, org.springframework.web.multipart.MultipartFile file) {
+        Garment g = garmentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Garment not found with id: " + id));
+        String url = uploadImage(file, g.getGarmentCode());
+        g.setImageUrl(url);
+        Garment saved = garmentRepository.save(g);
+        return toSummaryResponse(saved);
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-
-    private GarmentDto.SummaryResponse toSummaryResponse(Garment g) {
+    public GarmentDto.SummaryResponse toSummaryResponse(Garment g) {
         int daysRem = 0;
         boolean overdue = false;
         if (g.getDueDate() != null) {

@@ -36,11 +36,12 @@ public class StageDefinitionService {
 
     // ─── Self-Healing System Boundary Stages ─────────────────────────────────
 
-    @jakarta.annotation.PostConstruct
     @Transactional
-    public void ensureBoundaryStagesExist() {
-        if (!stageDefRepo.existsByStageKey("ORDER_TAKEN")) {
+    public void ensureBoundaryStagesExist(UUID companyId) {
+        if (companyId == null) return;
+        if (!stageDefRepo.existsByCompanyIdAndStageKey(companyId, "ORDER_TAKEN")) {
             StageDefinition ot = StageDefinition.builder()
+                    .companyId(companyId)
                     .stageKey("ORDER_TAKEN")
                     .displayName("Order Taken")
                     .description("Order intake, fabric requirements noted, advance paid and order committed to schedule.")
@@ -53,9 +54,10 @@ public class StageDefinitionService {
                     .build();
             stageDefRepo.save(ot);
         }
-        if (!stageDefRepo.existsByStageKey("READY_TO_DELIVER")) {
-            int lastOrder = (int) stageDefRepo.count() + 1;
+        if (!stageDefRepo.existsByCompanyIdAndStageKey(companyId, "READY_TO_DELIVER")) {
+            int lastOrder = (int) stageDefRepo.countByCompanyId(companyId) + 1;
             StageDefinition rd = StageDefinition.builder()
+                    .companyId(companyId)
                     .stageKey("READY_TO_DELIVER")
                     .displayName("Ready to Deliver")
                     .description("Quality approved, packaged with care and awaiting customer pickup or boutique handover.")
@@ -68,19 +70,20 @@ public class StageDefinitionService {
                     .build();
             stageDefRepo.save(rd);
         }
-        if (!stageDefRepo.existsByStageKey("QC")) {
+        if (!stageDefRepo.existsByCompanyIdAndStageKey(companyId, "QC")) {
             // Position QC just before READY_TO_DELIVER
             int qcOrder = 2;
-            java.util.Optional<StageDefinition> rdOpt = stageDefRepo.findByStageKey("READY_TO_DELIVER");
+            java.util.Optional<StageDefinition> rdOpt = stageDefRepo.findByCompanyIdAndStageKey(companyId, "READY_TO_DELIVER");
             if (rdOpt.isPresent() && rdOpt.get().getSortOrder() != null) {
                 qcOrder = rdOpt.get().getSortOrder();
                 // Shift READY_TO_DELIVER up by one to make room
                 rdOpt.get().setSortOrder(qcOrder + 1);
                 stageDefRepo.save(rdOpt.get());
             } else {
-                qcOrder = Math.max(2, (int) stageDefRepo.count() + 1);
+                qcOrder = Math.max(2, (int) stageDefRepo.countByCompanyId(companyId) + 1);
             }
             StageDefinition qc = StageDefinition.builder()
+                    .companyId(companyId)
                     .stageKey("QC")
                     .displayName("Quality Control")
                     .description("Final inspection before dispatch: stitching, measurements, finishing, and fabric quality verified by QC team.")
@@ -99,12 +102,13 @@ public class StageDefinitionService {
 
     /** Returns only active stages, ordered by sort_order — used by the Kanban board */
     public List<StageDefinitionDto.Response> listActive() {
-        List<StageDefinition> list = stageDefRepo.findAllByActiveTrueOrderBySortOrderAsc();
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
+        List<StageDefinition> list = stageDefRepo.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(companyId);
         if (list.stream().noneMatch(s -> "ORDER_TAKEN".equalsIgnoreCase(s.getStageKey()))
                 || list.stream().noneMatch(s -> "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey()))
                 || list.stream().noneMatch(s -> "QC".equalsIgnoreCase(s.getStageKey()))) {
-            ensureBoundaryStagesExist();
-            list = stageDefRepo.findAllByActiveTrueOrderBySortOrderAsc();
+            ensureBoundaryStagesExist(companyId);
+            list = stageDefRepo.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(companyId);
         }
         Map<String, Long> activeCounts = getActiveOrderCountsMap();
         return enforceBoundarySort(list)
@@ -115,12 +119,13 @@ public class StageDefinitionService {
 
     /** Returns all stages including inactive — used by the management UI */
     public List<StageDefinitionDto.Response> listAll() {
-        List<StageDefinition> list = stageDefRepo.findAllByOrderBySortOrderAsc();
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
+        List<StageDefinition> list = stageDefRepo.findAllByCompanyIdOrderBySortOrderAsc(companyId);
         if (list.stream().noneMatch(s -> "ORDER_TAKEN".equalsIgnoreCase(s.getStageKey()))
                 || list.stream().noneMatch(s -> "READY_TO_DELIVER".equalsIgnoreCase(s.getStageKey()))
                 || list.stream().noneMatch(s -> "QC".equalsIgnoreCase(s.getStageKey()))) {
-            ensureBoundaryStagesExist();
-            list = stageDefRepo.findAllByOrderBySortOrderAsc();
+            ensureBoundaryStagesExist(companyId);
+            list = stageDefRepo.findAllByCompanyIdOrderBySortOrderAsc(companyId);
         }
         Map<String, Long> activeCounts = getActiveOrderCountsMap();
         return enforceBoundarySort(list)
@@ -138,24 +143,25 @@ public class StageDefinitionService {
 
     @Transactional
     public StageDefinitionDto.Response create(StageDefinitionDto.Request req) {
+        UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
         String key = toKey(req.getDisplayName());
         if ("ORDER_TAKEN".equals(key) || "READY_TO_DELIVER".equals(key) || "READY".equals(key) || "QC".equals(key)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cannot create stage with reserved system key '" + key + "'.");
         }
-        if (stageDefRepo.existsByStageKey(key)) {
+        if (stageDefRepo.existsByCompanyIdAndStageKey(companyId, key)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "A stage with key '" + key + "' already exists. Choose a different name.");
         }
 
         // Auto-set sort order to the end if not provided, but before QC and READY_TO_DELIVER
-        java.util.Optional<StageDefinition> qcOpt = stageDefRepo.findByStageKey("QC");
-        java.util.Optional<StageDefinition> readyStageOpt = stageDefRepo.findByStageKey("READY_TO_DELIVER");
+        java.util.Optional<StageDefinition> qcOpt = stageDefRepo.findByCompanyIdAndStageKey(companyId, "QC");
+        java.util.Optional<StageDefinition> readyStageOpt = stageDefRepo.findByCompanyIdAndStageKey(companyId, "READY_TO_DELIVER");
         int sortOrder;
 
         if (qcOpt.isPresent()) {
             StageDefinition qc = qcOpt.get();
-            sortOrder = qc.getSortOrder() != null ? qc.getSortOrder() : Math.max(2, (int) stageDefRepo.count());
+            sortOrder = qc.getSortOrder() != null ? qc.getSortOrder() : Math.max(2, (int) stageDefRepo.countByCompanyId(companyId));
             // Shift QC and READY_TO_DELIVER after the new stage
             qc.setSortOrder(sortOrder + 1);
             stageDefRepo.save(qc);
@@ -166,13 +172,13 @@ public class StageDefinitionService {
             }
         } else if (readyStageOpt.isPresent()) {
             StageDefinition readyStage = readyStageOpt.get();
-            sortOrder = readyStage.getSortOrder() != null ? readyStage.getSortOrder() : (int) stageDefRepo.count() + 1;
+            sortOrder = readyStage.getSortOrder() != null ? readyStage.getSortOrder() : (int) stageDefRepo.countByCompanyId(companyId) + 1;
             // Shift READY_TO_DELIVER after the new stage
             readyStage.setSortOrder(sortOrder + 1);
             stageDefRepo.save(readyStage);
         } else {
             sortOrder = req.getSortOrder() != null ? req.getSortOrder()
-                    : (int) stageDefRepo.count() + 1;
+                    : (int) stageDefRepo.countByCompanyId(companyId) + 1;
         }
         // Ensure new intermediate stage cannot override ORDER_TAKEN (sort_order 1)
         if (sortOrder <= 1) {
@@ -180,6 +186,7 @@ public class StageDefinitionService {
         }
 
         StageDefinition def = StageDefinition.builder()
+                .companyId(companyId)
                 .stageKey(key)
                 .displayName(req.getDisplayName().trim())
                 .description(req.getDescription())
@@ -209,7 +216,7 @@ public class StageDefinitionService {
             String newKey = toKey(req.getDisplayName());
             if (!newKey.equals(def.getStageKey())) {
                 if (linkedCount == 0) {
-                    if (stageDefRepo.existsByStageKeyAndIdNot(newKey, id)) {
+                    if (stageDefRepo.existsByCompanyIdAndStageKeyAndIdNot(def.getCompanyId(), newKey, id)) {
                         throw new ResponseStatusException(HttpStatus.CONFLICT,
                                 "A stage with key '" + newKey + "' already exists.");
                     }
@@ -305,11 +312,9 @@ public class StageDefinitionService {
 
         // Clean up linked pinned employees and placeholder records before removing definition
         stageDefEmpRepo.deleteAllByStageDefId(def.getId());
-        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        UUID companyId = def.getCompanyId() != null ? def.getCompanyId() : com.fashionerp.common.TenantContext.getCompanyId();
         if (companyId != null) {
             productionStageRepository.deleteByCompanyIdAndStageName(companyId, def.getStageKey());
-        } else {
-            productionStageRepository.deleteByStageName(def.getStageKey());
         }
         stageDefRepo.delete(def);
     }

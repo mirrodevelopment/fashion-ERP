@@ -10,6 +10,8 @@ public class AuthDto {
     public static class LoginRequest {
         private String username;
         private String password;
+        /** Optional — sent by the multi-step login flow after Step 1 resolves the company. */
+        private String companyName;
     }
 
     /**
@@ -64,11 +66,30 @@ public class AuthDto {
         private String username;
         private String fullName;
         private String role;
+        private String assignedBranch;
+        private java.util.List<String> allowedBranches;
         private UUID companyId;
         private String companyName;
         private LocalDateTime expiresAt;
         /** true when company_settings table is empty — frontend should redirect to setup wizard */
         private boolean needsCompanySetup;
+    }
+
+    /**
+     * Response for GET /api/v1/auth/company-lookup?name=...
+     * Used by the multi-step login flow (Step 1) to validate the company name
+     * before presenting the username/password credentials form.
+     */
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class CompanyLookupResponse {
+        /** true if a company with the given name exists in this installation */
+        private boolean found;
+        /** The company's UUID */
+        private UUID companyId;
+        /** The exact stored company name (may differ in case from user's input) */
+        private String companyName;
+        /** Short / display name for the card header badge on Step 2 */
+        private String shortName;
     }
 }
 

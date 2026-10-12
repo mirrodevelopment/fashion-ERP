@@ -5,8 +5,9 @@
 
 'use strict';
 
-/* ── Constants (no raw values elsewhere) ── */
-const API_BASE            = 'http://localhost:8080/api/v1';
+const API_BASE = window.HAULO_API_BASE || ((typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:'))
+  ? `${window.location.origin}/api/v1`
+  : 'http://localhost:8080/api/v1');
 const COMPANY_API         = `${API_BASE}/company`;
 const TOKEN_STORAGE_KEYS  = ['erp_token', 'haulo_token', 'fashion_erp_token'];
 

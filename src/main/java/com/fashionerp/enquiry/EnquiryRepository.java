@@ -12,7 +12,6 @@ import java.util.UUID;
 @Repository
 public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
 
-    Optional<Enquiry> findByEnquiryCode(String enquiryCode);
     Optional<Enquiry> findByEnquiryCodeAndCompanyId(String enquiryCode, UUID companyId);
 
     @Query("""
@@ -36,10 +35,11 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
 
 
     long countByCompanyId(UUID companyId);
-    long countByCompanyIdAndStatusIgnoreCase(UUID companyId, String status);
-    long countByStatusIgnoreCase(String status);
 
-    long countByCompanyIdAndCreatedAtAfter(UUID companyId, java.time.LocalDateTime date);
-    long countByCreatedAtAfter(java.time.LocalDateTime date);
+    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND UPPER(e.status) = UPPER(:status)")
+    long countByCompanyIdAndStatusIgnoreCase(@Param("companyId") UUID companyId, @Param("status") String status);
+
+    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND e.createdAt > :date")
+    long countByCompanyIdAndCreatedAtAfter(@Param("companyId") UUID companyId, @Param("date") java.time.LocalDateTime date);
 }
 

@@ -96,21 +96,21 @@ public class PurchaseController {
 
     @GetMapping("/purchases/kpis")
     public Map<String, Object> purchaseKpis() {
-        UUID companyId = TenantContext.getCompanyId();
-        long totalPos = companyId != null ? purchaseOrderRepository.countByCompanyId(companyId) : purchaseOrderRepository.count();
-        BigDecimal totalValue = companyId != null ? purchaseOrderRepository.sumTotalAmount(companyId) : purchaseOrderRepository.sumTotalAmount();
-        long received = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "RECEIVED") : purchaseOrderRepository.countByStatus("RECEIVED");
-        long sent = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "SENT") : purchaseOrderRepository.countByStatus("SENT");
-        long partiallyReceived = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "PARTIALLY_RECEIVED") : purchaseOrderRepository.countByStatus("PARTIALLY_RECEIVED");
-        long ordered = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "ORDERED") : purchaseOrderRepository.countByStatus("ORDERED");
-        long draft = companyId != null ? purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "DRAFT") : purchaseOrderRepository.countByStatus("DRAFT");
+        UUID companyId = TenantContext.requireCompanyId();
+        long totalPos = purchaseOrderRepository.countByCompanyId(companyId);
+        BigDecimal totalValue = purchaseOrderRepository.sumTotalAmount(companyId);
+        long received = purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "RECEIVED");
+        long sent = purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "SENT");
+        long partiallyReceived = purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "PARTIALLY_RECEIVED");
+        long ordered = purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "ORDERED");
+        long draft = purchaseOrderRepository.countByCompanyIdAndStatus(companyId, "DRAFT");
 
         long pendingDeliveries = sent + partiallyReceived + ordered;
-        long activeSuppliers = companyId != null ? supplierRepository.countByCompanyId(companyId) : supplierRepository.count();
+        long activeSuppliers = supplierRepository.countByCompanyId(companyId);
 
         List<Map<String, Object>> topSuppliers = new ArrayList<>();
         BigDecimal totalValSafe = totalValue != null && totalValue.compareTo(BigDecimal.ZERO) > 0 ? totalValue : BigDecimal.ONE;
-        var topSuppList = companyId != null ? purchaseOrderRepository.findTopSuppliers(companyId) : purchaseOrderRepository.findTopSuppliers();
+        var topSuppList = purchaseOrderRepository.findTopSuppliers(companyId);
         for (Object[] row : topSuppList) {
             String name = (String) row[0];
             BigDecimal val = (BigDecimal) row[1];
@@ -123,7 +123,7 @@ public class PurchaseController {
         }
 
         List<Map<String, Object>> monthlyData = new ArrayList<>();
-        var monthlyList = companyId != null ? purchaseOrderRepository.findMonthlySpend(companyId) : purchaseOrderRepository.findMonthlySpend();
+        var monthlyList = purchaseOrderRepository.findMonthlySpend(companyId);
         for (Object[] row : monthlyList) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("month", row[0]);
@@ -190,5 +190,32 @@ public class PurchaseController {
         if (updated.getNotes() != null) existing.setNotes(updated.getNotes());
 
         return supplierRepository.save(existing);
+    }
+
+    @DeleteMapping("/suppliers/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSupplier(@PathVariable UUID id) {
+        Supplier existing = supplierRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id);
+        }
+        long poCount = purchaseOrderRepository.countBySupplierId(id);
+        if (poCount > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete supplier with active purchase orders (" + poCount + " orders found)");
+        }
+        supplierRepository.delete(existing);
+    }
+
+    @GetMapping("/suppliers/{id}/orders")
+    public List<PurchaseOrder> getSupplierOrders(@PathVariable UUID id) {
+        Supplier existing = supplierRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(existing.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id);
+        }
+        return purchaseOrderRepository.findBySupplierId(id);
     }
 }

@@ -8,6 +8,5 @@ import java.util.UUID;
 @Repository
 public interface QcChecklistRepository extends JpaRepository<QcChecklist, UUID> {
 
-    long countByResult(String result);
     long countByCompanyIdAndResult(UUID companyId, String result);
 }
