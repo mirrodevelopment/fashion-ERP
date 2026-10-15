@@ -10,7 +10,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "appointments")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Appointment {
 
     @Id
