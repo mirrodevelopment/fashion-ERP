@@ -48,6 +48,6 @@ echo   Server logs will stream below. Press Ctrl+C to stop the application.
 echo =======================================================================
 echo.
 
-call "%~dp0mvnw.cmd" -f "%~dp0pom.xml" spring-boot:run
+call "%~dp0mvnw.cmd" -f "%~dp0pom.xml" compile spring-boot:run
 
 pause
