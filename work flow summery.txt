@@ -1,0 +1,906 @@
+================================================================================
+         FASHION ERP – WORKFLOW SUMMARY & PROJECT DOCUMENTATION
+================================================================================
+Created  : 2026-10-15
+Project  : Fashion ERP (Boutique / Tailor Shop Management System)
+Stack    : Spring Boot 4.1.1 (Java 21) + PostgreSQL 17 + Vanilla JS SPA Frontend
+Repository: https://github.com/mirrodevelopment/fashion-ERP.git
+================================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1 – PROJECT STRUCTURE TREE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FASHION-ERP/
+│
+├── pom.xml                          ← Maven build config (Spring Boot, JWT, PostgreSQL)
+├── start.bat                        ← One-click startup (DB service + backend)
+├── seed_demo.bat                    ← Seeds demo data into the database
+├── purge_db.bat                     ← Wipes and re-creates all DB tables
+├── .gitignore
+├── .gitattributes
+├── CODEBASE_COMPLETE_REFERENCE.md   ← Full API & entity reference doc
+│
+├── backups/
+│   └── archived_docs_and_logs_backup.zip   ← Archived obsolete docs & logs
+│
+├── src/                             ← BACKEND (Spring Boot)
+│   └── main/
+│       ├── java/com/fashionerp/
+│       │   ├── FashionErpApplication.java   ← Entry point
+│       │   ├── auth/                ← Login, JWT generation & validation
+│       │   │   ├── AuthController.java
+│       │   │   ├── AuthService.java
+│       │   │   └── JwtUtil.java
+│       │   ├── config/              ← Spring Security, CORS, JWT filter
+│       │   │   ├── SecurityConfig.java
+│       │   │   └── JwtAuthFilter.java
+│       │   ├── common/              ← Shared DTOs, ApiResponse wrapper
+│       │   ├── customer/            ← Customer profiles + body measurements
+│       │   ├── measurement/         ← Measurement 360 data
+│       │   ├── order/               ← Order lifecycle management
+│       │   ├── appointment/         ← Appointment scheduling
+│       │   ├── payment/             ← Payments & receipts
+│       │   ├── production/          ← Production stages tracking
+│       │   ├── trial/               ← Fitting trials & alterations
+│       │   ├── design/              ← Design studio entries
+│       │   ├── garment/             ← Garment catalog
+│       │   ├── collection/          ← Seasonal collections
+│       │   ├── inventory/           ← Stock management
+│       │   ├── purchase/            ← Supplier purchases
+│       │   ├── enquiry/             ← Walk-in enquiries
+│       │   ├── delivery/            ← Delivery tracking
+│       │   ├── branch/              ← Multi-branch management
+│       │   ├── company/             ← Company profile & branding
+│       │   ├── workforce/           ← Employees & tailors
+│       │   ├── profile/             ← Logged-in user profile
+│       │   ├── dashboard/           ← Aggregated KPI queries
+│       │   └── dev/                 ← Dev tools (token generator, DB reset)
+│       └── resources/
+│           ├── application.properties   ← DB URL, JWT secret, port 8080
+│           └── schema.sql               ← Auto-run DDL on startup
+│
+└── front end/                       ← FRONTEND (Vanilla JS SPA)
+    │
+    ├── api.js                       ← Shared REST client + JWT Auth helper
+    │
+    ├── fragments/                   ← Shared UI shell (loaded on every page)
+    │   ├── nav.js                   ← Sidebar/navbar logic & active-link routing
+    │   ├── nav.css
+    │   ├── navbar.html              ← Top navigation bar template
+    │   ├── sidebar.html             ← Left sidebar menu template
+    │   ├── footer.html
+    │   ├── fragments.js             ← Fragment loader & page bootstrap
+    │   ├── fragments.css
+    │   ├── fragments-inline.js      ← Inline fragment utilities
+    │   ├── company-bridge.js        ← Injects live company logo/name into nav
+    │   ├── system-bridge.js         ← System settings injected globally
+    │   ├── brand-identity/          ← Logo & brand assets
+    │   ├── breadcrumbs/             ← Dynamic breadcrumb generator
+    │   ├── notifications/           ← Bell notification component
+    │   ├── font/                    ← Local font files
+    │   └── theme/                   ← Dark/light theme switcher
+    │
+    ├── login/                       ← LOGIN PAGE
+    │   ├── login.html
+    │   ├── login.css
+    │   └── login.js
+    │
+    ├── dashboard/                   ← DASHBOARD (Home)
+    │   ├── dashboard.html
+    │   ├── dashboard.css
+    │   └── dashboard.js
+    │
+    ├── customer/                    ← CUSTOMER MODULE
+    │   ├── customer-overview/       ← Customer list & search
+    │   ├── new-customer/            ← Add new customer form
+    │   └── Customer360/             ← Full customer profile view
+    │
+    ├── Measurements/                ← MEASUREMENTS MODULE
+    │   ├── measurement-overview/    ← Measurement records list
+    │   ├── measurement360/          ← Full measurement data entry
+    │   └── 3D MANNEQUIN/            ← 3D body visualizer (Three.js)
+    │       ├── mannequin3d.html
+    │       ├── mannequin3d.css
+    │       └── mannequin3d.js
+    │
+    ├── orders/                      ← ORDERS MODULE
+    │   ├── order-overview/          ← Order list & status board
+    │   ├── new-order/               ← Create new order
+    │   └── view-order/              ← Order detail & timeline view
+    │
+    ├── appointments/                ← APPOINTMENTS MODULE
+    │   ├── appointments.html
+    │   ├── appointments.css
+    │   └── appointments.js
+    │
+    ├── production/                  ← PRODUCTION MODULE
+    │   ├── production.html
+    │   ├── production.css
+    │   ├── production.js
+    │   └── stages/                  ← Stage-wise tracking sub-pages
+    │
+    ├── trials-alterations/          ← TRIALS & ALTERATIONS MODULE
+    │   ├── trials-alterations.html
+    │   ├── trials-alterations.css
+    │   └── trials-alterations.js
+    │
+    ├── quality-control/             ← QUALITY CONTROL MODULE
+    │   ├── quality-control.html
+    │   ├── quality-control.css
+    │   └── quality-control.js
+    │
+    ├── delivery/                    ← DELIVERY MODULE
+    │   ├── delivery.html
+    │   ├── delivery.css
+    │   └── delivery.js
+    │
+    ├── payments/                    ← PAYMENTS MODULE
+    │   ├── payments.html
+    │   ├── payments.css
+    │   ├── payments.js
+    │   ├── payment-bridge.js        ← Payment status bridge (used by orders)
+    │   └── payment-bridge.css
+    │
+    ├── enquiries/                   ← ENQUIRIES MODULE
+    │   ├── enquiries.html
+    │   ├── enquiries.css
+    │   └── enquiries.js
+    │
+    ├── garments/                    ← GARMENT CATALOG MODULE
+    │   ├── garments.html
+    │   ├── garments.css
+    │   ├── garments.js
+    │   ├── new-garment/             ← Add new garment type
+    │   └── garaments 360/           ← Full garment detail view
+    │
+    ├── collections/                 ← COLLECTIONS MODULE
+    │   ├── collections.html
+    │   ├── collections.css
+    │   └── collections.js
+    │
+    ├── DesignStudio/                ← DESIGN STUDIO MODULE
+    │   ├── design-studio.html
+    │   ├── design-studio.css
+    │   └── design-studio.js
+    │
+    ├── fabrics-materials/           ← FABRICS & MATERIALS MODULE
+    │   ├── fabrics-materials.html
+    │   ├── fabrics-materials.css
+    │   └── fabrics-materials.js
+    │
+    ├── inventory/                   ← INVENTORY MODULE
+    │   ├── inventory.html
+    │   ├── inventory.css
+    │   └── inventory.js
+    │
+    ├── purchases/                   ← PURCHASES MODULE
+    │   ├── purchases.html
+    │   ├── purchases.css
+    │   └── purchases.js
+    │
+    ├── suppliers/                   ← SUPPLIERS MODULE
+    │   ├── suppliers.html
+    │   ├── suppliers.css
+    │   └── suppliers.js
+    │
+    ├── WorkforceManagement/         ← WORKFORCE MODULE
+    │   ├── workforce.html
+    │   ├── workforce.css
+    │   └── workforce.js
+    │
+    ├── branches/                    ← BRANCHES MODULE
+    │   ├── branches.html
+    │   ├── branches.css
+    │   └── branches.js
+    │
+    ├── users-roles/                 ← USERS & ROLES MODULE
+    │   ├── users-roles.html
+    │   ├── users-roles.css
+    │   ├── users-roles.js
+    │   ├── create-user/             ← Create new system user
+    │   └── recent-access/           ← Login audit log view
+    │
+    ├── settings/                    ← SETTINGS MODULE
+    │   ├── settings.html
+    │   ├── settings.css
+    │   └── settings.js
+    │
+    ├── profile/                     ← MY PROFILE MODULE
+    │   └── (profile html/css/js)
+    │
+    ├── company/                     ← COMPANY PROFILE MODULE
+    │   └── (company html/css/js)
+    │
+    ├── system/                      ← SYSTEM ADMIN MODULE
+    │   └── (system html/css/js)
+    │
+    ├── assets/                      ← Global images, icons, logos
+    └── dev/                         ← Developer tools (token tester etc.)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2 – ALL PAGES CREATED (COMPLETE LIST)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No.  Module / Page                     Path (front end/)
+───  ────────────────────────────────  ────────────────────────────────────────
+ 1.  Login Page                        login/login.html
+ 2.  Dashboard (Home)                  dashboard/dashboard.html
+ 3.  Customer Overview (List)          customer/customer-overview/
+ 4.  New Customer Form                 customer/new-customer/
+ 5.  Customer 360 (Full Profile)       customer/Customer360/
+ 6.  Measurement Overview              Measurements/measurement-overview/
+ 7.  Measurement 360 (Data Entry)      Measurements/measurement360/
+ 8.  3D Mannequin Visualizer           Measurements/3D MANNEQUIN/mannequin3d.html
+ 9.  Order Overview (List/Board)       orders/order-overview/
+10.  New Order Form                    orders/new-order/
+11.  View Order (Detail/Timeline)      orders/view-order/
+12.  Appointments Calendar             appointments/appointments.html
+13.  Production Board                  production/production.html
+14.  Production Stages                 production/stages/
+15.  Trials & Alterations              trials-alterations/trials-alterations.html
+16.  Quality Control                   quality-control/quality-control.html
+17.  Delivery Tracking                 delivery/delivery.html
+18.  Payments & Receipts               payments/payments.html
+19.  Enquiries Management              enquiries/enquiries.html
+20.  Garments Catalog                  garments/garments.html
+21.  New Garment Form                  garments/new-garment/
+22.  Garment 360 (Detail View)         garments/garaments 360/
+23.  Collections                       collections/collections.html
+24.  Design Studio                     DesignStudio/design-studio.html
+25.  Fabrics & Materials               fabrics-materials/fabrics-materials.html
+26.  Inventory Management              inventory/inventory.html
+27.  Purchases                         purchases/purchases.html
+28.  Suppliers                         suppliers/suppliers.html
+29.  Workforce Management              WorkforceManagement/workforce.html
+30.  Branches                          branches/branches.html
+31.  Users & Roles                     users-roles/users-roles.html
+32.  Create User                       users-roles/create-user/
+33.  Recent Access (Audit Log)         users-roles/recent-access/
+34.  Settings                          settings/settings.html
+35.  My Profile                        profile/
+36.  Company Profile                   company/
+37.  System Admin                      system/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3 – HOW THE FRONTEND WORKS (SPA ARCHITECTURE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The frontend is a Vanilla JavaScript Single-Page-style App.
+Every page (HTML file) follows the same bootstrap pattern:
+
+  1. Page HTML loads its own CSS.
+  2. Page HTML includes <script> tag loading fragments.js (the shared shell loader).
+  3. fragments.js dynamically injects:
+       – navbar.html    (top bar with user info, notifications, company logo)
+       – sidebar.html   (left navigation menu with all module links)
+       – footer.html    (bottom bar)
+  4. nav.js activates the correct sidebar link based on the current URL path.
+  5. company-bridge.js fetches company name/logo from backend and injects into navbar.
+  6. system-bridge.js injects global system settings (currency, timezone, theme).
+  7. Page's own .js file runs its business logic and calls api.js for data.
+
+KEY SHARED FILES:
+  • api.js           → All REST calls go through this. Handles:
+                         - Base URL (http://localhost:8080/api/v1)
+                         - Attaching Bearer JWT token to every request
+                         - Token refresh / auto-login for dev mode
+                         - CRUD helpers: api.get(), api.post(), api.put(), api.delete()
+  • fragments/nav.js → Controls sidebar navigation, active highlighting, and
+                       logout functionality.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4 – END-TO-END WORKFLOW (HOW PAGES CONNECT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Below is the complete business workflow from a customer walking in to garment delivery:
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 1 : USER LOGS IN
+────────────────────────────────────────────────────────────────────────────────
+  Page     : login/login.html
+  Action   : User enters username & password → login.js calls POST /api/v1/auth/login
+  Response : JWT token received → stored in localStorage("token")
+  Next     : Redirect to dashboard/dashboard.html
+  Connects to: ALL pages (every page reads this token via api.js)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 2 : DASHBOARD (Home Overview)
+────────────────────────────────────────────────────────────────────────────────
+  Page     : dashboard/dashboard.html
+  Shows    : KPI cards (total customers, active orders, pending payments,
+             today's appointments, production status, revenue summary)
+  Data     : dashboard.js calls GET /api/v1/dashboard/summary
+  Links to : Every module through sidebar nav links (fragments/sidebar.html)
+  Shortcuts: Clicking a KPI card navigates directly to that module
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 3 : ENQUIRY CAPTURE (Walk-in lead)
+────────────────────────────────────────────────────────────────────────────────
+  Page     : enquiries/enquiries.html
+  Purpose  : Record a walk-in customer enquiry before they become a full customer
+  Actions  : Add enquiry → POST /api/v1/enquiries
+             View list   → GET  /api/v1/enquiries
+  Connects to: Appointments (schedule a follow-up meeting)
+               Customer module (convert enquiry to full customer)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 4 : APPOINTMENT SCHEDULING
+────────────────────────────────────────────────────────────────────────────────
+  Page     : appointments/appointments.html
+  Purpose  : Book a fitting / consultation appointment
+  Actions  : Create appointment → POST /api/v1/appointments
+             Calendar view      → GET  /api/v1/appointments
+  Connects to: Customer module (customer linked to appointment)
+               Measurements module (appointment for measurement session)
+               Orders module (appointment for trial fitting)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 5 : CUSTOMER REGISTRATION
+────────────────────────────────────────────────────────────────────────────────
+  Page A   : customer/customer-overview/ → Lists all customers, search & filter
+             Calls GET /api/v1/customers
+  Page B   : customer/new-customer/      → New customer registration form
+             Calls POST /api/v1/customers
+  Page C   : customer/Customer360/       → Full 360° view of one customer:
+               - Personal details
+               - All their orders
+               - Measurement history
+               - Payment history
+               - Appointment history
+             Calls GET /api/v1/customers/{mobile}
+  Connects to:
+    → Measurements module  (take measurements right after registration)
+    → Orders module        (create order for this customer)
+    → Appointments module  (link appointments to this customer)
+    → Payments module      (view outstanding balance)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 6 : BODY MEASUREMENTS
+────────────────────────────────────────────────────────────────────────────────
+  Page A   : Measurements/measurement-overview/  → All measurement records list
+             Calls GET /api/v1/customers/measurements
+  Page B   : Measurements/measurement360/        → Full measurement data entry
+             (bust, waist, hips, shoulder, sleeve, height, etc.)
+             Calls POST /api/v1/customers/{mobile}/body-measurements
+             Calls GET  /api/v1/customers/{mobile}/body-measurements
+  Page C   : Measurements/3D MANNEQUIN/mannequin3d.html
+             → Renders a live 3D parametric mannequin using Three.js
+             → Pulls measurements from the database in real time
+             → Morphs cylinder geometry to match customer body shape
+             → Calculates fit score and shows alteration suggestions
+             Calls GET /api/v1/customers/{mobile}/body-measurements
+  Connects to:
+    → Customer module  (measurements are always linked to a customer)
+    → Orders module    (measurements are attached to an order at creation)
+    → Trials module    (fit check during trial compares to these measurements)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 7 : GARMENT & DESIGN SETUP (One-time catalog)
+────────────────────────────────────────────────────────────────────────────────
+  Page A   : garments/garments.html     → Garment type catalog (kurta, suit, etc.)
+  Page B   : garments/new-garment/      → Add new garment type
+  Page C   : garments/garaments 360/    → Garment detail with linked orders
+             Calls GET/POST /api/v1/garments
+
+  Page D   : collections/collections.html → Seasonal collection management
+             Calls GET/POST /api/v1/collections
+
+  Page E   : DesignStudio/design-studio.html
+             → Canvas-based design tool for custom garment designs
+             → Supports fabric swatch selection, stitch patterns, embroidery
+             → Saves design as JSON linked to garment/order
+             Calls GET/POST /api/v1/designs
+
+  Connects to:
+    → Orders module   (customer picks garment + design when placing order)
+    → Fabrics module  (design references specific fabrics)
+    → Production      (design spec sent to tailor during production)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 8 : FABRIC & MATERIAL MANAGEMENT
+────────────────────────────────────────────────────────────────────────────────
+  Page     : fabrics-materials/fabrics-materials.html
+  Purpose  : Catalog of all fabrics with type, color, stock quantity, cost
+  Actions  : Add/edit/delete fabrics → POST/PUT/DELETE /api/v1/fabrics
+             Stock check             → GET /api/v1/fabrics/stock
+  Connects to:
+    → Inventory module (fabric stock levels tracked here)
+    → Purchases module (when fabric stock is low, trigger purchase)
+    → Orders module    (fabric selected when creating an order)
+    → Design Studio    (fabric swatches shown in design tool)
+    → Production       (fabric issued to tailor during cutting stage)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 9 : ORDER PLACEMENT
+────────────────────────────────────────────────────────────────────────────────
+  Page A   : orders/order-overview/  → All orders with status board (Kanban view)
+             Calls GET /api/v1/orders
+  Page B   : orders/new-order/       → Multi-step order creation wizard:
+               Step 1 – Select Customer
+               Step 2 – Select Garment(s) & Design
+               Step 3 – Attach Measurements
+               Step 4 – Select Fabric & Material
+               Step 5 – Set delivery date & priority
+               Step 6 – Payment advance collection
+             Calls POST /api/v1/orders
+  Page C   : orders/view-order/      → Full order detail with status timeline:
+               - Order info & items
+               - Assigned tailor
+               - Current production stage
+               - Trial dates
+               - Payment ledger
+               - Delivery status
+             Calls GET /api/v1/orders/{orderId}
+  Connects to:
+    → Customer module     (every order belongs to a customer)
+    → Measurements module (measurement ID attached to order)
+    → Garment module      (garment type selected)
+    → Design Studio       (design linked to order)
+    → Fabric module       (fabric selection)
+    → Payments module     (advance payment recorded at order creation)
+    → Production module   (order moves to production after placement)
+    → Appointments module (trial fitting appointments linked to order)
+    → Delivery module     (delivery created when order is completed)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 10 : PRODUCTION MANAGEMENT
+────────────────────────────────────────────────────────────────────────────────
+  Page     : production/production.html
+  Purpose  : Track each order through production stages:
+               Stage 1 – Cutting
+               Stage 2 – Stitching
+               Stage 3 – Embroidery / Embellishment
+               Stage 4 – Finishing / Ironing
+               Stage 5 – Ready for Trial
+  Actions  : Update stage → PUT /api/v1/production/{orderId}/stage
+             Assign tailor → PUT /api/v1/production/{orderId}/assign
+             View board    → GET /api/v1/production
+  Sub-pages: production/stages/ → Detailed stage-level views
+  Connects to:
+    → Workforce module (tailors assigned to production tasks here)
+    → Orders module    (order status updated as production progresses)
+    → Quality Control  (QC check triggered after finishing stage)
+    → Trials module    (trial scheduled after "Ready for Trial" stage)
+    → Inventory module (fabric issued from inventory at cutting stage)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 11 : TRIALS & ALTERATIONS
+────────────────────────────────────────────────────────────────────────────────
+  Page     : trials-alterations/trials-alterations.html
+  Purpose  : Record fitting trial results and any alteration notes
+  Actions  : Record trial result → POST /api/v1/trials
+             View trials         → GET  /api/v1/trials
+  Connects to:
+    → Orders module      (trial linked to specific order)
+    → Customer module    (trial appointment involves the customer)
+    → Appointments module (trial session booked as an appointment)
+    → Measurements module (fit compared against stored measurements)
+    → Production module   (alteration sends garment back to production)
+    → 3D Mannequin        (fit visualized against 3D body model)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 12 : QUALITY CONTROL
+────────────────────────────────────────────────────────────────────────────────
+  Page     : quality-control/quality-control.html
+  Purpose  : Final QC inspection before delivery is approved
+  Actions  : Submit QC pass/fail → POST /api/v1/quality-control
+             View QC records      → GET  /api/v1/quality-control
+  Connects to:
+    → Production module (QC triggered after finishing stage)
+    → Orders module     (order only moves to delivery after QC pass)
+    → Delivery module   (delivery enabled after QC approval)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 13 : PAYMENTS
+────────────────────────────────────────────────────────────────────────────────
+  Page     : payments/payments.html
+  Purpose  : Full payment ledger for all orders:
+               - Advance payment (at order placement)
+               - Installments
+               - Final payment (at delivery)
+               - Receipts & invoices
+  Actions  : Record payment → POST /api/v1/payments
+             View ledger    → GET  /api/v1/payments
+             Print receipt  → GET  /api/v1/payments/{id}/receipt
+  Helpers  : payment-bridge.js – used by orders/view-order to show inline
+             payment status without navigating away from the order page.
+  Connects to:
+    → Orders module    (payment linked to order)
+    → Customer module  (customer balance shown in Customer 360)
+    → Delivery module  (delivery blocked until final payment cleared)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 14 : DELIVERY
+────────────────────────────────────────────────────────────────────────────────
+  Page     : delivery/delivery.html
+  Purpose  : Manage garment delivery to customer
+  Actions  : Create delivery  → POST /api/v1/delivery
+             Update status    → PUT  /api/v1/delivery/{id}
+             (Pending, Out for delivery, Delivered, Returned)
+  Connects to:
+    → Orders module    (only QC-passed, fully-paid orders can be delivered)
+    → Customer module  (customer contact info for delivery)
+    → Payments module  (final payment cleared before marking delivered)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 15 : INVENTORY MANAGEMENT
+────────────────────────────────────────────────────────────────────────────────
+  Page     : inventory/inventory.html
+  Purpose  : Track stock levels for fabrics, materials, accessories, threads
+  Actions  : Add stock  → POST /api/v1/inventory
+             Adjust     → PUT  /api/v1/inventory/{id}
+             View stock → GET  /api/v1/inventory
+  Connects to:
+    → Fabrics module   (fabric stock synced with inventory)
+    → Purchases module (purchase order increases inventory stock)
+    → Production module (fabric issued from inventory during production)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 16 : PURCHASES FROM SUPPLIERS
+────────────────────────────────────────────────────────────────────────────────
+  Page A   : suppliers/suppliers.html    → Supplier directory
+             Calls GET/POST /api/v1/suppliers
+  Page B   : purchases/purchases.html    → Purchase orders from suppliers
+             Calls GET/POST /api/v1/purchases
+  Connects to:
+    → Inventory module (received stock updates inventory automatically)
+    → Fabrics module   (purchase for specific fabric type)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 17 : WORKFORCE MANAGEMENT
+────────────────────────────────────────────────────────────────────────────────
+  Page     : WorkforceManagement/workforce.html
+  Purpose  : Manage tailors, helpers, and staff:
+               - Employee profiles
+               - Skills / specialization
+               - Attendance & working hours
+               - Task assignments & workload
+               - Performance tracking
+  Actions  : Add employee → POST /api/v1/workforce
+             View staff   → GET  /api/v1/workforce
+  Connects to:
+    → Production module  (tailors assigned to production orders)
+    → Dashboard          (workforce KPIs shown on dashboard)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 18 : BRANCH MANAGEMENT
+────────────────────────────────────────────────────────────────────────────────
+  Page     : branches/branches.html
+  Purpose  : Manage multiple boutique branches / outlets
+  Actions  : Add branch  → POST /api/v1/branches
+             View all    → GET  /api/v1/branches
+  Connects to:
+    → All modules (each record is tagged to a branch for multi-branch filtering)
+    → Settings    (default branch set in company settings)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 19 : USERS & ROLES (Admin)
+────────────────────────────────────────────────────────────────────────────────
+  Page A   : users-roles/users-roles.html   → All system users and their roles
+  Page B   : users-roles/create-user/       → Create new system user
+  Page C   : users-roles/recent-access/     → Login audit log (who logged in when)
+  Actions  : Create user → POST /api/v1/users
+             Assign role → PUT  /api/v1/users/{id}/role
+             Audit log   → GET  /api/v1/users/access-log
+  Connects to:
+    → Login page   (users created here can log in)
+    → All modules  (role-based access controls which modules they see)
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 20 : SETTINGS, COMPANY & PROFILE
+────────────────────────────────────────────────────────────────────────────────
+  Page A   : settings/settings.html       → App-wide settings (currency, timezone,
+                                            SMS/email notifications, receipt format)
+  Page B   : company/                     → Company name, logo, address, GST/tax
+             Calls GET/PUT /api/v1/company
+  Page C   : profile/                     → Logged-in user's own profile & password
+             Calls GET/PUT /api/v1/profile
+  Page D   : system/                      → Low-level system admin (DB health, resets)
+  Connects to:
+    → All modules (currency/tax from settings applied to all payments)
+    → Navbar      (company name/logo injected via company-bridge.js)
+    → Sidebar     (user avatar/name from profile injected via nav.js)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 5 – PAGE CONNECTION MAP (WHICH PAGE LINKS TO WHICH)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Login
+    └──► Dashboard
+           ├──► Customer Overview ──► New Customer ──► Customer 360
+           │                                               ├──► Measurements 360
+           │                                               ├──► Order Overview
+           │                                               └──► Payments
+           ├──► Enquiries ──► Appointments ──► Customer Overview
+           ├──► Appointments ──► Orders (new-order)
+           ├──► Order Overview ──► New Order ──► View Order
+           │                                       ├──► Production Board
+           │                                       ├──► Trials & Alterations
+           │                                       ├──► Quality Control
+           │                                       ├──► Payments
+           │                                       └──► Delivery
+           ├──► Measurements ──► Measurement 360 ──► 3D Mannequin
+           ├──► Design Studio ──► Collections ──► Garments
+           ├──► Fabrics & Materials ──► Inventory ──► Purchases ──► Suppliers
+           ├──► Production ──► Workforce Management
+           ├──► Branches ──► Settings ──► Company Profile
+           └──► Users & Roles ──► Create User / Recent Access / My Profile
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 6 – BACKEND API ENDPOINT SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All endpoints use base URL: http://localhost:8080/api/v1
+All protected endpoints require header: Authorization: Bearer <JWT_TOKEN>
+
+  Authentication
+    POST   /auth/login                          → Returns JWT token
+    POST   /auth/refresh                        → Refresh expired token
+
+  Customers
+    GET    /customers                           → List all customers
+    POST   /customers                           → Create new customer
+    GET    /customers/{mobile}                  → Get customer by mobile
+    PUT    /customers/{mobile}                  → Update customer
+    GET    /customers/{mobile}/body-measurements → Get measurements
+    POST   /customers/{mobile}/body-measurements → Save measurements
+
+  Orders
+    GET    /orders                              → All orders (filterable by status)
+    POST   /orders                              → Create new order
+    GET    /orders/{orderId}                    → Order detail
+    PUT    /orders/{orderId}/status             → Update order status
+
+  Appointments
+    GET    /appointments                        → All appointments
+    POST   /appointments                        → Create appointment
+    PUT    /appointments/{id}                   → Update appointment
+
+  Production
+    GET    /production                          → Production board
+    PUT    /production/{orderId}/stage          → Advance stage
+    PUT    /production/{orderId}/assign         → Assign tailor
+
+  Payments
+    GET    /payments                            → All payment records
+    POST   /payments                            → Record new payment
+    GET    /payments/{id}/receipt               → Download receipt
+
+  Trials
+    GET    /trials                              → All trial records
+    POST   /trials                              → Record trial result
+
+  Quality Control
+    GET    /quality-control                     → All QC records
+    POST   /quality-control                     → Submit QC result
+
+  Delivery
+    GET    /delivery                            → All deliveries
+    POST   /delivery                            → Create delivery entry
+    PUT    /delivery/{id}                       → Update delivery status
+
+  Garments
+    GET    /garments                            → Garment catalog
+    POST   /garments                            → Add new garment type
+    GET    /garments/{id}                       → Garment detail
+
+  Collections
+    GET    /collections                         → All collections
+    POST   /collections                         → Create collection
+
+  Designs
+    GET    /designs                             → All saved designs
+    POST   /designs                             → Save new design
+
+  Fabrics
+    GET    /fabrics                             → Fabric list
+    POST   /fabrics                             → Add fabric
+    PUT    /fabrics/{id}                        → Update fabric
+
+  Inventory
+    GET    /inventory                           → Stock levels
+    POST   /inventory                           → Add stock entry
+    PUT    /inventory/{id}                      → Adjust stock
+
+  Purchases
+    GET    /purchases                           → Purchase orders
+    POST   /purchases                           → Create PO
+
+  Suppliers
+    GET    /suppliers                           → Supplier directory
+    POST   /suppliers                           → Add supplier
+
+  Workforce
+    GET    /workforce                           → All employees
+    POST   /workforce                           → Add employee
+
+  Enquiries
+    GET    /enquiries                           → Enquiry list
+    POST   /enquiries                           → Add enquiry
+
+  Branches
+    GET    /branches                            → All branches
+    POST   /branches                            → Add branch
+
+  Users
+    GET    /users                               → All system users
+    POST   /users                               → Create user
+    PUT    /users/{id}/role                     → Assign role
+    GET    /users/access-log                    → Audit log
+
+  Company
+    GET    /company                             → Company profile
+    PUT    /company                             → Update company info
+
+  Profile
+    GET    /profile                             → Current user profile
+    PUT    /profile                             → Update profile
+
+  Dashboard
+    GET    /dashboard/summary                   → All KPIs
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 7 – HOW AUTHENTICATION FLOWS THROUGH THE APP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. User submits credentials on login.html
+  2. login.js → POST /api/v1/auth/login
+  3. Spring Security (AuthController) validates → generates JWT
+  4. JWT stored in localStorage as "token"
+  5. Every subsequent API call in api.js reads this token:
+       headers: { Authorization: "Bearer " + token }
+  6. JwtAuthFilter (Spring Security) intercepts every request:
+       - Validates token signature & expiry
+       - Sets SecurityContext (current user)
+  7. If token is missing or expired → 401 Unauthorized
+  8. api.js auto-redirects to login.html on 401
+  9. Role-based access: nav.js hides sidebar items based on user role
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 8 – HOW THE SIDEBAR NAVIGATION CONNECTS ALL PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The sidebar (fragments/sidebar.html + nav.js) is the central hub:
+
+  SIDEBAR SECTIONS & LINKS
+  ─────────────────────────
+  🏠 Home
+      └── Dashboard
+
+  👥 CRM
+      ├── Enquiries
+      ├── Appointments
+      └── Customers
+            ├── Customer Overview
+            ├── New Customer
+            └── Customer 360
+
+  📏 Measurements
+      ├── Measurement Overview
+      ├── Measurement 360
+      └── 3D Mannequin Visualizer
+
+  📦 Orders
+      ├── Order Overview
+      ├── New Order
+      └── View Order
+
+  🪡 Production
+      ├── Production Board
+      └── Stages
+
+  ✂️  Trials & Alterations
+  ✅ Quality Control
+  🚚 Delivery
+  💳 Payments
+
+  🎨 Design & Catalog
+      ├── Design Studio
+      ├── Garments
+      ├── Collections
+      └── Fabrics & Materials
+
+  📦 Stock
+      ├── Inventory
+      ├── Purchases
+      └── Suppliers
+
+  👔 Workforce Management
+  🏢 Branches
+
+  ⚙️  Admin
+      ├── Users & Roles
+      ├── Settings
+      ├── Company Profile
+      └── System
+
+  nav.js reads the current window.location.pathname and adds the
+  "active" CSS class to the matching sidebar link automatically.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 9 – SPECIAL MODULES (UNIQUE FEATURES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  3D MANNEQUIN VISUALIZER (Measurements/3D MANNEQUIN/mannequin3d.html)
+  ─────────────────────────────────────────────────────────────────────
+  - Built with Three.js r134 (loaded via CDN)
+  - Renders a parametric 3D female mannequin in the browser
+  - Fetches real customer measurements from backend
+  - Morphs cylinder geometry for: bust, waist, hips, shoulder, sleeve, height
+  - Calculates a "Fit Score" and shows alteration suggestions
+  - Supports side-by-side customer comparison
+  - OrbitControls for 360° rotation, zoom, pan
+  - Stores measurement history locally and shows timeline
+
+  DESIGN STUDIO (DesignStudio/design-studio.html)
+  ────────────────────────────────────────────────
+  - Canvas-based design tool
+  - Fabric swatch selection with texture preview
+  - Stitch pattern library
+  - Embroidery / embellishment placement tool
+  - Saves designs as JSON to backend
+  - Designs linked to garment types and orders
+  - Print-ready design sheet export
+
+  WORKFORCE MANAGEMENT (WorkforceManagement/workforce.html)
+  ──────────────────────────────────────────────────────────
+  - Employee registry with photo, skills, and specialization
+  - Live workload tracker (how many active orders per tailor)
+  - Attendance marking
+  - Performance metrics
+
+  CUSTOMER 360 (customer/Customer360/)
+  ─────────────────────────────────────
+  - Single-page full customer view
+  - Shows all orders, measurements, payments, appointments
+  - Quick-action buttons: New Order, New Appointment, Take Measurement
+  - Payment balance indicator (advance vs total vs balance due)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 10 – HOW TO START THE APPLICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  PREREQUISITES:
+    - Java 21 installed
+    - PostgreSQL 17 installed and running (service: postgresql-x64-17)
+    - Database "fashion_erp" created
+
+  STARTUP (Option 1 – One click):
+    Double-click start.bat
+    This starts the PostgreSQL service and runs the Spring Boot backend.
+
+  STARTUP (Option 2 – Manual):
+    1. Start PostgreSQL:
+         net start postgresql-x64-17
+    2. Start Spring Boot:
+         mvnw.cmd spring-boot:run
+    3. Open browser to any frontend HTML file directly
+         (e.g., front end/login/login.html)
+
+  SEED DEMO DATA:
+    Double-click seed_demo.bat
+    This inserts sample customers, orders, measurements, etc.
+
+  PURGE DATABASE:
+    Double-click purge_db.bat
+    WARNING: This deletes all data and re-creates tables.
+
+  BACKEND HEALTH CHECK:
+    Open browser: http://localhost:8080/api/v1/dashboard/summary
+    Should return JSON with KPI data.
+
+
+================================================================================
+END OF WORKFLOW SUMMARY
+================================================================================
