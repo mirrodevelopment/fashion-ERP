@@ -16,10 +16,23 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
 
     Optional<Customer> findByMobileNumberAndCompanyId(String mobileNumber, UUID companyId);
 
-    @Query("SELECT c FROM Customer c WHERE (:companyId IS NULL OR c.companyId = :companyId) AND REPLACE(REPLACE(c.mobileNumber, ' ', ''), '+', '') = REPLACE(REPLACE(:mobile, ' ', ''), '+', '')")
+    @Query("""
+        SELECT c FROM Customer c
+        WHERE (:companyId IS NULL OR c.companyId = :companyId)
+          AND (
+            REPLACE(REPLACE(REPLACE(c.mobileNumber, ' ', ''), '+', ''), '-', '') = REPLACE(REPLACE(REPLACE(:mobile, ' ', ''), '+', ''), '-', '')
+            OR (LENGTH(:mobile) >= 10 AND c.mobileNumber LIKE CONCAT('%', SUBSTRING(:mobile, LENGTH(:mobile) - 9)))
+            OR (LENGTH(c.mobileNumber) >= 10 AND :mobile LIKE CONCAT('%', SUBSTRING(c.mobileNumber, LENGTH(c.mobileNumber) - 9)))
+          )
+        """)
     Optional<Customer> findByFlexibleMobile(@Param("companyId") UUID companyId, @Param("mobile") String mobile);
 
-    @Query("SELECT c FROM Customer c WHERE REPLACE(REPLACE(c.mobileNumber, ' ', ''), '+', '') = REPLACE(REPLACE(:mobile, ' ', ''), '+', '')")
+    @Query("""
+        SELECT c FROM Customer c
+        WHERE REPLACE(REPLACE(REPLACE(c.mobileNumber, ' ', ''), '+', ''), '-', '') = REPLACE(REPLACE(REPLACE(:mobile, ' ', ''), '+', ''), '-', '')
+           OR (LENGTH(:mobile) >= 10 AND c.mobileNumber LIKE CONCAT('%', SUBSTRING(:mobile, LENGTH(:mobile) - 9)))
+           OR (LENGTH(c.mobileNumber) >= 10 AND :mobile LIKE CONCAT('%', SUBSTRING(c.mobileNumber, LENGTH(c.mobileNumber) - 9)))
+        """)
     Optional<Customer> findByFlexibleMobile(@Param("mobile") String mobile);
 
     boolean existsByMobileNumber(String mobileNumber);
@@ -47,9 +60,17 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
 
     long countByCompanyId(UUID companyId);
 
-    @Query("SELECT COUNT(DISTINCT o.customer.mobileNumber) FROM Order o WHERE (:companyId IS NULL OR o.companyId = :companyId) AND o.createdAt >= (CURRENT_TIMESTAMP - 90 DAY)")
-    long countActiveIn90Days(@Param("companyId") UUID companyId);
+    @Query("SELECT COUNT(DISTINCT o.customer.mobileNumber) FROM Order o WHERE (:companyId IS NULL OR o.companyId = :companyId) AND o.createdAt >= :sinceDate")
+    long countActiveSince(@Param("companyId") UUID companyId, @Param("sinceDate") java.time.LocalDateTime sinceDate);
 
-    @Query("SELECT COUNT(DISTINCT o.customer.mobileNumber) FROM Order o WHERE o.createdAt >= (CURRENT_TIMESTAMP - 90 DAY)")
-    long countActiveIn90Days();
+    @Query("SELECT COUNT(DISTINCT o.customer.mobileNumber) FROM Order o WHERE o.createdAt >= :sinceDate")
+    long countActiveSince(@Param("sinceDate") java.time.LocalDateTime sinceDate);
+
+    default long countActiveIn90Days(UUID companyId) {
+        return countActiveSince(companyId, java.time.LocalDateTime.now().minusDays(90));
+    }
+
+    default long countActiveIn90Days() {
+        return countActiveSince(java.time.LocalDateTime.now().minusDays(90));
+    }
 }

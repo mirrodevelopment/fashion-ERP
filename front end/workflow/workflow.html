@@ -1381,6 +1381,11 @@
       card.style.borderColor = '';
     });
   });
+
+  /* ── Card click toggle ── */
+  window.toggleCard = function(card) {
+    if (card) card.classList.toggle('active');
+  };
 </script>
 </body>
 </html>

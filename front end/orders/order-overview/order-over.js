@@ -293,9 +293,10 @@ function animateNum(el, target, prefix = '', suffix = '') {
   requestAnimationFrame(step);
 }
 
-async function updateKPIs() {
+async function updateKPIs(branch) {
   try {
-    const kpis = await api.orders.kpis().catch(() => null);
+    const params = (branch && branch !== 'ALL') ? { branch } : {};
+    const kpis = await api.orders.kpis(params).catch(() => null);
     if (kpis) {
       const total = (Number(kpis.pendingCount) || 0) + (Number(kpis.inProgressCount) || 0) +
         (Number(kpis.readyCount) || 0) + (Number(kpis.deliveredCount) || 0) +
@@ -873,6 +874,98 @@ function bindEvents() {
 }
 
 /* ────────────────────────────────────────────────────────────
+   BRANCH FILTERING (Owner & Multi-Branch Only)
+   ──────────────────────────────────────────────────────────── */
+async function initOrderBranchFilter() {
+  const wrap = $('orderBranchFilterWrap');
+  const sel = $('orderBranchSelect');
+  if (!wrap || !sel) return;
+
+  const user = (typeof Auth !== 'undefined' && typeof Auth.getUser === 'function')
+    ? Auth.getUser()
+    : null;
+  const role = (user?.role || '').replace('ROLE_', '').toUpperCase();
+  const isOwner = (role === 'OWNER' || role === 'ADMIN' || role === 'SUPER_ADMIN');
+  const allowedBranches = Array.isArray(user?.allowedBranches) && user.allowedBranches.length > 0
+    ? user.allowedBranches
+    : (user?.assignedBranch ? [user.assignedBranch] : []);
+  const isMultiBranch = !isOwner && allowedBranches.length > 1;
+
+  if (!isOwner && !isMultiBranch) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'flex';
+
+  try {
+    let branches = [];
+    if (typeof api !== 'undefined' && api.branches && typeof api.branches.list === 'function') {
+      branches = await api.branches.list().catch(() => []);
+    }
+
+    let optionsHtml = '';
+    if (isOwner) {
+      optionsHtml += `<option value="ALL">🏢 All Branches</option>`;
+      if (Array.isArray(branches) && branches.length > 0) {
+        branches.forEach(b => {
+          const bCode = b.branchCode || b.code || b;
+          const bName = b.name || bCode;
+          optionsHtml += `<option value="${bCode}">${bName}</option>`;
+        });
+      }
+    } else if (isMultiBranch) {
+      allowedBranches.forEach(b => {
+        const bCode = typeof b === 'object' ? (b.branchCode || b.code || b.name) : b;
+        const bName = typeof b === 'object' ? (b.name || b.branchCode) : b;
+        optionsHtml += `<option value="${bCode}">${bName}</option>`;
+      });
+    }
+
+    sel.innerHTML = optionsHtml;
+
+    const currentActive = localStorage.getItem('haulo_active_branch');
+    if (currentActive && currentActive !== 'ALL' && sel.querySelector(`option[value="${currentActive}"]`)) {
+      sel.value = currentActive;
+    } else {
+      sel.value = isOwner ? 'ALL' : (allowedBranches[0] || 'ALL');
+    }
+
+    if (!sel._wired) {
+      sel._wired = true;
+      sel.addEventListener('change', async (e) => {
+        const chosenBranch = e.target.value;
+        await reloadOrdersWithBranch(chosenBranch);
+      });
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  } catch (err) {
+    console.warn('[OrderOverview] Could not initialize branch filter:', err);
+  }
+}
+
+async function reloadOrdersWithBranch(branch) {
+  try {
+    const params = { page: 0, size: 100 };
+    if (branch && branch !== 'ALL') {
+      params.branch = branch;
+    }
+    const res = await api.orders.list(params);
+    const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
+    const realOrders = items.map(apiToLocal);
+    state.orders = realOrders;
+    state.filtered = [...realOrders];
+    applyFilters();
+    await updateKPIs(branch);
+  } catch (err) {
+    console.error('[OrderOverview] Failed to reload orders for branch:', err);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
    INIT (API-backed)
    ──────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -882,8 +975,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 1. Load live stage definitions dynamically (zero hardcoded URLs)
   await loadLiveStageDefinitions();
 
+  // 2. Initialize branch filter for Owner / Multi-Branch users
+  await initOrderBranchFilter();
+
+  const sel = $('orderBranchSelect');
+  const initialBranch = sel && sel.value !== 'ALL' ? sel.value : null;
+
   try {
-    const res = await api.orders.list({ page: 0, size: 100 });
+    const params = { page: 0, size: 100 };
+    if (initialBranch) params.branch = initialBranch;
+    const res = await api.orders.list(params);
     const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
     const realOrders = items.map(apiToLocal);
     state.orders = realOrders;
@@ -896,5 +997,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Render cards and KPIs
   applyFilters();
-  await updateKPIs();
+  await updateKPIs(initialBranch);
 });

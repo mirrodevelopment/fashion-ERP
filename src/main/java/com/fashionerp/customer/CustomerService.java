@@ -554,12 +554,20 @@ public class CustomerService {
     }
 
 
-    private String cleanPhone(String phone) {
+    public static String cleanPhone(String phone) {
         if (phone == null) return "";
         String trimmed = phone.trim();
-        if (phone.startsWith(" ") && !trimmed.startsWith("+")) {
-            trimmed = "+" + trimmed;
+        // Remove spaces, dashes, parentheses, dots
+        String digitsOnly = trimmed.replaceAll("[^0-9+]", "");
+        if (digitsOnly.startsWith("+91") && digitsOnly.length() > 10) {
+            digitsOnly = digitsOnly.substring(3);
+        } else if (digitsOnly.startsWith("91") && digitsOnly.length() == 12) {
+            digitsOnly = digitsOnly.substring(2);
+        } else if (digitsOnly.startsWith("0") && digitsOnly.length() == 11) {
+            digitsOnly = digitsOnly.substring(1);
+        } else if (digitsOnly.startsWith("+")) {
+            digitsOnly = digitsOnly.substring(1);
         }
-        return trimmed;
+        return digitsOnly.isEmpty() ? trimmed : digitsOnly;
     }
 }

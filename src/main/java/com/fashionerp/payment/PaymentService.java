@@ -24,6 +24,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
+    private final com.fashionerp.garment.GarmentRepository garmentRepository;
 
     public Page<PaymentDto.Response> list(String search, String status, Pageable pageable) {
         PaymentStatus statusEnum = (status != null && !status.isBlank())
@@ -122,6 +123,18 @@ public class PaymentService {
             BigDecimal newBal = total.subtract(newPaid).max(BigDecimal.ZERO);
             order.setBalanceAmount(newBal);
             orderRepository.save(order);
+
+            // Synchronize linked Garments
+            try {
+                List<com.fashionerp.garment.Garment> linkedGarments = garmentRepository.findByOrderId(order.getId());
+                for (com.fashionerp.garment.Garment g : linkedGarments) {
+                    g.setPaidAmount(newPaid);
+                    g.setPaymentStatus(newBal.compareTo(BigDecimal.ZERO) == 0 ? "PAID" : (newPaid.compareTo(BigDecimal.ZERO) > 0 ? "PARTIAL" : "PENDING"));
+                    garmentRepository.save(g);
+                }
+            } catch (Exception e) {
+                log.warn("[PaymentService] Could not sync garment for order {}: {}", order.getId(), e.getMessage());
+            }
         }
 
         // Update customer balance and totalSpend safely

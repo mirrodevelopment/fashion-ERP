@@ -45,16 +45,25 @@ public class GarmentService {
     public GarmentDto.KpiResponse getKpis() {
         UUID companyId = TenantContext.getCompanyId();
         long total = companyId != null ? garmentRepository.countByCompanyId(companyId) : garmentRepository.count();
-        long inProd = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "In Production");
-        long inTrial = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Trial");
-        long awaitingQc = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC");
+        long inProd = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_PRODUCTION");
+        long inTrial = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "TRIAL");
+        long awaitingQc = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC");
         if (awaitingQc == 0) {
-            awaitingQc = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC");
+            awaitingQc = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC");
         }
-        long ready = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Ready");
-        long delivered = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Delivered");
-        long designing = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "Designing");
-        long onHold = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "On Hold");
+        long ready = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "READY");
+        if (ready == 0) {
+            ready = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "READY");
+        }
+        long delivered = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "DELIVERED");
+        if (delivered == 0) {
+            delivered = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "DELIVERED");
+        }
+        long designing = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "DESIGNING");
+        long onHold = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "ON_HOLD");
+        if (onHold == 0) {
+            onHold = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "ON_HOLD");
+        }
 
         // Real month-over-month deltas require historical data queries; return null
         // until implemented.

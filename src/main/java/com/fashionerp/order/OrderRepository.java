@@ -25,7 +25,9 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         SELECT o FROM Order o
         LEFT JOIN FETCH o.customer c
         WHERE (:companyId IS NULL OR o.companyId = :companyId)
-          AND (:branch IS NULL OR o.branch = :branch OR o.branch IS NULL)
+          AND (:branch IS NULL OR o.branch = :branch
+               OR o.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR o.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch))
           AND (:search IS NULL OR :search = '' OR
                LOWER(o.orderCode)    LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(o.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -39,7 +41,9 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         SELECT COUNT(o) FROM Order o
         LEFT JOIN o.customer c
         WHERE (:companyId IS NULL OR o.companyId = :companyId)
-          AND (:branch IS NULL OR o.branch = :branch OR o.branch IS NULL)
+          AND (:branch IS NULL OR o.branch = :branch
+               OR o.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR o.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch))
           AND (:search IS NULL OR :search = '' OR
                LOWER(o.orderCode)    LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(o.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -83,7 +87,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("""
         SELECT COUNT(o) FROM Order o
         WHERE (:companyId IS NULL OR o.companyId = :companyId)
-          AND UPPER(TRIM(o.currentStage)) IN ('QC', 'QUALITY', 'QUALITY_CONTROL')
+          AND (UPPER(TRIM(o.currentStage)) LIKE '%QC%' OR UPPER(TRIM(o.currentStage)) LIKE '%QUALITY%')
           AND o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
         """)
     long countOrdersAwaitingQc(@Param("companyId") UUID companyId);

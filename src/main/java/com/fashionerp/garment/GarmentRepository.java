@@ -16,6 +16,9 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
     Optional<Garment> findByGarmentCodeIgnoreCase(String garmentCode);
     Optional<Garment> findByGarmentCodeIgnoreCaseAndCompanyId(String garmentCode, UUID companyId);
 
+    java.util.List<Garment> findByOrderId(UUID orderId);
+    java.util.List<Garment> findByOrderCode(String orderCode);
+
     @Query("""
         SELECT g FROM Garment g
         WHERE (:companyId IS NULL OR g.companyId = :companyId)
@@ -27,9 +30,9 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
                LOWER(g.designCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(g.specs) LIKE LOWER(CONCAT('%', :search, '%')))
           AND (:stage IS NULL OR :stage = '' OR :stage = 'all' OR
-               LOWER(g.productionStage) = LOWER(:stage))
+               LOWER(REPLACE(g.productionStage, '_', ' ')) = LOWER(REPLACE(:stage, '_', ' ')))
           AND (:status IS NULL OR :status = '' OR :status = 'all' OR
-               LOWER(g.status) = LOWER(:status))
+               LOWER(REPLACE(g.status, '_', ' ')) = LOWER(REPLACE(:status, '_', ' ')))
           AND (:garmentType IS NULL OR :garmentType = '' OR :garmentType = 'all' OR
                LOWER(g.garmentType) = LOWER(:garmentType))
           AND (:collectionName IS NULL OR :collectionName = '' OR :collectionName = 'all' OR
@@ -60,9 +63,27 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
 
     long countByCompanyId(UUID companyId);
 
-    @Query("SELECT COUNT(g) FROM Garment g WHERE (:companyId IS NULL OR g.companyId = :companyId) AND UPPER(g.productionStage) = UPPER(:productionStage)")
+    @Query("""
+        SELECT COUNT(g) FROM Garment g
+        WHERE (:companyId IS NULL OR g.companyId = :companyId)
+          AND (
+            UPPER(g.productionStage) = UPPER(:productionStage)
+            OR UPPER(REPLACE(g.productionStage, '_', ' ')) = UPPER(REPLACE(:productionStage, '_', ' '))
+            OR UPPER(REPLACE(g.productionStage, ' ', '_')) = UPPER(REPLACE(:productionStage, ' ', '_'))
+            OR (UPPER(:productionStage) = 'READY' AND UPPER(g.productionStage) LIKE 'READY%')
+            OR (UPPER(:productionStage) = 'QC' AND UPPER(g.productionStage) LIKE '%QC%')
+          )
+        """)
     long countByCompanyIdAndProductionStageIgnoreCase(@Param("companyId") UUID companyId, @Param("productionStage") String productionStage);
 
-    @Query("SELECT COUNT(g) FROM Garment g WHERE (:companyId IS NULL OR g.companyId = :companyId) AND UPPER(g.status) = UPPER(:status)")
+    @Query("""
+        SELECT COUNT(g) FROM Garment g
+        WHERE (:companyId IS NULL OR g.companyId = :companyId)
+          AND (
+            UPPER(g.status) = UPPER(:status)
+            OR UPPER(REPLACE(g.status, '_', ' ')) = UPPER(REPLACE(:status, '_', ' '))
+            OR UPPER(REPLACE(g.status, ' ', '_')) = UPPER(REPLACE(:status, ' ', '_'))
+          )
+        """)
     long countByCompanyIdAndStatusIgnoreCase(@Param("companyId") UUID companyId, @Param("status") String status);
 }

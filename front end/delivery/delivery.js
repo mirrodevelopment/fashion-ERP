@@ -1505,7 +1505,7 @@
     if (modal) modal.classList.remove('active');
   }
 
-  function handleSaveTracking() {
+  async function handleSaveTracking() {
     const order = getSelectedOrder();
     if (order) {
       const courier = document.getElementById('trackCourierName').value;
@@ -1514,6 +1514,16 @@
       order.delivery.courier = courier;
       order.delivery.trackingNumber = tracking;
       order.delivery.status = 'Out for Delivery';
+
+      try {
+        const { default: api } = await import('../api.js');
+        if (order.dbId && api.orders && api.orders.update) {
+          await api.orders.update(order.dbId, {
+            currentStage: 'DISPATCH',
+            productionNotes: `Courier: ${courier} | Tracking: ${tracking}`
+          }).catch(err => console.warn('[Delivery] Tracking update warning:', err.message));
+        }
+      } catch (_) {}
 
       calculateKpis();
       updateKpisUi();

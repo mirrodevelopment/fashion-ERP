@@ -19,6 +19,10 @@
 // Default: one level up from dashboard/ -> fragments/
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 (function () {
+  if (typeof window !== 'undefined' && (window.__HAULO_NAV_INITIALIZED__ || window.Nav)) {
+    console.info('[Fragments] Unified navigation (nav.js) is already active. Suppressing duplicate fragments.js execution.');
+    return;
+  }
   const BASE = window.FRAGMENT_BASE || '../fragments/';
 
   const getApiBase = () => {

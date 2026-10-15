@@ -27,8 +27,9 @@ public class OrderController {
     public Page<OrderDto.Response> list(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String branch,
             Pageable pageable) {
-        return orderService.list(search, status, pageable);
+        return orderService.list(search, status, branch, pageable);
     }
 
     @GetMapping("/{id}")
@@ -51,10 +52,10 @@ public class OrderController {
     /**
      * POST /api/v1/orders/{id}/reference-images/{slot}
      * Upload a reference image for slot 1-5.
-     * The file is stored as {orderCode}-ref{slot}.{ext} under front end/assets/order-ref/.
+     * The file is stored as {orderCode}-ref{slot}.{ext} under front
+     * end/assets/order-ref/.
      */
-    @PostMapping(value = "/{id}/reference-images/{slot}",
-                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{id}/reference-images/{slot}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<OrderDto.Response> uploadReferenceImage(
             @PathVariable UUID id,
             @PathVariable int slot,
@@ -75,21 +76,33 @@ public class OrderController {
     }
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
+        String branchFilter = (branch != null && !branch.isBlank() && !"ALL".equalsIgnoreCase(branch.trim()))
+                ? branch.trim()
+                : null;
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("pendingCount",    orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING));
-        m.put("inProgressCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS));
-        m.put("readyCount",      orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY));
-        m.put("deliveredCount",  orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED));
-        m.put("cancelledCount",  orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED));
+        if (branchFilter != null) {
+            var probe = org.springframework.data.domain.PageRequest.of(0, 1);
+            m.put("pendingCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.PENDING, probe).getTotalElements());
+            m.put("inProgressCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.IN_PROGRESS, probe).getTotalElements()
+                    + orderRepository.search(companyId, branchFilter, null, OrderStatus.IN_PRODUCTION, probe).getTotalElements());
+            m.put("readyCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.READY, probe).getTotalElements());
+            m.put("deliveredCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.DELIVERED, probe).getTotalElements());
+            m.put("cancelledCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.CANCELLED, probe).getTotalElements());
+        } else {
+            m.put("pendingCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING));
+            m.put("inProgressCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS)
+                    + orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PRODUCTION));
+            m.put("readyCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY));
+            m.put("deliveredCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED));
+            m.put("cancelledCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED));
+        }
 
         BigDecimal totalRev = paymentRepository.sumPaidAmount(companyId);
         BigDecimal thisMonthRev = paymentRepository.sumThisMonthPaidAmount(companyId);
-        m.put("totalRevenue",     totalRev != null ? totalRev : BigDecimal.ZERO);
+        m.put("totalRevenue", totalRev != null ? totalRev : BigDecimal.ZERO);
         m.put("thisMonthRevenue", thisMonthRev != null ? thisMonthRev : BigDecimal.ZERO);
         return m;
     }
 }
-
-

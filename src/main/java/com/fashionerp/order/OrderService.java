@@ -40,13 +40,20 @@ public class OrderService {
     private final StageDefinitionRepository stageDefinitionRepository;
     private final ProductionStageRepository productionStageRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
+    private final com.fashionerp.garment.GarmentRepository garmentRepository;
 
     public Page<OrderDto.Response> list(String search, String status, Pageable pageable) {
+        return list(search, status, null, pageable);
+    }
+
+    public Page<OrderDto.Response> list(String search, String status, String explicitBranch, Pageable pageable) {
         OrderStatus statusEnum = (status != null && !status.isBlank())
                 ? OrderStatus.valueOf(status.toUpperCase().replace('-', '_'))
                 : null;
         UUID companyId = TenantContext.getCompanyId();
-        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.ORDERS);
+        String branchFilter = (explicitBranch != null && !explicitBranch.isBlank() && !"ALL".equalsIgnoreCase(explicitBranch.trim()))
+                ? explicitBranch.trim()
+                : branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.ORDERS);
         return orderRepository.search(companyId, branchFilter, search, statusEnum, pageable).map(OrderDto.Response::from);
     }
 
@@ -211,6 +218,35 @@ public class OrderService {
             customerRepository.save(customer);
         }
 
+        // Auto-provision corresponding Garment so it appears in Garments Overview & Garment 360
+        try {
+            String gCode = "GRM-" + saved.getOrderCode().replace("ORD-", "");
+            com.fashionerp.garment.Garment garment = com.fashionerp.garment.Garment.builder()
+                    .companyId(saved.getCompanyId())
+                    .orderId(saved.getId())
+                    .orderCode(saved.getOrderCode())
+                    .garmentCode(gCode)
+                    .customerName(saved.getCustomerName())
+                    .customerMobile(customer != null ? customer.getMobileNumber() : saved.getCustomerMobile())
+                    .title((saved.getGarmentType() != null && !saved.getGarmentType().isBlank() ? saved.getGarmentType() : "Bespoke Garment") + " - " + saved.getCustomerName())
+                    .garmentType(saved.getGarmentType() != null && !saved.getGarmentType().isBlank() ? saved.getGarmentType() : "Custom Tailoring")
+                    .specs(saved.getGarmentDesc())
+                    .collectionName(saved.getCollection())
+                    .productionStage(saved.getCurrentStage() != null ? saved.getCurrentStage() : "ORDER_TAKEN")
+                    .status("IN_PRODUCTION")
+                    .priority("NORMAL")
+                    .totalAmount(total)
+                    .paidAmount(advance)
+                    .paymentStatus(balance.compareTo(BigDecimal.ZERO) == 0 ? "PAID" : (advance.compareTo(BigDecimal.ZERO) > 0 ? "PARTIAL" : "PENDING"))
+                    .dueDate(expDeliv != null ? expDeliv : saved.getDueDate())
+                    .branch(saved.getBranch())
+                    .build();
+            garmentRepository.save(garment);
+            log.info("[OrderService] Auto-provisioned garment {} for order {}", gCode, saved.getOrderCode());
+        } catch (Exception e) {
+            log.warn("[OrderService] Could not auto-provision garment for order {}: {}", saved.getOrderCode(), e.getMessage());
+        }
+
         return OrderDto.Response.from(saved);
     }
 
@@ -253,14 +289,17 @@ public class OrderService {
         }
         if (req.getNotes() != null)
             order.setNotes(req.getNotes());
-        if (req.getStatus() != null)
+        if (req.getStatus() != null) {
             order.setStatus(req.getStatus());
+            if (req.getStatus() == OrderStatus.DELIVERED && order.getDeliveredDate() == null) {
+                order.setDeliveredDate(LocalDate.now());
+            }
+        }
         if (req.getCurrentStage() != null) {
             String stage = req.getCurrentStage();
             order.setCurrentStage(stage);
             if (req.getStatus() == null) {
-                // BUG-P1-02 FIX: Standardized stage-to-status mapping including
-                // READY_TO_DELIVER and QC
+                // Standardized stage-to-status mapping including READY_TO_DELIVER and QC
                 String st = stage.toUpperCase().replace('-', '_').replace(' ', '_');
                 if (st.equals("READY") || st.equals("READY_TO_DELIVER") || st.equals("QC_PASSED")) {
                     order.setStatus(OrderStatus.READY);
@@ -282,7 +321,28 @@ public class OrderService {
             order.setReferenceImageList(req.getReferenceImages());
         if (req.getProductionNotes() != null)
             order.setProductionNotes(req.getProductionNotes());
-        return OrderDto.Response.from(orderRepository.save(order));
+
+        Order savedOrder = orderRepository.save(order);
+
+        // Sync linked garments
+        try {
+            List<com.fashionerp.garment.Garment> linkedGarments = garmentRepository.findByOrderId(order.getId());
+            for (com.fashionerp.garment.Garment g : linkedGarments) {
+                if (savedOrder.getStatus() == OrderStatus.DELIVERED) {
+                    g.setStatus("DELIVERED");
+                    g.setProductionStage("DELIVERED");
+                } else if (savedOrder.getStatus() == OrderStatus.READY) {
+                    g.setProductionStage("READY");
+                } else if (req.getCurrentStage() != null) {
+                    g.setProductionStage(req.getCurrentStage());
+                }
+                garmentRepository.save(g);
+            }
+        } catch (Exception e) {
+            log.warn("[OrderService] Could not sync linked garments for order {}: {}", order.getId(), e.getMessage());
+        }
+
+        return OrderDto.Response.from(savedOrder);
     }
 
     // BUG-P0-07 FIX: Prevent collision on concurrent order creation

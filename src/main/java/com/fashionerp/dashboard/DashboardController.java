@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.persistence.EntityManager;
@@ -40,9 +41,11 @@ public class DashboardController {
     private EntityManager em;
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = TenantContext.requireCompanyId();
-        String branchFilter = TenantContext.getActiveBranchFilter();
+        String branchFilter = (branch != null && !branch.isBlank() && !"ALL".equalsIgnoreCase(branch.trim()))
+                ? branch.trim()
+                : TenantContext.getActiveBranchFilter();
 
         // ── Basic counts (branch-scoped if selected, otherwise all company data) ──
         long totalCustomers    = customerRepository.countByCompanyId(companyId);
@@ -100,7 +103,7 @@ public class DashboardController {
         List<Map<String, Object>> monthlyRevenue = buildMonthlyRevenue(companyId);
 
         // ── Production pulse (stage counts) ──────────────────────
-        List<Map<String, Object>> productionPulse = buildProductionPulse(companyId);
+        List<Map<String, Object>> productionPulse = buildProductionPulse(companyId, branchFilter);
 
         // ── Business Health metrics ───────────────────────────────
         Map<String, Object> businessHealth = buildBusinessHealth(companyId,
@@ -201,23 +204,29 @@ public class DashboardController {
 
     // ── Production Pulse: stage counts & bespoke artworks ─────────
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> buildProductionPulse(UUID companyId) {
+    private List<Map<String, Object>> buildProductionPulse(UUID companyId, String branchFilter) {
         var defQuery = em.createNativeQuery(
             "SELECT sd.stage_key, sd.display_name, sd.color_class, sd.image_url, " +
             "COALESCE(cnt_tbl.cnt, 0) AS cnt " +
             "FROM stage_definitions sd " +
             "LEFT JOIN (" +
-            "    SELECT stage_name, COUNT(*) AS cnt " +
-            "    FROM production_stages " +
-            "    WHERE (:companyId IS NULL OR company_id = :companyId) " +
-            "      AND status IN ('IN_PROGRESS','NOT_STARTED') " +
-            "    GROUP BY stage_name" +
+            "    SELECT ps.stage_name, COUNT(*) AS cnt " +
+            "    FROM production_stages ps " +
+            "    JOIN orders o ON ps.order_id = o.id " +
+            "    WHERE (:companyId IS NULL OR ps.company_id = :companyId) " +
+            "      AND (CAST(:branchFilter AS text) IS NULL " +
+            "           OR o.branch = CAST(:branchFilter AS text) " +
+            "           OR o.branch IN (SELECT b.branch_code FROM branches b WHERE b.name = CAST(:branchFilter AS text)) " +
+            "           OR o.branch IN (SELECT b.name FROM branches b WHERE b.branch_code = CAST(:branchFilter AS text))) " +
+            "      AND ps.status IN ('IN_PROGRESS','NOT_STARTED') " +
+            "    GROUP BY ps.stage_name" +
             ") cnt_tbl ON UPPER(cnt_tbl.stage_name) = UPPER(sd.stage_key) " +
             "WHERE (:companyId IS NULL OR sd.company_id = :companyId) " +
             "  AND sd.active = TRUE " +
             "ORDER BY sd.sort_order ASC"
         );
         defQuery.setParameter("companyId", companyId);
+        defQuery.setParameter("branchFilter", branchFilter);
         List<Object[]> defRows = defQuery.getResultList();
 
         Map<String, String> colorMap = Map.of(
@@ -258,13 +267,16 @@ public class DashboardController {
         // If stage_definitions returned nothing, fallback to legacy query
         if (result.isEmpty()) {
             var legacyQuery = em.createNativeQuery(
-                "SELECT stage_name, COUNT(*) AS cnt " +
-                "FROM production_stages " +
-                "WHERE (:companyId IS NULL OR company_id = :companyId) " +
-                "  AND status IN ('IN_PROGRESS','NOT_STARTED') " +
-                "GROUP BY stage_name ORDER BY MIN(sort_order)"
+                "SELECT ps.stage_name, COUNT(*) AS cnt " +
+                "FROM production_stages ps " +
+                "JOIN orders o ON ps.order_id = o.id " +
+                "WHERE (:companyId IS NULL OR ps.company_id = :companyId) " +
+                "  AND (CAST(:branchFilter AS text) IS NULL OR o.branch = CAST(:branchFilter AS text)) " +
+                "  AND ps.status IN ('IN_PROGRESS','NOT_STARTED') " +
+                "GROUP BY ps.stage_name ORDER BY MIN(ps.sort_order)"
             );
             legacyQuery.setParameter("companyId", companyId);
+            legacyQuery.setParameter("branchFilter", branchFilter);
             List<Object[]> legacyRows = legacyQuery.getResultList();
 
             String[] stageColors = {

@@ -82,6 +82,8 @@ const Auth = {
 };
 
 // ─── Core fetch wrapper ────────────────────────────────────────
+let isRedirectingToLogin = false;
+
 async function request(method, path, body = null, params = {}) {
   const base = getApiBase();
   const url = new URL(base + path);
@@ -150,7 +152,8 @@ async function request(method, path, body = null, params = {}) {
   // 1. Session Expired (401 Unauthorized)
   if (res.status === 401 && !path.startsWith('/auth/')) {
     Auth.clear();
-    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('session-expired') && !window.location.pathname.includes('login.html')) {
+    if (!isRedirectingToLogin && typeof window !== 'undefined' && window.location && !window.location.pathname.includes('session-expired') && !window.location.pathname.includes('login.html')) {
+      isRedirectingToLogin = true;
       if (window.HauloSystem && typeof window.HauloSystem.toSessionExpired === 'function') {
         window.HauloSystem.toSessionExpired({ reason: 'unauthorized', returnUrl: window.location.href });
       } else {
@@ -160,7 +163,10 @@ async function request(method, path, body = null, params = {}) {
         window.location.href = loginUrl;
       }
     }
-    return null;
+    const err = new Error('Session expired. Please log in again.');
+    err.status = 401;
+    err.code = 'SESSION_EXPIRED';
+    throw err;
   }
 
   // 2. Forbidden / Access Denied (403)
@@ -251,12 +257,21 @@ async function uploadFile(path, file, field = 'file') {
   // 1. Session Expired (401)
   if (res.status === 401) {
     Auth.clear();
-    if (typeof window !== 'undefined' && window.location && !window.location.pathname.includes('session-expired') && !window.location.pathname.includes('login.html')) {
+    if (!isRedirectingToLogin && typeof window !== 'undefined' && window.location && !window.location.pathname.includes('session-expired') && !window.location.pathname.includes('login.html')) {
+      isRedirectingToLogin = true;
       if (window.HauloSystem && typeof window.HauloSystem.toSessionExpired === 'function') {
         window.HauloSystem.toSessionExpired({ reason: 'unauthorized', returnUrl: window.location.href });
+      } else {
+        const loginUrl = window.location.pathname.includes('/front end/')
+          ? window.location.pathname.replace(/\/front end\/.*$/, '/front end/login/login.html')
+          : '/front end/login/login.html';
+        window.location.href = loginUrl;
       }
     }
-    return null;
+    const err = new Error('Session expired. Please log in again.');
+    err.status = 401;
+    err.code = 'SESSION_EXPIRED';
+    throw err;
   }
 
   // 2. Forbidden (403)
@@ -358,7 +373,7 @@ const api = {
     get: (id) => get(`/orders/${id}`),
     create: (data) => post('/orders', data),
     update: (id, data) => put(`/orders/${id}`, data),
-    kpis: () => get('/orders/kpis'),
+    kpis: (params = {}) => get('/orders/kpis', params),
     /**
      * Upload a reference image for a slot (1-5).
      * Stores the file as {orderCode}-ref{slot}.ext on the server.

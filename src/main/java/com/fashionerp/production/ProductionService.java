@@ -34,7 +34,9 @@ public class ProductionService {
         List<StageDefinition> activeStages = stageDefinitionRepository.findAllByCompanyIdAndActiveTrueOrderBySortOrderAsc(companyId);
         int qcSortOrder = -1;
         for (StageDefinition sd : activeStages) {
-            if ("QC".equalsIgnoreCase(sd.getStageKey())) {
+            if ("QC".equalsIgnoreCase(sd.getStageKey())
+                    || (sd.getStageKey() != null && sd.getStageKey().toUpperCase().contains("QC"))
+                    || "QC".equalsIgnoreCase(sd.getRequiredRole())) {
                 qcSortOrder = sd.getSortOrder() != null ? sd.getSortOrder() : -1;
                 break;
             }

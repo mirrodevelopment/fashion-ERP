@@ -20,17 +20,28 @@
       }
     }
 
-    // 2. Otherwise calculate based on URL path depth
-    const path = window.location.pathname.toLowerCase().replace(/\\/g, '/');
-    if (path.includes('/orders/new-order') || path.includes('/orders/view-order') || path.includes('/orders/order-overview') || path.includes('/orders/order-details') || path.includes('/customer/') || path.includes('/pages/quality-control/') || path.includes('/pages/trial-alterations/') || path.includes('/measurements/') || path.includes('/measurement360') || path.includes('/measurement-overview')) {
+    // 2. Dynamic depth calculation relative to /front end/ or /front%20end/
+    const norm = window.location.pathname.replace(/\\/g, '/');
+    const marker = '/front end/';
+    const markerEncoded = '/front%20end/';
+    let sub = '';
+    const idx = norm.toLowerCase().indexOf(marker);
+    const idxEncoded = norm.toLowerCase().indexOf(markerEncoded);
+    if (idx !== -1) {
+      sub = norm.substring(idx + marker.length);
+    } else if (idxEncoded !== -1) {
+      sub = norm.substring(idxEncoded + markerEncoded.length);
+    }
+    if (sub) {
+      const depth = (sub.match(/\//g) || []).length;
+      return depth > 0 ? '../'.repeat(depth) : '';
+    }
+
+    // 3. Fallback based on pathname slashes
+    const parts = norm.split('/').filter(Boolean);
+    if (parts.length > 2) {
       return '../../';
-    }
-    if (path.includes('/pages/')) {
-      const partsAfterPages = path.split('/pages/')[1] || '';
-      const slashes = (partsAfterPages.match(/\//g) || []).length;
-      return slashes >= 2 ? '../../../' : '../../';
-    }
-    if (path.includes('/garments') || path.includes('/payments') || path.includes('/delivery') || path.includes('/trials-alterations') || path.includes('/measurements') || path.includes('/enquiries') || path.includes('/orders') || path.includes('/operations') || path.includes('/production') || path.includes('/desks/') || path.includes('/designstudio') || path.includes('/design-studio') || path.includes('/collections') || path.includes('/workforcemanagement') || path.includes('/workforce-management') || path.includes('/workforce') || path.includes('/dashboard') || path.includes('/quality-control') || path.includes('/inventory') || path.includes('/fabrics-materials') || path.includes('/fabrics') || path.includes('/purchases') || path.includes('/suppliers') || path.includes('/appointments')) {
+    } else if (parts.length > 1) {
       return '../';
     }
     return '';
@@ -114,7 +125,7 @@
   <!-- Navigation -->
   <nav class="sidebar-nav">    <!-- Dashboard -->
     <div class="nav-section">
-      <a href="../dashboard/dashboard.html" class="nav-item" id="nav-dashboard" data-tooltip="Dashboard" data-module="dashboard" onclick="navNavigate('dashboard',event)">
+      <a href="${rootPrefix}dashboard/dashboard.html" class="nav-item" id="nav-dashboard" data-tooltip="Dashboard" data-module="dashboard" onclick="navNavigate('dashboard',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span>Dashboard</span>
       </a>
@@ -123,7 +134,7 @@
     <!-- Front Office -->
     <div class="nav-section">
       <span class="nav-section-label">Front Office</span>
-      <a href="../enquiries/enquiries.html" class="nav-item" id="nav-enquiries" data-tooltip="Enquiries" data-module="enquiries" onclick="navNavigate('enquiries',event)">
+      <a href="${rootPrefix}enquiries/enquiries.html" class="nav-item" id="nav-enquiries" data-tooltip="Enquiries" data-module="enquiries" onclick="navNavigate('enquiries',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <span>Enquiries</span>
       </a>
@@ -152,7 +163,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <span>Garments</span>
       </a>
-      <a href="../DesignStudio/design-studio.html" class="nav-item" id="nav-designs" data-tooltip="Designs" data-module="designs" onclick="navNavigate('designs',event)">
+      <a href="${rootPrefix}DesignStudio/design-studio.html" class="nav-item" id="nav-designs" data-tooltip="Designs" data-module="designs" onclick="navNavigate('designs',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
         <span>Designs</span>
       </a>
@@ -245,11 +256,11 @@
     <!-- Administration -->
     <div class="nav-section">
       <span class="nav-section-label">Administration</span>
-      <a href="../WorkforceManagement/workforce.html" class="nav-item" id="nav-employees" data-tooltip="Employees" data-module="employees" onclick="navNavigate('employees',event)">
+      <a href="${rootPrefix}WorkforceManagement/workforce.html" class="nav-item" id="nav-employees" data-tooltip="Employees" data-module="employees" onclick="navNavigate('employees',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span>Employees</span>
       </a>
-      <a href="../branches/branches.html" class="nav-item" id="nav-branches" data-tooltip="Branches" data-module="branches" onclick="navNavigate('branches',event)">
+      <a href="${rootPrefix}branches/branches.html" class="nav-item" id="nav-branches" data-tooltip="Branches" data-module="branches" onclick="navNavigate('branches',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         <span>Branches</span>
       </a>
@@ -257,7 +268,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span>Users &amp; Roles</span>
       </a>
-      <a href="../settings/settings.html" class="nav-item" id="nav-settings" data-tooltip="Settings" data-module="settings" onclick="navNavigate('settings',event)">
+      <a href="${rootPrefix}settings/settings.html" class="nav-item" id="nav-settings" data-tooltip="Settings" data-module="settings" onclick="navNavigate('settings',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
         <span>Settings</span>
       </a>
@@ -1692,6 +1703,9 @@
     }
   });
 
+  window.__HAULO_NAV_INITIALIZED__ = true;
+  window.Nav = Nav;
+
   // Auto-initialize
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => Nav.init());
@@ -1715,4 +1729,82 @@
       localStorage.setItem('haulo_current_page', curPageUrl);
     }
   } catch (_) {}
+
+  // -------------------------------------------------------------
+  // Global Patron Avatar Utilities
+  // -------------------------------------------------------------
+  if (typeof window.getPatronInitials !== 'function') {
+    window.getPatronInitials = function (name) {
+      if (!name || typeof name !== 'string') return 'CU';
+      const clean = name.trim();
+      if (!clean || clean === '-') return 'CU';
+
+      const HONORIFICS = new Set(['MS.', 'MS', 'MR.', 'MR', 'MRS.', 'MRS', 'MISS', 'DR.', 'DR', 'PROF.', 'PROF', 'SMT.', 'SMT', 'SHRI']);
+      let rawTokens = clean.split(/\s+/).filter(Boolean);
+      if (rawTokens.length > 1 && HONORIFICS.has(rawTokens[0].toUpperCase())) {
+        rawTokens.shift();
+      }
+
+      if (rawTokens.length === 0) return 'CU';
+
+      if (rawTokens.length === 1) {
+        const single = rawTokens[0].replace(/[^a-zA-Z0-9]/g, '');
+        if (!single) return rawTokens[0].substring(0, 2).toUpperCase();
+        return single.length >= 2 ? single.substring(0, 2).toUpperCase() : single.toUpperCase();
+      }
+
+      const firstTokenClean = rawTokens[0].replace(/[^a-zA-Z0-9]/g, '');
+      const secondTokenClean = rawTokens[1].replace(/[^a-zA-Z0-9]/g, '');
+      const firstLetter = firstTokenClean[0] || rawTokens[0][0];
+      const secondLetter = secondTokenClean[0] || rawTokens[1][0];
+      return (firstLetter + secondLetter).toUpperCase();
+    };
+  }
+
+  if (typeof window.getPatronAvatarTheme !== 'function') {
+    window.getPatronAvatarTheme = function (name) {
+      const PALETTES = [
+        { bg: 'linear-gradient(135deg, rgba(234, 179, 8, 0.22), rgba(184, 255, 61, 0.18))', border: 'rgba(234, 179, 8, 0.35)', color: '#facc15' },
+        { bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(139, 92, 246, 0.18))', border: 'rgba(168, 85, 247, 0.35)', color: '#c084fc' },
+        { bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(184, 255, 61, 0.18))', border: 'rgba(184, 255, 61, 0.35)', color: '#b8ff3d' },
+        { bg: 'linear-gradient(135deg, rgba(244, 63, 94, 0.22), rgba(251, 113, 133, 0.18))', border: 'rgba(244, 63, 94, 0.35)', color: '#fb7185' },
+        { bg: 'linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(56, 189, 248, 0.18))', border: 'rgba(56, 189, 248, 0.35)', color: '#38bdf8' },
+        { bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(129, 140, 248, 0.18))', border: 'rgba(99, 102, 241, 0.35)', color: '#818cf8' }
+      ];
+      let hash = 0;
+      const str = String(name || 'Customer');
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return PALETTES[Math.abs(hash) % PALETTES.length];
+    };
+  }
+
+  if (typeof window.renderPatronAvatarHtml !== 'function') {
+    window.renderPatronAvatarHtml = function (name, avatarUrl, sizeClass = 'haulo-avatar-md', extraStyles = '') {
+      const inits = window.getPatronInitials(name);
+      const theme = window.getPatronAvatarTheme(name);
+      const isImageValid = avatarUrl &&
+        !avatarUrl.includes('user_avatar.jpg') &&
+        !avatarUrl.includes('default') &&
+        avatarUrl !== 'null' &&
+        avatarUrl !== 'undefined';
+
+      const safeName = (name || 'Customer').replace(/"/g, '&quot;');
+      const initialsTile = `<div class="haulo-patron-avatar-initials ${sizeClass}" style="background:${theme.bg};border:1.5px solid ${theme.border};color:${theme.color};${extraStyles}" title="${safeName}">${inits}</div>`;
+
+      if (!isImageValid) {
+        return initialsTile;
+      }
+
+      return `<div class="haulo-patron-avatar-wrap ${sizeClass}" style="position:relative;display:inline-flex;overflow:hidden;border-radius:inherit;${extraStyles}"><img src="${avatarUrl}" alt="${safeName}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.parentElement.outerHTML=\`${initialsTile.replace(/"/g, '&quot;')}\`" /></div>`;
+    };
+  }
+
+  if (typeof window.applyPatronAvatarElement !== 'function') {
+    window.applyPatronAvatarElement = function (containerEl, name, avatarUrl, sizeClass = 'haulo-avatar-md', extraStyles = '') {
+      if (!containerEl) return;
+      containerEl.innerHTML = window.renderPatronAvatarHtml(name, avatarUrl, sizeClass, extraStyles);
+    };
+  }
 })();

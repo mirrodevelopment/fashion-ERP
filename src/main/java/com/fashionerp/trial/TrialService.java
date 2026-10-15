@@ -42,6 +42,7 @@ public class TrialService {
     private final ProductionService productionService;
     private final AppointmentRepository appointmentRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
+    private final com.fashionerp.garment.GarmentRepository garmentRepository;
 
     public Page<TrialDto.Response> list(String search, String status, String fitStatus, LocalDate date,
             Pageable pageable) {
@@ -501,6 +502,18 @@ public class TrialService {
                 }
             } catch (Exception e) {
                 log.warn("Could not sync appointments for order {}: {}", trial.getOrder().getId(), e.getMessage());
+            }
+
+            // 3. Sync linked garments to QC stage & PERFECT trialStatus
+            try {
+                List<com.fashionerp.garment.Garment> linkedGarments = garmentRepository.findByOrderId(trial.getOrder().getId());
+                for (com.fashionerp.garment.Garment g : linkedGarments) {
+                    g.setTrialStatus("PERFECT");
+                    g.setProductionStage("QC");
+                    garmentRepository.save(g);
+                }
+            } catch (Exception e) {
+                log.warn("Could not sync garment for order {}: {}", trial.getOrder().getId(), e.getMessage());
             }
         }
 

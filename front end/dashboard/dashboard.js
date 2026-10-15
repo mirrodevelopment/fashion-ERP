@@ -247,7 +247,108 @@ function renderProduction() {
     }
   });
   el.innerHTML = html;
+
+  const subEl = document.getElementById('prodSubtitle');
+  if (subEl) {
+    const totalActive = stages.reduce((acc, s) => acc + (Number(s.count) || 0), 0);
+    const branchSel = document.getElementById('prodBranchSelect');
+    const selectedBranchText = (branchSel && branchSel.selectedIndex >= 0 && branchSel.value !== 'ALL')
+      ? branchSel.options[branchSel.selectedIndex].text
+      : '';
+    subEl.textContent = selectedBranchText 
+      ? `${totalActive} active garments in ${selectedBranchText}`
+      : `${totalActive} active garments across all stages`;
+  }
+
   setupProductionScroll();
+}
+
+async function initProductionBranchFilter() {
+  const wrap = document.getElementById('prodBranchFilterWrap');
+  const sel = document.getElementById('prodBranchSelect');
+  if (!wrap || !sel) return;
+
+  const user = (typeof Auth !== 'undefined' && typeof Auth.getUser === 'function')
+    ? Auth.getUser()
+    : null;
+  const role = (user?.role || '').replace('ROLE_', '').toUpperCase();
+  const isOwner = (role === 'OWNER' || role === 'ADMIN' || role === 'SUPER_ADMIN');
+  const allowedBranches = Array.isArray(user?.allowedBranches) && user.allowedBranches.length > 0
+    ? user.allowedBranches
+    : (user?.assignedBranch ? [user.assignedBranch] : []);
+  const isMultiBranch = !isOwner && allowedBranches.length > 1;
+
+  // Only Owner and Multi-Branch users can filter
+  if (!isOwner && !isMultiBranch) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'flex';
+
+  try {
+    let branches = [];
+    if (typeof api !== 'undefined' && api.branches && typeof api.branches.list === 'function') {
+      branches = await api.branches.list().catch(() => []);
+    }
+
+    let optionsHtml = '';
+    if (isOwner) {
+      optionsHtml += `<option value="ALL">🏢 All Branches</option>`;
+      if (Array.isArray(branches) && branches.length > 0) {
+        branches.forEach(b => {
+          const bCode = b.branchCode || b.code || b;
+          const bName = b.name || bCode;
+          optionsHtml += `<option value="${bCode}">${bName}</option>`;
+        });
+      }
+    } else if (isMultiBranch) {
+      allowedBranches.forEach(b => {
+        const bCode = typeof b === 'object' ? (b.branchCode || b.code || b.name) : b;
+        const bName = typeof b === 'object' ? (b.name || b.branchCode) : b;
+        optionsHtml += `<option value="${bCode}">${bName}</option>`;
+      });
+    }
+
+    sel.innerHTML = optionsHtml;
+
+    // Set initial value based on active branch in storage or fallback
+    const currentActive = localStorage.getItem('haulo_active_branch');
+    if (currentActive && currentActive !== 'ALL' && sel.querySelector(`option[value="${currentActive}"]`)) {
+      sel.value = currentActive;
+    } else {
+      sel.value = isOwner ? 'ALL' : (allowedBranches[0] || 'ALL');
+    }
+
+    if (!sel._wired) {
+      sel._wired = true;
+      sel.addEventListener('change', async (e) => {
+        const chosenBranch = e.target.value;
+        await refreshProductionPulseForBranch(chosenBranch);
+      });
+    }
+  } catch (err) {
+    console.warn('[Dashboard] Could not initialize branch filter:', err);
+  }
+}
+
+async function refreshProductionPulseForBranch(branch) {
+  try {
+    const params = (branch && branch !== 'ALL') ? { branch } : {};
+    const kpis = await api.dashboard.kpis(params);
+    if (kpis && kpis.productionPulse) {
+      dashboardData.production = kpis.productionPulse.map(p => ({
+        name: p.name || (p.stage ? p.stage.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Stage'),
+        count: Number(p.count) || 0,
+        color: p.color || '#c084fc',
+        icon: 'needle',
+        imageUrl: p.imageUrl || null
+      }));
+      renderProduction();
+    }
+  } catch (err) {
+    console.error('[Dashboard] Failed to filter Production Pulse by branch:', err);
+  }
 }
 
 function setupProductionScroll() {
@@ -818,6 +919,7 @@ async function init() {
   renderQuickActions();
   setupDropdowns();
   setupSearch();
+  await initProductionBranchFilter();
 
   // Fetch live KPIs from API and patch dashboardData
   try {
