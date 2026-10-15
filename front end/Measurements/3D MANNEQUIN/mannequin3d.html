@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Mannequin Visualiser — Haulo Boutique ERP</title>
+  <meta name="description" content="Interactive 3D mannequin with real-time garment fit and measurement visualisation for Fashion ERP." />
+
+  <!-- Typography -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Three.js r134 — last version with legacy examples/js/ OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+  <!-- OrbitControls (legacy path, works in r134) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Inline OrbitControls fallback in case CDN is unreachable (file:// usage) -->
+  <script>
+  window.__orbitFallback=true;
+  // Minimal OrbitControls polyfill — only activates if CDN version failed to load
+  document.addEventListener('DOMContentLoaded',function(){
+    if(typeof THREE!=='undefined'&&!THREE.OrbitControls){
+      THREE.OrbitControls=function(camera,domEl){
+        this.camera=camera;this.domEl=domEl||document.body;
+        this.enableDamping=false;this.dampingFactor=0.05;
+        this.autoRotate=false;this.autoRotateSpeed=1;
+        this.minDistance=0.5;this.maxDistance=50;
+        this.maxPolarAngle=Math.PI;
+        this.target=new THREE.Vector3();
+        var self=this,isDragging=false,prevX=0,prevY=0,spherical={theta:0,phi:Math.PI/2,r:3.8};
+        function getSpherical(){
+          var d=camera.position.clone().sub(self.target);
+          spherical.r=d.length();
+          spherical.phi=Math.acos(Math.max(-1,Math.min(1,d.y/spherical.r)));
+          spherical.theta=Math.atan2(d.x,d.z);
+        }
+        function applySpherical(){
+          var r=Math.max(self.minDistance,Math.min(self.maxDistance,spherical.r));
+          spherical.phi=Math.max(0.05,Math.min(self.maxPolarAngle,spherical.phi));
+          camera.position.set(
+            self.target.x+r*Math.sin(spherical.phi)*Math.sin(spherical.theta),
+            self.target.y+r*Math.cos(spherical.phi),
+            self.target.z+r*Math.sin(spherical.phi)*Math.cos(spherical.theta)
+          );camera.lookAt(self.target);
+        }
+        getSpherical();
+        domEl.addEventListener('mousedown',function(e){isDragging=true;prevX=e.clientX;prevY=e.clientY;});
+        document.addEventListener('mouseup',function(){isDragging=false;});
+        document.addEventListener('mousemove',function(e){
+          if(!isDragging)return;
+          var dx=e.clientX-prevX,dy=e.clientY-prevY;
+          prevX=e.clientX;prevY=e.clientY;
+          spherical.theta-=dx*0.005;
+          spherical.phi-=dy*0.005;
+          applySpherical();
+        });
+        domEl.addEventListener('wheel',function(e){
+          spherical.r*=(e.deltaY>0?1.1:0.9);applySpherical();e.preventDefault();
+        },{passive:false});
+        this.update=function(){
+          if(self.autoRotate){spherical.theta+=0.005*self.autoRotateSpeed;applySpherical();}
+        };
+        this.dispose=function(){};
+      };
+      console.info('[Mannequin3D] Using fallback OrbitControls (CDN unreachable)');
+    }
+  });
+  </script>
+
+  <!-- Shared fragments -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="mannequin3d.css" />
+  <script src="../../fragments/nav.js"></script>
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="measurements">
+
+  <!-- Background -->
+  <div class="app-background">
+    <div class="bg-image-layer"></div>
+    <div class="bg-gradient-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <main class="app-shell" id="appShell">
+
+    <!-- Sidebar -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main content -->
+    <div class="main-area">
+      <div id="navbarSlot"></div>
+
+      <div class="mannequin-workspace">
+
+        <!-- Top bar -->
+        <div class="workspace-top-bar">
+          <div id="breadcrumbSlot"></div>
+          <nav class="top-nav-tabs" aria-label="Measurement Tabs">
+            <button type="button" class="tab-pill" id="tabOverview">Overview</button>
+            <button type="button" class="tab-pill active" id="tabMannequin">3D Mannequin</button>
+            <button type="button" class="tab-pill" id="tabFit">Fit Analysis</button>
+            <button type="button" class="tab-pill" id="tabHistory">History</button>
+          </nav>
+        </div>
+
+        <!-- Page heading + customer bar -->
+        <div class="hero-section">
+          <div class="page-heading">
+            <h1 class="page-title">3D Mannequin<br/>Visualiser</h1>
+            <p class="page-subtitle">Live body-proportion & garment fit preview</p>
+          </div>
+
+          <!-- Customer bar -->
+          <div class="glass-card customer-bar" style="flex:1;min-width:260px;">
+            <div class="customer-avatar-sm" id="custInitials">CU</div>
+            <div class="customer-bar-info">
+              <div class="customer-bar-name" id="custName">Loading customer…</div>
+              <div class="customer-bar-meta" id="custMeta">Select a customer to begin</div>
+            </div>
+            <div class="customer-bar-actions">
+              <button type="button" class="btn-sm btn-ghost" id="btnChangeCust" data-tip="Change Customer">
+                <i data-lucide="user-search" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="btn-sm btn-primary" id="btnSaveMeas">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== MAIN 3-COLUMN GRID ===================== -->
+        <div class="mannequin-main-grid">
+
+          <!-- ── LEFT: Controls Panel ── -->
+          <div class="glass-card controls-panel">
+
+            <!-- Customer select -->
+            <div class="panel-section">
+              <div class="panel-section-title">Customer</div>
+              <label class="ctrl-label" for="customerSelect">Select Customer</label>
+              <select class="ctrl-select" id="customerSelect">
+                <option value="">— Loading —</option>
+              </select>
+            </div>
+
+            <!-- Garment type -->
+            <div class="panel-section">
+              <div class="panel-section-title">Garment Type</div>
+              <div class="garment-type-grid" id="garmentTypeGrid">
+                <button type="button" class="garment-btn active" data-garment="Blouse">Blouse</button>
+                <button type="button" class="garment-btn" data-garment="Saree">Saree Blouse</button>
+                <button type="button" class="garment-btn" data-garment="Kurti">Kurti</button>
+                <button type="button" class="garment-btn" data-garment="Lehenga">Lehenga</button>
+                <button type="button" class="garment-btn" data-garment="Churidar">Churidar</button>
+                <button type="button" class="garment-btn" data-garment="Gown">Gown</button>
+              </div>
+            </div>
+
+            <!-- View angle -->
+            <div class="panel-section">
+              <div class="panel-section-title">View Angle</div>
+              <div class="view-btn-group">
+                <button type="button" class="view-btn active" data-view="front" id="viewFront">
+                  <i data-lucide="user" style="width:12px;height:12px;"></i> Front
+                </button>
+                <button type="button" class="view-btn" data-view="side" id="viewSide">
+                  <i data-lucide="user" style="width:12px;height:12px;transform:scaleX(-1)"></i> Side
+                </button>
+                <button type="button" class="view-btn" data-view="back" id="viewBack">
+                  <i data-lucide="user" style="width:12px;height:12px;"></i> Back
+                </button>
+              </div>
+            </div>
+
+            <!-- Measurements -->
+            <div class="panel-section">
+              <div class="panel-section-title">Body Measurements</div>
+              <div id="measInputList" style="display:flex;flex-direction:column;gap:0.4rem;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Display options -->
+            <div class="panel-section">
+              <div class="panel-section-title">Display</div>
+              <div style="display:flex;flex-direction:column;gap:0.55rem;">
+                <label class="toggle-row">
+                  <span class="toggle-label">Measurement Labels</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="toggleLabels" checked />
+                    <div class="toggle-track"></div>
+                  </div>
+                </label>
+                <label class="toggle-row">
+                  <span class="toggle-label">Garment Overlay</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="toggleGarment" checked />
+                    <div class="toggle-track"></div>
+                  </div>
+                </label>
+                <label class="toggle-row">
+                  <span class="toggle-label">Wireframe Mode</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="toggleWireframe" />
+                    <div class="toggle-track"></div>
+                  </div>
+                </label>
+                <label class="toggle-row">
+                  <span class="toggle-label">Auto-Rotate</span>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="toggleAutoRotate" />
+                    <div class="toggle-track"></div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- History (last 3) -->
+            <div class="panel-section">
+              <div class="panel-section-title">Recent Sessions</div>
+              <div id="historyList" style="display:flex;flex-direction:column;gap:0.45rem;">
+                <div style="font-size:0.7rem;color:var(--c-text-sec,#b8a98a);opacity:0.6;">No history yet</div>
+              </div>
+            </div>
+
+          </div>
+          <!-- end left panel -->
+
+          <!-- ── CENTRE: 3D Viewer ── -->
+          <div class="glass-card viewer-panel">
+
+            <!-- Three.js canvas mount -->
+            <div id="mannequin-canvas-wrapper">
+
+              <!-- Loader overlay -->
+              <div class="viewer-loader" id="viewerLoader">
+                <div class="loader-spinner"></div>
+                <div class="loader-text">Building Mannequin…</div>
+              </div>
+
+              <!-- Live badge -->
+              <div class="viewer-badge">Live 3D Preview</div>
+
+              <!-- Size badge (top right) -->
+              <div class="viewer-size-badge" id="sizeBadge">
+                <span class="size-value" id="sizeLabel">M</span>
+                <span id="sizeDetail">Estimated Size</span>
+              </div>
+
+              <!-- SVG measurement overlay -->
+              <svg class="measurement-overlay" id="measOverlaySvg" xmlns="http://www.w3.org/2000/svg">
+                <!-- dynamically populated lines & labels -->
+              </svg>
+
+            </div>
+            <!-- end canvas wrapper -->
+
+            <!-- Bottom toolbar -->
+            <div class="viewer-toolbar">
+              <button type="button" class="viewer-tool-btn" id="toolReset" data-tip="Reset View">
+                <i data-lucide="refresh-ccw" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="viewer-tool-btn" id="toolZoomIn" data-tip="Zoom In">
+                <i data-lucide="zoom-in" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="viewer-tool-btn" id="toolZoomOut" data-tip="Zoom Out">
+                <i data-lucide="zoom-out" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="viewer-tool-btn active" id="toolOrbit" data-tip="Orbit">
+                <i data-lucide="rotate-3d" style="width:14px;height:14px;"></i>
+              </button>
+              <div style="width:1px;height:20px;background:rgba(255,255,255,0.08);margin:0 0.15rem;align-self:center;"></div>
+              <button type="button" class="viewer-tool-btn" id="toolScreenshot" data-tip="Screenshot">
+                <i data-lucide="camera" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+
+          </div>
+          <!-- end viewer panel -->
+
+          <!-- ── RIGHT: Data & Stats ── -->
+          <div class="glass-card data-panel">
+
+            <!-- Fit score gauge -->
+            <div class="panel-section">
+              <div class="panel-section-title">Fit Score</div>
+              <div class="fit-gauge-wrap">
+                <div class="fit-gauge">
+                  <svg viewBox="0 0 120 60" width="120" height="60">
+                    <!-- track arc -->
+                    <path d="M10 55 A50 50 0 0 1 110 55" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" stroke-linecap="round"/>
+                    <!-- fill arc (animated) -->
+                    <path id="gaugeArc" d="M10 55 A50 50 0 0 1 110 55" fill="none" stroke="#a8c14a" stroke-width="8" stroke-linecap="round"
+                          stroke-dasharray="157" stroke-dashoffset="40"
+                          style="transition:stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1);"/>
+                    <!-- needle dot -->
+                    <circle id="gaugeNeedle" cx="60" cy="55" r="5" fill="#a8c14a" style="transition:cx 0.8s, cy 0.8s;"/>
+                  </svg>
+                  <div class="fit-gauge-label">
+                    <span class="fit-gauge-value" id="fitScoreValue">87</span>
+                    <span class="fit-gauge-sub">Fit Score</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Size recommendation -->
+            <div class="panel-section">
+              <div class="panel-section-title">Size Recommendation</div>
+              <div class="size-rec-card">
+                <div class="size-rec-letter" id="recSizeLetter">M</div>
+                <div class="size-rec-info">
+                  <div class="size-rec-title" id="recSizeLabel">Medium</div>
+                  <div class="size-rec-range" id="recSizeRange">Bust 36–38 · Waist 30–32</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stat breakdown -->
+            <div class="panel-section">
+              <div class="panel-section-title">Measurements</div>
+              <div id="statList" style="display:flex;flex-direction:column;">
+                <!-- dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Alteration notes -->
+            <div class="panel-section">
+              <div class="panel-section-title">Alteration Notes</div>
+              <div id="alterationList" style="display:flex;flex-direction:column;gap:0.4rem;">
+                <div class="alert-item">
+                  <div class="alert-icon tip">✦</div>
+                  <span>Enter measurements to see alteration suggestions.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <!-- end right panel -->
+
+        </div>
+        <!-- end main grid -->
+
+      </div>
+      <!-- end workspace -->
+
+    </div>
+    <!-- end main-area -->
+  </main>
+
+  <!-- 3D Mannequin controller -->
+  <script src="mannequin3d.js"></script>
+
+</body>
+</html>

@@ -303,10 +303,358 @@
                         <span class="fabric-badge-dot"></span>
                         <span class="fabric-badge-text" id="stageFabricBadgeText">Raw Silk · +0.5" Bodice Ease</span>
                       </div>
-                      <img src="../../assets/mannequin-duo.jpg" alt="Body Measurement Map Mannequin" class="mannequin-duo-img" id="mannequinDuoImg" />
+                      <!-- 3D Vector Couture Mannequin Duo Stage -->
+                      <!-- 3D Vector Couture Wireframe Dress Form Mannequin Duo on Stands -->
+                      <svg class="mannequin-duo-svg" id="mannequinDuoSvg" viewBox="0 0 640 380" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <!-- Vignette & Floor Shadows -->
+                          <radialGradient id="standFloorShadow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#000000" stop-opacity="0.9" />
+                            <stop offset="50%" stop-color="#000000" stop-opacity="0.45" />
+                            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+                          </radialGradient>
+
+                          <!-- Atelier Muslin Fabric 3D Body Gradient -->
+                          <linearGradient id="dummyFabricFront" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#2a2824" />
+                            <stop offset="12%" stop-color="#46423b" />
+                            <stop offset="28%" stop-color="#676259" />
+                            <stop offset="50%" stop-color="#888175" />
+                            <stop offset="72%" stop-color="#69645b" />
+                            <stop offset="88%" stop-color="#45413a" />
+                            <stop offset="100%" stop-color="#252320" />
+                          </linearGradient>
+
+                          <linearGradient id="dummyFabricBack" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#262421" />
+                            <stop offset="14%" stop-color="#403c36" />
+                            <stop offset="32%" stop-color="#5f5a52" />
+                            <stop offset="50%" stop-color="#7d776d" />
+                            <stop offset="68%" stop-color="#615c54" />
+                            <stop offset="86%" stop-color="#3f3b35" />
+                            <stop offset="100%" stop-color="#22201d" />
+                          </linearGradient>
+
+                          <!-- Turned Walnut Wood Gradient (Finial & Spindle) -->
+                          <linearGradient id="walnutWoodGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#261b11" />
+                            <stop offset="25%" stop-color="#543c25" />
+                            <stop offset="50%" stop-color="#8d6842" />
+                            <stop offset="75%" stop-color="#5e442a" />
+                            <stop offset="100%" stop-color="#22180e" />
+                          </linearGradient>
+
+                          <!-- Stand Metal Rod (Satin Steel) -->
+                          <linearGradient id="steelRodGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#2e2c29" />
+                            <stop offset="35%" stop-color="#7a7670" />
+                            <stop offset="55%" stop-color="#b8b2a7" />
+                            <stop offset="75%" stop-color="#706d67" />
+                            <stop offset="100%" stop-color="#262422" />
+                          </linearGradient>
+
+                          <!-- Stand Pedestal Base -->
+                          <linearGradient id="standBasePlateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#584c3c" />
+                            <stop offset="40%" stop-color="#3a3227" />
+                            <stop offset="75%" stop-color="#231e17" />
+                            <stop offset="100%" stop-color="#14110d" />
+                          </linearGradient>
+
+                          <!-- Armscye Cap Plate Gradient -->
+                          <linearGradient id="armscyeCapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#1f1d19" />
+                            <stop offset="50%" stop-color="#3b3730" />
+                            <stop offset="100%" stop-color="#575147" />
+                          </linearGradient>
+
+                          <!-- Soft Drop Shadow Filter -->
+                          <filter id="dummyDepthShadow" x="-20%" y="-10%" width="140%" height="130%">
+                            <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.8" />
+                          </filter>
+                        </defs>
+
+                        <!-- Floor Pedestal Drop Shadows -->
+                        <ellipse cx="220" cy="365" rx="56" ry="10" fill="url(#standFloorShadow)" />
+                        <ellipse cx="430" cy="365" rx="56" ry="10" fill="url(#standFloorShadow)" />
+
+                        <!-- ======================================================== -->
+                        <!-- 1. LEFT MANNEQUIN: FRONT VIEW COUTURE WIREFRAME DRESS FORM -->
+                        <!-- ======================================================== -->
+                        <g id="frontDressForm" filter="url(#dummyDepthShadow)">
+                          <!-- Central Upright Stand Pole -->
+                          <rect x="218.5" y="274" width="3" height="84" fill="url(#steelRodGrad)" />
+
+                          <!-- Stand Spindle Turned Wood Urn & Collar -->
+                          <rect x="216" y="294" width="8" height="4" rx="1.5" fill="url(#walnutWoodGrad)" stroke="rgba(255,255,255,0.15)" stroke-width="0.5" />
+                          <path d="M 215,302 C 215,298 225,298 225,302 C 226,308 226,316 225,321 C 225,324 215,324 215,321 C 214,316 214,308 215,302 Z" fill="url(#walnutWoodGrad)" />
+                          <line x1="214.5" y1="308" x2="225.5" y2="308" stroke="#1d140b" stroke-width="0.9" />
+                          <line x1="214.5" y1="315" x2="225.5" y2="315" stroke="#1d140b" stroke-width="0.9" />
+                          <rect x="216" y="324" width="8" height="4" rx="1.5" fill="url(#walnutWoodGrad)" stroke="rgba(255,255,255,0.15)" stroke-width="0.5" />
+
+                          <!-- Pedestal Round Base Plate -->
+                          <ellipse cx="220" cy="358" rx="30" ry="7.5" fill="url(#standBasePlateGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="0.8" />
+                          <path d="M 190,358 C 190,364 250,364 250,358 L 251,363 C 251,368 189,368 189,363 Z" fill="#201b15" />
+                          <ellipse cx="220" cy="363" rx="31.5" ry="5.5" fill="#14110d" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" />
+
+                          <!-- Dress Form Torso Silhouette Body -->
+                          <path id="svgFrontSilhouette"
+                                d="M 207,54 
+                                   L 207,70 
+                                   C 192,75 174,83 160,92
+                                   C 152,98 152,118 172,134
+                                   C 168,145 167,156 170,168
+                                   C 174,184 183,196 186,204
+                                   C 183,218 176,234 170,248
+                                   C 167,256 167,262 168,266
+                                   C 180,277 206,280 220,280
+                                   C 234,280 260,277 272,266
+                                   C 273,262 273,256 270,248
+                                   C 264,234 257,218 254,204
+                                   C 257,196 266,184 270,168
+                                   C 273,156 272,145 268,134
+                                   C 288,118 288,98 280,92
+                                   C 266,83 248,75 233,70
+                                   L 233,54 Z"
+                                fill="url(#dummyFabricFront)"
+                                stroke="rgba(255,255,255,0.2)"
+                                stroke-width="0.8" />
+
+                          <!-- Flat Tailored Hem Bottom Ellipse Plate -->
+                          <ellipse id="svgFrontHemPlate" cx="220" cy="273" rx="52" ry="7.5" fill="#1e1c19" stroke="rgba(215,208,195,0.4)" stroke-width="0.8" />
+                          <ellipse cx="220" cy="273" rx="8" ry="3" fill="#0d0c0a" />
+
+                          <!-- Left & Right Armscye Oval Cutoff Caps -->
+                          <ellipse id="svgFrontArmscyeL" cx="163" cy="113" rx="5.5" ry="16" transform="rotate(-16, 163, 113)" fill="url(#armscyeCapGrad)" stroke="rgba(215,208,195,0.4)" stroke-width="0.8" />
+                          <ellipse id="svgFrontArmscyeR" cx="277" cy="113" rx="5.5" ry="16" transform="rotate(16, 277, 113)" fill="url(#armscyeCapGrad)" stroke="rgba(215,208,195,0.4)" stroke-width="0.8" />
+
+                          <!-- ============================================== -->
+                          <!-- 3D TOPOLOGY WIREFRAME QUAD-MESH (FRONT VIEW) -->
+                          <!-- ============================================== -->
+                          <!-- Horizontal Latitudinal Contour Rings (curving in 3D perspective) -->
+                          <g id="svgFrontHorizontalRings" fill="none" stroke="rgba(218, 212, 198, 0.46)" stroke-width="0.65">
+                            <path d="M 207,60 Q 220,63 233,60" />
+                            <path d="M 207,66 Q 220,70 233,66" />
+                            <path d="M 207,72 Q 220,76 233,72" />
+                            <path d="M 188,78 Q 220,85 252,78" />
+                            <path d="M 172,87 Q 220,95 268,87" />
+                            <path d="M 162,99 Q 220,108 278,99" />
+                            <path d="M 160,112 Q 220,123 280,112" />
+                            <path d="M 164,126 Q 220,138 276,126" />
+                            <path d="M 168,138 Q 220,150 272,138" />
+                            <!-- Bustline Apex Ring -->
+                            <path d="M 167,148 Q 220,161 273,148" stroke="rgba(242, 238, 228, 0.75)" stroke-width="0.9" />
+                            <path d="M 169,158 Q 220,172 271,158" />
+                            <path d="M 171,168 Q 220,181 269,168" stroke="rgba(242, 238, 228, 0.7)" stroke-width="0.8" />
+                            <path d="M 175,178 Q 220,191 265,178" />
+                            <path d="M 180,188 Q 220,200 260,188" />
+                            <path d="M 183,196 Q 220,207 257,196" />
+                            <!-- Waistline Belt (Tailoring Landmark) -->
+                            <path d="M 186,204 Q 220,215 254,204" stroke="#B8FF3D" stroke-width="1.1" stroke-opacity="0.85" stroke-dasharray="3,2" />
+                            <path d="M 183,213 Q 220,224 257,213" />
+                            <path d="M 180,222 Q 220,233 260,222" />
+                            <path d="M 176,232 Q 220,243 264,232" />
+                            <path d="M 172,242 Q 220,253 268,242" />
+                            <path d="M 169,252 Q 220,263 271,252" />
+                            <path d="M 168,261 Q 220,272 272,261" />
+                            <path d="M 168,266 Q 220,277 272,266" stroke="rgba(242, 238, 228, 0.75)" stroke-width="0.85" />
+                          </g>
+
+                          <!-- Vertical Longitudinal Contour Ribs (Meridians) -->
+                          <g id="svgFrontVerticalRibs" fill="none" stroke="rgba(218, 212, 198, 0.44)" stroke-width="0.65">
+                            <!-- Center Front Seam Tape -->
+                            <path d="M 220,54 L 220,70 L 220,279" stroke="rgba(245, 240, 230, 0.85)" stroke-width="1.1" />
+                            <!-- Inner Sternum Ribs -->
+                            <path d="M 215,54 C 215,70 214,110 213,148 C 212,185 216,204 216,204 C 216,220 213,250 211,279" />
+                            <path d="M 225,54 C 225,70 226,110 227,148 C 228,185 224,204 224,204 C 224,220 227,250 229,279" />
+                            <!-- Mid Breast Apex Ribs -->
+                            <path d="M 210,54 C 206,75 197,112 195,148 C 194,182 205,204 205,204 C 205,225 198,252 196,277" stroke="rgba(240, 235, 225, 0.65)" stroke-width="0.75" />
+                            <path d="M 230,54 C 234,75 243,112 245,148 C 246,182 235,204 235,204 C 235,225 242,252 244,277" stroke="rgba(240, 235, 225, 0.65)" stroke-width="0.75" />
+                            <!-- Outer Breast Ribs -->
+                            <path d="M 200,74 C 190,105 183,138 184,158 C 185,182 196,204 196,204 C 196,225 187,252 185,274" />
+                            <path d="M 240,74 C 250,105 257,138 256,158 C 255,182 244,204 244,204 C 244,225 253,252 255,274" />
+                            <!-- Anterolateral Ribs -->
+                            <path d="M 188,78 C 178,105 174,136 176,162 C 178,185 188,204 188,204 C 188,225 177,252 176,270" />
+                            <path d="M 252,78 C 262,105 266,136 264,162 C 262,185 252,204 252,204 C 252,225 263,252 264,270" />
+                            <!-- Flank Ribs -->
+                            <path d="M 174,86 C 166,108 168,138 172,166 C 174,185 183,204 183,204 C 183,225 172,252 170,268" />
+                            <path d="M 266,86 C 274,108 272,138 268,166 C 266,185 257,204 257,204 C 257,225 268,252 270,268" />
+                          </g>
+
+                          <!-- Concentric Breast Wireframe Topology Rings (Ref: Image 2) -->
+                          <g id="svgFrontBreastLoops" fill="none" stroke="rgba(225, 218, 204, 0.52)" stroke-width="0.65">
+                            <!-- Left Breast Rings -->
+                            <ellipse cx="195" cy="148" rx="7" ry="6" stroke="rgba(245, 240, 228, 0.75)" stroke-width="0.8" />
+                            <ellipse cx="195" cy="148" rx="14" ry="12" />
+                            <ellipse cx="195" cy="148" rx="21" ry="17" />
+                            <ellipse cx="195" cy="148" rx="28" ry="22" stroke="rgba(215, 208, 195, 0.35)" />
+                            <!-- Radial Breast Topology Spokes -->
+                            <line x1="190" y1="143" x2="175" y2="132" />
+                            <line x1="200" y1="143" x2="212" y2="133" />
+                            <line x1="190" y1="153" x2="177" y2="164" />
+                            <line x1="200" y1="153" x2="212" y2="163" />
+
+                            <!-- Right Breast Rings -->
+                            <ellipse cx="245" cy="148" rx="7" ry="6" stroke="rgba(245, 240, 228, 0.75)" stroke-width="0.8" />
+                            <ellipse cx="245" cy="148" rx="14" ry="12" />
+                            <ellipse cx="245" cy="148" rx="21" ry="17" />
+                            <ellipse cx="245" cy="148" rx="28" ry="22" stroke="rgba(215, 208, 195, 0.35)" />
+                            <!-- Radial Breast Topology Spokes -->
+                            <line x1="250" y1="143" x2="265" y2="132" />
+                            <line x1="240" y1="143" x2="228" y2="133" />
+                            <line x1="250" y1="153" x2="263" y2="164" />
+                            <line x1="240" y1="153" x2="228" y2="163" />
+                          </g>
+
+                          <!-- Neck Collar Cap & Turned Wood Finial Knob -->
+                          <ellipse cx="220" cy="54" rx="14" ry="4.5" fill="url(#walnutWoodGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="0.8" />
+                          <!-- Turned Wooden Neck Finial (Acorn / Finial Knob) -->
+                          <rect x="217" y="47" width="6" height="4" rx="1" fill="url(#walnutWoodGrad)" />
+                          <path d="M 220,22 
+                                   C 215,22 212,27 212,34 
+                                   C 212,41 216,45 218,48 
+                                   L 222,48 
+                                   C 224,45 228,41 228,34 
+                                   C 228,27 225,22 220,22 Z"
+                                fill="url(#walnutWoodGrad)"
+                                stroke="rgba(255,255,255,0.2)"
+                                stroke-width="0.7" />
+                          <!-- Finial Wood Turn Grooves -->
+                          <line x1="214" y1="36" x2="226" y2="36" stroke="#1d140b" stroke-width="0.8" />
+                          <line x1="216" y1="42" x2="224" y2="42" stroke="#1d140b" stroke-width="0.8" />
+                        </g>
+
+                        <!-- ======================================================= -->
+                        <!-- 2. RIGHT MANNEQUIN: BACK VIEW COUTURE WIREFRAME DRESS FORM -->
+                        <!-- ======================================================= -->
+                        <g id="backDressForm" filter="url(#dummyDepthShadow)">
+                          <!-- Central Upright Stand Pole -->
+                          <rect x="428.5" y="274" width="3" height="84" fill="url(#steelRodGrad)" />
+
+                          <!-- Stand Spindle Turned Wood Urn & Collar -->
+                          <rect x="426" y="294" width="8" height="4" rx="1.5" fill="url(#walnutWoodGrad)" stroke="rgba(255,255,255,0.15)" stroke-width="0.5" />
+                          <path d="M 425,302 C 425,298 435,298 435,302 C 436,308 436,316 435,321 C 435,324 425,324 425,321 C 424,316 424,308 425,302 Z" fill="url(#walnutWoodGrad)" />
+                          <line x1="424.5" y1="308" x2="435.5" y2="308" stroke="#1d140b" stroke-width="0.9" />
+                          <line x1="424.5" y1="315" x2="435.5" y2="315" stroke="#1d140b" stroke-width="0.9" />
+                          <rect x="426" y="324" width="8" height="4" rx="1.5" fill="url(#walnutWoodGrad)" stroke="rgba(255,255,255,0.15)" stroke-width="0.5" />
+
+                          <!-- Pedestal Round Base Plate -->
+                          <ellipse cx="430" cy="358" rx="30" ry="7.5" fill="url(#standBasePlateGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="0.8" />
+                          <path d="M 400,358 C 400,364 460,364 460,358 L 461,363 C 461,368 399,368 399,363 Z" fill="#201b15" />
+                          <ellipse cx="430" cy="363" rx="31.5" ry="5.5" fill="#14110d" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" />
+
+                          <!-- Dress Form Torso Silhouette Body (Back View) -->
+                          <path id="svgBackSilhouette"
+                                d="M 417,54 
+                                   L 417,70 
+                                   C 402,75 384,83 370,92
+                                   C 362,98 362,118 382,134
+                                   C 378,145 377,156 380,168
+                                   C 384,184 393,196 396,204
+                                   C 393,218 386,234 380,248
+                                   C 377,256 377,262 378,266
+                                   C 390,277 416,280 430,280
+                                   C 444,280 470,277 482,266
+                                   C 483,262 483,256 480,248
+                                   C 474,234 467,218 464,204
+                                   C 467,196 476,184 480,168
+                                   C 483,156 482,145 478,134
+                                   C 498,118 498,98 490,92
+                                   C 476,83 458,75 443,70
+                                   L 443,54 Z"
+                                fill="url(#dummyFabricBack)"
+                                stroke="rgba(255,255,255,0.2)"
+                                stroke-width="0.8" />
+
+                          <!-- Flat Tailored Hem Bottom Ellipse Plate -->
+                          <ellipse id="svgBackHemPlate" cx="430" cy="273" rx="52" ry="7.5" fill="#1e1c19" stroke="rgba(215,208,195,0.4)" stroke-width="0.8" />
+                          <ellipse cx="430" cy="273" rx="8" ry="3" fill="#0d0c0a" />
+
+                          <!-- Left & Right Armscye Oval Cutoff Caps (Back View) -->
+                          <ellipse id="svgBackArmscyeL" cx="373" cy="113" rx="5.5" ry="16" transform="rotate(-16, 373, 113)" fill="url(#armscyeCapGrad)" stroke="rgba(215,208,195,0.4)" stroke-width="0.8" />
+                          <ellipse id="svgBackArmscyeR" cx="487" cy="113" rx="5.5" ry="16" transform="rotate(16, 487, 113)" fill="url(#armscyeCapGrad)" stroke="rgba(215,208,195,0.4)" stroke-width="0.8" />
+
+                          <!-- ============================================= -->
+                          <!-- 3D TOPOLOGY WIREFRAME QUAD-MESH (BACK VIEW) -->
+                          <!-- ============================================= -->
+                          <!-- Horizontal Latitudinal Rings across the Back -->
+                          <g id="svgBackHorizontalRings" fill="none" stroke="rgba(218, 212, 198, 0.46)" stroke-width="0.65">
+                            <path d="M 417,60 Q 430,63 443,60" />
+                            <path d="M 417,66 Q 430,70 443,66" />
+                            <path d="M 417,72 Q 430,76 443,72" />
+                            <path d="M 398,78 Q 430,85 462,78" />
+                            <path d="M 382,87 Q 430,95 478,87" />
+                            <path d="M 372,99 Q 430,108 488,99" />
+                            <path d="M 370,112 Q 430,123 490,112" />
+                            <path d="M 374,126 Q 430,138 486,126" />
+                            <path d="M 378,138 Q 430,150 482,138" />
+                            <path d="M 377,148 Q 430,161 483,148" />
+                            <path d="M 379,158 Q 430,172 481,158" />
+                            <path d="M 381,168 Q 430,181 479,168" />
+                            <path d="M 385,178 Q 430,191 475,178" />
+                            <path d="M 390,188 Q 430,200 470,188" />
+                            <path d="M 393,196 Q 430,207 467,196" />
+                            <!-- Waistline Belt (Tailoring Landmark) -->
+                            <path d="M 396,204 Q 430,215 464,204" stroke="#B8FF3D" stroke-width="1.1" stroke-opacity="0.85" stroke-dasharray="3,2" />
+                            <path d="M 393,213 Q 430,224 467,213" />
+                            <path d="M 390,222 Q 430,233 470,222" />
+                            <path d="M 386,232 Q 430,243 474,232" />
+                            <path d="M 382,242 Q 430,253 478,242" />
+                            <path d="M 379,252 Q 430,263 481,252" />
+                            <path d="M 378,261 Q 430,272 482,261" />
+                            <path d="M 378,266 Q 430,277 482,266" stroke="rgba(242, 238, 228, 0.75)" stroke-width="0.85" />
+                          </g>
+
+                          <!-- Vertical Longitudinal Contour Ribs (Back Spine & Scapulae) -->
+                          <g id="svgBackVerticalRibs" fill="none" stroke="rgba(218, 212, 198, 0.44)" stroke-width="0.65">
+                            <!-- Center Back Seam (Spine Seam) Tape -->
+                            <path d="M 430,54 L 430,70 L 430,279" stroke="rgba(245, 240, 230, 0.85)" stroke-width="1.1" />
+                            <!-- Paraspinal Ribs -->
+                            <path d="M 425,54 C 425,70 424,110 424,148 C 424,185 426,204 426,204 C 426,220 423,250 421,279" />
+                            <path d="M 435,54 C 435,70 436,110 436,148 C 436,185 434,204 434,204 C 434,220 437,250 439,279" />
+                            <!-- Mid-Scapular Ribs -->
+                            <path d="M 420,54 C 416,75 408,112 407,148 C 406,182 415,204 415,204 C 415,225 408,252 406,277" stroke="rgba(240, 235, 225, 0.65)" stroke-width="0.75" />
+                            <path d="M 440,54 C 444,75 452,112 453,148 C 454,182 445,204 445,204 C 445,225 452,252 454,277" stroke="rgba(240, 235, 225, 0.65)" stroke-width="0.75" />
+                            <!-- Lateral Scapular Ribs -->
+                            <path d="M 410,74 C 400,105 394,138 395,158 C 396,182 406,204 406,204 C 406,225 397,252 395,274" />
+                            <path d="M 450,74 C 460,105 466,138 465,158 C 464,182 454,204 454,204 C 454,225 463,252 465,274" />
+                            <!-- Posterolateral Ribs -->
+                            <path d="M 398,78 C 388,105 384,136 386,162 C 388,185 398,204 398,204 C 398,225 387,252 386,270" />
+                            <path d="M 462,78 C 472,105 476,136 474,162 C 472,185 462,204 462,204 C 462,225 473,252 474,270" />
+                            <!-- Flank Ribs -->
+                            <path d="M 384,86 C 376,108 378,138 382,166 C 384,185 393,204 393,204 C 393,225 382,252 380,268" />
+                            <path d="M 476,86 C 484,108 482,138 478,166 C 476,185 467,204 467,204 C 467,225 478,252 480,268" />
+                          </g>
+
+                          <!-- Scapula (Shoulder Blade) Subtle Contour Enclosures -->
+                          <g fill="none" stroke="rgba(235, 228, 215, 0.45)" stroke-width="0.65">
+                            <ellipse cx="406" cy="124" rx="16" ry="22" stroke-dasharray="3,2" />
+                            <ellipse cx="454" cy="124" rx="16" ry="22" stroke-dasharray="3,2" />
+                            <!-- Back Deep Neck Guideline Tape (Points to Deep Back Neck Drop) -->
+                            <path d="M 417,70 Q 430,96 430,126" stroke="#B8FF3D" stroke-width="1.1" stroke-opacity="0.75" stroke-dasharray="3,2" />
+                          </g>
+
+                          <!-- Neck Collar Cap & Turned Wood Finial Knob -->
+                          <ellipse cx="430" cy="54" rx="14" ry="4.5" fill="url(#walnutWoodGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="0.8" />
+                          <!-- Turned Wooden Neck Finial (Acorn / Finial Knob) -->
+                          <rect x="427" y="47" width="6" height="4" rx="1" fill="url(#walnutWoodGrad)" />
+                          <path d="M 430,22 
+                                   C 425,22 422,27 422,34 
+                                   C 422,41 426,45 428,48 
+                                   L 432,48 
+                                   C 434,45 438,41 438,34 
+                                   C 438,27 435,22 430,22 Z"
+                                fill="url(#walnutWoodGrad)"
+                                stroke="rgba(255,255,255,0.2)"
+                                stroke-width="0.7" />
+                          <!-- Finial Wood Turn Grooves -->
+                          <line x1="424" y1="36" x2="436" y2="36" stroke="#1d140b" stroke-width="0.8" />
+                          <line x1="426" y1="42" x2="434" y2="42" stroke="#1d140b" stroke-width="0.8" />
+                        </g>
+                      </svg>
                       
                       <!-- Overlay Callout Pins (Front View - Left Torso) -->
-                      <div class="pin-callout pin-front-neck" style="top: 17%; left: 14%;">
+                      <div class="pin-callout pin-front-neck" id="pinFrontNeck" style="top: 17%; left: 14%;">
                         <div class="pin-card">
                           <span class="pin-label">Front Neck</span>
                           <span class="pin-value" id="valPinFrontNeck">7.5"</span>
@@ -315,7 +663,7 @@
                         <div class="pin-dot"></div>
                       </div>
 
-                      <div class="pin-callout pin-bust" style="top: 36%; left: 10%;">
+                      <div class="pin-callout pin-bust" id="pinBust" style="top: 36%; left: 10%;">
                         <div class="pin-card">
                           <span class="pin-label">Bust</span>
                           <span class="pin-value" id="valPinBust">36.5"</span>
@@ -324,7 +672,7 @@
                         <div class="pin-dot"></div>
                       </div>
 
-                      <div class="pin-callout pin-waist" style="top: 55%; left: 10%;">
+                      <div class="pin-callout pin-waist" id="pinWaist" style="top: 55%; left: 10%;">
                         <div class="pin-card">
                           <span class="pin-label">Waist</span>
                           <span class="pin-value" id="valPinWaist">30"</span>
@@ -333,7 +681,7 @@
                         <div class="pin-dot"></div>
                       </div>
 
-                      <div class="pin-callout pin-hip" style="top: 73%; left: 10%;">
+                      <div class="pin-callout pin-hip" id="pinHip" style="top: 73%; left: 10%;">
                         <div class="pin-card">
                           <span class="pin-label">Hip</span>
                           <span class="pin-value" id="valPinHip">39"</span>
@@ -343,7 +691,7 @@
                       </div>
 
                       <!-- Overlay Callout Pins (Back View - Right Torso) -->
-                      <div class="pin-callout pin-shoulder" style="top: 14%; right: 10%;">
+                      <div class="pin-callout pin-shoulder" id="pinShoulder" style="top: 14%; right: 10%;">
                         <div class="pin-dot"></div>
                         <div class="pin-line line-left"></div>
                         <div class="pin-card">
@@ -352,7 +700,7 @@
                         </div>
                       </div>
 
-                      <div class="pin-callout pin-armhole" style="top: 29%; right: 10%;">
+                      <div class="pin-callout pin-armhole" id="pinArmhole" style="top: 29%; right: 10%;">
                         <div class="pin-dot"></div>
                         <div class="pin-line line-left"></div>
                         <div class="pin-card">
@@ -361,7 +709,7 @@
                         </div>
                       </div>
 
-                      <div class="pin-callout pin-sleeve" style="top: 45%; right: 10%;">
+                      <div class="pin-callout pin-sleeve" id="pinSleeve" style="top: 45%; right: 10%;">
                         <div class="pin-dot"></div>
                         <div class="pin-line line-left"></div>
                         <div class="pin-card">
@@ -370,7 +718,7 @@
                         </div>
                       </div>
 
-                      <div class="pin-callout pin-back-neck" style="top: 58%; right: 10%;">
+                      <div class="pin-callout pin-back-neck" id="pinBackNeck" style="top: 58%; right: 10%;">
                         <div class="pin-dot"></div>
                         <div class="pin-line line-left"></div>
                         <div class="pin-card">
@@ -379,7 +727,7 @@
                         </div>
                       </div>
 
-                      <div class="pin-callout pin-blouse-length" style="top: 75%; right: 10%;">
+                      <div class="pin-callout pin-blouse-length" id="pinBlouseLength" style="top: 75%; right: 10%;">
                         <div class="pin-dot"></div>
                         <div class="pin-line line-left"></div>
                         <div class="pin-card">
