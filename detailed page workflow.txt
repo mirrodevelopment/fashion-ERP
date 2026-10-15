@@ -1,0 +1,1270 @@
+================================================================================
+    FASHION ERP – DETAILED PAGE-BY-PAGE WORKFLOW DOCUMENTATION
+================================================================================
+Document : Detailed Workflow per Page
+Created  : 2026-10-15
+Version  : 1.0
+Repository: https://github.com/mirrodevelopment/fashion-ERP.git
+================================================================================
+
+This document explains the FULL WORKFLOW of every page in the system,
+what each page does, how it connects to other pages, and what data flows through it.
+
+Main flow:
+Login → Customer Registration → Measurements → Design → Order
+      → Production → Trial → Quality Check → Payment → Delivery
+
+================================================================================
+                        MASTER WORKFLOW OVERVIEW
+================================================================================
+
+STEP   PAGE(S)                           ACTION COMPLETED
+─────  ────────────────────────────────  ─────────────────────────────────────
+  1    login/login.html                  Staff authenticates, gets JWT token
+  2    customer/customer-overview/       Search or browse existing customers
+       customer/new-customer/            Register a new customer
+       customer/Customer360/             View full 360° customer profile
+  3    Measurements/measurement-overview/ Browse all measurement records
+       Measurements/measurement360/      Record body measurements
+       Measurements/3D MANNEQUIN/        Visualize body in 3D
+  4    DesignStudio/design-studio.html   Create / select garment design
+       garments/garments.html            Browse garment catalog
+       garments/new-garment/             Add new garment type
+       garments/garaments 360/           Full garment detail view
+       collections/collections.html      Browse seasonal collections
+       fabrics-materials/               Select fabric and material
+  5    orders/new-order/                 Create the order (wizard)
+       orders/order-overview/            View all orders (status board)
+       orders/view-order/               Full order detail & timeline
+  6    production/production.html        Track order through production stages
+       production/stages/               Detailed per-stage view
+  7    trials-alterations/              Record trial result & alterations
+       appointments/appointments.html   Book trial fitting appointment
+  8    quality-control/                 QC inspection (Pass / Fail)
+  9    payments/payments.html           Collect and record payments
+  10   delivery/delivery.html           Manage and confirm delivery
+
+
+================================================================================
+                    SUPPORTING MODULE PAGES
+================================================================================
+
+  enquiries/enquiries.html              Pre-customer lead management
+  inventory/inventory.html              Fabric & material stock levels
+  purchases/purchases.html              Purchase orders from suppliers
+  suppliers/suppliers.html              Supplier directory
+  WorkforceManagement/workforce.html    Tailor & staff management
+  branches/branches.html               Multi-branch management
+  users-roles/users-roles.html         System user accounts & roles
+  users-roles/create-user/             Create new system user
+  users-roles/recent-access/           Login audit log
+  settings/settings.html               App-wide configuration
+  company/                             Company profile & branding
+  profile/                             Logged-in user's own profile
+  system/                              Low-level system admin
+  dashboard/dashboard.html             KPI home dashboard
+
+
+================================================================================
+================================================================================
+       SECTION A – MAIN WORKFLOW PAGES (DETAILED)
+================================================================================
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 1A: LOGIN
+Path   : front end/login/login.html
+Files  : login.html, login.css, login.js
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Entry gate to the entire system. No page is accessible without a valid JWT.
+
+WHAT HAPPENS ON THIS PAGE:
+  1. User sees a glassmorphism login form with company logo.
+  2. Enters username and password.
+  3. login.js calls: POST /api/v1/auth/login
+  4. Backend (AuthController.java) validates credentials:
+       – Username looked up in users table
+       – BCrypt password hash compared
+       – Role attached to JWT payload
+  5. On success: JWT token stored in localStorage("token").
+  6. Page redirects to: dashboard/dashboard.html
+  7. On failure: Error message shown (invalid credentials / account locked).
+
+WHAT DATA FLOWS OUT:
+  – JWT token (stored in localStorage, used by every subsequent page)
+  – User role (Admin / Tailor / Cashier / Supervisor / Receptionist)
+  – User full name and profile (fetched separately by nav.js)
+
+HOW IT CONNECTS TO OTHER PAGES:
+  → Dashboard (auto-redirect on success)
+  → ALL pages (JWT token in localStorage is required for every API call)
+  → nav.js uses role to show/hide sidebar links
+
+BACKEND:
+  POST /api/v1/auth/login    → Returns { token, role, userId, name }
+  POST /api/v1/auth/refresh  → Refreshes expired token
+
+ROLES & WHAT THEY SEE AFTER LOGIN:
+  Admin       → Full access to all 37 pages
+  Receptionist→ Customers, Appointments, Enquiries, Orders (read-only)
+  Tailor      → Production, Trials, Measurements (their orders only)
+  Cashier     → Payments, Orders (read-only)
+  Supervisor  → Production, QC, Workforce, Reports
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 2A: CUSTOMER OVERVIEW (List)
+Path   : front end/customer/customer-overview/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Central directory of all registered customers.
+
+WHAT HAPPENS ON THIS PAGE:
+  1. Page loads → GET /api/v1/customers → table populated
+  2. Search bar: real-time filter by name or mobile number
+  3. Filter tabs: All / VIP / Regular / New (first visit within 30 days)
+  4. Each row shows: name, mobile, last order date, balance due, branch
+  5. Click any row → navigates to Customer360 for that customer
+  6. "+ New Customer" button → navigates to new-customer form
+
+WHAT DATA IS DISPLAYED:
+  – Customer name, mobile, city, category (VIP/Regular/New)
+  – Last order date and status
+  – Outstanding payment balance
+  – Assigned branch
+
+HOW IT CONNECTS:
+  → New Customer form (to add a new customer)
+  → Customer 360 (click any row for full profile)
+  → Enquiries (convert enquiry into customer)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 2B: NEW CUSTOMER FORM
+Path   : front end/customer/new-customer/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Register a brand new customer in the system.
+
+FIELDS COLLECTED:
+  – Full name (first + last)
+  – Mobile number (UNIQUE identifier in the system)
+  – Email address (optional)
+  – Date of birth (optional – for birthday reminders)
+  – Address (street, city, pincode)
+  – Category: VIP / Regular / Walk-in
+  – Preferred branch
+  – Special preferences or allergies (fabric/chemical sensitivity notes)
+  – Referral source (how they found the boutique)
+  – Profile photo upload (optional)
+
+WHAT HAPPENS ON SUBMIT:
+  1. Validation runs (mobile is mandatory and must be unique)
+  2. POST /api/v1/customers sent
+  3. On success: redirects to Customer360 for the new customer
+  4. Or: shows "Take Measurements Now?" prompt
+
+HOW IT CONNECTS:
+  → Customer Overview (go back to list)
+  → Customer 360 (auto-navigate after creation)
+  → Measurements (take measurements right after registration)
+  → Appointments (book first appointment)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 2C: CUSTOMER 360 VIEW
+Path   : front end/customer/Customer360/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  A complete, consolidated view of everything about one customer.
+
+SECTIONS ON THIS PAGE:
+  1. PROFILE PANEL
+       Name, photo, mobile, email, category badge, branch, join date
+  2. MEASUREMENTS SUMMARY
+       Last recorded measurements with date
+       "Update Measurements" button → Measurement360
+       "View 3D" button → 3D Mannequin
+  3. ORDER HISTORY
+       All orders sorted newest first
+       Order ID, garment, status badge, delivery date, amount
+       Click any order → View Order page
+  4. PAYMENT LEDGER
+       Total billed, total paid, outstanding balance
+       Quick "Collect Payment" button
+  5. APPOINTMENT HISTORY
+       Past and upcoming appointments with type and status
+  6. QUICK ACTIONS ROW
+       [New Order] [New Appointment] [Take Measurement] [Edit Profile]
+
+WHAT DATA IS LOADED:
+  GET /api/v1/customers/{mobile}
+  GET /api/v1/customers/{mobile}/body-measurements
+  GET /api/v1/orders?customer={mobile}
+  GET /api/v1/payments?customer={mobile}
+  GET /api/v1/appointments?customer={mobile}
+
+HOW IT CONNECTS:
+  → New Order (button)
+  → Measurement 360 (button)
+  → 3D Mannequin (button)
+  → View Order (click any order)
+  → Payments (click payment ledger)
+  → Appointments (click appointment)
+  → Edit Customer (pencil icon)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 3A: MEASUREMENT OVERVIEW
+Path   : front end/Measurements/measurement-overview/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  List all customers along with their measurement status and last updated date.
+
+WHAT IS SHOWN:
+  – Customer name + mobile
+  – Last measurement date
+  – Measurement completeness % (how many fields filled)
+  – "Update" and "View 3D" action buttons
+
+NAVIGATION:
+  → Click row → Measurement 360 for that customer
+  → View 3D button → 3D Mannequin Visualizer
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 3B: MEASUREMENT 360 (Data Entry)
+Path   : front end/Measurements/measurement360/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Record all body measurements for a customer. These are reused for every order.
+
+MEASUREMENT FIELDS:
+  UPPER BODY          LOWER BODY          GENERAL
+  ──────────────────  ──────────────────  ──────────────────
+  Bust/Chest          Waist               Height
+  Shoulder Width      Hip                 Weight (optional)
+  Back Length         Thigh               Neck circumference
+  Sleeve Length       Knee to Ankle       Wrist circumference
+  Arm circumference   Foot length (rare)  Posture notes
+
+  GARMENT-SPECIFIC NOTES:
+  – Custom measurement notes per garment type (e.g., "prefers loose waist")
+
+WHAT HAPPENS:
+  1. Customer linked by mobile number (from Customer360 or search)
+  2. Tailor enters each measurement in cm or inches (toggle)
+  3. Visual body diagram highlights each field as it's entered
+  4. POST /api/v1/customers/{mobile}/body-measurements
+  5. History is maintained – each save creates a new version with timestamp
+  6. "View 3D" button → opens 3D Mannequin with new measurements
+
+HOW IT CONNECTS:
+  → 3D Mannequin (view live visualization)
+  → Customer 360 (go back)
+  → New Order (measurements auto-attached when creating order)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 3C: 3D MANNEQUIN VISUALIZER
+Path   : front end/Measurements/3D MANNEQUIN/mannequin3d.html
+Files  : mannequin3d.html, mannequin3d.css, mannequin3d.js
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Interactive 3D visualization of the customer's body shape built from
+  their actual measurements. Helps tailors identify fit issues before cutting.
+
+HOW IT WORKS:
+  1. Customer selected from search dropdown
+  2. GET /api/v1/customers/{mobile}/body-measurements fetched
+  3. Three.js r134 renders a procedural female mannequin
+  4. Cylinder geometries morphed based on:
+       – bust radius       → chest cylinder radius
+       – waist measurement → waist cylinder radius (narrowed)
+       – hip measurement   → hip cylinder radius
+       – height            → overall scale
+       – shoulder width    → shoulder span
+       – sleeve length     → arm cylinder height
+  5. OrbitControls: 360° rotation, scroll to zoom, right-click to pan
+  6. FIT SCORE calculated by comparing to ideal proportions:
+       – Green (90-100%): Excellent fit, no alterations likely
+       – Yellow (70-89%): Minor alterations expected
+       – Red   (<70%):   Significant fitting challenges, flag to supervisor
+  7. Side panel shows measurement list with live values
+  8. "Compare" mode: load two customers side by side
+  9. Alteration suggestions generated based on proportion differences
+  10. Measurement history timeline at bottom
+
+WHAT IT CONNECTS TO:
+  → Trials & Alterations (compare with trial result)
+  → Measurement 360 (update measurements)
+  → Customer 360 (go back to profile)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 4A: DESIGN STUDIO
+Path   : front end/DesignStudio/design-studio.html
+Files  : design-studio.html, design-studio.css, design-studio.js
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Canvas-based garment design tool. Designer and customer together
+  visualize and finalize the garment design before ordering.
+
+FEATURES:
+  – Garment template library (kurta, salwar, saree blouse, suit jacket, etc.)
+  – Fabric swatch selector with texture preview (from fabrics-materials DB)
+  – Stitch pattern library (plain, pintuck, smocking, etc.)
+  – Embroidery placement tool (drag-drop onto garment silhouette)
+  – Color palette picker with seasonal color suggestions
+  – Neckline & sleeve style picker
+  – Lining and interlining options
+  – Save design as named JSON record (POST /api/v1/designs)
+  – Print-ready design sheet: front view, back view, fabric swatch, notes
+
+WORKFLOW ON THIS PAGE:
+  1. Select garment type (base template)
+  2. Pick fabric from catalog (pulls from fabrics DB)
+  3. Choose stitch pattern, neckline, sleeve style
+  4. Add embroidery / embellishments by dragging onto canvas
+  5. Set colors
+  6. Preview front & back
+  7. Save design with a name (e.g., "Blue Silk Kurta – Mrs. Fatima")
+  8. Design ID returned, attached to upcoming order
+
+HOW IT CONNECTS:
+  → Fabrics & Materials (fabric selection)
+  → New Order (design attached to order)
+  → Garments (base garment template)
+  → Production (design sheet sent to tailor)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 4B: GARMENTS CATALOG
+Path   : front end/garments/garments.html
+Sub-pages: new-garment/, garaments 360/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Catalog of all garment types the boutique creates.
+
+GARMENTS LIST PAGE:
+  – Table/grid of all garment types
+  – Name, category, base price, average production time
+  – Quick-view linked active orders count
+  – "+ New Garment" button
+  – Click row → Garment 360 detail
+
+NEW GARMENT FORM:
+  – Garment name (Anarkali, Lehenga, Sherwani, etc.)
+  – Category (women's / men's / kids)
+  – Base price and production time estimate
+  – Required measurements (which body fields are needed)
+  – Default design settings
+
+GARMENT 360 VIEW:
+  – All orders that used this garment type
+  – Average customer rating for this garment
+  – Most common fabric used with it
+  – Sample design images
+
+HOW IT CONNECTS:
+  → Design Studio (garment templates)
+  → New Order (garment selection in wizard)
+  → Collections (garments grouped into collections)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 4C: COLLECTIONS
+Path   : front end/collections/collections.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Seasonal or themed groupings of garments for marketing and customer browsing.
+
+WHAT IT DOES:
+  – Display collections (e.g., "Eid 2026", "Bridal", "Summer Pastels")
+  – Each collection contains multiple garment designs
+  – Customers browse collections to pick inspiration
+  – Link collection designs to orders directly
+
+HOW IT CONNECTS:
+  → Garments (garments belong to collections)
+  → Design Studio (designs tagged to collections)
+  → New Order (pick from collection during order creation)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 4D: FABRICS & MATERIALS
+Path   : front end/fabrics-materials/fabrics-materials.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Catalog and stock management for all raw materials.
+
+FIELDS PER FABRIC:
+  – Name (e.g., "Pure Silk – Ivory")
+  – Type (silk / cotton / chiffon / georgette / etc.)
+  – Color & texture description
+  – Unit (meters / yards)
+  – Stock quantity (in meters)
+  – Cost per meter / per unit
+  – Supplier reference
+
+WORKFLOW:
+  1. Staff adds fabric from new purchase (or imports from purchase receipt)
+  2. Each order deducts fabric from stock at production cutting stage
+  3. Low stock alert triggers → Purchases page
+  4. Stock reconciliation run periodically
+
+HOW IT CONNECTS:
+  → Inventory (stock synced)
+  → Design Studio (fabric swatches shown)
+  → Purchases (reorder when low)
+  → Production (fabric issued at cutting stage)
+  → New Order (fabric selected during order creation)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 5A: NEW ORDER WIZARD
+Path   : front end/orders/new-order/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Multi-step wizard to create a complete order linking all data together.
+
+WIZARD STEPS:
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │ STEP 1 – SELECT CUSTOMER                                                    │
+  │   Search and select existing customer (by name or mobile)                   │
+  │   OR link from Customer 360 directly                                        │
+  │   Customer profile summary shown in side panel                              │
+  ├─────────────────────────────────────────────────────────────────────────────┤
+  │ STEP 2 – SELECT GARMENT & DESIGN                                            │
+  │   Browse garment catalog or collections                                     │
+  │   Optionally open Design Studio to create/modify design                     │
+  │   Selected design ID is attached to order                                   │
+  ├─────────────────────────────────────────────────────────────────────────────┤
+  │ STEP 3 – ATTACH MEASUREMENTS                                                │
+  │   Last saved measurements auto-loaded for selected customer                 │
+  │   Option to take new measurements (opens Measurement 360)                   │
+  │   Confirm measurement version to use                                        │
+  ├─────────────────────────────────────────────────────────────────────────────┤
+  │ STEP 4 – SELECT FABRIC & MATERIAL                                           │
+  │   Browse fabric catalog filtered by availability                            │
+  │   Select primary fabric, lining, accessories                                │
+  │   Quantity calculated based on garment type                                 │
+  │   Stock availability check runs automatically                               │
+  ├─────────────────────────────────────────────────────────────────────────────┤
+  │ STEP 5 – DELIVERY DATE & PRIORITY                                           │
+  │   Pick required delivery date (calendar)                                    │
+  │   Priority: Normal / Urgent / VIP Rush                                      │
+  │   System estimates delivery date based on production workload               │
+  │   Tailor pre-assignment (optional at this stage)                            │
+  ├─────────────────────────────────────────────────────────────────────────────┤
+  │ STEP 6 – ADVANCE PAYMENT                                                    │
+  │   Show total order amount (garment price + fabric cost)                     │
+  │   Apply discount (if any)                                                   │
+  │   Collect advance payment (minimum 30% or full)                             │
+  │   Payment method: Cash / UPI / Card / Bank Transfer                         │
+  │   Receipt generated automatically                                           │
+  └─────────────────────────────────────────────────────────────────────────────┘
+
+WHAT HAPPENS ON CONFIRM:
+  1. POST /api/v1/orders (creates order record)
+  2. POST /api/v1/payments (records advance payment)
+  3. Production record created automatically (Stage 1 – Pending Cutting)
+  4. Redirect to View Order page for the new order
+
+HOW IT CONNECTS:
+  → Customer Overview / Customer 360 (source of customer selection)
+  → Design Studio (design creation/selection)
+  → Measurement 360 (measurement capture)
+  → Fabrics (fabric stock check)
+  → Payments (advance collection)
+  → Production (auto-starts after order creation)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 5B: ORDER OVERVIEW
+Path   : front end/orders/order-overview/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Visual status board of all active and completed orders.
+
+LAYOUT:
+  – Kanban columns OR table view (toggle)
+  – Columns: Pending | In Production | Ready for Trial | Trial Done | QC | Ready | Delivered | Cancelled
+
+FILTERS:
+  – Date range
+  – Priority (Urgent / Normal)
+  – Tailor assigned
+  – Branch
+  – Garment type
+
+EACH ORDER CARD SHOWS:
+  – Order ID, customer name, garment type
+  – Current status badge (colour-coded)
+  – Required delivery date with countdown
+  – Assigned tailor name
+  – Outstanding payment balance
+
+ACTIONS:
+  – Click card → View Order (full detail)
+  – Drag card between columns → Update status
+  – Quick-assign tailor from dropdown
+  – Flag as Urgent
+
+HOW IT CONNECTS:
+  → View Order (click any card)
+  → Production Board (card in "In Production" column)
+  → Trials & Alterations (card in "Ready for Trial")
+  → Quality Control (card in "Trial Done")
+  → Delivery (card in "QC Passed")
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 5C: VIEW ORDER (Full Detail)
+Path   : front end/orders/view-order/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Complete single-page view of one order with all its linked data.
+
+SECTIONS:
+  1. ORDER HEADER
+       Order ID, date placed, status badge, priority badge
+  2. CUSTOMER PANEL
+       Name, mobile, link to Customer 360
+  3. GARMENT & DESIGN
+       Garment type, design preview thumbnail, fabric selected
+  4. MEASUREMENTS
+       Key measurements summary, link to full Measurement 360
+       "View in 3D" button
+  5. PRODUCTION STATUS
+       Current stage indicator with timeline
+       Assigned tailor, time in current stage
+  6. TRIAL HISTORY
+       All trial rounds with dates, results, alteration notes
+  7. QUALITY CONTROL
+       QC result (pass/fail), inspector notes, date
+  8. PAYMENT LEDGER (via payment-bridge.js)
+       Total amount, advance paid, balance due
+       Payment history list, "Collect Payment" button
+  9. DELIVERY STATUS
+       Delivery type, current status, expected date
+
+ACTIONS AVAILABLE:
+  – Advance production stage
+  – Book trial appointment
+  – Record QC result
+  – Collect payment
+  – Create delivery
+  – Print order summary
+  – Cancel order
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 6: PRODUCTION MANAGEMENT
+Path   : front end/production/production.html
+Sub    : front end/production/stages/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Track every active order through its manufacturing lifecycle.
+
+PRODUCTION STAGES:
+  ┌────────────────────────────────────────────────────────┐
+  │  Stage 1 – CUTTING                                     │
+  │    Fabric issued from inventory                        │
+  │    Tailor assigned                                     │
+  │    Pattern pieces cut according to measurements        │
+  │    Design sheet displayed from Design Studio           │
+  ├────────────────────────────────────────────────────────┤
+  │  Stage 2 – STITCHING                                   │
+  │    Pattern pieces joined                               │
+  │    Primary structure of garment formed                 │
+  │    Inner seams, darts, pleats completed                │
+  ├────────────────────────────────────────────────────────┤
+  │  Stage 3 – EMBROIDERY / EMBELLISHMENT                  │
+  │    Hand or machine embroidery                          │
+  │    Beading, mirror work, sequins, lace attachment      │
+  │    Embellishment placement follows Design Studio spec  │
+  ├────────────────────────────────────────────────────────┤
+  │  Stage 4 – FINISHING & IRONING                         │
+  │    Buttons, hooks, zippers attached                    │
+  │    Final stitching checks                              │
+  │    Steam pressing and shaping                          │
+  │    Internal labeling                                   │
+  ├────────────────────────────────────────────────────────┤
+  │  Stage 5 – READY FOR TRIAL ✅                          │
+  │    Garment complete, trial appointment triggered       │
+  │    Order status → "Ready for Trial"                    │
+  └────────────────────────────────────────────────────────┘
+
+PRODUCTION BOARD FEATURES:
+  – All active orders in a scrollable board
+  – Progress bar showing current stage (1–5)
+  – Time elapsed in current stage
+  – Delay alerts (if overdue)
+  – Tailor workload sidebar (how many orders per tailor)
+  – Click order → View Order detail
+
+PRODUCTION STAGES SUB-PAGE:
+  – Breakdown view per stage
+  – How many orders are in each stage
+  – Average time per stage (performance metric)
+  – Bottleneck detection (which stage is slowest)
+
+API CALLS:
+  GET  /api/v1/production                → All orders in production
+  PUT  /api/v1/production/{id}/stage     → Advance to next stage
+  PUT  /api/v1/production/{id}/assign    → Assign tailor to order
+  PUT  /api/v1/inventory/{id}            → Deduct fabric at cutting stage
+
+HOW IT CONNECTS:
+  → Workforce (assign tailors)
+  → Orders (order status updated as stages advance)
+  → Inventory (fabric deducted at Stage 1)
+  → Trials (auto-trigger when Stage 5 complete)
+  → Design Studio (design spec shown during stitching)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 7A: APPOINTMENTS
+Path   : front end/appointments/appointments.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Schedule all types of appointments: measurements, consultations, trial fittings.
+
+APPOINTMENT TYPES:
+  – New Customer Consultation
+  – Body Measurement Session
+  – Trial Fitting (Round 1, 2, 3…)
+  – Order Pickup Appointment
+  – Alteration Discussion
+
+CALENDAR FEATURES:
+  – Monthly / weekly / daily calendar view
+  – Colour-coded by appointment type
+  – Click slot → Book new appointment
+  – Click existing appointment → View/edit details
+  – Staff assignment (which tailor/receptionist handles it)
+  – Customer notification: SMS or email sent on booking
+
+FIELDS PER APPOINTMENT:
+  – Customer name (linked by mobile)
+  – Date and time
+  – Duration (30 min / 1 hr / 2 hrs)
+  – Type
+  – Linked Order ID (for trial fittings)
+  – Assigned staff member
+  – Notes
+
+API:
+  GET  /api/v1/appointments    → All appointments (filterable by date/staff)
+  POST /api/v1/appointments    → Create appointment
+  PUT  /api/v1/appointments/{id} → Reschedule or cancel
+
+HOW IT CONNECTS:
+  → Customer module (appointment linked to customer)
+  → Orders (trial appointments linked to specific order)
+  → Trials & Alterations (trial session opens this)
+  → Dashboard (today's appointments shown on dashboard)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 7B: TRIALS & ALTERATIONS
+Path   : front end/trials-alterations/trials-alterations.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Record fitting trial sessions. If the garment doesn't fit, document
+  alteration instructions and send back to production.
+
+TRIAL RECORD FORM:
+  – Order ID (auto-linked from appointment or search)
+  – Trial round number (Trial 1, Trial 2, etc.)
+  – Trial date
+  – Overall result: APPROVED / NEEDS ALTERATION
+
+  FIT ASSESSMENT BY AREA:
+  ┌─────────────────────────────────────────────────────────┐
+  │  Area          │ Rating      │ Notes                    │
+  │  ──────────────│─────────────│──────────────────────────│
+  │  Shoulder fit  │ ✅/⚠️/❌    │ e.g., "widen by 1cm"     │
+  │  Chest/Bust    │ ✅/⚠️/❌    │ e.g., "take in 2cm"      │
+  │  Waist         │ ✅/⚠️/❌    │                          │
+  │  Hip           │ ✅/⚠️/❌    │                          │
+  │  Length        │ ✅/⚠️/❌    │ e.g., "shorten by 3cm"   │
+  │  Sleeve        │ ✅/⚠️/❌    │                          │
+  │  Neckline      │ ✅/⚠️/❌    │                          │
+  │  Embellishment │ ✅/⚠️/❌    │                          │
+  └─────────────────────────────────────────────────────────┘
+
+  – Customer signature / acknowledgment
+  – Photo attachment (optional – before/after photos of fit issues)
+
+WHAT HAPPENS AFTER:
+  IF APPROVED:
+    → Order status updated to "Trial Done"
+    → Next step: Quality Control
+  IF NEEDS ALTERATION:
+    → Alteration instructions saved
+    → Order sent back to production (specific stage depends on alteration type)
+    → Trial round counter incremented
+    → Appointment booked for next trial
+
+3D MANNEQUIN USAGE DURING TRIALS:
+  – Open 3D view alongside trial assessment
+  – Visually compare current measurements vs design spec
+  – Use Fit Score to quantify issues
+
+API:
+  POST /api/v1/trials      → Record trial result
+  GET  /api/v1/trials      → All trial records (filterable by order)
+
+HOW IT CONNECTS:
+  → Production (send back for alteration)
+  → Quality Control (proceed after approval)
+  → Appointments (trial booked as appointment)
+  → 3D Mannequin (visual fit comparison)
+  → View Order (trial history shown on order detail)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 8: QUALITY CONTROL
+Path   : front end/quality-control/quality-control.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Final inspection before any garment is packaged for delivery.
+  QC supervisor checks the completed garment against all quality standards.
+
+QC CHECKLIST (scored 1–5 or Pass/Fail):
+  1. Stitching uniformity (no loose threads, even seams)
+  2. Measurement accuracy (matches order specification within tolerance)
+  3. Embroidery/embellishment placement and quality
+  4. Fabric cleanliness (no stains, pulls, or runs)
+  5. Buttons, hooks, zippers (correctly placed, functioning)
+  6. Lining neatness (if applicable)
+  7. Steam press quality (well-shaped, no creases in wrong places)
+  8. Internal labelling (brand label, care instructions)
+  9. Packaging readiness (ready for bag/box)
+
+QC RESULT:
+  PASS (all items score 4+ or Pass):
+    → Order status → "Ready to Deliver"
+    → Delivery module unlocked for this order
+  FAIL (one or more items fail):
+    → Failed areas documented with specific notes
+    → Order sent back to appropriate production stage
+    → QC record saved with "Fail" status
+    → Re-inspection required after rework
+
+ADDITIONAL FEATURES:
+  – QC history for each order (how many attempts, who inspected)
+  – Inspector name recorded (linked to logged-in user)
+  – Date and time of inspection
+  – Photos of issues can be attached
+
+API:
+  GET  /api/v1/quality-control      → All QC records
+  POST /api/v1/quality-control      → Submit QC result
+
+HOW IT CONNECTS:
+  → Trials (must be approved before QC)
+  → Delivery (unlocked only after QC pass)
+  → Production (send back if QC fails)
+  → View Order (QC history shown)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 9: PAYMENTS
+Path   : front end/payments/payments.html
+Additional: payment-bridge.js (used inline in View Order)
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Complete payment management for all orders. Multiple payment tranches,
+  full ledger per order, receipt generation.
+
+PAYMENT TYPES:
+  ┌──────────────────────────────────────────────────────────┐
+  │ Type         │ When collected    │ Minimum              │
+  │ ─────────────│───────────────────│──────────────────────│
+  │ Advance      │ At order creation │ 30% of total         │
+  │ Installment  │ Mid-production    │ Any amount           │
+  │ Final        │ At delivery       │ Remaining balance    │
+  │ Refund       │ If cancelled      │ As per policy        │
+  └──────────────────────────────────────────────────────────┘
+
+PAYMENT METHODS:
+  Cash / UPI / Credit Card / Debit Card / Bank Transfer / Cheque
+
+PAYMENTS PAGE FEATURES:
+  – Full ledger list with order ID, customer, amount, method, date
+  – Filter: All / Advance / Pending / Completed / Overdue
+  – Search by customer name or order ID
+  – Click record → view receipt
+  – "New Payment" button → record payment modal
+  – Print / download receipt as PDF
+  – Daily/monthly collection summary
+
+PAYMENT-BRIDGE.JS (inline component):
+  – Used inside View Order page
+  – Shows: Total billed, Advance paid, Remaining balance
+  – "Collect Payment" button opens quick payment modal
+  – No navigation required – seamless inline experience
+
+BUSINESS RULES:
+  – Delivery is BLOCKED if balance > 0
+  – Total = garment price + fabric cost + embellishment cost - discount
+  – GST/tax applied based on Settings module configuration
+  – Receipts include company branding from Company Profile
+
+API:
+  GET  /api/v1/payments            → All payment records
+  POST /api/v1/payments            → Record new payment
+  GET  /api/v1/payments/{id}/receipt → Download receipt
+
+HOW IT CONNECTS:
+  → Orders (payment linked to order)
+  → Delivery (delivery unlocked when balance = 0)
+  → Customer 360 (outstanding balance shown)
+  → Settings (tax rate applied)
+  → Company (branding on receipts)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PAGE 10: DELIVERY
+Path   : front end/delivery/delivery.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Final step of the order lifecycle. Manage and confirm delivery of completed,
+  QC-passed, fully-paid garments to customers.
+
+PRE-CONDITIONS (system-enforced gates):
+  ✅ QC Result = PASS
+  ✅ Payment Balance = 0 (fully paid)
+  ✅ Order Status = "Ready to Deliver"
+
+DELIVERY TYPES:
+  – In-Store Pickup:  Customer collects from branch
+  – Home Delivery:    Staff/courier delivers to customer address
+
+DELIVERY STATUS FLOW:
+  Pending → Packed → Out for Delivery → Delivered
+  (or: Returned → trigger refund process)
+
+DELIVERY PAGE FEATURES:
+  – List of all deliveries with status
+  – Filter by: pending / out for delivery / delivered / returned
+  – Create new delivery entry (select order)
+  – For home delivery: enter delivery address, assign delivery person
+  – Update status at each checkpoint
+  – Record actual delivery date & time
+  – Customer acknowledgment note
+
+ON DELIVERY CONFIRMED:
+  1. Order status → "Completed"
+  2. Customer 360 order history updated
+  3. Dashboard KPIs updated (delivery count, revenue realized)
+  4. Optional: feedback request sent to customer
+
+API:
+  GET  /api/v1/delivery        → All deliveries
+  POST /api/v1/delivery        → Create delivery entry
+  PUT  /api/v1/delivery/{id}   → Update delivery status
+
+HOW IT CONNECTS:
+  → Payments (balance must be 0 before delivery)
+  → Quality Control (QC must pass)
+  → Customer 360 (history updated)
+  → Orders (order marked Completed)
+  → Dashboard (KPIs updated)
+
+
+================================================================================
+================================================================================
+       SECTION B – SUPPORTING MODULE PAGES (DETAILED)
+================================================================================
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+ENQUIRIES PAGE
+Path   : front end/enquiries/enquiries.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Capture pre-registration leads. Walk-in visitors who are not yet ready
+  to register as full customers.
+
+WORKFLOW:
+  1. Receptionist records walk-in details (name, mobile, what they want)
+  2. Interest type: New order / Alteration / Enquiry about collection / Pricing
+  3. Follow-up date set
+  4. If customer commits: "Convert to Customer" button
+     → Opens New Customer form with data pre-filled
+  5. If no conversion: mark as Lost / Pending
+
+FIELDS:
+  – Visitor name (no unique constraint)
+  – Contact mobile
+  – Interest type
+  – Notes from conversation
+  – Follow-up date
+  – Status: New / Contacted / Converted / Lost
+
+HOW IT CONNECTS:
+  → Customer registration (convert enquiry)
+  → Appointments (book a follow-up)
+  → Dashboard (enquiry count KPI)
+
+
+────────────────────────────────────────────────────────────────────────────────
+INVENTORY PAGE
+Path   : front end/inventory/inventory.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Track current stock levels of all materials used in production.
+
+WHAT IS TRACKED:
+  – Fabric stock (synced with Fabrics & Materials)
+  – Threads, buttons, zippers, hooks
+  – Embellishment items (beads, sequins, mirrors)
+  – Packaging materials (bags, boxes, tissue)
+
+FEATURES:
+  – Stock table with item name, category, quantity, unit, reorder level
+  – Color-coded: Green (healthy) / Yellow (low) / Red (critical)
+  – Adjust stock: manual correction for discrepancies
+  – Stock issue: issue fabric to specific order at production Stage 1
+  – Stock audit log: who changed what and when
+
+HOW IT CONNECTS:
+  → Fabrics & Materials (fabric stock mirrored here)
+  → Production (stock issued during cutting stage)
+  → Purchases (low stock triggers purchase order)
+  → Dashboard (low stock alerts shown)
+
+
+────────────────────────────────────────────────────────────────────────────────
+PURCHASES PAGE
+Path   : front end/purchases/purchases.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Manage purchase orders sent to fabric/material suppliers.
+
+PURCHASE ORDER WORKFLOW:
+  1. Low stock detected in Inventory → manager creates PO
+  2. Select supplier (from Suppliers directory)
+  3. List items to purchase with quantity and expected cost
+  4. PO sent (recorded in system)
+  5. On receipt: mark PO as Received → Inventory stock updated automatically
+
+PO STATUS: Draft → Sent → Partially Received → Received → Cancelled
+
+HOW IT CONNECTS:
+  → Suppliers (select supplier for PO)
+  → Inventory (received stock updates inventory)
+  → Fabrics (new fabric batches added)
+  → Dashboard (pending POs shown)
+
+
+────────────────────────────────────────────────────────────────────────────────
+SUPPLIERS PAGE
+Path   : front end/suppliers/suppliers.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Directory of all fabric and material suppliers.
+
+FIELDS PER SUPPLIER:
+  – Business name, contact person
+  – Mobile, email, address
+  – What they supply (fabrics / accessories / packaging)
+  – Payment terms
+  – Rating (1-5 based on past orders)
+  – Notes
+
+HOW IT CONNECTS:
+  → Purchases (supplier selected when creating PO)
+  → Fabrics (supplier linked to fabric stock entries)
+
+
+────────────────────────────────────────────────────────────────────────────────
+WORKFORCE MANAGEMENT PAGE
+Path   : front end/WorkforceManagement/workforce.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Manage all employees – tailors, helpers, embroidery workers, delivery staff.
+
+EMPLOYEE PROFILE INCLUDES:
+  – Full name, photo, contact details
+  – Role: Head Tailor / Junior Tailor / Embroidery Specialist / Helper / Delivery
+  – Specialization: suits / bridal / embroidery / alterations
+  – Branch assigned
+  – Joining date, salary (admin only)
+
+FEATURES:
+  – Employee list with live workload indicator
+    (how many active orders currently assigned)
+  – Attendance tracker: Mark present/absent daily
+  – Task assignment board: which orders assigned to each tailor
+  – Performance score: orders completed on time / total orders
+  – Skills tags (each employee tagged with their specialization)
+
+HOW IT CONNECTS:
+  → Production (tailors assigned to orders from here)
+  → Branches (each employee belongs to a branch)
+  → Dashboard (workforce KPIs: attendance, workload)
+  → Orders (assigned tailor shown on order card)
+
+
+────────────────────────────────────────────────────────────────────────────────
+BRANCHES PAGE
+Path   : front end/branches/branches.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Manage multiple boutique locations.
+
+FIELDS PER BRANCH:
+  – Branch name (e.g., "Colombo Main", "Kandy Branch")
+  – Address, phone, email
+  – Manager name
+  – Working hours
+  – Active / Inactive status
+
+FEATURES:
+  – Branch list with order and customer count
+  – Set default branch for logged-in user
+  – Filter orders/customers/staff by branch
+
+HOW IT CONNECTS:
+  → All modules (branch filter applies across customers, orders, staff)
+  → Settings (default branch set in company settings)
+  → Workforce (staff assigned per branch)
+
+
+────────────────────────────────────────────────────────────────────────────────
+USERS & ROLES
+Path   : front end/users-roles/users-roles.html
+Sub    : create-user/, recent-access/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Admin-only control of who can log in and what they can do.
+
+ROLES AVAILABLE:
+  Admin / Supervisor / Receptionist / Tailor / Cashier / Delivery Staff
+
+USERS LIST PAGE:
+  – All system users with name, role, branch, last login, status (active/inactive)
+  – Activate / Deactivate user toggle
+  – Reset password button
+
+CREATE USER PAGE:
+  – Full name, username, email
+  – Assign role (controls what pages they see)
+  – Assign branch
+  – Set temporary password
+
+RECENT ACCESS (AUDIT LOG):
+  – Every login attempt (success and failure)
+  – Username, timestamp, IP address, result
+  – Used for security auditing
+
+HOW IT CONNECTS:
+  → Login page (users created here can log in)
+  → All modules (role determines what sidebar items appear)
+  → Branches (user assigned to branch)
+  → nav.js (sidebar items hidden/shown based on role from JWT)
+
+
+────────────────────────────────────────────────────────────────────────────────
+SETTINGS PAGE
+Path   : front end/settings/settings.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  App-wide configuration that affects all modules.
+
+CONFIGURABLE SETTINGS:
+  GENERAL          FINANCIAL           NOTIFICATIONS
+  ────────────     ─────────────       ─────────────────
+  Default currency  Tax/GST rate %     SMS on order created
+  Date format       Enable/disable tax  SMS on trial scheduled
+  Time zone         Receipt format      SMS on delivery
+  Language          Invoice prefix      Email notifications
+  Default branch    Payment terms       WhatsApp integration
+
+  PRODUCTION SETTINGS:
+    – Default production timeline per garment type
+    – Minimum advance % required
+    – Trial round limit before escalation
+    – QC checklist items (customizable)
+
+HOW IT CONNECTS:
+  → Payments (tax rate applied automatically)
+  → Company (company details shown in receipts)
+  → All modules (currency and date format affects display)
+
+
+────────────────────────────────────────────────────────────────────────────────
+COMPANY PROFILE
+Path   : front end/company/
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Configure the boutique's identity. This data appears on receipts,
+  the navbar logo, and customer-facing documents.
+
+FIELDS:
+  – Company / boutique name
+  – Logo image
+  – Tagline
+  – Address, phone, email, website
+  – GST / TRN number
+  – Registration number
+  – Bank details (for receipt footer)
+  – Social media links
+
+HOW IT CONNECTS:
+  → Navbar (company name & logo injected via company-bridge.js)
+  → Payments (company info on receipts)
+  → Settings (complementary to settings)
+  → Dashboard (company name in welcome message)
+
+
+────────────────────────────────────────────────────────────────────────────────
+DASHBOARD
+Path   : front end/dashboard/dashboard.html
+────────────────────────────────────────────────────────────────────────────────
+
+PURPOSE:
+  Home screen after login. Consolidated KPI view across all modules.
+
+KPI CARDS:
+  – Total active orders (click → Order Overview)
+  – Today's appointments (click → Appointments)
+  – Pending payments / outstanding balance (click → Payments)
+  – Orders in production (click → Production Board)
+  – Low stock alerts (click → Inventory)
+  – Trials due today (click → Trials)
+  – New customers this week (click → Customer Overview)
+  – QC pending (click → Quality Control)
+  – Revenue this month
+
+CHARTS:
+  – Orders by status (doughnut chart)
+  – Revenue trend (line chart – last 30 days)
+  – Production stage breakdown (bar chart)
+  – Tailor workload (horizontal bar)
+
+HOW IT CONNECTS:
+  → ALL modules (every KPI card is a navigation shortcut)
+  → nav.js (sidebar active state set to "dashboard")
+  → api.js (GET /api/v1/dashboard/summary)
+
+
+================================================================================
+       SECTION C – SHARED INFRASTRUCTURE (HOW ALL PAGES CONNECT)
+================================================================================
+
+SHARED FILE     LOCATION                    ROLE
+──────────────  ──────────────────────────  ─────────────────────────────────────
+api.js          front end/api.js            REST client + JWT token manager.
+                                            All pages import this for API calls.
+
+fragments.js    front end/fragments/        Loads navbar, sidebar, footer into
+                fragments.js               every page. Page bootstrap entry point.
+
+nav.js          front end/fragments/nav.js  Controls sidebar navigation:
+                                            - Highlights active link by URL
+                                            - Shows/hides menu items by role
+                                            - Handles logout
+                                            - Injects user name & avatar
+
+company-        front end/fragments/        Fetches company name/logo from backend
+bridge.js       company-bridge.js           and injects into navbar on every page.
+
+system-         front end/fragments/        Fetches system settings (currency,
+bridge.js       system-bridge.js            timezone) and makes them available
+                                            globally to every page.
+
+payment-        front end/payments/         Inline payment widget used inside
+bridge.js       payment-bridge.js           View Order page. Shows balance and
+                                            quick payment button without redirect.
+
+JWT Token       localStorage("token")       Stored at login. Read by api.js
+                                            for every API request header.
+                                            Cleared on logout by nav.js.
+
+
+================================================================================
+                     COMPLETE DATA FLOW SUMMARY
+================================================================================
+
+ENTITY              CREATED IN              USED IN
+──────────────────  ──────────────────────  ────────────────────────────────────
+Customer            New Customer form       Customer 360, Orders, Measurements,
+                                            Payments, Appointments, Delivery
+
+Body Measurements   Measurement 360         Orders (attached), Trials (compared),
+                                            3D Mannequin (visualized)
+
+Design              Design Studio           Orders (attached), Production (spec)
+
+Garment Type        New Garment form        Orders, Design Studio, Collections
+
+Fabric/Material     Fabrics & Materials     Orders, Design Studio, Production,
+                                            Inventory, Purchases
+
+Order               New Order wizard        Production, Trials, Payments, QC,
+                                            Delivery, Customer 360, View Order
+
+Production Record   Auto-created with Order Production Board, View Order
+
+Trial Record        Trials & Alterations    View Order, QC (after approval)
+
+QC Record           Quality Control         View Order, Delivery (gate)
+
+Payment             Payments page /         View Order, Customer 360,
+                    New Order wizard        Delivery (gate)
+
+Delivery            Delivery page           View Order, Customer 360,
+                                            Order (marked complete)
+
+Appointment         Appointments page       Customer 360, Trials, Dashboard
+
+Enquiry             Enquiries page          Customer (convert), Appointments
+
+Employee            Workforce page          Production (assign), Dashboard
+
+Fabric Stock        Inventory page          Production (issue), Purchases
+
+JWT Token           Login page              All pages (Authorization header)
+
+
+================================================================================
+END OF DETAILED PAGE-BY-PAGE WORKFLOW DOCUMENTATION
+================================================================================
