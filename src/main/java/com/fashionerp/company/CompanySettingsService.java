@@ -58,21 +58,45 @@ public class CompanySettingsService {
         if (req.getShortName() != null && !req.getShortName().isBlank()) {
             settings.setShortName(clean(req.getShortName()));
         }
-        settings.setTagline(clean(req.getTagline()));
-        settings.setOwnerName(clean(req.getOwnerName()));
+        if (req.getTagline() != null) {
+            settings.setTagline(clean(req.getTagline()));
+        }
+        if (req.getOwnerName() != null) {
+            settings.setOwnerName(clean(req.getOwnerName()));
+        }
         if (req.getBusinessType() != null && !req.getBusinessType().isBlank()) {
             settings.setBusinessType(clean(req.getBusinessType()));
         }
-        settings.setGstin(clean(req.getGstin()));
-        settings.setPanNumber(clean(req.getPanNumber()));
-        settings.setPrimaryPhone(clean(req.getPrimaryPhone()));
-        settings.setWhatsapp(clean(req.getWhatsapp()));
-        settings.setEmail(clean(req.getEmail()));
-        settings.setWebsite(clean(req.getWebsite()));
-        settings.setStreetAddress(clean(req.getStreetAddress()));
-        settings.setCity(clean(req.getCity()));
-        settings.setState(clean(req.getState()));
-        settings.setPinCode(clean(req.getPinCode()));
+        if (req.getGstin() != null) {
+            settings.setGstin(clean(req.getGstin()));
+        }
+        if (req.getPanNumber() != null) {
+            settings.setPanNumber(clean(req.getPanNumber()));
+        }
+        if (req.getPrimaryPhone() != null) {
+            settings.setPrimaryPhone(clean(req.getPrimaryPhone()));
+        }
+        if (req.getWhatsapp() != null) {
+            settings.setWhatsapp(clean(req.getWhatsapp()));
+        }
+        if (req.getEmail() != null) {
+            settings.setEmail(clean(req.getEmail()));
+        }
+        if (req.getWebsite() != null) {
+            settings.setWebsite(clean(req.getWebsite()));
+        }
+        if (req.getStreetAddress() != null) {
+            settings.setStreetAddress(clean(req.getStreetAddress()));
+        }
+        if (req.getCity() != null) {
+            settings.setCity(clean(req.getCity()));
+        }
+        if (req.getState() != null) {
+            settings.setState(clean(req.getState()));
+        }
+        if (req.getPinCode() != null) {
+            settings.setPinCode(clean(req.getPinCode()));
+        }
         if (req.getCountry() != null && !req.getCountry().isBlank()) {
             settings.setCountry(clean(req.getCountry()));
         }

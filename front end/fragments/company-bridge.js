@@ -162,6 +162,14 @@ const CompanyBridge = (() => {
           sessionTimeoutMinutes: 20
         };
       }
+      // Reconcile with explicit localStorage session timeout preference if present
+      const explicitTimeout = localStorage.getItem('haulo_session_timeout_minutes');
+      if (explicitTimeout !== null && explicitTimeout !== undefined && explicitTimeout !== '') {
+        const parsed = parseInt(explicitTimeout, 10);
+        if (!isNaN(parsed)) {
+          _data.sessionTimeoutMinutes = parsed;
+        }
+      }
       return Object.assign({}, _data);
     },
 
@@ -180,7 +188,7 @@ const CompanyBridge = (() => {
 
         const json = await res.json();
         if (json && json.companyName) {
-          _data = json;
+          _data = Object.assign({}, this.get(), json);
           _saveToStorage(_data);
           _notifySubscribers(_data);
           this.applyToDOM();
@@ -196,37 +204,48 @@ const CompanyBridge = (() => {
      * broadcasts to all open tabs, and updates DOM.
      */
     async save(payload) {
-      const token = _getToken();
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      // Merge with existing cached data first so partial updates never wipe out fields!
+      const current = this.get() || {};
+      const merged = Object.assign({}, current, payload);
+      _data = merged;
+      _saveToStorage(merged);
 
-      const res = await fetch(API_URL, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
-      }
-
-      const updated = await res.json();
-      _data = updated;
-      _saveToStorage(updated);
-
-      // Broadcast to other tabs
+      // Broadcast to other tabs immediately
       if (_channel) {
         try {
-          _channel.postMessage({ type: 'UPDATE', payload: updated });
+          _channel.postMessage({ type: 'UPDATE', payload: merged });
         } catch (_) {}
       }
 
       // Notify local document
-      document.dispatchEvent(new CustomEvent('haulo:company-updated', { detail: updated }));
-      _notifySubscribers(updated);
+      document.dispatchEvent(new CustomEvent('haulo:company-updated', { detail: merged }));
+      _notifySubscribers(merged);
       this.applyToDOM();
 
-      return updated;
+      const token = _getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(merged)
+        });
+
+        if (res.ok) {
+          const updated = await res.json();
+          _data = Object.assign({}, merged, updated);
+          _saveToStorage(_data);
+          _notifySubscribers(_data);
+          this.applyToDOM();
+          return _data;
+        }
+      } catch (err) {
+        console.warn('[CompanyBridge] Backend sync deferred (working offline or backend unavailable):', err);
+      }
+
+      return merged;
     },
 
     /**

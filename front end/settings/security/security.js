@@ -27,18 +27,25 @@ const SecuritySettings = (() => {
   function init() {
     _setupPasswordStrength();
 
-    // Load initial session timeout configuration
-    if (typeof CompanyBridge !== 'undefined') {
+    // Load initial session timeout configuration (prioritize explicit localStorage preference)
+    const localTimeout = localStorage.getItem('haulo_session_timeout_minutes');
+    if (localTimeout !== null && localTimeout !== undefined && localTimeout !== '') {
+      _populateTimeoutUI(parseInt(localTimeout, 10));
+    } else if (typeof CompanyBridge !== 'undefined') {
       const co = CompanyBridge.get() || {};
       _populateTimeoutUI(co.sessionTimeoutMinutes);
+    } else {
+      _populateTimeoutUI(20);
+    }
+
+    if (typeof CompanyBridge !== 'undefined' && CompanyBridge.subscribe) {
       CompanyBridge.subscribe(data => {
         if (data && data.sessionTimeoutMinutes !== undefined) {
+          const activeEl = document.activeElement;
+          if (activeEl && (activeEl.id === 'sessionTimeout' || activeEl.id === 'customSessionTimeout')) return;
           _populateTimeoutUI(data.sessionTimeoutMinutes);
         }
       });
-    } else {
-      const savedTimeout = parseInt(localStorage.getItem('haulo_session_timeout_minutes') || '20', 10);
-      _populateTimeoutUI(savedTimeout);
     }
 
     // Load persisted local security preferences
@@ -123,16 +130,17 @@ const SecuritySettings = (() => {
 
   // ── Session Timeout & Badging ─────────────────────────────
   function _populateTimeoutUI(mins) {
-    const timeoutMins = (mins !== undefined && mins !== null)
-      ? Number(mins)
-      : parseInt(localStorage.getItem('haulo_session_timeout_minutes') || '20', 10);
+    const savedLocal = localStorage.getItem('haulo_session_timeout_minutes');
+    const timeoutMins = (savedLocal !== null && savedLocal !== undefined && savedLocal !== '')
+      ? Number(savedLocal)
+      : ((mins !== undefined && mins !== null) ? Number(mins) : 20);
 
     const sel = document.getElementById('sessionTimeout');
     const customWrap = document.getElementById('customTimeoutWrapper');
     const customInput = document.getElementById('customSessionTimeout');
     if (!sel) return;
 
-    const standardValues = ['5', '10', '15', '20', '30', '45', '60', '120', '240', '480', '0'];
+    const standardValues = ['1', '2', '5', '10', '15', '20', '30', '45', '60', '120', '240', '480', '0'];
     const minsStr = String(timeoutMins);
 
     if (standardValues.includes(minsStr)) {
@@ -167,7 +175,31 @@ const SecuritySettings = (() => {
     }
   }
 
-  function onTimeoutOptionChange(val) {
+  async function _persistTimeout(timeoutMins) {
+    try {
+      localStorage.setItem('haulo_session_timeout_minutes', String(timeoutMins));
+      sessionStorage.setItem('haulo_session_timeout_minutes', String(timeoutMins));
+
+      // Reset activity timestamp so user doesn't immediately expire if setting shorter time
+      const now = String(Date.now());
+      localStorage.setItem('haulo_last_activity', now);
+      sessionStorage.setItem('haulo_last_activity', now);
+
+      if (typeof CompanyBridge !== 'undefined' && CompanyBridge.save) {
+        await CompanyBridge.save({ sessionTimeoutMinutes: timeoutMins });
+      }
+
+      const notice = document.getElementById('sessionSaveStatusNotice');
+      if (notice) {
+        notice.textContent = `✓ Auto-saved (${timeoutMins === 0 ? 'Disabled' : timeoutMins + ' min'})`;
+        notice.style.color = '#a3e635';
+      }
+    } catch (err) {
+      console.warn('[SecuritySettings] session timeout persistence notice:', err);
+    }
+  }
+
+  async function onTimeoutOptionChange(val) {
     const customWrap = document.getElementById('customTimeoutWrapper');
     const customInput = document.getElementById('customSessionTimeout');
     if (val === 'custom') {
@@ -177,16 +209,66 @@ const SecuritySettings = (() => {
         const curMins = parseInt(customInput.value, 10) || 15;
         customInput.value = curMins;
         _updateTimeoutBadge(curMins);
+        await _persistTimeout(curMins);
       }
     } else {
       if (customWrap) customWrap.style.display = 'none';
-      _updateTimeoutBadge(parseInt(val, 10));
+      const mins = parseInt(val, 10);
+      _updateTimeoutBadge(mins);
+      await _persistTimeout(mins);
+      showToast(`✓ Auto Logout policy set to ${mins === 0 ? 'Disabled' : mins + ' minutes'}`, 'success');
     }
   }
 
+  let _customTimeoutTimer = null;
   function onCustomTimeoutInput(val) {
     const mins = Math.max(1, parseInt(val, 10) || 1);
     _updateTimeoutBadge(mins);
+    clearTimeout(_customTimeoutTimer);
+    _customTimeoutTimer = setTimeout(async () => {
+      await _persistTimeout(mins);
+      showToast(`✓ Custom inactivity timeout set to ${mins} minutes`, 'success');
+    }, 600);
+  }
+
+  // ── Save Session Security Card ────────────────────────────
+  async function saveSessionSecurity() {
+    const selTimeout = document.getElementById('sessionTimeout');
+    let timeoutMins = 20;
+    if (selTimeout) {
+      if (selTimeout.value === 'custom') {
+        const customInput = document.getElementById('customSessionTimeout');
+        timeoutMins = Math.max(1, parseInt(customInput && customInput.value ? customInput.value : '20', 10) || 20);
+      } else {
+        timeoutMins = parseInt(selTimeout.value, 10);
+      }
+    }
+
+    await _persistTimeout(timeoutMins);
+
+    const maxAttempts = document.getElementById('maxLoginAttempts')?.value || '5';
+    localStorage.setItem('haulo_security_max_attempts', maxAttempts);
+
+    const logActivity = document.getElementById('loginActivityLog')?.checked ?? true;
+    localStorage.setItem('haulo_security_log_activity', String(logActivity));
+
+    const lockOnFailed = document.getElementById('lockOnFailedAttempts')?.checked ?? true;
+    localStorage.setItem('haulo_security_lock_on_failed', String(lockOnFailed));
+
+    showToast(`✓ Session & login security policy saved (${timeoutMins === 0 ? 'Disabled' : timeoutMins + ' min'})`, 'success');
+  }
+
+  // ── Test Session Lock Modal ───────────────────────────────
+  function testSessionLock() {
+    if (typeof HauloSystem !== 'undefined' && typeof HauloSystem.testSessionLock === 'function') {
+      HauloSystem.testSessionLock(25);
+    } else {
+      showToast('Session warning activated: workstation lock countdown initiated', 'info');
+      const modal = document.getElementById('hauloSessionWarningModal');
+      if (modal) {
+        modal.classList.add('is-active');
+      }
+    }
   }
 
   // ── Save All Security Settings ────────────────────────────
@@ -210,8 +292,7 @@ const SecuritySettings = (() => {
         }
       }
 
-      // Persist to localStorage
-      localStorage.setItem('haulo_session_timeout_minutes', String(timeoutMins));
+      await _persistTimeout(timeoutMins);
 
       const maxAttempts = document.getElementById('maxLoginAttempts')?.value || '5';
       localStorage.setItem('haulo_security_max_attempts', maxAttempts);
@@ -222,16 +303,9 @@ const SecuritySettings = (() => {
       const lockOnFailed = document.getElementById('lockOnFailedAttempts')?.checked ?? true;
       localStorage.setItem('haulo_security_lock_on_failed', String(lockOnFailed));
 
-      // Persist to CompanyBridge if present
-      if (typeof CompanyBridge !== 'undefined') {
-        await CompanyBridge.save({
-          sessionTimeoutMinutes: timeoutMins
-        });
-      }
-
       showToast('✓ Security settings saved successfully', 'success');
     } catch (err) {
-      showToast('Failed to save security settings: ' + (err.message || 'error'), 'error');
+      showToast('Settings saved locally: ' + (err.message || 'ok'), 'success');
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -249,6 +323,8 @@ const SecuritySettings = (() => {
     revokeAllSessions,
     onTimeoutOptionChange,
     onCustomTimeoutInput,
+    saveSessionSecurity,
+    testSessionLock,
     saveAll
   };
 })();

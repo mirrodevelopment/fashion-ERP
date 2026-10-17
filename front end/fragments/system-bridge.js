@@ -400,6 +400,8 @@
         });
       }
 
+      let _countdownInterval = null;
+
       function showWarningModal(secondsRemaining, minutes) {
         ensureWarningModal();
         if (!warningModalEl) return;
@@ -407,17 +409,34 @@
         warningVisible = true;
         warningModalEl.classList.add('is-active');
 
+        let sec = secondsRemaining;
         if (warningCountdownEl) {
-          warningCountdownEl.textContent = `${secondsRemaining}s`;
+          warningCountdownEl.textContent = `${sec}s`;
         }
 
         if (warningNoticeEl) {
           const displayMins = (minutes && minutes > 0) ? `${minutes} minutes` : 'a period';
-          warningNoticeEl.innerHTML = `You have been idle for a while (policy: <strong>${displayMins}</strong>).<br />For boutique data security, your session will lock and expire in <span class="haulo-session-warn-countdown">${secondsRemaining}s</span>.`;
+          warningNoticeEl.innerHTML = `You have been idle for a while (policy: <strong>${displayMins}</strong>).<br />For boutique data security, your session will lock and expire in <span class="haulo-session-warn-countdown" id="hauloSessionWarnCountdown">${sec}s</span>.`;
         }
+
+        clearInterval(_countdownInterval);
+        _countdownInterval = setInterval(() => {
+          if (!warningVisible) {
+            clearInterval(_countdownInterval);
+            return;
+          }
+          sec--;
+          const cntEl = warningModalEl.querySelector('#hauloSessionWarnCountdown');
+          if (cntEl) cntEl.textContent = `${Math.max(0, sec)}s`;
+          if (sec <= 0) {
+            clearInterval(_countdownInterval);
+            terminateSession(`inactivity_${minutes}m`, minutes);
+          }
+        }, 1000);
       }
 
       function dismissWarningModal() {
+        clearInterval(_countdownInterval);
         if (warningModalEl && warningVisible) {
           warningVisible = false;
           warningModalEl.classList.remove('is-active');
@@ -431,18 +450,36 @@
         sessionStorage.removeItem('erp_allowed_modules');
         sessionStorage.removeItem('haulo_session_start');
         sessionStorage.removeItem('haulo_last_activity');
+        sessionStorage.removeItem('haulo_token');
+        sessionStorage.removeItem('fashion_erp_token');
         localStorage.removeItem('erp_token');
         localStorage.removeItem('erp_user');
         localStorage.removeItem('erp_allowed_modules');
         localStorage.removeItem('haulo_session_start');
         localStorage.removeItem('haulo_last_activity');
+        localStorage.removeItem('haulo_token');
+        localStorage.removeItem('fashion_erp_token');
 
         HauloSystem.toSessionExpired({ reason, minutes });
       }
 
-      // Check loop every 3 seconds for smooth precision
+      // Expose test and manual lock methods
+      HauloSystem.testSessionLock = function(seconds = 30) {
+        const configuredMins = getCustomIdleMinutes();
+        showWarningModal(seconds, configuredMins);
+      };
+
+      HauloSystem.lockSessionNow = function() {
+        const configuredMins = getCustomIdleMinutes();
+        terminateSession('manual_lock', configuredMins);
+      };
+
+      // Check loop every 2 seconds for smooth precision
       setInterval(() => {
-        const token = sessionStorage.getItem('erp_token') || localStorage.getItem('erp_token');
+        const token = sessionStorage.getItem('erp_token') || localStorage.getItem('erp_token')
+          || sessionStorage.getItem('haulo_token') || localStorage.getItem('haulo_token')
+          || sessionStorage.getItem('fashion_erp_token') || localStorage.getItem('fashion_erp_token')
+          || sessionStorage.getItem('erp_user') || localStorage.getItem('erp_user');
         if (!token) return;
 
         const configuredMins = getCustomIdleMinutes();
@@ -467,12 +504,14 @@
         if (idleTime >= idleLimit) {
           terminateSession(`inactivity_${configuredMins}m`, configuredMins);
         } else if (idleTime >= warnThreshold) {
-          const remainingSec = Math.max(1, Math.ceil((idleLimit - idleTime) / 1000));
-          showWarningModal(remainingSec, configuredMins);
+          if (!warningVisible) {
+            const remainingSec = Math.max(1, Math.ceil((idleLimit - idleTime) / 1000));
+            showWarningModal(remainingSec, configuredMins);
+          }
         } else {
           dismissWarningModal();
         }
-      }, 3000);
+      }, 2000);
     }
   }
 

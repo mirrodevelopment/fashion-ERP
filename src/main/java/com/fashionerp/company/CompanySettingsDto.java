@@ -120,7 +120,7 @@ public class CompanySettingsDto {
                 .currencySymbol(s.getCurrencySymbol() != null ? s.getCurrencySymbol() : "₹")
                 .orderPrefix(s.getOrderPrefix() != null ? s.getOrderPrefix() : "ORD-")
                 .invoicePrefix(s.getInvoicePrefix() != null ? s.getInvoicePrefix() : "INV-")
-                .sessionTimeoutMinutes(s.getSessionTimeoutMinutes() > 0 ? s.getSessionTimeoutMinutes() : 20)
+                .sessionTimeoutMinutes(s.getSessionTimeoutMinutes() >= 0 ? s.getSessionTimeoutMinutes() : 20)
                 .updatedAt(s.getUpdatedAt())
                 .build();
         }
