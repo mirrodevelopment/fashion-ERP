@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -54,6 +55,32 @@ public class Employee {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    // --- Workforce Department & Performance Metrics (V10) ---
+
+    @Column(nullable = false, length = 100)
+    @Builder.Default
+    private String department = "General";
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal salary = BigDecimal.ZERO;
+
+    @Column(nullable = false, length = 100)
+    @Builder.Default
+    private String branch = "Main Branch";
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer workload = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer efficiency = 95;
+
+    @Column(name = "completed_month", nullable = false)
+    @Builder.Default
+    private Integer completedMonth = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -66,6 +93,10 @@ public class Employee {
     protected void assignTenant() {
         if (this.companyId == null) {
             this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+        if (this.branch == null || this.branch.isBlank()) {
+            String b = com.fashionerp.common.TenantContext.getAssignedBranch();
+            this.branch = (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : "Main Branch";
         }
     }
 }

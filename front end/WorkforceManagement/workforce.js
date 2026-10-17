@@ -17,6 +17,7 @@
      ========================================================================== */
   const state = {
     employees: [],
+    customDepartments: [],
     selectedDepartment: "all",
     searchQuery: "",
     currentPage: 1,
@@ -54,39 +55,27 @@
       const items = Array.isArray(res) ? res : (res?.content || []);
       
       state.employees = items.map(e => {
-        let dept = "Stitching";
+        let dept = (e.department && e.department.trim()) ? e.department.trim() : "General";
         let roleTitle = e.role ? e.role.charAt(0).toUpperCase() + e.role.slice(1).toLowerCase() : "Tailor";
         let salaryVal = Number(e.salary) || 0;
         let workloadVal = Number(e.workload) || 0;
         let ordersVal = Number(e.ordersAssigned) || 0;
         let completedVal = Number(e.completedMonth) || 0;
-        let effVal = Number(e.efficiency) || 0;
+        let effVal = Number(e.efficiency) || 95;
 
-        if (e.notes) {
+        // Legacy notes fallback if old record has empty column
+        if ((!e.department || e.department === "Stitching" || e.department === "General") && e.notes) {
           try {
             const meta = JSON.parse(e.notes);
             if (meta.department) dept = meta.department;
             if (meta.role) roleTitle = meta.role;
-            if (meta.salary != null) salaryVal = Number(meta.salary);
-            if (meta.workload != null) workloadVal = Number(meta.workload);
-            if (meta.ordersAssigned != null) ordersVal = Number(meta.ordersAssigned);
-            if (meta.completedMonth != null) completedVal = Number(meta.completedMonth);
-            if (meta.efficiency != null) effVal = Number(meta.efficiency);
+            if (salaryVal === 0 && meta.salary != null) salaryVal = Number(meta.salary);
           } catch (_) {
             if (e.notes.includes("Dept:")) {
               const m = e.notes.match(/Dept:\s*([A-Za-z]+)/);
               if (m) dept = m[1];
             }
           }
-        }
-        if (!dept || dept === "Stitching") {
-          const roleUpper = (e.role || "").toUpperCase();
-          if (roleUpper.includes("DESIGN")) dept = "Designing";
-          else if (roleUpper.includes("CUT")) dept = "Cutting";
-          else if (roleUpper.includes("FINISH")) dept = "Finishing";
-          else if (roleUpper.includes("EMBROID")) dept = "Embroidery";
-          else if (roleUpper.includes("ADMIN") || roleUpper.includes("MANAG") || roleUpper.includes("SUPERVISOR")) dept = "Administration";
-          else if (roleUpper.includes("STITCH") || roleUpper.includes("TAILOR")) dept = "Stitching";
         }
 
         return {
@@ -113,6 +102,20 @@
       if (items.length === 0) {
         state.employees = [];
       }
+
+      // Load distinct user-created departments from API
+      try {
+        if (typeof api.employees.departments === "function") {
+          const fetchedDepts = await api.employees.departments().catch(() => []);
+          if (Array.isArray(fetchedDepts)) {
+            fetchedDepts.forEach(d => {
+              if (d && typeof d === "string" && d.trim() && !state.customDepartments.includes(d.trim())) {
+                state.customDepartments.push(d.trim());
+              }
+            });
+          }
+        }
+      } catch (_) {}
 
       renderTable();
       updateDepartmentTabs();
@@ -148,22 +151,130 @@
   let productivityChartInstance = null;
   let workloadChartInstance = null;
 
-  function updateDepartmentTabs() {
-    const total = state.employees.length;
-    const depts = ["Designing", "Cutting", "Stitching", "Finishing", "Embroidery", "Administration"];
-    
-    const allBtn = document.querySelector('.dept-tab[data-dept="all"]');
-    if (allBtn) {
-      allBtn.textContent = `All Employees (${total})`;
+  /**
+   * Returns sorted list of all unique departments created by boutique users (owner or branch admin)
+   */
+  function getAvailableDepartments() {
+    const set = new Set();
+    state.employees.forEach(e => {
+      const d = (e.department || "").trim();
+      if (d) set.add(d);
+    });
+    if (Array.isArray(state.customDepartments)) {
+      state.customDepartments.forEach(d => {
+        if (d && d.trim()) set.add(d.trim());
+      });
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  function populateDeptDropdown(selectId, customInputId, toggleBtnId, toggleTextId, selectedDept = null) {
+    const select = document.getElementById(selectId);
+    const customInput = document.getElementById(customInputId);
+    const toggleBtn = document.getElementById(toggleBtnId);
+    const toggleText = document.getElementById(toggleTextId);
+    if (!select) return;
+
+    const depts = getAvailableDepartments();
+    let optionsHtml = `<option value="" disabled ${!selectedDept ? 'selected' : ''}>Select or create department...</option>`;
+    depts.forEach(d => {
+      const isSel = selectedDept && selectedDept.toLowerCase() === d.toLowerCase();
+      optionsHtml += `<option value="${d}" ${isSel ? 'selected' : ''}>${d}</option>`;
+    });
+    // If selectedDept is custom and not yet in depts, add it
+    if (selectedDept && !depts.some(d => d.toLowerCase() === selectedDept.toLowerCase())) {
+      optionsHtml += `<option value="${selectedDept}" selected>${selectedDept}</option>`;
+    }
+    optionsHtml += `<option value="__NEW__">+ Create New Department...</option>`;
+    select.innerHTML = optionsHtml;
+
+    if (customInput) {
+      customInput.value = "";
+      if (depts.length === 0 && !selectedDept) {
+        customInput.style.display = "block";
+        customInput.required = true;
+        select.required = false;
+        if (toggleText) toggleText.textContent = "Cancel New";
+      } else {
+        customInput.style.display = "none";
+        customInput.required = false;
+        select.required = true;
+        if (toggleText) toggleText.textContent = "+ Create New Department";
+      }
+    }
+  }
+
+  function setupDeptDropdownListeners(selectId, customInputId, toggleBtnId, toggleTextId) {
+    const select = document.getElementById(selectId);
+    const customInput = document.getElementById(customInputId);
+    const toggleBtn = document.getElementById(toggleBtnId);
+    const toggleText = document.getElementById(toggleTextId);
+
+    if (select) {
+      select.onchange = () => {
+        if (select.value === "__NEW__") {
+          if (customInput) {
+            customInput.style.display = "block";
+            customInput.required = true;
+            customInput.focus();
+          }
+          select.required = false;
+          if (toggleText) toggleText.textContent = "Cancel New";
+        } else {
+          if (customInput) {
+            customInput.style.display = "none";
+            customInput.required = false;
+          }
+          select.required = true;
+          if (toggleText) toggleText.textContent = "+ Create New Department";
+        }
+      };
     }
 
-    depts.forEach(d => {
-      const btn = document.querySelector(`.dept-tab[data-dept="${d}"]`);
-      if (btn) {
-        const count = state.employees.filter(e => (e.department || "").toLowerCase() === d.toLowerCase()).length;
-        btn.textContent = `${d} (${count})`;
-      }
+    if (toggleBtn) {
+      toggleBtn.onclick = () => {
+        if (!customInput) return;
+        const isShown = customInput.style.display !== "none";
+        if (isShown) {
+          customInput.style.display = "none";
+          customInput.required = false;
+          if (select) {
+            select.required = true;
+            if (select.value === "__NEW__") select.value = "";
+          }
+          if (toggleText) toggleText.textContent = "+ Create New Department";
+        } else {
+          customInput.style.display = "block";
+          customInput.required = true;
+          if (select) select.required = false;
+          if (toggleText) toggleText.textContent = "Cancel New";
+          customInput.focus();
+        }
+      };
+    }
+  }
+
+  function updateDepartmentTabs() {
+    const total = state.employees.length;
+    const deptTabs = document.getElementById("deptTabs");
+    if (!deptTabs) return;
+
+    const availableDepts = getAvailableDepartments();
+    const currentActive = state.selectedDepartment || "all";
+
+    if (currentActive !== "all" && !availableDepts.some(d => d.toLowerCase() === currentActive.toLowerCase())) {
+      state.selectedDepartment = "all";
+    }
+
+    let html = `<button type="button" class="dept-tab ${state.selectedDepartment === 'all' ? 'active' : ''}" data-dept="all" role="tab" aria-selected="${state.selectedDepartment === 'all'}">All Employees (${total})</button>`;
+
+    availableDepts.forEach(d => {
+      const count = state.employees.filter(e => (e.department || "").toLowerCase() === d.toLowerCase()).length;
+      const isActive = state.selectedDepartment.toLowerCase() === d.toLowerCase();
+      html += `<button type="button" class="dept-tab ${isActive ? 'active' : ''}" data-dept="${d}" role="tab" aria-selected="${isActive}">${d} (${count})</button>`;
     });
+
+    deptTabs.innerHTML = html;
   }
 
   function updateKPIs(apiKpis = null) {
@@ -202,39 +313,69 @@
 
     const totalEmp = state.employees.length;
 
-    // 1. Staff by Department Donut Chart
+    // 1. Staff by Department Donut Chart (100% dynamic from user-created departments)
     const deptCanvas = document.getElementById("deptDonutChart");
     if (deptCanvas) {
       const existing = window.Chart.getChart(deptCanvas);
       if (existing) existing.destroy();
       if (deptChartInstance) { deptChartInstance.destroy(); deptChartInstance = null; }
 
-      const depts = ["Designing", "Cutting", "Stitching", "Finishing", "Embroidery", "Administration"];
-      const deptCounts = depts.map(d => state.employees.filter(e => (e.department || "").toLowerCase() === d.toLowerCase()).length);
       const totalEl = document.getElementById("deptDonutTotal");
       if (totalEl) totalEl.textContent = totalEmp;
 
-      const colors = ["#E6D37A", "#7B88FF", "#D1D5DB", "#F8A4B8", "#C084FC", "#6EE7B7"];
+      // Extract unique user-created departments and their counts
+      const deptMap = {};
+      state.employees.forEach(e => {
+        const d = (e.department || "").trim();
+        if (d) {
+          deptMap[d] = (deptMap[d] || 0) + 1;
+        }
+      });
+
+      const depts = Object.keys(deptMap).sort((a, b) => deptMap[b] - deptMap[a]);
+      const deptCounts = depts.map(d => deptMap[d]);
+
+      // Palette of elegant luxury colors for dynamic departments
+      const palette = [
+        "#E6D37A", "#7B88FF", "#D1D5DB", "#F8A4B8", "#C084FC", "#6EE7B7",
+        "#F59E0B", "#38BDF8", "#FB7185", "#A78BFA", "#34D399", "#F472B6"
+      ];
+      const colors = depts.map((_, i) => palette[i % palette.length]);
+
       const legendEl = document.getElementById("deptLegendList");
+      const hasData = totalEmp > 0 && depts.length > 0;
+
       if (legendEl) {
-        legendEl.innerHTML = depts.map((d, i) => {
-          const count = deptCounts[i];
-          const pct = totalEmp > 0 ? Math.round((count / totalEmp) * 100) : 0;
-          return `<div class="legend-row"><span class="legend-dot" style="background:${colors[i]};"></span><span class="legend-name">${d}</span><span class="legend-count">${count} (${pct}%)</span></div>`;
-        }).join("");
+        if (!hasData) {
+          legendEl.innerHTML = `
+            <div style="padding:10px 4px;text-align:left;color:var(--text-muted);font-size:11.5px;line-height:1.5;">
+              <span style="display:flex;align-items:center;gap:6px;font-weight:600;color:var(--text-primary);margin-bottom:3px;">
+                <i data-lucide="layers" style="width:13px;height:13px;color:var(--accent-lime);"></i> No Departments Yet
+              </span>
+              Departments created by the boutique owner or branch admin will appear here automatically.
+            </div>
+          `;
+          refreshLucide();
+        } else {
+          legendEl.innerHTML = depts.map((d, i) => {
+            const count = deptCounts[i];
+            const pct = totalEmp > 0 ? Math.round((count / totalEmp) * 100) : 0;
+            return `<div class="legend-row"><span class="legend-dot" style="background:${colors[i]};"></span><span class="legend-name" title="${d}">${d}</span><span class="legend-count">${count} (${pct}%)</span></div>`;
+          }).join("");
+        }
       }
 
       const ctx = deptCanvas.getContext("2d");
       deptChartInstance = new window.Chart(ctx, {
         type: "doughnut",
         data: {
-          labels: totalEmp > 0 ? depts : ["No Employees"],
+          labels: hasData ? depts : ["No Departments"],
           datasets: [{
-            data: totalEmp > 0 ? deptCounts : [1],
-            backgroundColor: totalEmp > 0 ? colors : ["rgba(255, 255, 255, 0.08)"],
-            borderWidth: totalEmp > 0 ? 2 : 0,
+            data: hasData ? deptCounts : [1],
+            backgroundColor: hasData ? colors : ["rgba(255, 255, 255, 0.08)"],
+            borderWidth: hasData ? 2 : 0,
             borderColor: "rgba(38, 30, 26, 0.95)",
-            hoverOffset: totalEmp > 0 ? 4 : 0
+            hoverOffset: hasData ? 4 : 0
           }]
         },
         options: {
@@ -244,7 +385,7 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              enabled: totalEmp > 0,
+              enabled: hasData,
               backgroundColor: "rgba(28, 22, 19, 0.96)",
               titleColor: "#FFFFFF",
               bodyColor: "rgba(255, 255, 255, 0.9)",
@@ -266,6 +407,7 @@
         }
       });
     }
+
 
     // 2. Productivity Trend Grouped Bar Chart
     const prodCanvas = document.getElementById("productivityBarChart");
@@ -707,6 +849,9 @@
     const codeInput = document.getElementById("empCode");
     if (codeInput) codeInput.value = nextCode;
 
+    populateDeptDropdown("empDept", "empDeptCustom", "btnToggleNewDept", "btnToggleNewDeptText");
+    setupDeptDropdownListeners("empDept", "empDeptCustom", "btnToggleNewDept", "btnToggleNewDeptText");
+
     modal.style.display = "flex";
     refreshLucide();
   }
@@ -718,7 +863,10 @@
     document.getElementById("editEmpId").value = emp.id;
     document.getElementById("editEmpName").value = emp.name;
     document.getElementById("editEmpCode").value = emp.code;
-    document.getElementById("editEmpDept").value = emp.department;
+
+    populateDeptDropdown("editEmpDept", "editEmpDeptCustom", "btnToggleEditNewDept", "btnToggleEditNewDeptText", emp.department);
+    setupDeptDropdownListeners("editEmpDept", "editEmpDeptCustom", "btnToggleEditNewDept", "btnToggleEditNewDeptText");
+
     document.getElementById("editEmpRole").value = emp.role;
     document.getElementById("editEmpSalary").value = emp.salary || 0;
     document.getElementById("editEmpStatus").value = emp.status || "Active";
@@ -978,17 +1126,42 @@
 
     const eventsGrid = document.getElementById("eventsCardsGrid");
     if (eventsGrid) {
-      if (state.employees.length === 0) {
-        eventsGrid.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;grid-column:span 2;">No upcoming events</div>';
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      const anniversaryList = [];
+      state.employees.forEach(e => {
+        if (!e.joinedDate) return;
+        const jDate = new Date(e.joinedDate);
+        if (isNaN(jDate.getTime())) return;
+        const years = currentYear - jDate.getFullYear();
+        if (years <= 0) return;
+        
+        const joinMonth = jDate.getMonth();
+        const monthDiff = (joinMonth - currentMonth + 12) % 12;
+        if (monthDiff <= 2) {
+          anniversaryList.push({
+            employee: e,
+            years,
+            monthDiff,
+            dateStr: jDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+          });
+        }
+      });
+
+      anniversaryList.sort((a, b) => a.monthDiff - b.monthDiff);
+
+      if (anniversaryList.length === 0) {
+        eventsGrid.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;grid-column:span 2;">No upcoming work anniversaries this period</div>';
       } else {
-        const sampleEvents = state.employees.slice(0, 2);
-        eventsGrid.innerHTML = sampleEvents.map((e, idx) => `
+        eventsGrid.innerHTML = anniversaryList.slice(0, 4).map(item => `
           <div class="event-mini-card">
-            <img src="${e.avatar || FALLBACK_AVATAR_SVG}" alt="${e.name}" class="event-avatar" onerror="this.onerror=null;this.src='${FALLBACK_AVATAR_SVG}';" />
+            <img src="${item.employee.avatar || FALLBACK_AVATAR_SVG}" alt="${item.employee.name}" class="event-avatar" onerror="this.onerror=null;this.src='${FALLBACK_AVATAR_SVG}';" />
             <div class="event-details">
-              <div class="event-person">${e.name}</div>
-              <div class="event-date">${e.joinedDate || 'Active'}</div>
-              <span class="event-tag ${idx === 0 ? 'tag-anniversary' : 'tag-birthday'}">${idx === 0 ? 'Work Anniversary' : 'Recognition'}</span>
+              <div class="event-person">${item.employee.name}</div>
+              <div class="event-date">${item.dateStr} (${item.years} ${item.years === 1 ? 'Year' : 'Years'})</div>
+              <span class="event-tag tag-anniversary">Work Anniversary</span>
             </div>
           </div>
         `).join('');
@@ -1066,25 +1239,30 @@
 
     const tbody = document.getElementById("reportTableBody");
     if (tbody) {
-      const depts = ["Designing", "Cutting", "Stitching", "Finishing", "Embroidery", "Administration"];
-      tbody.innerHTML = depts.map((d) => {
-        const deptEmps = state.employees.filter((e) => (e.department || "").toLowerCase() === d.toLowerCase());
-        const count = deptEmps.length;
-        const totalOrders = deptEmps.reduce((sum, e) => sum + (Number(e.ordersAssigned) || 0) + (Number(e.completedMonth) || 0), 0);
-        const deptEff = count > 0 ? Math.round(deptEmps.reduce((sum, e) => sum + (Number(e.efficiency) || 0), 0) / count) : 0;
-        const deptCost = deptEmps.reduce((sum, e) => sum + (Number(e.salary) || 0), 0);
-        return `
-          <tr>
-            <td><strong>${d}</strong></td>
-            <td>${count}</td>
-            <td>${totalOrders}</td>
-            <td>${deptEff}%</td>
-            <td>&#8377;${deptCost.toLocaleString("en-IN")}</td>
-          </tr>
-        `;
-      }).join("");
+      const depts = getAvailableDepartments();
+      if (depts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text-muted);">No staff departments found. Departments are created by the boutique owner or branch admin when adding staff.</td></tr>`;
+      } else {
+        tbody.innerHTML = depts.map((d) => {
+          const deptEmps = state.employees.filter((e) => (e.department || "").toLowerCase() === d.toLowerCase());
+          const count = deptEmps.length;
+          const totalOrders = deptEmps.reduce((sum, e) => sum + (Number(e.ordersAssigned) || 0) + (Number(e.completedMonth) || 0), 0);
+          const deptEff = count > 0 ? Math.round(deptEmps.reduce((sum, e) => sum + (Number(e.efficiency) || 0), 0) / count) : 0;
+          const deptCost = deptEmps.reduce((sum, e) => sum + (Number(e.salary) || 0), 0);
+          return `
+            <tr>
+              <td><strong>${d}</strong></td>
+              <td>${count}</td>
+              <td>${totalOrders}</td>
+              <td>${deptEff}%</td>
+              <td>&#8377;${deptCost.toLocaleString("en-IN")}</td>
+            </tr>
+          `;
+        }).join("");
+      }
     }
   }
+
 
   /* ==========================================================================
      9. EVENT LISTENERS & DOM BINDINGS
@@ -1242,8 +1420,23 @@
         e.preventDefault();
         const name = document.getElementById("empName").value.trim();
         const code = document.getElementById("empCode").value.trim();
-        const dept = document.getElementById("empDept").value;
+        const customDeptEl = document.getElementById("empDeptCustom");
+        const selectDeptEl = document.getElementById("empDept");
+        let dept = (customDeptEl && customDeptEl.style.display !== "none" && customDeptEl.value.trim())
+          ? customDeptEl.value.trim()
+          : (selectDeptEl && selectDeptEl.value !== "__NEW__" ? selectDeptEl.value.trim() : "");
+
+        if (!dept) {
+          showToast("Please enter or select a department name.", "error");
+          return;
+        }
+
+        if (!state.customDepartments.includes(dept)) {
+          state.customDepartments.push(dept);
+        }
+
         const role = document.getElementById("empRole").value.trim();
+
         const phone = document.getElementById("empPhone").value.trim();
         const email = document.getElementById("empEmail").value.trim();
         const salary = parseInt(document.getElementById("empSalary").value, 10) || 0;
@@ -1284,10 +1477,15 @@
               name,
               phone,
               email,
-              role: dept.toUpperCase(),
+              role: role.toUpperCase(),
+              department: dept,
+              salary: Number(salary) || 0,
+              workload: 0,
+              efficiency: 100,
+              completedMonth: 0,
               status: status.toUpperCase(),
               specialization: skills.join(', '),
-              notes: JSON.stringify({ department: dept, role, salary, workload: 0, ordersAssigned: 0, completedMonth: 0, efficiency: 100 })
+              notes: `Role: ${role}`
             });
 
             if (created && created.id) {
@@ -1366,9 +1564,20 @@
         const id = document.getElementById("editEmpId").value;
         const target = state.employees.find((e) => e.id === id);
         if (target) {
+          const editCustomDeptEl = document.getElementById("editEmpDeptCustom");
+          const editSelectDeptEl = document.getElementById("editEmpDept");
+          let dept = (editCustomDeptEl && editCustomDeptEl.style.display !== "none" && editCustomDeptEl.value.trim())
+            ? editCustomDeptEl.value.trim()
+            : (editSelectDeptEl && editSelectDeptEl.value !== "__NEW__" ? editSelectDeptEl.value.trim() : target.department);
+
+          if (dept && !state.customDepartments.includes(dept)) {
+            state.customDepartments.push(dept);
+          }
+
           target.name = document.getElementById("editEmpName").value.trim();
-          target.department = document.getElementById("editEmpDept").value;
+          target.department = dept || target.department;
           target.role = document.getElementById("editEmpRole").value.trim();
+
           target.salary = parseInt(document.getElementById("editEmpSalary").value, 10) || target.salary;
           target.status = document.getElementById("editEmpStatus").value;
           const skillsStr = document.getElementById("editEmpSkills").value.trim();
@@ -1407,6 +1616,10 @@
               await api.employees.update(targetIdentifier, {
                 name: target.name,
                 role: target.role.toUpperCase(),
+                department: target.department,
+                salary: Number(target.salary) || 0,
+                workload: Number(target.workload) || 0,
+                efficiency: Number(target.efficiency) || 95,
                 status: target.status === 'Active' ? 'ACTIVE' : 'ON_LEAVE',
                 specialization: target.skills.join(', ')
               }).catch(() => null);

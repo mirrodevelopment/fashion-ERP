@@ -71,6 +71,10 @@ public class EmployeeService {
             code = "EMP-" + String.format("%03d", count);
         }
 
+        String branch = req.getBranch() != null && !req.getBranch().isBlank()
+            ? req.getBranch().trim()
+            : (TenantContext.getAssignedBranch() != null && !"ALL".equalsIgnoreCase(TenantContext.getAssignedBranch()) ? TenantContext.getAssignedBranch() : "Main Branch");
+
         Employee emp = Employee.builder()
             .companyId(companyId)
             .employeeCode(code)
@@ -83,6 +87,12 @@ public class EmployeeService {
             .avatarUrl(req.getAvatarUrl())
             .specialization(req.getSpecialization())
             .notes(req.getNotes())
+            .department(req.getDepartment() != null && !req.getDepartment().isBlank() ? req.getDepartment().trim() : "General")
+            .salary(req.getSalary() != null ? req.getSalary() : java.math.BigDecimal.ZERO)
+            .branch(branch)
+            .workload(req.getWorkload() != null ? req.getWorkload() : 0)
+            .efficiency(req.getEfficiency() != null ? req.getEfficiency() : 95)
+            .completedMonth(req.getCompletedMonth() != null ? req.getCompletedMonth() : 0)
             .build();
 
         return EmployeeDto.Response.from(employeeRepository.save(emp));
@@ -106,6 +116,14 @@ public class EmployeeService {
         if (req.getAvatarUrl() != null) emp.setAvatarUrl(req.getAvatarUrl());
         if (req.getSpecialization() != null) emp.setSpecialization(req.getSpecialization());
         if (req.getNotes() != null) emp.setNotes(req.getNotes());
+
+        // V10 Workforce Department & Performance Metrics
+        if (req.getDepartment() != null && !req.getDepartment().isBlank()) emp.setDepartment(req.getDepartment().trim());
+        if (req.getSalary() != null) emp.setSalary(req.getSalary());
+        if (req.getBranch() != null && !req.getBranch().isBlank()) emp.setBranch(req.getBranch().trim());
+        if (req.getWorkload() != null) emp.setWorkload(req.getWorkload());
+        if (req.getEfficiency() != null) emp.setEfficiency(req.getEfficiency());
+        if (req.getCompletedMonth() != null) emp.setCompletedMonth(req.getCompletedMonth());
 
         return EmployeeDto.Response.from(employeeRepository.save(emp));
     }

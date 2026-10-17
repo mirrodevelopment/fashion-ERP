@@ -7,9 +7,24 @@
 :root {
   --bc-lime: #b8ff3d;
   --bc-text-dim: rgba(255, 255, 255, 0.45);
-  --bc-text-mid: rgba(255, 255, 255, 0.72);
+  --bc-text-mid: rgba(255, 255, 255, 0.75);
   --bc-text-bright: #ffffff;
-  --bc-sep-color: rgba(255, 255, 255, 0.28);
+  --bc-sep-color: rgba(255, 255, 255, 0.35);
+  --bc-bg-current: rgba(255, 255, 255, 0.06);
+  --bc-border-current: rgba(255, 255, 255, 0.12);
+  --bc-hover-bg: rgba(184, 255, 61, 0.10);
+}
+
+[data-theme="light"],
+body.light-theme {
+  --bc-lime: #15803d;
+  --bc-text-dim: rgba(17, 24, 39, 0.45);
+  --bc-text-mid: rgba(17, 24, 39, 0.72);
+  --bc-text-bright: #111827;
+  --bc-sep-color: rgba(17, 24, 39, 0.32);
+  --bc-bg-current: rgba(0, 0, 0, 0.05);
+  --bc-border-current: rgba(0, 0, 0, 0.12);
+  --bc-hover-bg: rgba(21, 128, 61, 0.10);
 }
 
 /* ── Container / Navigation Bar ── */
@@ -26,6 +41,8 @@
   margin-bottom: 8px;
   user-select: none;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  z-index: 10;
 }
 
 /* Slot wrapper */
@@ -66,18 +83,19 @@
   gap: 5px;
   color: var(--bc-text-mid);
   text-decoration: none;
-  padding: 2px 6px;
-  border-radius: 5px;
+  padding: 3px 7px;
+  border-radius: 6px;
   transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 12px;
   letter-spacing: 0.01em;
+  background: transparent;
 }
 
 .haulo-bc-link:hover,
 .bc-link:hover,
 .cu-bc-link:hover {
   color: var(--bc-lime);
-  background: rgba(184, 255, 61, 0.08);
+  background: var(--bc-hover-bg);
   text-decoration: none;
   transform: translateY(-0.5px);
 }
@@ -88,7 +106,7 @@
 
 /* Home button specific icon */
 .haulo-bc-home {
-  padding-left: 2px;
+  padding-left: 4px;
 }
 
 .haulo-bc-icon {
@@ -113,7 +131,8 @@
   padding: 0 1px;
 }
 
-.haulo-bc-sep svg {
+.haulo-bc-sep svg,
+.haulo-bc-sep-icon {
   width: 11px;
   height: 11px;
   stroke: currentColor;
@@ -127,14 +146,15 @@
   color: var(--bc-text-bright);
   font-weight: 600;
   font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--bc-bg-current);
+  border: 1px solid var(--bc-border-current);
   display: inline-flex;
   align-items: center;
   gap: 4px;
   letter-spacing: 0.01em;
+  backdrop-filter: blur(8px);
 }
 
 /* Optional dynamic tag accent inside current */
@@ -164,7 +184,7 @@
   .haulo-bc-current,
   .bc-current {
     font-size: 11px;
-    padding: 1px 4px;
+    padding: 2px 5px;
   }
 
   .haulo-bc-icon {

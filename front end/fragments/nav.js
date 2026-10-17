@@ -96,6 +96,22 @@
       script.src = `${basePath}system-bridge.js`;
       document.head.appendChild(script);
     }
+    if (!document.querySelector('link[href*="breadcrumbs.css"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `${basePath}breadcrumbs/breadcrumbs.css`;
+      document.head.appendChild(link);
+    }
+    if (!window.HauloBreadcrumbs && !document.querySelector('script[src*="breadcrumbs.js"]')) {
+      const script = document.createElement('script');
+      script.src = `${basePath}breadcrumbs/breadcrumbs.js`;
+      script.onload = () => {
+        if (window.HauloBreadcrumbs && typeof window.HauloBreadcrumbs.init === 'function') {
+          window.HauloBreadcrumbs.init();
+        }
+      };
+      document.head.appendChild(script);
+    }
   }
 
   // 2. Embedded Fallback Templates (for offline / file:/// protocol support)
@@ -106,6 +122,7 @@
   <!-- Logo + Toggle -->
   <div class="sidebar-logo">
     <div class="logo-icon" onclick="toggleSidebar()" title="Toggle sidebar">
+      <img class="company-custom-logo" src="" alt="Logo" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />
       <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
         <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
         <circle cx="6" cy="18.5" r="2.5" fill="#a3e635"/>
@@ -113,6 +130,7 @@
         <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
       </svg>
     </div>
+
     <div class="logo-text">
       <span class="brand-name" data-brand="shortName" data-company="shortName">HAULO</span>
       <span class="brand-sub" data-brand="legalName" data-company="companyName">Haulo Designs Private Limited</span>
@@ -268,7 +286,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span>Users &amp; Roles</span>
       </a>
-      <a href="${rootPrefix}settings/settings.html" class="nav-item" id="nav-settings" data-tooltip="Settings" data-module="settings" onclick="navNavigate('settings',event)">
+      <a href="${rootPrefix}settings/company-profile/company-profile.html" class="nav-item" id="nav-settings" data-tooltip="Settings" data-module="settings" onclick="navNavigate('settings',event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
         <span>Settings</span>
       </a>
@@ -436,10 +454,32 @@
       <div class="sp-footer-item"><kbd>ESC</kbd> <span>Close</span></div>
     </div>
   </div>
-</div>`
+</div>`,
+
+    breadcrumbs: `<!-- Breadcrumbs Navigation -->
+<nav class="haulo-bc-nav" id="appBreadcrumbs" aria-label="Breadcrumb navigation">
+  <ol class="haulo-bc-list" id="hauloBcList">
+    <li class="haulo-bc-item">
+      <a href="${rootPrefix}dashboard/dashboard.html" class="haulo-bc-link haulo-bc-home" title="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="haulo-bc-icon" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span class="haulo-bc-label">Home</span>
+      </a>
+    </li>
+  </ol>
+</nav>`
   };
 
   const Nav = {
+    /**
+     * Expose prefix computation for breadcrumbs and other modules
+     */
+    getPrefix() {
+      return rootPrefix;
+    },
+
     /**
      * Loads and replaces a container with the specified fragment
      */
@@ -459,7 +499,7 @@
       }
 
       if (!html) {
-        html = TEMPLATES[fragmentName] || '';
+        html = TEMPLATES[fragmentName] || (fragmentName.includes('breadcrumb') ? TEMPLATES.breadcrumbs : '');
       }
 
       if (!html) return false;
@@ -470,7 +510,7 @@
 
       if (elements.length > 0) {
         const fragmentElement = elements[0];
-        if (container.id === 'sidebarSlot' || container.classList.contains('sidebar-slot')) {
+        if (container.id === 'sidebarSlot' || container.classList.contains('sidebar-slot') || container.id === 'breadcrumbSlot' || container.classList.contains('haulo-bc-slot')) {
           container.innerHTML = '';
           container.appendChild(fragmentElement);
         } else {
@@ -494,6 +534,10 @@
           this.setupSidebar(fragmentElement);
         } else if (fragmentName === 'navbar') {
           this.setupNavbar(fragmentElement);
+        } else if (fragmentName.includes('breadcrumb')) {
+          if (window.HauloBreadcrumbs && typeof window.HauloBreadcrumbs.init === 'function') {
+            window.HauloBreadcrumbs.init();
+          }
         }
 
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -620,7 +664,7 @@
       }
       const settingsLink = element.querySelector('a[title="Settings"], #nav-settings, [data-module="settings"]');
       if (settingsLink) {
-        settingsLink.setAttribute('href', `${prefix}settings/settings.html`);
+        settingsLink.setAttribute('href', `${prefix}settings/company-profile/company-profile.html`);
       }
 
       // Tag all uncompleted / WIP items
@@ -1436,16 +1480,48 @@
     async init() {
       ensureNavCss();
 
-      const placeholders = Array.from(document.querySelectorAll('[data-fragment="sidebar"], [data-fragment="navbar"], #sidebarSlot, #navbarSlot'));
+      // Ensure breadcrumbSlot exists on all operational pages if not already present
+      const path = window.location.pathname.toLowerCase().replace(/\\/g, '/');
+      const isAuthPage = path.includes('/login') || path.includes('/session-expired') || path.includes('/lockscreen') || path.includes('/forgot');
+
+      let bcSlot = document.getElementById('breadcrumbSlot') || document.querySelector('[data-fragment="breadcrumbs"], .haulo-bc-slot');
+      if (!bcSlot && !isAuthPage) {
+        bcSlot = document.createElement('div');
+        bcSlot.id = 'breadcrumbSlot';
+        bcSlot.className = 'haulo-bc-slot';
+
+        const host = document.querySelector('.header-left') ||
+                     document.querySelector('.page-header .header-left, .page-header-row .header-left') ||
+                     document.querySelector('.welcome-section .welcome-left') ||
+                     document.querySelector('.page-header-row, .page-header') ||
+                     document.querySelector('.main-content, main, #mainContent, .content-area, .page-content');
+        if (host) {
+          host.insertBefore(bcSlot, host.firstChild);
+        }
+      }
+
+      const placeholders = Array.from(document.querySelectorAll(
+        '[data-fragment="sidebar"], [data-fragment="navbar"], [data-fragment="breadcrumbs"], #sidebarSlot, #navbarSlot, #breadcrumbSlot, .haulo-bc-slot'
+      ));
       if (!placeholders.length) return;
 
       for (const el of placeholders) {
         // Skip if already loaded
         if (el.innerHTML && el.innerHTML.trim() !== '' && !el.getAttribute('data-fragment')) continue;
-        const name = el.getAttribute('data-fragment') || (el.id === 'sidebarSlot' ? 'sidebar' : el.id === 'navbarSlot' ? 'navbar' : '');
+        let name = el.getAttribute('data-fragment');
+        if (!name) {
+          if (el.id === 'sidebarSlot') name = 'sidebar';
+          else if (el.id === 'navbarSlot') name = 'navbar';
+          else if (el.id === 'breadcrumbSlot' || el.classList.contains('haulo-bc-slot')) name = 'breadcrumbs';
+        }
         if (name) {
           await this.load(el, name);
         }
+      }
+
+      // Explicitly initialize breadcrumbs to ensure current page crumb is populated
+      if (window.HauloBreadcrumbs && typeof window.HauloBreadcrumbs.init === 'function') {
+        window.HauloBreadcrumbs.init();
       }
 
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -1605,9 +1681,9 @@
       'campaigns':          null,
       'employees':          `${prefix}WorkforceManagement/workforce.html`,
       'branches':           `${prefix}branches/branches.html`,
-      'company':            `${prefix}company/company.html`,
+      'company':            `${prefix}settings/company-profile/company-profile.html`,
       'users-roles':        `${prefix}users-roles/users-roles.html`,
-      'settings':           `${prefix}settings/settings.html`,
+      'settings':           `${prefix}settings/company-profile/company-profile.html`,
     };
 
     const labelMap = {

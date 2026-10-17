@@ -1,0 +1,17 @@
+/* ============================================================
+   HAULO BOUTIQUE ERP — Regional & Currency Settings Styles
+   Path: front end/settings/regional/regional.css
+   ============================================================ */
+
+.currency-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(184,255,61,.05);
+  border: 1px solid rgba(184,255,61,.15);
+  border-radius: 12px;
+  margin-top: 14px;
+}
+.currency-preview-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.75); }
+.currency-preview-sample { font-family: var(--font-mono, monospace); font-size: 18px; font-weight: 700; color: var(--lime, #B8FF3D); }

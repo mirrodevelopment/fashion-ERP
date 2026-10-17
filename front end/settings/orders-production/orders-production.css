@@ -1,0 +1,20 @@
+/* ============================================================
+   HAULO BOUTIQUE ERP — Orders & Production Settings Styles
+   Path: front end/settings/orders-production/orders-production.css
+   ============================================================ */
+
+/* ── Code Preview Box ── */
+.code-preview-box {
+  background: rgba(184, 255, 61, 0.08);
+  border: 1px solid rgba(184, 255, 61, 0.2);
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-family: var(--font-mono, monospace);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--lime, #b8ff3d);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+}

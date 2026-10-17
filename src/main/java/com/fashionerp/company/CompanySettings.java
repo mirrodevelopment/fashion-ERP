@@ -101,6 +101,34 @@ public class CompanySettings {
     @Builder.Default
     private boolean shareTrialsAcrossBranches = true;
 
+    @Column(name = "share_designs_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareDesignsAcrossBranches = true;
+
+    @Column(name = "share_purchases_across_branches", nullable = false)
+    @Builder.Default
+    private boolean sharePurchasesAcrossBranches = true;
+
+    @Column(name = "share_workforce_across_branches", nullable = false)
+    @Builder.Default
+    private boolean shareWorkforceAcrossBranches = true;
+
+    @Column(name = "currency_symbol", nullable = false, length = 10)
+    @Builder.Default
+    private String currencySymbol = "₹";
+
+    @Column(name = "order_prefix", nullable = false, length = 10)
+    @Builder.Default
+    private String orderPrefix = "ORD-";
+
+    @Column(name = "invoice_prefix", nullable = false, length = 10)
+    @Builder.Default
+    private String invoicePrefix = "INV-";
+
+    @Column(name = "session_timeout_minutes", nullable = false)
+    @Builder.Default
+    private int sessionTimeoutMinutes = 20;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

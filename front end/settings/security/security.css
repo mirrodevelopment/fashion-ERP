@@ -1,0 +1,109 @@
+/* ============================================================
+   HAULO BOUTIQUE ERP — Security & Access Settings Styles
+   Path: front end/settings/security/security.css
+   ============================================================ */
+
+/* ── Input with Eye Toggle ── */
+.input-eye-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-eye-wrap .form-input {
+  padding-right: 40px;
+}
+.eye-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+.eye-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Password Strength Bar ── */
+.password-strength-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.strength-fill {
+  height: 100%;
+  width: 0;
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+.strength-label {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+/* ── Active Sessions ── */
+.active-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.session-item:last-child {
+  border-bottom: none;
+}
+.session-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+.session-info {
+  flex: 1;
+}
+.session-device {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.session-meta {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+.session-current-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(184, 255, 61, 0.15);
+  color: var(--lime, #b8ff3d);
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid rgba(184, 255, 61, 0.3);
+}
+.session-item.current .session-icon {
+  background: rgba(184, 255, 61, 0.12);
+  color: var(--lime, #b8ff3d);
+}

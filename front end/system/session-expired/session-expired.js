@@ -31,6 +31,7 @@
   const params = new URLSearchParams(window.location.search);
   const reason = params.get('reason') || 'inactivity';
   const returnUrl = params.get('returnUrl') || sessionStorage.getItem('haulo_redirect_after_login') || document.referrer || '';
+  const timeoutMinutes = params.get('minutes') || (reason.match(/^inactivity_(\d+)m$/) ? reason.match(/^inactivity_(\d+)m$/)[1] : null);
 
   // Preserve previous page to resume after re-login
   if (returnUrl && !returnUrl.includes('session-expired') && !returnUrl.includes('login')) {
@@ -41,12 +42,16 @@
   if (sessionSubtitle) {
     if (reason === 'unauthorized') {
       sessionSubtitle.textContent = 'Your session has ended because credentials were unauthorized or revoked. Please log in again to continue.';
-    } else if (reason === 'inactivity_20m') {
-      sessionSubtitle.textContent = 'Your session has expired after 20 minutes of inactivity for security reasons. Please log in again to continue.';
     } else if (reason === 'extended_session_5m') {
       sessionSubtitle.textContent = 'Workstation Security Notice: Following a 3-hour active shift, your session expired due to 5 minutes of idle time. Please log in again to resume.';
-    } else {
+    } else if (timeoutMinutes && parseInt(timeoutMinutes, 10) > 0) {
+      const minNum = parseInt(timeoutMinutes, 10);
+      const minText = minNum === 1 ? '1 minute' : `${minNum} minutes`;
+      sessionSubtitle.textContent = `Your session has expired after ${minText} of inactivity for security reasons. Please log in again to continue.`;
+    } else if (reason.startsWith('inactivity')) {
       sessionSubtitle.textContent = 'Your session has expired due to inactivity for security reasons. Please log in again to continue.';
+    } else {
+      sessionSubtitle.textContent = 'Your session has expired for security reasons. Please log in again to continue.';
     }
   }
 
@@ -97,10 +102,12 @@
     let securityEvent = 'SESSION_TIMEOUT_INACTIVITY';
     if (reason === 'unauthorized') {
       securityEvent = 'SESSION_UNAUTHORIZED_REVOKED';
-    } else if (reason === 'inactivity_20m') {
-      securityEvent = 'SESSION_INACTIVITY_20M_TIMEOUT';
     } else if (reason === 'extended_session_5m') {
       securityEvent = 'EXTENDED_SESSION_STRICT_5M_TIMEOUT';
+    } else if (timeoutMinutes && parseInt(timeoutMinutes, 10) > 0) {
+      securityEvent = `SESSION_INACTIVITY_${timeoutMinutes}M_TIMEOUT`;
+    } else if (reason.startsWith('inactivity')) {
+      securityEvent = 'SESSION_TIMEOUT_INACTIVITY';
     }
 
     const sysName = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('systemName')) || 'Haulo Boutique ERP';

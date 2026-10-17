@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HAULO BOUTIQUE ERP — GARMENT 360° CONTROLLER
  * garaments-360.js — 100% Dynamic Hydration from Live Database Records
  * Zero raw / mock seed values.
@@ -63,24 +63,14 @@ function resolveGarmentImage360(g) {
 }
 window.resolveGarmentImage360 = resolveGarmentImage360;
 
-// ── Atelier Staff Roster Baseline ───────────────────────────────────────────
-const ATELIER_STAFF_ROSTER = [
-  { id: '1', name: 'Ravi M', role: 'TAILOR', specialization: 'Master Sleeve Construction', avatarUrl: '../../assets/user_avatar.jpg' },
-  { id: '2', name: 'Arun S', role: 'TAILOR', specialization: 'Bespoke Finishing & Fitting', avatarUrl: '../../assets/order-ref/anitha_raj.jpg' },
-  { id: '3', name: 'Meera S', role: 'DESIGNER', specialization: 'Heritage Silhouette & Cutting', avatarUrl: '../../assets/order-ref/meera_pillai.jpg' },
-  { id: '4', name: 'Suresh K', role: 'TAILOR', specialization: 'Precision Pattern Cutting', avatarUrl: '../../assets/user_avatar.jpg' },
-  { id: '5', name: 'Meena P', role: 'ARTISAN', specialization: 'Master Zardozi Handwork', avatarUrl: '../../assets/order-ref/priya_sharma.jpg' },
-  { id: '6', name: 'Shalini Reddy', role: 'DESIGNER', specialization: 'Corsetry Bone Sculpting', avatarUrl: '../../assets/order-ref/priya_sharma.jpg' },
-  { id: '7', name: 'Tarun Varma', role: 'DESIGNER', specialization: 'Architectural Corsets & Gowns', avatarUrl: '../../assets/user_avatar.jpg' },
-  { id: '8', name: 'Karthik Sundaram', role: 'TAILOR', specialization: 'Master Tuxedo Tailor', avatarUrl: '../../assets/user_avatar.jpg' },
-  { id: '9', name: 'Lakshmi Narayanan', role: 'TAILOR', specialization: 'Pre-Pleated Organza Drape', avatarUrl: '../../assets/order-ref/anitha_raj.jpg' },
-  { id: '10', name: 'Priya Sharma', role: 'DESIGNER', specialization: 'Haute Couture Draping', avatarUrl: '../../assets/order-ref/priya_sharma.jpg' }
-];
+// ── Atelier Staff Roster (Populated dynamically from active employees) ───────
+const ATELIER_STAFF_ROSTER = [];
 
 // ── State ───────────────────────────────────────────────────────────────────
 let activeGarment = null;
 let activeMeasurements = null;
 let activeStages = [];
+let activeStageDefinitions = [];
 let activeTrial = null;
 let activeEmployees = [];
 let activeGarmentLoads = {};
@@ -285,7 +275,15 @@ async function loadLinkedRelationalData(g) {
   // 4. Fetch all active workforce employees from database
   const empRes = await fetchSafe('/api/v1/employees?size=100');
   const fetchedEmps = empRes?.content || (Array.isArray(empRes) ? empRes : []);
-  activeEmployees = fetchedEmps.length > 0 ? fetchedEmps : ATELIER_STAFF_ROSTER;
+  activeEmployees = Array.isArray(fetchedEmps) ? fetchedEmps : [];
+
+  // 4b. Fetch dynamic stage definitions from database
+  activeStageDefinitions = [];
+  const stageDefsRes = await fetchSafe('/api/v1/production/stage-definitions');
+  const fetchedDefs = stageDefsRes?.content || (Array.isArray(stageDefsRes) ? stageDefsRes : []);
+  if (Array.isArray(fetchedDefs) && fetchedDefs.length > 0) {
+    activeStageDefinitions = fetchedDefs;
+  }
 
   // 5. Fetch garments to compute actual artisan workload dynamically
   const garRes = await fetchSafe('/api/v1/garments?size=200');
@@ -491,56 +489,84 @@ function generateDynamicBOM(g, specs) {
 
 // ── Dynamic Production Stages Generator ─────────────────────────────────────
 function generateDynamicStages(g, dbStages) {
-  const standardStages = [
-    { key: 'DESIGNING', name: 'Designing' },
-    { key: 'PATTERN', name: 'Pattern' },
-    { key: 'CUTTING', name: 'Cutting' },
-    { key: 'EMBROIDERY', name: 'Embroidery' },
-    { key: 'STITCHING', name: 'Stitching' },
-    { key: 'FINISHING', name: 'Finishing' },
-    { key: 'TRIAL', name: 'Trial' },
-    { key: 'QC', name: 'QC' }
-  ];
+  // Use strictly the live stages from the database (stage_definitions or active garment stages)
+  let standardStages = [];
+  if (Array.isArray(activeStageDefinitions) && activeStageDefinitions.length > 0) {
+    standardStages = activeStageDefinitions.map(sd => ({
+      key: (sd.stageKey || '').toUpperCase().trim(),
+      name: sd.displayName || sd.stageKey || 'Stage',
+      role: sd.requiredRole || '',
+      dept: sd.deptLabel || '',
+      sortOrder: sd.sortOrder ?? 0
+    })).sort((a, b) => a.sortOrder - b.sortOrder);
+  } else if (Array.isArray(dbStages) && dbStages.length > 0) {
+    standardStages = dbStages.map((dbs, idx) => ({
+      key: (dbs.stageKey || dbs.stageName || ('STAGE_' + idx)).toUpperCase().trim(),
+      name: dbs.stageName || dbs.stageKey || ('Stage ' + (idx + 1)),
+      role: dbs.requiredRole || '',
+      dept: dbs.department || '',
+      sortOrder: dbs.sortOrder ?? idx
+    })).sort((a, b) => a.sortOrder - b.sortOrder);
+  }
 
-  const currentStageKey = (g.productionStage || 'DESIGNING').toUpperCase();
+  // If no stages exist in the database, return empty array (zero hardcoded fallback)
+  if (standardStages.length === 0) {
+    return [];
+  }
+
+  const currentStageKey = (g?.productionStage || '').toUpperCase().trim();
   let currentIdx = standardStages.findIndex(s => 
-    currentStageKey.includes(s.key) || s.key.includes(currentStageKey)
+    (currentStageKey && s.key === currentStageKey) ||
+    (currentStageKey && s.name.toUpperCase() === currentStageKey) ||
+    (currentStageKey && currentStageKey.includes(s.key)) ||
+    (currentStageKey && s.key.includes(currentStageKey))
   );
   if (currentIdx === -1) {
-    if (currentStageKey.includes('CAD') || currentStageKey.includes('DRAFT')) currentIdx = 1;
-    else if (currentStageKey.includes('CRAFT') || currentStageKey.includes('ZARDOZI') || currentStageKey.includes('HAND')) currentIdx = 3;
-    else if (currentStageKey.includes('ASSEMBL') || currentStageKey.includes('BONE') || currentStageKey.includes('SEW')) currentIdx = 4;
-    else if (currentStageKey.includes('FIT') || currentStageKey.includes('ALTER')) currentIdx = 6;
-    else if (currentStageKey.includes('READY') || currentStageKey.includes('DELIVER') || currentStageKey.includes('COMPLETE') || currentStageKey.includes('INSPECT')) currentIdx = 7;
-    else currentIdx = 0;
+    currentIdx = 0;
   }
 
   const assignedArtisan = g.assignedTo || 'Unassigned';
   const createdDate = formatDate(g.createdAt) || 'Started';
 
   return standardStages.map((st, idx) => {
+    // Check if dbStages contains live record for this stage
+    const matchingDbStage = Array.isArray(dbStages) ? dbStages.find(dbs => 
+      (dbs.stageKey && dbs.stageKey.toUpperCase() === st.key) ||
+      (dbs.stageName && dbs.stageName.toUpperCase() === st.name.toUpperCase())
+    ) : null;
+
     let status = 'PENDING';
     let progressPct = 0;
     let artisan = '-';
     let date = '';
     let dur = '';
 
-    if (idx < currentIdx) {
-      status = 'COMPLETED';
-      artisan = (idx === 0 && g.designer) ? g.designer : (idx === 1 ? 'Master Cutter' : (g.assignedTo || 'Atelier Artisan'));
-      date = createdDate;
-      dur = 'Completed';
-    } else if (idx === currentIdx) {
-      status = 'ACTIVE';
-      progressPct = g.isOverdue ? 85 : 65;
-      artisan = assignedArtisan;
-      date = 'In Progress';
-      dur = g.isOverdue ? 'Action Required' : 'Active Stage';
+    if (matchingDbStage) {
+      status = (matchingDbStage.status || (matchingDbStage.completed ? 'COMPLETED' : 'PENDING')).toUpperCase();
+      artisan = matchingDbStage.assignedTo || assignedArtisan;
+      date = formatDate(matchingDbStage.completedAt || matchingDbStage.updatedAt || matchingDbStage.createdAt) || '';
+      dur = status === 'COMPLETED' ? 'Completed' : (status === 'IN_PROGRESS' || status === 'ACTIVE' ? 'Active Stage' : 'Pending');
+      progressPct = status === 'COMPLETED' ? 100 : (status === 'IN_PROGRESS' || status === 'ACTIVE' ? 65 : 0);
     } else {
-      status = 'PENDING';
-      artisan = '-';
-      date = '';
-      dur = '';
+      if (idx < currentIdx) {
+        status = 'COMPLETED';
+        artisan = (idx === 0 && g.designer) ? g.designer : (idx === 1 ? 'Master Cutter' : (g.assignedTo || 'Atelier Artisan'));
+        date = createdDate;
+        dur = 'Completed';
+        progressPct = 100;
+      } else if (idx === currentIdx) {
+        status = 'ACTIVE';
+        progressPct = g.isOverdue ? 85 : 65;
+        artisan = assignedArtisan;
+        date = 'In Progress';
+        dur = g.isOverdue ? 'Action Required' : 'Active Stage';
+      } else {
+        status = 'PENDING';
+        artisan = '-';
+        date = '';
+        dur = '';
+        progressPct = 0;
+      }
     }
 
     return {
@@ -618,17 +644,26 @@ function generateDynamicHistory(g, measurements, trial) {
 }
 
 // ── Real Workforce & Operations Helpers ─────────────────────────────────────
-function resolveEmployeeAvatar(name) {
-  if (!name) return '../../assets/user_avatar.jpg';
-  const n = name.toLowerCase().trim();
-  if (n.includes('priya') || n.includes('shalini')) return '../../assets/order-ref/priya_sharma.jpg';
-  if (n.includes('anitha') || n.includes('lakshmi')) return '../../assets/order-ref/anitha_raj.jpg';
-  if (n.includes('radhika') || n.includes('zareen')) return '../../assets/order-ref/radhika_iyer.jpg';
-  if (n.includes('kavya') || n.includes('ananya')) return '../../assets/order-ref/kavya_nair.jpg';
-  if (n.includes('sneha') || n.includes('shabnam')) return '../../assets/order-ref/sneha_reddy.jpg';
-  if (n.includes('meera') || n.includes('aarti') || n.includes('devika')) return '../../assets/order-ref/meera_pillai.jpg';
-  if (n.includes('divya') || n.includes('noor')) return '../../assets/order-ref/divya_raj.jpg';
-  if (n.includes('neha')) return '../../assets/order-ref/neha_bhat.jpg';
+function resolveEmployeeAvatar(employeeOrName) {
+  if (!employeeOrName) return '../../assets/user_avatar.jpg';
+
+  // If passed an employee object directly
+  if (typeof employeeOrName === 'object') {
+    if (employeeOrName.avatarUrl) return employeeOrName.avatarUrl;
+    employeeOrName = employeeOrName.name;
+  }
+
+  const nameStr = (employeeOrName || '').toLowerCase().trim();
+  if (!nameStr || nameStr === 'unassigned' || nameStr === '-') {
+    return '../../assets/user_avatar.jpg';
+  }
+
+  // Look up in activeEmployees dynamically fetched from the database
+  const matched = (activeEmployees || []).find(e => (e.name || '').toLowerCase().trim() === nameStr);
+  if (matched && matched.avatarUrl) {
+    return matched.avatarUrl;
+  }
+
   return '../../assets/user_avatar.jpg';
 }
 
@@ -669,8 +704,9 @@ function calculateWorkerLoad(workerName) {
   if (!workerName || workerName === 'Unassigned' || workerName === '-') {
     return { count: 0, percentage: 0, level: 'Available' };
   }
-  const count = activeGarmentLoads[workerName] || 1;
-  if (count <= 1) return { count, percentage: 35, level: 'Low' };
+  const count = activeGarmentLoads[workerName] || 0;
+  if (count === 0) return { count: 0, percentage: 0, level: 'Available' };
+  if (count === 1) return { count: 1, percentage: 35, level: 'Low' };
   if (count === 2) return { count, percentage: 65, level: 'Balanced' };
   if (count === 3) return { count, percentage: 85, level: 'High' };
   return { count, percentage: 100, level: 'Full Load' };
@@ -1089,6 +1125,10 @@ function renderProductionJourney(g, dbStages) {
   if (!container) return;
 
   const steps = generateDynamicStages(g, dbStages);
+  if (!steps || steps.length === 0) {
+    container.innerHTML = '<div style=\"color:var(--text-muted);font-size:12px;text-align:center;padding:24px 0;\">No production workflow stages configured in database.</div>';
+    return;
+  }
 
   let html = '';
   steps.forEach((st, idx) => {
@@ -1856,7 +1896,7 @@ window.reassignTailor = function() {
   if (!g) return;
 
   const currentWorkerName = (g.assignedTo || '').toLowerCase();
-  const artisans = (activeEmployees.length > 0 ? activeEmployees : ATELIER_STAFF_ROSTER);
+  const artisans = Array.isArray(activeEmployees) ? activeEmployees : [];
 
   const html = `
     <div style="font-size:12px;color:#9ca3af;margin-bottom:12px;">
@@ -1882,7 +1922,7 @@ window.filterReassignList = function(query) {
   const q = (query || '').toLowerCase().trim();
   const g = activeGarment;
   const currentWorkerName = (g?.assignedTo || '').toLowerCase();
-  const artisans = (activeEmployees.length > 0 ? activeEmployees : ATELIER_STAFF_ROSTER);
+  const artisans = Array.isArray(activeEmployees) ? activeEmployees : [];
   const filtered = artisans.filter(a => 
     (a.name || '').toLowerCase().includes(q) ||
     (a.specialization || '').toLowerCase().includes(q) ||

@@ -52,6 +52,12 @@ echo   Server logs will stream below. Press Ctrl+C to stop the application.
 echo =======================================================================
 echo.
 
+if not defined JAVA_HOME (
+    for /d %%J in ("C:\Program Files\Eclipse Adoptium\jdk-17*" "C:\Program Files\Java\jdk-17*" "C:\Program Files\Eclipse Foundation\jdk-17*") do (
+        if exist "%%J\bin\java.exe" set "JAVA_HOME=%%J"
+    )
+)
+
 call "%~dp0mvnw.cmd" -f "%~dp0pom.xml" compile spring-boot:run
 
 pause

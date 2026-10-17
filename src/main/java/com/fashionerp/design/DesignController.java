@@ -40,13 +40,20 @@ public class DesignController {
     }
 
     /* ------------------------------------------------------------------
-     * GET BY ID
+     * GET BY ID OR DESIGN CODE
      * ------------------------------------------------------------------ */
-    @GetMapping("/{id}")
-    public Design getById(@PathVariable UUID id) {
+    @GetMapping("/{identifier}")
+    public Design getByIdentifier(@PathVariable String identifier) {
         UUID companyId = TenantContext.getCompanyId();
-        return designRepository.findByIdAndCompanyId(id, companyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Design not found: " + id));
+        try {
+            UUID id = UUID.fromString(identifier);
+            return designRepository.findByIdAndCompanyId(id, companyId)
+                    .or(() -> designRepository.findByDesignCodeAndCompanyId(identifier, companyId))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Design not found: " + identifier));
+        } catch (IllegalArgumentException e) {
+            return designRepository.findByDesignCodeAndCompanyId(identifier, companyId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Design not found: " + identifier));
+        }
     }
 
     /* ------------------------------------------------------------------
@@ -65,6 +72,10 @@ public class DesignController {
         }
         if (design.getProductionStatus() == null || design.getProductionStatus().isBlank()) {
             design.setProductionStatus("Active");
+        }
+        if (design.getParentDesignId() == null && design.getParentDesignCode() != null && !design.getParentDesignCode().isBlank()) {
+            designRepository.findByDesignCodeAndCompanyId(design.getParentDesignCode(), companyId)
+                    .ifPresent(parent -> design.setParentDesignId(parent.getId()));
         }
         return designRepository.save(design);
     }
@@ -110,7 +121,51 @@ public class DesignController {
         if (updated.getNotes() != null)            d.setNotes(updated.getNotes());
         if (updated.getCreatedBy() != null)        d.setCreatedBy(updated.getCreatedBy());
 
+        // Blueprint & Variant fields (V9)
+        d.setVariant(updated.isVariant());
+        if (updated.getParentDesignId() != null)       d.setParentDesignId(updated.getParentDesignId());
+        if (updated.getParentDesignCode() != null)     d.setParentDesignCode(updated.getParentDesignCode());
+        if (updated.getVariantSuffix() != null)        d.setVariantSuffix(updated.getVariantSuffix());
+        if (updated.getNeckline() != null)             d.setNeckline(updated.getNeckline());
+        if (updated.getSleeveStyle() != null)          d.setSleeveStyle(updated.getSleeveStyle());
+        if (updated.getBackDesign() != null)           d.setBackDesign(updated.getBackDesign());
+        if (updated.getLining() != null)               d.setLining(updated.getLining());
+        if (updated.getPadding() != null)              d.setPadding(updated.getPadding());
+        if (updated.getReadinessScore() != null)       d.setReadinessScore(updated.getReadinessScore());
+        if (updated.getVariantAlterationNotes() != null) d.setVariantAlterationNotes(updated.getVariantAlterationNotes());
+
+        // Extended tailoring & workflow fields (V10)
+        if (updated.getTurnaroundDays() != null)         d.setTurnaroundDays(updated.getTurnaroundDays());
+        if (updated.getAccentFabric() != null)           d.setAccentFabric(updated.getAccentFabric());
+        if (updated.getComplexity() != null)             d.setComplexity(updated.getComplexity());
+        if (updated.getClosure() != null)                d.setClosure(updated.getClosure());
+        if (updated.getBranch() != null)                 d.setBranch(updated.getBranch());
+
         return designRepository.save(d);
+    }
+
+    /* ------------------------------------------------------------------
+     * GET VARIANTS BY PARENT ID OR DESIGN CODE
+     * ------------------------------------------------------------------ */
+    @GetMapping("/{identifier}/variants")
+    public List<Design> getVariants(@PathVariable String identifier) {
+        UUID companyId = TenantContext.getCompanyId();
+        UUID parentId;
+        try {
+            parentId = UUID.fromString(identifier);
+        } catch (IllegalArgumentException e) {
+            parentId = designRepository.findByDesignCodeAndCompanyId(identifier, companyId)
+                    .map(d -> d.getId())
+                    .orElse(null);
+        }
+        if (parentId == null) {
+            return designRepository.findByCompanyIdAndParentDesignCode(companyId, identifier);
+        }
+        List<Design> variants = designRepository.findByCompanyIdAndParentDesignId(companyId, parentId);
+        if (variants.isEmpty()) {
+            return designRepository.findByCompanyIdAndParentDesignCode(companyId, identifier);
+        }
+        return variants;
     }
 
     /* ------------------------------------------------------------------

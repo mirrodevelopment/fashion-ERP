@@ -62,6 +62,12 @@ public class EmployeeController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/departments")
+    public List<String> getDepartments() {
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        return employeeRepository.findDistinctDepartments(companyId);
+    }
+
     @GetMapping("/kpis")
     public Map<String, Object> kpis() {
         UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
@@ -69,7 +75,7 @@ public class EmployeeController {
         long onLeaveCount   = employeeRepository.countByCompanyIdAndStatus(companyId, "ON_LEAVE");
         long totalCount     = employeeRepository.countByCompanyId(companyId);
 
-        List<Map<String, Object>> deptBreakdown = employeeRepository.countByRole(companyId);
+        List<Map<String, Object>> deptBreakdown = employeeRepository.countByDepartment(companyId);
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("activeCount",          activeCount);
@@ -79,4 +85,5 @@ public class EmployeeController {
         return m;
     }
 }
+
 

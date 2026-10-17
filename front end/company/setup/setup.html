@@ -151,7 +151,7 @@
 
           <!-- Logo Upload -->
           <div class="setup-field" style="grid-column:1/-1">
-            <label class="setup-label">Business Logo <small>(optional — PNG/JPG/SVG, max 2MB)</small></label>
+            <label class="setup-label">Business Logo <small>(optional — PNG/JPG/SVG, max 20MB)</small></label>
             <label class="logo-upload-zone" id="logo-upload-zone" for="f-logo">
               <input type="file" id="f-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
               <div class="logo-preview" id="logo-preview">
@@ -165,12 +165,13 @@
                 </div>
                 <div class="logo-upload-text">
                   <span class="logo-upload-label">Drag &amp; drop or click to upload your boutique logo</span>
-                  <span class="logo-upload-hint">PNG, JPG, SVG — Max 2 MB</span>
+                  <span class="logo-upload-hint">PNG, JPG, SVG — Max 20 MB</span>
                 </div>
                 <span class="logo-upload-btn">Browse File</span>
               </div>
             </label>
           </div>
+
 
         </div>
 
@@ -376,15 +377,23 @@
           <p class="step-subtitle">Create your owner-admin account to securely manage your ERP, staff, and operations.</p>
         </div>
 
-        <!-- Shown if user is already authenticated -->
+        <!-- Shown if user is already authenticated in database -->
         <div id="already-logged-in-box" style="display:none;background:rgba(183,255,60,0.06);border:1px solid rgba(183,255,60,0.22);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:8px;color:#B7FF3C;font-weight:700;font-size:0.9rem;margin-bottom:6px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <span>Authenticated Administrator</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;color:#B7FF3C;font-weight:700;font-size:0.9rem;margin-bottom:4px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span>Authenticated as <strong id="logged-in-admin-user" style="color:#fff"></strong></span>
+              </div>
+              <p style="color:rgba(255,255,255,0.7);font-size:0.84rem;line-height:1.45;margin:0;">
+                Create dedicated login credentials for this new boutique below, or link your current account.
+              </p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button type="button" id="btn-mode-new-account" class="btn-account-mode active" onclick="setAccountMode('new')">Create New Admin</button>
+              <button type="button" id="btn-mode-link-account" class="btn-account-mode" onclick="setAccountMode('link')">Use Current Account</button>
+            </div>
           </div>
-          <p style="color:rgba(255,255,255,0.7);font-size:0.84rem;line-height:1.45;margin:0;">
-            You are currently signed in as <strong id="logged-in-admin-user" style="color:#fff"></strong>. Your account will automatically be linked as the boutique owner.
-          </p>
         </div>
 
         <!-- Account Credentials Form Grid -->
@@ -457,6 +466,11 @@
                 </svg>
               </span>
               <input type="password" id="f-adminConfirm" class="setup-input" placeholder="Repeat your password" autocomplete="new-password" required />
+              <button type="button" class="btn-toggle-eye" id="toggle-admin-confirm-pw" aria-label="Show password" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:0 12px;display:flex;align-items:center;">
+                <svg id="admin-confirm-eye-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
           </div>
 

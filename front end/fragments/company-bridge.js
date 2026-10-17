@@ -75,7 +75,12 @@ const CompanyBridge = (() => {
 
   function _saveToStorage(data) {
     try {
-      if (data) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      if (data) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        if (data.sessionTimeoutMinutes !== undefined && data.sessionTimeoutMinutes !== null) {
+          localStorage.setItem('haulo_session_timeout_minutes', String(data.sessionTimeoutMinutes));
+        }
+      }
     } catch (_) {}
   }
 
@@ -153,7 +158,8 @@ const CompanyBridge = (() => {
           country: 'India',
           logoBase64: null,
           gstin: '33AABCH1234F1Z9',
-          panNumber: 'AABCH1234F'
+          panNumber: 'AABCH1234F',
+          sessionTimeoutMinutes: 20
         };
       }
       return Object.assign({}, _data);
@@ -368,6 +374,49 @@ const CompanyBridge = (() => {
       });
 
       // 2. Standard Global Chrome elements
+      const logoIconContainers = root.querySelectorAll('.logo-icon, .brand-logo, .sidebar-logo-box, [data-company="logo-icon"]');
+      logoIconContainers.forEach(container => {
+        if (co.logoBase64) {
+          let customLogoImg = container.querySelector('img.company-custom-logo');
+          if (!customLogoImg) {
+            customLogoImg = document.createElement('img');
+            customLogoImg.className = 'company-custom-logo';
+            customLogoImg.alt = co.shortName || co.companyName || 'Boutique Logo';
+            customLogoImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;';
+            container.appendChild(customLogoImg);
+          }
+          customLogoImg.src = co.logoBase64;
+          customLogoImg.style.display = 'block';
+          const defaultSvg = container.querySelector('svg');
+          if (defaultSvg) defaultSvg.style.display = 'none';
+        } else {
+          const customLogoImg = container.querySelector('img.company-custom-logo');
+          if (customLogoImg) customLogoImg.style.display = 'none';
+          const defaultSvg = container.querySelector('svg');
+          if (defaultSvg) defaultSvg.style.display = '';
+        }
+      });
+
+      root.querySelectorAll('img[data-company="logo"], img.company-logo-img, #companyLogoImg').forEach(img => {
+        if (co.logoBase64) {
+          img.src = co.logoBase64;
+          img.style.display = '';
+        } else {
+          img.style.display = 'none';
+        }
+      });
+
+      // Update browser tab favicon if custom logo exists
+      if (co.logoBase64) {
+        let fav = document.querySelector('link[rel*="icon"]');
+        if (!fav) {
+          fav = document.createElement('link');
+          fav.rel = 'icon';
+          document.head.appendChild(fav);
+        }
+        fav.href = co.logoBase64;
+      }
+
       const brandName = root.querySelector('.brand-name');
       if (brandName && co.shortName) brandName.textContent = co.shortName;
 
@@ -378,6 +427,7 @@ const CompanyBridge = (() => {
       branchChips.forEach(chip => {
         if (co.companyName) chip.textContent = `${co.companyName} — ${activeBranch}`;
       });
+
 
       const footerCompany = root.querySelector('#appFooter .footer-company-name, .footer-company-name, .footer-brand-name');
       if (footerCompany && co.shortName) footerCompany.textContent = co.shortName;

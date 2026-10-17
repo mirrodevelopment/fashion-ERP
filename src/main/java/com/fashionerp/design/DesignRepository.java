@@ -18,6 +18,9 @@ public interface DesignRepository extends JpaRepository<Design, UUID> {
     Optional<Design> findByDesignCodeAndCompanyId(String designCode, UUID companyId);
     Optional<Design> findByIdAndCompanyId(UUID id, UUID companyId);
     boolean existsByIdAndCompanyId(UUID id, UUID companyId);
+    List<Design> findByCompanyIdAndParentDesignId(UUID companyId, UUID parentDesignId);
+    List<Design> findByCompanyIdAndParentDesignCode(UUID companyId, String parentDesignCode);
+    List<Design> findByCompanyIdAndIsVariantFalse(UUID companyId);
 
     @Query(value = """
         SELECT d FROM Design d

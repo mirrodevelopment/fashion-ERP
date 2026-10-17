@@ -19,6 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
 public class Design {
 
     @Id
@@ -28,7 +29,7 @@ public class Design {
     @Column(name = "company_id", nullable = false)
     private UUID companyId;
 
-    @Column(name = "design_code", nullable = false, unique = true, length = 20)
+    @Column(name = "design_code", nullable = false, unique = true, length = 50)
     private String designCode;
 
     @Column(nullable = false, length = 200)
@@ -129,6 +130,61 @@ public class Design {
 
     @Column(name = "created_by", length = 100)
     private String createdBy;
+
+    // --- Variant Lineage & Blueprint Specifications (V9) ---
+
+    @Column(name = "is_variant")
+    @Builder.Default
+    private boolean isVariant = false;
+
+    @Column(name = "parent_design_id")
+    private UUID parentDesignId;
+
+    @Column(name = "parent_design_code", length = 30)
+    private String parentDesignCode;
+
+    @Column(name = "variant_suffix", length = 30)
+    private String variantSuffix;
+
+    @Column(length = 150)
+    private String neckline;
+
+    @Column(name = "sleeve_style", length = 150)
+    private String sleeveStyle;
+
+    @Column(name = "back_design", length = 150)
+    private String backDesign;
+
+    @Column(length = 150)
+    private String lining;
+
+    @Column(length = 100)
+    private String padding;
+
+    @Column(name = "readiness_score")
+    @Builder.Default
+    private Integer readinessScore = 85;
+
+    @Column(name = "variant_alteration_notes", columnDefinition = "TEXT")
+    private String variantAlterationNotes;
+
+    @Column(name = "turnaround_days")
+    @Builder.Default
+    private Integer turnaroundDays = 12;
+
+    @Column(name = "accent_fabric", length = 150)
+    private String accentFabric;
+
+    @Column(length = 50)
+    @Builder.Default
+    private String complexity = "High";
+
+    @Column(length = 100)
+    private String closure;
+
+    @Column(length = 100)
+    @Builder.Default
+    private String branch = "Main Branch";
 
     // --- Audit ---
 

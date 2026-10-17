@@ -37,19 +37,18 @@ function getToken() {
 let activeToken = getToken();
 let isLoggedInUser = false;
 let loggedInUsername = '';
+let accountMode = 'new'; // 'new' = create Login ID & Password (default), 'link' = link existing account
 
-if (activeToken) {
-  try {
-    const payload = JSON.parse(atob(activeToken.split('.')[1]));
-    if (payload.exp && payload.exp * 1000 > Date.now()) {
-      isLoggedInUser = true;
-      loggedInUsername = payload.sub || payload.username || 'Admin';
-    } else {
-      activeToken = null;
-    }
-  } catch (_) {
-    activeToken = null;
-  }
+function clearStaleAuth() {
+  activeToken = null;
+  isLoggedInUser = false;
+  loggedInUsername = '';
+  accountMode = 'new';
+  const tokenKeys = ['erp_token', 'haulo_token', 'fashion_erp_token', 'erp_user', 'haulo_session_start', 'haulo_last_activity'];
+  tokenKeys.forEach(k => {
+    try { localStorage.removeItem(k); } catch (_) {}
+    try { sessionStorage.removeItem(k); } catch (_) {}
+  });
 }
 
 // ── 3. State ──────────────────────────────────────────────────────────────────
@@ -99,6 +98,8 @@ const adminPasswordInput = document.getElementById('f-adminPassword');
 const adminConfirmInput  = document.getElementById('f-adminConfirm');
 const toggleAdminPwBtn   = document.getElementById('toggle-admin-pw');
 const adminEyeSvg        = document.getElementById('admin-eye-svg');
+const toggleAdminConfirmPwBtn = document.getElementById('toggle-admin-confirm-pw');
+const adminConfirmEyeSvg       = document.getElementById('admin-confirm-eye-svg');
 const alreadyLoggedInBox = document.getElementById('already-logged-in-box');
 const loggedInUserSpan   = document.getElementById('logged-in-admin-user');
 const adminFormGrid      = document.getElementById('admin-account-form-grid');
@@ -266,7 +267,9 @@ function validateStep(step) {
     case 3:
       return true; // Location and legal fields are optional
     case 4:
-      if (isLoggedInUser) return true;
+      if (accountMode === 'link' && isLoggedInUser && activeToken) {
+        return true;
+      }
       if (!formData.adminFullName) {
         showError('Please enter your full name for the administrator account.');
         adminFullNameInput?.focus();
@@ -310,26 +313,65 @@ window.skipTo = function(step) {
   showStep(step, 'forward');
 };
 
-// ── 10. Logo Upload ──────────────────────────────────────────────────────────
+// ── 10. Logo Upload (Up to 20 MB) ──────────────────────────────────────────
 if (logoInput) {
   logoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      showError('Logo file is too large. Maximum size is 2 MB.');
+    if (file.size > 20 * 1024 * 1024) {
+      showError('Logo file is too large. Maximum size is 20 MB.');
       return;
     }
     const reader = new FileReader();
     reader.onload = (ev) => {
-      formData.logoBase64 = ev.target.result;
-      if (logoPrevImg)     logoPrevImg.src = ev.target.result;
-      if (logoPreview)     logoPreview.style.display = 'block';
-      if (logoPlaceholder) logoPlaceholder.style.display = 'none';
-      saveDraft();
+      const rawData = ev.target.result;
+      if (file.type === 'image/svg+xml' || file.size < 400 * 1024) {
+        formData.logoBase64 = rawData;
+        if (logoPrevImg)     logoPrevImg.src = rawData;
+        if (logoPreview)     logoPreview.style.display = 'block';
+        if (logoPlaceholder) logoPlaceholder.style.display = 'none';
+        saveDraft();
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1200;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const mime = (file.type === 'image/jpeg' || file.type === 'image/jpg') ? 'image/jpeg' : 'image/png';
+          formData.logoBase64 = canvas.toDataURL(mime, 0.92);
+          if (logoPrevImg)     logoPrevImg.src = formData.logoBase64;
+          if (logoPreview)     logoPreview.style.display = 'block';
+          if (logoPlaceholder) logoPlaceholder.style.display = 'none';
+          saveDraft();
+        };
+        img.onerror = () => {
+          formData.logoBase64 = rawData;
+          if (logoPrevImg)     logoPrevImg.src = rawData;
+          if (logoPreview)     logoPreview.style.display = 'block';
+          if (logoPlaceholder) logoPlaceholder.style.display = 'none';
+          saveDraft();
+        };
+        img.src = rawData;
+      }
     };
     reader.readAsDataURL(file);
   });
 }
+
 
 if (logoZone) {
   logoZone.addEventListener('dragover', (e) => { e.preventDefault(); logoZone.classList.add('drag-over'); });
@@ -367,7 +409,35 @@ if (toggleAdminPwBtn && adminPasswordInput && adminEyeSvg) {
   });
 }
 
-// ── 12. Submit Setup ─────────────────────────────────────────────────────────
+if (toggleAdminConfirmPwBtn && adminConfirmInput && adminConfirmEyeSvg) {
+  toggleAdminConfirmPwBtn.addEventListener('click', () => {
+    const isMasked = adminConfirmInput.type === 'password';
+    adminConfirmInput.type = isMasked ? 'text' : 'password';
+    toggleAdminConfirmPwBtn.setAttribute('aria-label', isMasked ? 'Hide password' : 'Show password');
+    adminConfirmEyeSvg.innerHTML = isMasked
+      ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+      : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  });
+}
+
+// ── 12. Account Mode Switcher ────────────────────────────────────────────────
+window.setAccountMode = function(mode) {
+  accountMode = mode;
+  const btnNew = document.getElementById('btn-mode-new-account');
+  const btnLink = document.getElementById('btn-mode-link-account');
+  if (btnNew) btnNew.classList.toggle('active', mode === 'new');
+  if (btnLink) btnLink.classList.toggle('active', mode === 'link');
+
+  if (mode === 'new') {
+    if (adminFormGrid) adminFormGrid.style.display = 'grid';
+    if (submitText)    submitText.textContent = 'Save Boutique & Launch ERP';
+  } else {
+    if (adminFormGrid) adminFormGrid.style.display = 'none';
+    if (submitText)    submitText.textContent = 'Link Account & Launch ERP';
+  }
+};
+
+// ── 13. Submit Setup ─────────────────────────────────────────────────────────
 window.submitSetup = async function() {
   collectStep(4);
   if (!validateStep(4)) return;
@@ -376,7 +446,7 @@ window.submitSetup = async function() {
   hideError();
 
   try {
-    if (isLoggedInUser && activeToken) {
+    if (accountMode === 'link' && isLoggedInUser && activeToken) {
       // Existing logged-in user: save company details via PUT
       const companyPayload = {
         companyName:   formData.companyName   || 'My Boutique',
@@ -415,18 +485,18 @@ window.submitSetup = async function() {
     } else {
       // New boutique registration: atomically create Admin user + Company profile via /auth/onboard
       const onboardPayload = {
-        fullName:      formData.adminFullName,
-        username:      formData.adminUsername.toLowerCase(),
+        fullName:      (formData.adminFullName || '').trim(),
+        username:      (formData.adminUsername || '').trim().toLowerCase(),
         password:      formData.adminPassword,
-        userPhone:     formData.adminPhone || null,
+        userPhone:     formData.adminPhone ? formData.adminPhone.trim() : null,
         companyName:   formData.companyName   || 'My Boutique',
         shortName:     formData.shortName     || 'BOUTIQUE',
         businessType:  formData.businessType  || 'Bespoke Atelier',
         tagline:       formData.tagline       || null,
-        ownerName:     formData.adminFullName,
-        primaryPhone:  formData.primaryPhone  || formData.adminPhone || null,
+        ownerName:     (formData.adminFullName || '').trim(),
+        primaryPhone:  formData.primaryPhone  || (formData.adminPhone ? formData.adminPhone.trim() : null),
         whatsapp:      formData.whatsapp      || null,
-        email:         formData.email         || (formData.adminUsername.includes('@') ? formData.adminUsername : null),
+        email:         formData.email         || (formData.adminUsername.includes('@') ? formData.adminUsername.trim() : null),
         website:       formData.website       || null,
         streetAddress: formData.streetAddress || null,
         city:          formData.city          || null,
@@ -474,6 +544,32 @@ window.submitSetup = async function() {
       sessionStorage.setItem('haulo_last_activity', String(now));
     }
 
+    // Save company settings into CompanyBridge / localStorage immediately so all pages have the logo!
+    const companySettingsObj = {
+      companyName: formData.companyName || 'My Boutique',
+      shortName: formData.shortName || 'BOUTIQUE',
+      tagline: formData.tagline || '',
+      businessType: formData.businessType || 'Bespoke Atelier',
+      ownerName: (formData.adminFullName || loggedInUsername || '').trim(),
+      primaryPhone: formData.primaryPhone || null,
+      whatsapp: formData.whatsapp || null,
+      email: formData.email || null,
+      website: formData.website || null,
+      streetAddress: formData.streetAddress || null,
+      city: formData.city || null,
+      state: formData.state || null,
+      pinCode: formData.pinCode || null,
+      country: formData.country || 'India',
+      logoBase64: formData.logoBase64 || null,
+      gstin: formData.gstin || null,
+      panNumber: formData.panNumber || null,
+      sessionTimeoutMinutes: 20
+    };
+    try {
+      localStorage.setItem('haulo_company_settings', JSON.stringify(companySettingsObj));
+      document.dispatchEvent(new CustomEvent('haulo:company-updated', { detail: companySettingsObj }));
+    } catch (_) {}
+
     // Mark company configured and clean up draft
     try { sessionStorage.removeItem(DRAFT_KEY); } catch (_) {}
     try { sessionStorage.removeItem('haulo_setup_initial_name'); } catch (_) {}
@@ -481,6 +577,7 @@ window.submitSetup = async function() {
 
     // Show launch screen
     showSuccessPanel();
+
 
   } catch (err) {
     showError(err.message || 'Unable to save setup. Please check your connection.');
@@ -543,7 +640,7 @@ if (companyNameInput && shortNameInput) {
 }
 
 // ── 14. Initialize ────────────────────────────────────────────────────────────
-(function init() {
+(async function init() {
   // Show Step 1
   document.querySelectorAll('.step-panel').forEach(p => p.style.display = 'none');
   const first = document.getElementById('step-1');
@@ -562,12 +659,48 @@ if (companyNameInput && shortNameInput) {
     companyNameInput.dispatchEvent(new Event('input'));
   }
 
-  // If already authenticated, adapt Step 4
-  if (isLoggedInUser) {
-    if (alreadyLoggedInBox) alreadyLoggedInBox.style.display = 'block';
-    if (loggedInUserSpan)   loggedInUserSpan.textContent = loggedInUsername;
-    if (adminFormGrid)      adminFormGrid.style.display = 'none';
-    if (submitText)         submitText.textContent = 'Save Boutique & Launch ERP';
+  // Ensure Admin account form grid is visible so the user can create login ID & password
+  if (adminFormGrid) adminFormGrid.style.display = 'grid';
+
+  // Verify backend company configuration and stored authentication token
+  try {
+    const statusRes = await fetch(`${getApiBase()}/company/status`).catch(() => null);
+    if (statusRes && statusRes.ok) {
+      const statusData = await statusRes.json().catch(() => ({}));
+      if (!statusData.configured) {
+        // System is unconfigured / clean database. Any local token is stale leftover
+        clearStaleAuth();
+      }
+    }
+  } catch (_) {}
+
+  if (activeToken) {
+    try {
+      const meRes = await fetch(`${getApiBase()}/auth/me`, {
+        headers: { 'Authorization': 'Bearer ' + activeToken }
+      }).catch(() => null);
+
+      if (meRes && meRes.ok) {
+        const meData = await meRes.json().catch(() => ({}));
+        isLoggedInUser = true;
+        loggedInUsername = meData.username || loggedInUsername || 'Admin';
+        if (alreadyLoggedInBox) alreadyLoggedInBox.style.display = 'block';
+        if (loggedInUserSpan)   loggedInUserSpan.textContent = loggedInUsername;
+        setAccountMode('new');
+      } else {
+        clearStaleAuth();
+        if (alreadyLoggedInBox) alreadyLoggedInBox.style.display = 'none';
+        if (adminFormGrid)      adminFormGrid.style.display = 'grid';
+      }
+    } catch (_) {
+      clearStaleAuth();
+      if (alreadyLoggedInBox) alreadyLoggedInBox.style.display = 'none';
+      if (adminFormGrid)      adminFormGrid.style.display = 'grid';
+    }
+  } else {
+    clearStaleAuth();
+    if (alreadyLoggedInBox) alreadyLoggedInBox.style.display = 'none';
+    if (adminFormGrid)      adminFormGrid.style.display = 'grid';
   }
 
   // Header brand remains official HAULO BOUTIQUE ERP

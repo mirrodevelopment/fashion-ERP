@@ -6,8 +6,9 @@
 
 /* ── Container Card ──────────────────────────────────────────────────────── */
 .dev-options-card {
-  margin-top: 8px;
-  background: rgba(18, 26, 33, 0.82);
+  margin-top: 2px;
+  margin-bottom: 10px;
+  background: rgba(18, 26, 33, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(184, 255, 61, 0.22);

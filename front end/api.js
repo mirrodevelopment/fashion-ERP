@@ -12,8 +12,10 @@ const getApiBase = () => {
     return window.HAULO_API_BASE;
   }
   if (typeof window !== 'undefined' && window.location) {
-    const p = window.location.port;
-    if (p === '8080' || p === '' || p === '80' || p === '443') {
+    if (window.location.protocol === 'file:') {
+      return 'http://localhost:8080/api/v1';
+    }
+    if (window.location.origin && window.location.origin !== 'null') {
       return `${window.location.origin}/api/v1`;
     }
   }
@@ -112,7 +114,7 @@ async function request(method, path, body = null, params = {}) {
     }
   }
 
-  if (token) headers['Authorization'] = 'Bearer ' + token;
+  if (token && !path.startsWith('/auth/')) headers['Authorization'] = 'Bearer ' + token;
 
   const activeBranch = (typeof localStorage !== 'undefined') ? localStorage.getItem('haulo_active_branch') : null;
   const activeBranchId = (typeof localStorage !== 'undefined') ? localStorage.getItem('haulo_active_branch_id') : null;
@@ -457,7 +459,9 @@ const api = {
     uploadAvatar: (id, file) => uploadFile(`/employees/${encodeURIComponent(id)}/avatar`, file),
     delete: (id) => del(`/employees/${id}`),
     kpis: () => get('/employees/kpis'),
+    departments: () => get('/employees/departments'),
   },
+
 
   enquiries: {
     list: async (params = {}) => unwrapList(await get('/enquiries', params)),
@@ -477,6 +481,7 @@ const api = {
     update: (id, data) => put(`/designs/${id}`, data),
     delete: (id) => del(`/designs/${id}`),
     kpis: () => get('/designs/kpis'),
+    variants: (id) => get(`/designs/${id}/variants`),
   },
 
   purchases: {
@@ -842,6 +847,16 @@ const api = {
   company: {
     get:    () => get('/company'),
     update: (data) => put('/company', data),
+  },
+
+  // ─── Garments (Haute Couture Atelier Catalog) ───────────────────
+  garments: {
+    list:   (params = {}) => get('/garments', params),
+    get:    (id)          => get(`/garments/${id}`),
+    kpis:   ()            => get('/garments/kpis'),
+    create: (data)        => post('/garments', data),
+    update: (id, data)    => put(`/garments/${id}`, data),
+    delete: (id)          => del(`/garments/${id}`),
   }
 };
 

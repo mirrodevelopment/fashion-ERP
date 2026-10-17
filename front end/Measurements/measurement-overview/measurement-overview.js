@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ==========================================================================
  * HAULO BOUTIQUE ERP — MEASUREMENT LIBRARY CONTROLLER
  * File: front end/Measurements/measurement-overview/measurement-overview.js
@@ -50,471 +50,32 @@
   };
 
   // Avatar lookup fallback mapping
-  const AVATAR_MAP = {
-    'Ananya Krishnan': '../../assets/order-ref/anitha_raj.jpg',
-    'Meera Suresh': '../../assets/order-ref/meera_pillai.jpg',
-    'Kavya R': '../../assets/order-ref/kavya_nair.jpg',
-    'Priyanka V': '../../assets/order-ref/priya_sharma.jpg',
-    'Nithya P': '../../assets/order-ref/divya_raj.jpg',
-    'Revathi M': '../../assets/order-ref/sneha_reddy.jpg',
-    'Radhika Iyer': '../../assets/order-ref/radhika_iyer.jpg',
-    'Neha Bhat': '../../assets/order-ref/neha_bhat.jpg'
-  };
+  const AVATAR_MAP = {};
 
-  // Default Standard Haute Couture Profiles matching DB Seed & Screenshot
-  const DEFAULT_PROFILES = [
-    {
-      id: 'MP-0184',
-      name: 'Ananya Krishnan',
-      mobile: '+91 98201 28410',
-      code: 'MP-0184',
-      version: 'V3',
-      versionNumber: 3,
-      gender: 'women',
-      status: 'Active',
-      branch: 'Main Branch',
-      category: 'Bridal / Blouse',
-      rawCategory: 'bridal',
-      updatedAt: '04 Oct 2026',
-      since: 'Customer since 2024',
-      fitConfidence: 94,
-      avatar: '../../assets/order-ref/anitha_raj.jpg',
-      measurements: {
-        bust: 36.5,
-        waist: 30.0,
-        hip: 39.0,
-        shoulder: 14.25,
-        armhole: 16.75,
-        sleeveLength: 11.0,
-        bicep: 12.5,
-        sleeveOpening: 10.5,
-        blouseLength: 14.5,
-        frontNeck: 7.5,
-        backNeck: 10.0
-      },
-      evolution: [
-        { version: 'V1', date: '24 Aug 2026', active: false },
-        { version: 'V2', date: '28 Sep 2026', active: false },
-        { version: 'V3', date: '04 Oct 2026', active: true }
-      ],
-      deltas: [
-        { label: 'Waist', val: '-0.5"', ref: '(Since V1)', type: 'amber' },
-        { label: 'Armhole', val: '+0.25"', ref: '(Since V2)', type: 'lime' },
-        { label: 'Sleeve', val: '-0.5"', ref: '(Since V2)', type: 'amber' }
-      ],
-      impactMessage: 'A 0.25" armhole change can affect fit across multiple garment styles. Recommendations update automatically.',
-      fitMemories: {
-        subtitle: 'Learned from 3 garments · 2 trials · last confirmed 10 Oct',
-        tiles: [
-          'Prefers +0.25" armhole ease on fitted blouses',
-          'Sleeve comfort improves with +0.5" bicep ease',
-          'Prefers slightly lower back neckline',
-          'Avoids very tight waist finishing'
-        ]
-      },
-      garmentSpecific: {
-        finishedBust: 37,
-        blouseLength: 14.5,
-        frontNeck: 7.5,
-        backNeck: 10,
-        sleeveOpening: 10.5,
-        referencedSet: 'Body Set V3'
-      },
-      garmentsUsing: [
-        {
-          code: 'GAR-2814-B',
-          name: 'Bridal Blouse',
-          version: 'Used V3',
-          note: 'Minor armhole adjustment',
-          thumb: '../../assets/garments/bridal_blouse_zardozi.jpg'
-        },
-        {
-          code: 'GAR-2804-A',
-          name: 'Reception Blouse',
-          version: 'Used V2',
-          note: 'First trial approved',
-          thumb: '../../assets/garments/blouse_back_cut.jpg'
-        },
-        {
-          code: 'GAR-2786-C',
-          name: 'Festive Kurti',
-          version: 'Used V3',
-          note: 'No alterations',
-          thumb: '../../assets/garments/heritage_lehenga_pink.jpg'
-        }
-      ],
-      recentActivity: [
-        { date: '10 Oct', text: 'V3 confirmed incorporated', isGreen: true },
-        { date: '07 Oct', text: 'B/blk measurements imported', isGreen: false },
-        { date: '04 Oct', text: 'V3 created', isGreen: false },
-        { date: '28 Sep', text: 'Trial feedback incorporated', isGreen: false }
-      ]
-    },
-    {
-      id: 'MP-0221',
-      name: 'Meera Suresh',
-      mobile: '+91 98401 22100',
-      code: 'MP-0221',
-      version: 'V2',
-      versionNumber: 2,
-      gender: 'women',
-      status: 'Active',
-      branch: 'Main Branch',
-      category: 'Saree Blouse',
-      rawCategory: 'women',
-      updatedAt: '10 Sep 2026',
-      since: 'Customer since 2025',
-      fitConfidence: 91,
-      avatar: '../../assets/order-ref/meera_pillai.jpg',
-      measurements: {
-        bust: 35.0,
-        waist: 29.0,
-        hip: 37.5,
-        shoulder: 14.0,
-        armhole: 16.25,
-        sleeveLength: 10.5,
-        bicep: 12.0,
-        sleeveOpening: 10.0,
-        blouseLength: 14.0,
-        frontNeck: 7.0,
-        backNeck: 9.5
-      },
-      evolution: [
-        { version: 'V1', date: '15 Jul 2026', active: false },
-        { version: 'V2', date: '10 Sep 2026', active: true }
-      ],
-      deltas: [
-        { label: 'Waist', val: '-0.25"', ref: '(Since V1)', type: 'amber' },
-        { label: 'Armhole', val: '+0.15"', ref: '(Since V1)', type: 'lime' },
-        { label: 'Sleeve', val: '0.0"', ref: '(Since V1)', type: 'lime' }
-      ],
-      impactMessage: 'Slight ease in armhole accommodates structured silk blouse lining effortlessly.',
-      fitMemories: {
-        subtitle: 'Learned from 2 saree blouses · 1 trial · last confirmed 10 Sep',
-        tiles: [
-          'Prefers boat neckline with 7.0" depth',
-          'Needs soft mulmul lining along armhole rim',
-          'Enjoys deep keyhole back closure',
-          'Optimum sleeve length 10.5" with 10.0" opening'
-        ]
-      },
-      garmentSpecific: {
-        finishedBust: 35.5,
-        blouseLength: 14.0,
-        frontNeck: 7.0,
-        backNeck: 9.5,
-        sleeveOpening: 10.0,
-        referencedSet: 'Body Set V2'
-      },
-      garmentsUsing: [
-        {
-          code: 'GAR-2790-A',
-          name: 'Zari Border Blouse',
-          version: 'Used V2',
-          note: 'First trial approved',
-          thumb: '../../assets/garments/banarasi_organza_saree.jpg'
-        }
-      ],
-      recentActivity: [
-        { date: '10 Sep', text: 'V2 approved & locked', isGreen: true },
-        { date: '02 Sep', text: 'Fitting session conducted', isGreen: false }
-      ]
-    },
-    {
-      id: 'MP-0163',
-      name: 'Kavya R',
-      mobile: '+91 98402 16300',
-      code: 'MP-0163',
-      version: 'V4',
-      versionNumber: 4,
-      gender: 'women',
-      status: 'Active',
-      branch: 'Anna Nagar',
-      category: 'Reception Gown',
-      rawCategory: 'women',
-      updatedAt: '28 Sep 2026',
-      since: 'Customer since 2024',
-      fitConfidence: 89,
-      avatar: '../../assets/order-ref/kavya_nair.jpg',
-      measurements: {
-        bust: 34.5,
-        waist: 28.0,
-        hip: 38.0,
-        shoulder: 13.75,
-        armhole: 16.0,
-        sleeveLength: 22.0,
-        bicep: 11.5,
-        sleeveOpening: 9.0,
-        blouseLength: 56.0,
-        frontNeck: 8.0,
-        backNeck: 8.5
-      },
-      evolution: [
-        { version: 'V2', date: '10 Jun 2026', active: false },
-        { version: 'V3', date: '14 Aug 2026', active: false },
-        { version: 'V4', date: '28 Sep 2026', active: true }
-      ],
-      deltas: [
-        { label: 'Waist', val: '-0.5"', ref: '(Since V3)', type: 'amber' },
-        { label: 'Bust', val: '+0.25"', ref: '(Since V3)', type: 'lime' },
-        { label: 'Sleeve', val: '+1.0"', ref: '(Since V2)', type: 'lime' }
-      ],
-      impactMessage: 'Corset boning adjustments dynamically recalculate gown bodice tension.',
-      fitMemories: {
-        subtitle: 'Learned from 4 gowns · 3 trials · last confirmed 28 Sep',
-        tiles: [
-          'Enjoys structured internal corset stays',
-          'Sleeve length full 22.0" wrist coverage',
-          'Prefers off-shoulder sweetheart drop',
-          'Padded bust support with contour cups'
-        ]
-      },
-      garmentSpecific: {
-        finishedBust: 35.0,
-        blouseLength: 56.0,
-        frontNeck: 8.0,
-        backNeck: 8.5,
-        sleeveOpening: 9.0,
-        referencedSet: 'Body Set V4'
-      },
-      garmentsUsing: [
-        {
-          code: 'GAR-2802-C',
-          name: 'Champagne Reception Gown',
-          version: 'Used V4',
-          note: 'Boning finalized',
-          thumb: '../../assets/garments/champagne_evening_gown.jpg'
-        }
-      ],
-      recentActivity: [
-        { date: '28 Sep', text: 'V4 corset tension locked', isGreen: true },
-        { date: '15 Sep', text: 'Trial 02 feedback applied', isGreen: false }
-      ]
-    },
-    {
-      id: 'MP-0240',
-      name: 'Priyanka V',
-      mobile: '+91 98403 24000',
-      code: 'MP-0240',
-      version: 'V1',
-      versionNumber: 1,
-      gender: 'women',
-      status: 'Active',
-      branch: 'Main Branch',
-      category: 'Lehenga',
-      rawCategory: 'bridal',
-      updatedAt: '11 Oct 2026',
-      since: 'Customer since 2026',
-      fitConfidence: 86,
-      avatar: '../../assets/order-ref/priya_sharma.jpg',
-      measurements: {
-        bust: 36.0,
-        waist: 31.0,
-        hip: 40.0,
-        shoulder: 14.5,
-        armhole: 17.0,
-        sleeveLength: 12.0,
-        bicep: 13.0,
-        sleeveOpening: 11.0,
-        blouseLength: 15.0,
-        frontNeck: 7.5,
-        backNeck: 9.0
-      },
-      evolution: [
-        { version: 'V1', date: '11 Oct 2026', active: true }
-      ],
-      deltas: [
-        { label: 'Waist', val: '0.0"', ref: '(Baseline)', type: 'lime' },
-        { label: 'Armhole', val: '0.0"', ref: '(Baseline)', type: 'lime' },
-        { label: 'Sleeve', val: '0.0"', ref: '(Baseline)', type: 'lime' }
-      ],
-      impactMessage: 'Baseline profile recorded. First trial scheduled for upcoming week.',
-      fitMemories: {
-        subtitle: 'Initial intake fitting · 1 trial scheduled',
-        tiles: [
-          'High waist skirt flare 4.8m circumference',
-          'Prefers padded sweetheart choli neckline',
-          'Heavy latkan tassels on lehenga waistband',
-          'Requested 0.5" comfort ease on waist'
-        ]
-      },
-      garmentSpecific: {
-        finishedBust: 36.5,
-        blouseLength: 15.0,
-        frontNeck: 7.5,
-        backNeck: 9.0,
-        sleeveOpening: 11.0,
-        referencedSet: 'Body Set V1'
-      },
-      garmentsUsing: [
-        {
-          code: 'GAR-2830-L',
-          name: 'Heritage Crimson Lehenga',
-          version: 'Used V1',
-          note: 'Pattern drafted',
-          thumb: '../../assets/garments/heritage_lehenga_pink.jpg'
-        }
-      ],
-      recentActivity: [
-        { date: '11 Oct', text: 'V1 baseline recorded', isGreen: true },
-        { date: '08 Oct', text: 'Intake consultation complete', isGreen: false }
-      ]
-    },
-    {
-      id: 'MP-0138',
-      name: 'Nithya P',
-      mobile: '+91 98404 13800',
-      code: 'MP-0138',
-      version: 'V3',
-      versionNumber: 3,
-      gender: 'women',
-      status: 'Active',
-      branch: 'T Nagar',
-      category: 'Bridal Saree Blouse',
-      rawCategory: 'bridal',
-      updatedAt: '07 Oct 2026',
-      since: 'Customer since 2024',
-      fitConfidence: 93,
-      avatar: '../../assets/order-ref/divya_raj.jpg',
-      measurements: {
-        bust: 37.0,
-        waist: 31.5,
-        hip: 40.5,
-        shoulder: 14.75,
-        armhole: 17.25,
-        sleeveLength: 11.5,
-        bicep: 13.0,
-        sleeveOpening: 11.0,
-        blouseLength: 14.5,
-        frontNeck: 7.25,
-        backNeck: 10.5
-      },
-      evolution: [
-        { version: 'V1', date: '05 Jan 2026', active: false },
-        { version: 'V2', date: '18 May 2026', active: false },
-        { version: 'V3', date: '07 Oct 2026', active: true }
-      ],
-      deltas: [
-        { label: 'Waist', val: '+0.25"', ref: '(Since V2)', type: 'amber' },
-        { label: 'Armhole', val: '+0.20"', ref: '(Since V2)', type: 'lime' },
-        { label: 'Sleeve', val: '0.0"', ref: '(Since V2)', type: 'lime' }
-      ],
-      impactMessage: 'Comfort armhole curve avoids maggam bead friction during ceremonial movements.',
-      fitMemories: {
-        subtitle: 'Learned from 3 bridal blouses · 2 trials · confirmed 07 Oct',
-        tiles: [
-          'Demands zero armhole pinching under heavy zardozi',
-          'Prefers deep round back neckline 10.5" drop',
-          'Heavy silk reinforced inner shoulder tape',
-          'Extended side seam allowance for future ease'
-        ]
-      },
-      garmentSpecific: {
-        finishedBust: 37.5,
-        blouseLength: 14.5,
-        frontNeck: 7.25,
-        backNeck: 10.5,
-        sleeveOpening: 11.0,
-        referencedSet: 'Body Set V3'
-      },
-      garmentsUsing: [
-        {
-          code: 'GAR-2819-B',
-          name: 'Zardozi Peacock Blouse',
-          version: 'Used V3',
-          note: 'Approved for wedding',
-          thumb: '../../assets/garments/bridal_blouse_zardozi.jpg'
-        }
-      ],
-      recentActivity: [
-        { date: '07 Oct', text: 'V3 bridal verified', isGreen: true },
-        { date: '29 Sep', text: 'Second trial approved', isGreen: false }
-      ]
-    },
-    {
-      id: 'MP-0207',
-      name: 'Revathi M',
-      mobile: '+91 98405 20700',
-      code: 'MP-0207',
-      version: 'V2',
-      versionNumber: 2,
-      gender: 'women',
-      status: 'Active',
-      branch: 'Velachery',
-      category: 'Lehenga',
-      rawCategory: 'women',
-      updatedAt: '02 Oct 2026',
-      since: 'Customer since 2025',
-      fitConfidence: 90,
-      avatar: '../../assets/order-ref/sneha_reddy.jpg',
-      measurements: {
-        bust: 35.5,
-        waist: 29.5,
-        hip: 38.5,
-        shoulder: 14.0,
-        armhole: 16.5,
-        sleeveLength: 11.0,
-        bicep: 12.0,
-        sleeveOpening: 10.5,
-        blouseLength: 14.25,
-        frontNeck: 7.5,
-        backNeck: 9.5
-      },
-      evolution: [
-        { version: 'V1', date: '14 Feb 2026', active: false },
-        { version: 'V2', date: '02 Oct 2026', active: true }
-      ],
-      deltas: [
-        { label: 'Waist', val: '-0.25"', ref: '(Since V1)', type: 'amber' },
-        { label: 'Bust', val: '0.0"', ref: '(Since V1)', type: 'lime' },
-        { label: 'Armhole', val: '+0.15"', ref: '(Since V1)', type: 'lime' }
-      ],
-      impactMessage: 'Smooth waist transition aligns skirt yoke with blouse hemline.',
-      fitMemories: {
-        subtitle: 'Learned from 2 lehenga sets · 1 trial · last confirmed 02 Oct',
-        tiles: [
-          'Comfortable waistband with drawstring tie',
-          'Soft padded cups with minimal push-up',
-          'Prefers elbow length sleeve with gold piping',
-          'Avoids tight under-bust constriction'
-        ]
-      },
-      garmentSpecific: {
-        finishedBust: 36.0,
-        blouseLength: 14.25,
-        frontNeck: 7.5,
-        backNeck: 9.5,
-        sleeveOpening: 10.5,
-        referencedSet: 'Body Set V2'
-      },
-      garmentsUsing: [
-        {
-          code: 'GAR-2775-K',
-          name: 'Festive Raw Silk Choli',
-          version: 'Used V2',
-          note: 'No alterations',
-          thumb: '../../assets/garments/anarkali_chikankari.jpg'
-        }
-      ],
-      recentActivity: [
-        { date: '02 Oct', text: 'V2 trial confirmed', isGreen: true },
-        { date: '20 Sep', text: 'First stitch assembled', isGreen: false }
-      ]
-    }
-  ];
+  // Pure Database-Driven Profiles
+  const DEFAULT_PROFILES = [];
 
-  // ==========================================================================
+// ==========================================================================
   // 1. DATA INITIALIZATION & LIVE DB FETCHING
   // ==========================================================================
   async function initMeasurementLibrary() {
-    PROFILES = [...DEFAULT_PROFILES];
-    SELECTED_PROFILE = PROFILES[0];
-    if (SELECTED_PROFILE) {
-      ensureProfileHistory(SELECTED_PROFILE);
-      SELECTED_PROFILE.activeHistoryIndex = SELECTED_PROFILE.history.length - 1;
-    }
+    PROFILES = [];
+    SELECTED_PROFILE = null;
 
-    // Try fetching live database records to merge real customer profiles
+    // Fetch dynamic branches from DB to populate branch filter
+    try {
+      const branchesRes = await (window.api?.branches?.list ? window.api.branches.list() : fetch('/api/v1/branches').then(r => r.json()).catch(() => []));
+      const branchList = Array.isArray(branchesRes) ? branchesRes : (branchesRes?.content || []);
+      const selBranch = document.getElementById('libFilterBranch');
+      if (selBranch && branchList.length > 0) {
+        const cur = selBranch.value;
+        selBranch.innerHTML = '<option value="">Branch â–¾</option>' +
+          branchList.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+        if (cur) selBranch.value = cur;
+      }
+    } catch (_) {}
+
+    // Fetch live database records to construct real customer profiles
     try {
       let api = window.api;
       if (!api) {
@@ -525,27 +86,37 @@
       }
 
       if (api && api.measurements) {
-        // Fetch KPI aggregates
-        try {
-          const kpi = await api.measurements.kpis();
-          if (kpi) {
-            updateKpiDisplay(kpi);
-          }
-        } catch (_) {}
-
         // Fetch live customers
         if (api.customers) {
           try {
             const custRes = await api.customers.list({ size: 100 });
             const custList = Array.isArray(custRes) ? custRes : (custRes?.content || []);
             if (custList && custList.length > 0) {
-              integrateLiveCustomers(custList, api);
+              await integrateLiveCustomers(custList, api);
             }
           } catch (_) {}
         }
+
+        // Fetch KPI aggregates
+        try {
+          const kpi = await api.measurements.kpis();
+          if (kpi) {
+            updateKpiDisplay(kpi);
+          } else {
+            updateKpiDisplay({});
+          }
+        } catch (_) {
+          updateKpiDisplay({});
+        }
       }
     } catch (e) {
-      console.warn('[MeasurementLibrary] DB sync fallback active:', e);
+      console.warn('[MeasurementLibrary] DB sync error:', e);
+    }
+
+    if (PROFILES.length > 0) {
+      SELECTED_PROFILE = PROFILES[0];
+      ensureProfileHistory(SELECTED_PROFILE);
+      SELECTED_PROFILE.activeHistoryIndex = SELECTED_PROFILE.history.length - 1;
     }
 
     renderProfileList();
@@ -560,16 +131,16 @@
     const elMemories = document.getElementById('valLibMemories');
 
     if (elProfiles) {
-      elProfiles.textContent = kpi.measurementProfiles || kpi.totalMeasurements || 386;
+      elProfiles.textContent = kpi.measurementProfiles || kpi.totalMeasurements || PROFILES.length;
     }
     if (elCustomers) {
-      elCustomers.textContent = kpi.activeCustomers || kpi.totalCustomers || 312;
+      elCustomers.textContent = kpi.activeCustomers || kpi.totalCustomers || PROFILES.length;
     }
     if (elUpdated) {
-      elUpdated.textContent = kpi.updatedThisMonth || 48;
+      elUpdated.textContent = kpi.updatedThisMonth || 0;
     }
     if (elMemories) {
-      elMemories.textContent = kpi.fitMemoriesLearned || 21;
+      elMemories.textContent = kpi.fitMemoriesLearned || 0;
     }
   }
 
@@ -609,7 +180,7 @@
             updatedAt: m.updatedAt ? formatDate(m.updatedAt) : 'Recently',
             since: `Customer since ${c.createdAt ? String(c.createdAt).slice(0, 4) : '2026'}`,
             fitConfidence: Math.floor(88 + Math.random() * 8),
-            avatar: AVATAR_MAP[c.name] || '../../assets/order-ref/neha_bhat.jpg',
+            avatar: c.avatarUrl || '../../assets/user_avatar.jpg',
             measurements: {
               bust: Number(m.bust) || 36.0,
               waist: Number(m.waist) || 30.0,
@@ -732,7 +303,7 @@
 
       html += `
         <div class="lib-profile-card ${isSelected ? 'active' : ''}" onclick="selectProfile('${p.id}')">
-          <img src="${p.avatar}" alt="${escapeHtml(p.name)}" class="profile-card-avatar" onerror="this.src='../../assets/order-ref/anitha_raj.jpg'" />
+          <img src="${p.avatar}" alt="${escapeHtml(p.name)}" class="profile-card-avatar" onerror="this.src='../../assets/user_avatar.jpg'" />
           <div class="profile-card-info">
             <h4 class="profile-card-name">${escapeHtml(p.name)}</h4>
             <div class="profile-card-code-ver">${p.code} &nbsp;|&nbsp; ${p.version}</div>
@@ -2008,7 +1579,7 @@
         updatedAt: 'Today',
         since: 'Customer since 2026',
         fitConfidence: 90,
-        avatar: AVATAR_MAP[name] || '../../assets/order-ref/neha_bhat.jpg',
+        avatar: '../../assets/user_avatar.jpg',
         measurements: {
           bust: bust,
           waist: waist,

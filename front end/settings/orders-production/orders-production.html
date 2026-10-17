@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Orders & Production — Settings">Orders &amp; Production — Settings</title>
+  <meta name="description" content="Configure order prefix codes, delivery buffers, QC workflow gates, and atelier capacity automation." />
+
+  <!-- Typography & Design Tokens -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared ERP Fragments & Common Settings Styles -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="../settings-common.css" />
+  <link rel="stylesheet" href="orders-production.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../../fragments/';
+  </script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+</head>
+<body data-module="settings">
+
+  <!-- Ambient Glow Background -->
+  <div class="app-background">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <div id="sidebarSlot"></div>
+
+    <div class="main-wrapper">
+      <div id="navbarSlot"></div>
+
+      <!-- Settings Root -->
+      <div class="settings-root" id="settingsRoot">
+        <div id="breadcrumbSlot"></div>
+
+        <!-- Settings Header -->
+        <div class="settings-header">
+          <div>
+            <span class="page-section-label">Workflow Automation</span>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Configure boutique brand profile, team access, workflow automation and system preferences.</p>
+          </div>
+          <button class="btn-save-all" id="btnSaveAll" onclick="OrdersSettings.saveAll()">
+            <i data-lucide="save" style="width:14px;height:14px;"></i> Save Changes
+          </button>
+        </div>
+
+        <!-- Settings Layout -->
+        <div class="settings-layout">
+
+          <!-- Settings Sidenav -->
+          <nav class="settings-sidenav" aria-label="Settings navigation">
+            <div class="snav-group">
+              <span class="snav-group-label">Boutique</span>
+              <a href="../company-profile/company-profile.html" class="snav-item">
+                <i data-lucide="store" style="width:16px;height:16px;"></i>
+                Company &amp; Boutique Profile
+              </a>
+              <a href="../branding/branding.html" class="snav-item">
+                <i data-lucide="palette" style="width:16px;height:16px;"></i>
+                Branding &amp; Theme
+              </a>
+              <a href="../regional/regional.html" class="snav-item">
+                <i data-lucide="globe" style="width:16px;height:16px;"></i>
+                Regional &amp; Currency
+              </a>
+              <a href="../branches/branches.html" class="snav-item">
+                <i data-lucide="building-2" style="width:16px;height:16px;"></i>
+                Branches &amp; Locations
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Team & Access</span>
+              <a href="../users-roles/users-roles.html" class="snav-item">
+                <i data-lucide="users" style="width:16px;height:16px;"></i>
+                Users &amp; Roles
+              </a>
+              <a href="../security/security.html" class="snav-item">
+                <i data-lucide="shield" style="width:16px;height:16px;"></i>
+                Security &amp; Access
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Workflow</span>
+              <a href="../orders-production/orders-production.html" class="snav-item active">
+                <i data-lucide="shopping-bag" style="width:16px;height:16px;"></i>
+                Orders &amp; Production
+              </a>
+              <a href="../notifications/notifications.html" class="snav-item">
+                <i data-lucide="bell" style="width:16px;height:16px;"></i>
+                Notifications
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">System</span>
+              <a href="../integrations/integrations.html" class="snav-item">
+                <i data-lucide="plug" style="width:16px;height:16px;"></i>
+                Integrations
+              </a>
+              <a href="../data-backup/data-backup.html" class="snav-item">
+                <i data-lucide="database" style="width:16px;height:16px;"></i>
+                Data &amp; Backup
+              </a>
+              <a href="../about/about.html" class="snav-item">
+                <i data-lucide="info" style="width:16px;height:16px;"></i>
+                About &amp; License
+              </a>
+            </div>
+          </nav>
+
+          <!-- Settings Panels Content -->
+          <div class="settings-panels">
+            <section class="settings-panel active" aria-label="Orders & Production">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="shopping-bag" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Orders &amp; Production</h2>
+                    <p class="panel-desc">Configure order codes, delivery defaults, production stage behaviour and alerts.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Order Code Format -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Order Code Format</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Order Code Prefix</label>
+                    <input type="text" class="form-input" id="orderPrefix" value="ORD" placeholder="e.g. ORD, HB, INV" maxlength="6" style="text-transform:uppercase;" />
+                    <p class="form-help" style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:6px;">Standard uppercase prefix used for new custom orders and atelier jobs.</p>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Live Code Preview</label>
+                    <div class="code-preview-box" id="orderCodePreview">ORD-2026-0001</div>
+                    <p class="form-help" style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:6px;">Generated sequential order identifier format visible on client receipts.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Delivery Defaults -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Delivery Defaults</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Default Lead Time (Days)</label>
+                    <input type="number" class="form-input" id="defaultLeadDays" value="14" min="1" max="365" />
+                    <p class="form-help" style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:6px;">Target turnaround buffer prefilled during order placement.</p>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Advance Payment Minimum (%)</label>
+                    <input type="number" class="form-input" id="advancePaymentPct" value="50" min="0" max="100" />
+                    <p class="form-help" style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:6px;">Recommended upfront deposit required before garment cutting commences.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Production Alerts -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Production Alerts &amp; QC Controls</h3>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Alert when order is overdue</p>
+                    <p class="toggle-desc">Highlight orders past their delivery date in red on the atelier dashboard.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="overdueAlert" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Block production stage if QC fails</p>
+                    <p class="toggle-desc">Prevent advancing to the finishing or trial stage until QC approval is recorded.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="blockOnQcFail" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Auto-assign tailor based on capacity</p>
+                    <p class="toggle-desc">Suggest the least-loaded master tailor when creating a new production garment job.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="autoAssignTailor" />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+              </div>
+
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="settings-toast" id="settingsToast" role="alert" aria-live="polite"></div>
+
+  <!-- Page Controller -->
+  <script src="orders-production.js"></script>
+</body>
+</html>

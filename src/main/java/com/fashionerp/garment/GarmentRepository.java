@@ -25,10 +25,12 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
           AND (:search IS NULL OR :search = '' OR
                LOWER(g.garmentCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(g.title) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(g.customerName) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(g.orderCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(g.designCode) LIKE LOWER(CONCAT('%', :search, '%')) OR
-               LOWER(g.specs) LIKE LOWER(CONCAT('%', :search, '%')))
+               LOWER(g.specs) LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(COALESCE(g.primaryFabric, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(COALESCE(g.embroideryType, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(COALESCE(g.colorName, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR
+               LOWER(COALESCE(g.designer, '')) LIKE LOWER(CONCAT('%', :search, '%')))
           AND (:stage IS NULL OR :stage = '' OR :stage = 'all' OR
                LOWER(REPLACE(g.productionStage, '_', ' ')) = LOWER(REPLACE(:stage, '_', ' ')))
           AND (:status IS NULL OR :status = '' OR :status = 'all' OR
@@ -41,6 +43,8 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
                LOWER(g.priority) = LOWER(:priority))
           AND (:materialStatus IS NULL OR :materialStatus = '' OR :materialStatus = 'all' OR
                LOWER(g.materialStatus) = LOWER(:materialStatus))
+          AND (:fabric IS NULL OR :fabric = '' OR :fabric = 'all' OR
+               LOWER(COALESCE(g.primaryFabric, '')) LIKE LOWER(CONCAT('%', :fabric, '%')))
           AND (:designer IS NULL OR :designer = '' OR :designer = 'all' OR
                LOWER(g.designer) = LOWER(:designer))
           AND (:branch IS NULL OR :branch = '' OR :branch = 'all' OR
@@ -56,6 +60,7 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
             @Param("collectionName") String collectionName,
             @Param("priority") String priority,
             @Param("materialStatus") String materialStatus,
+            @Param("fabric") String fabric,
             @Param("designer") String designer,
             @Param("branch") String branch,
             Pageable pageable
@@ -86,4 +91,10 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
           )
         """)
     long countByCompanyIdAndStatusIgnoreCase(@Param("companyId") UUID companyId, @Param("status") String status);
+
+    @Query("SELECT COUNT(g) FROM Garment g WHERE (:companyId IS NULL OR g.companyId = :companyId) AND (UPPER(g.collectionName) LIKE '%BRIDAL%' OR UPPER(g.garmentType) LIKE '%BRIDAL%' OR UPPER(g.title) LIKE '%BRIDAL%')")
+    long countBridalGarments(@Param("companyId") UUID companyId);
+
+    @Query("SELECT COALESCE(AVG(g.craftingHours), 28.0) FROM Garment g WHERE (:companyId IS NULL OR g.companyId = :companyId)")
+    Double avgCraftingHours(@Param("companyId") UUID companyId);
 }

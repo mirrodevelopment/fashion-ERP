@@ -38,6 +38,15 @@ public class CompanySettingsDto {
         private Boolean shareInventoryAcrossBranches;
         private Boolean shareGarmentsAcrossBranches;
         private Boolean shareTrialsAcrossBranches;
+        private Boolean shareDesignsAcrossBranches;
+        private Boolean sharePurchasesAcrossBranches;
+        private Boolean shareWorkforceAcrossBranches;
+
+        private String currencySymbol;
+        private String orderPrefix;
+        private String invoicePrefix;
+
+        private Integer sessionTimeoutMinutes;
     }
 
     @Getter
@@ -69,6 +78,13 @@ public class CompanySettingsDto {
         private Boolean shareInventoryAcrossBranches;
         private Boolean shareGarmentsAcrossBranches;
         private Boolean shareTrialsAcrossBranches;
+        private Boolean shareDesignsAcrossBranches;
+        private Boolean sharePurchasesAcrossBranches;
+        private Boolean shareWorkforceAcrossBranches;
+        private String currencySymbol;
+        private String orderPrefix;
+        private String invoicePrefix;
+        private Integer sessionTimeoutMinutes;
         private LocalDateTime updatedAt;
 
         public static Response from(CompanySettings s) {
@@ -98,6 +114,13 @@ public class CompanySettingsDto {
                 .shareInventoryAcrossBranches(s.isShareInventoryAcrossBranches())
                 .shareGarmentsAcrossBranches(s.isShareGarmentsAcrossBranches())
                 .shareTrialsAcrossBranches(s.isShareTrialsAcrossBranches())
+                .shareDesignsAcrossBranches(s.isShareDesignsAcrossBranches())
+                .sharePurchasesAcrossBranches(s.isSharePurchasesAcrossBranches())
+                .shareWorkforceAcrossBranches(s.isShareWorkforceAcrossBranches())
+                .currencySymbol(s.getCurrencySymbol() != null ? s.getCurrencySymbol() : "₹")
+                .orderPrefix(s.getOrderPrefix() != null ? s.getOrderPrefix() : "ORD-")
+                .invoicePrefix(s.getInvoicePrefix() != null ? s.getInvoicePrefix() : "INV-")
+                .sessionTimeoutMinutes(s.getSessionTimeoutMinutes() > 0 ? s.getSessionTimeoutMinutes() : 20)
                 .updatedAt(s.getUpdatedAt())
                 .build();
         }

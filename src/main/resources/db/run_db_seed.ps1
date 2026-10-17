@@ -129,12 +129,6 @@ try {
     $output = & "$PsqlPath" -h $DbHost -p $DbPort -U $DbUser -d $DbName -f "$SqlFile" 2>&1
     Write-Host $output
 
-    $BranchPagesSql = Join-Path $ScriptDir "seed_branch_pages_data.sql"
-    if (Test-Path $BranchPagesSql) {
-        Write-Host "`nExecuting multi-branch pages seed script (Designs, Inventory, Measurements, Garments, Collections)..." -ForegroundColor Cyan
-        $output2 = & "$PsqlPath" -h $DbHost -p $DbPort -U $DbUser -d $DbName -f "$BranchPagesSql" 2>&1
-        Write-Host $output2
-    }
 
     $V5Sql = Join-Path $ScriptDir "migration\V5__design_studio_catalog_seed_data.sql"
     if (-not (Test-Path $V5Sql)) {

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Security & Access — Settings">Security &amp; Access — Settings</title>
+  <meta name="description" content="Manage boutique password policies, session timeouts, and authentication security." />
+
+  <!-- Typography & Design Tokens -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared ERP Fragments & Common Settings Styles -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="../settings-common.css" />
+  <link rel="stylesheet" href="security.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../../fragments/';
+  </script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+</head>
+<body data-module="settings">
+
+  <!-- Ambient Glow Background -->
+  <div class="app-background">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <div id="sidebarSlot"></div>
+
+    <div class="main-wrapper">
+      <div id="navbarSlot"></div>
+
+      <!-- Settings Root -->
+      <div class="settings-root" id="settingsRoot">
+        <div id="breadcrumbSlot"></div>
+
+        <!-- Settings Header -->
+        <div class="settings-header">
+          <div>
+            <span class="page-section-label">Team &amp; Access Configuration</span>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Configure boutique brand profile, team access, workflow automation and system preferences.</p>
+          </div>
+          <button class="btn-save-all" id="btnSaveAll" onclick="SecuritySettings.saveAll()">
+            <i data-lucide="save" style="width:14px;height:14px;"></i> Save Changes
+          </button>
+        </div>
+
+        <!-- Settings Layout -->
+        <div class="settings-layout">
+
+          <!-- Settings Sidenav -->
+          <nav class="settings-sidenav" aria-label="Settings navigation">
+            <div class="snav-group">
+              <span class="snav-group-label">Boutique</span>
+              <a href="../company-profile/company-profile.html" class="snav-item">
+                <i data-lucide="store" style="width:16px;height:16px;"></i>
+                Company &amp; Boutique Profile
+              </a>
+              <a href="../branding/branding.html" class="snav-item">
+                <i data-lucide="palette" style="width:16px;height:16px;"></i>
+                Branding &amp; Theme
+              </a>
+              <a href="../regional/regional.html" class="snav-item">
+                <i data-lucide="globe" style="width:16px;height:16px;"></i>
+                Regional &amp; Currency
+              </a>
+              <a href="../branches/branches.html" class="snav-item">
+                <i data-lucide="building-2" style="width:16px;height:16px;"></i>
+                Branches &amp; Locations
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Team & Access</span>
+              <a href="../users-roles/users-roles.html" class="snav-item">
+                <i data-lucide="users" style="width:16px;height:16px;"></i>
+                Users &amp; Roles
+              </a>
+              <a href="../security/security.html" class="snav-item active">
+                <i data-lucide="shield" style="width:16px;height:16px;"></i>
+                Security &amp; Access
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Workflow</span>
+              <a href="../orders-production/orders-production.html" class="snav-item">
+                <i data-lucide="shopping-bag" style="width:16px;height:16px;"></i>
+                Orders &amp; Production
+              </a>
+              <a href="../notifications/notifications.html" class="snav-item">
+                <i data-lucide="bell" style="width:16px;height:16px;"></i>
+                Notifications
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">System</span>
+              <a href="../integrations/integrations.html" class="snav-item">
+                <i data-lucide="plug" style="width:16px;height:16px;"></i>
+                Integrations
+              </a>
+              <a href="../data-backup/data-backup.html" class="snav-item">
+                <i data-lucide="database" style="width:16px;height:16px;"></i>
+                Data &amp; Backup
+              </a>
+              <a href="../about/about.html" class="snav-item">
+                <i data-lucide="info" style="width:16px;height:16px;"></i>
+                About &amp; License
+              </a>
+            </div>
+          </nav>
+
+          <!-- Settings Panels Content -->
+          <div class="settings-panels">
+            <section class="settings-panel active" aria-label="Security & Access">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="shield" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Security &amp; Access</h2>
+                    <p class="panel-desc">Change password, configure session timeouts, and manage login security.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Change Password -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Change Password</h3>
+                <div class="form-grid-1">
+                  <div class="form-group" style="max-width:420px;">
+                    <label class="form-label">Current Password</label>
+                    <div class="input-eye-wrap">
+                      <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password" />
+                      <button class="eye-btn" onclick="SecuritySettings.togglePasswordVisibility('currentPassword', this)" tabindex="-1" type="button" aria-label="Toggle password visibility">
+                        <i data-lucide="eye" style="width:15px;height:15px;"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="max-width:420px;">
+                    <label class="form-label">New Password</label>
+                    <div class="input-eye-wrap">
+                      <input type="password" class="form-input" id="newPassword" placeholder="Min 8 characters" />
+                      <button class="eye-btn" onclick="SecuritySettings.togglePasswordVisibility('newPassword', this)" tabindex="-1" type="button" aria-label="Toggle password visibility">
+                        <i data-lucide="eye" style="width:15px;height:15px;"></i>
+                      </button>
+                    </div>
+                    <div class="password-strength-bar" id="passwordStrengthBar">
+                      <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <p class="strength-label" id="strengthLabel"></p>
+                  </div>
+                  <div class="form-group" style="max-width:420px;">
+                    <label class="form-label">Confirm New Password</label>
+                    <div class="input-eye-wrap">
+                      <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat new password" />
+                      <button class="eye-btn" onclick="SecuritySettings.togglePasswordVisibility('confirmPassword', this)" tabindex="-1" type="button" aria-label="Toggle password visibility">
+                        <i data-lucide="eye" style="width:15px;height:15px;"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <button class="btn-lime-sm" style="width:fit-content;" onclick="SecuritySettings.changePassword()" type="button">Update Password</button>
+                </div>
+              </div>
+
+              <!-- Session & Login -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Session &amp; Login Security</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                      <label class="form-label" style="margin-bottom:0;">Auto Logout &amp; Session Expiry</label>
+                      <span id="sessionTimeoutActiveBadge" class="badge-status-pill" style="font-size:11px;padding:2px 8px;border-radius:100px;background:rgba(212,175,55,0.12);color:#dfb76c;border:1px solid rgba(212,175,55,0.25);">Active: 20 min</span>
+                    </div>
+                    <select class="form-select" id="sessionTimeout" onchange="SecuritySettings.onTimeoutOptionChange(this.value)">
+                      <option value="5">5 minutes (High Security / Cash Desk)</option>
+                      <option value="10">10 minutes</option>
+                      <option value="15">15 minutes (Atelier &amp; Sales Counter)</option>
+                      <option value="20" selected>20 minutes (Standard Recommended)</option>
+                      <option value="30">30 minutes</option>
+                      <option value="45">45 minutes</option>
+                      <option value="60">60 minutes (1 hour)</option>
+                      <option value="120">120 minutes (2 hours)</option>
+                      <option value="240">240 minutes (4 hours)</option>
+                      <option value="480">480 minutes (8 hours / Full Shift)</option>
+                      <option value="0">Never / Disabled (Not Recommended)</option>
+                      <option value="custom">Custom Minutes...</option>
+                    </select>
+                    <div id="customTimeoutWrapper" style="display:none;margin-top:10px;">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <input type="number" class="form-input" id="customSessionTimeout" min="1" max="1440" placeholder="Enter minutes (e.g. 25)" style="flex:1;" oninput="SecuritySettings.onCustomTimeoutInput(this.value)" />
+                        <span style="font-size:13px;color:rgba(255,255,255,0.65);white-space:nowrap;">minutes</span>
+                      </div>
+                    </div>
+                    <p class="form-help" style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.4;">
+                      Locks the workstation and terminates session after this many minutes of inactivity to safeguard client measurements and order data.
+                    </p>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Max Login Attempts</label>
+                    <select class="form-select" id="maxLoginAttempts">
+                      <option value="3">3 attempts</option>
+                      <option value="5" selected>5 attempts</option>
+                      <option value="10">10 attempts</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Login Activity Log</p>
+                    <p class="toggle-desc">Record every login attempt with IP address and timestamp.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="loginActivityLog" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <p class="toggle-label">Lock Account After Failed Attempts</p>
+                    <p class="toggle-desc">Temporarily lock user after exceeding max failed login attempts.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="lockOnFailedAttempts" checked />
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Active Sessions -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Active Sessions</h3>
+                <div class="active-sessions-list" id="activeSessionsList">
+                  <div class="session-item current">
+                    <div class="session-icon"><i data-lucide="monitor" style="width:18px;height:18px;"></i></div>
+                    <div class="session-info">
+                      <p class="session-device">Windows — Chrome 128 <span class="session-current-badge">Current</span></p>
+                      <p class="session-meta">127.0.0.1 · Logged in just now</p>
+                    </div>
+                    <button class="btn-danger-sm" disabled style="opacity:0.6;cursor:not-allowed;">This Device</button>
+                  </div>
+                </div>
+                <button class="btn-danger-sm" style="margin-top:12px;" onclick="SecuritySettings.revokeAllSessions()" type="button">
+                  <i data-lucide="log-out" style="width:13px;height:13px;"></i> Revoke All Other Sessions
+                </button>
+              </div>
+
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="settings-toast" id="settingsToast" role="alert" aria-live="polite"></div>
+
+  <!-- Page Controller -->
+  <script src="security.js"></script>
+</body>
+</html>

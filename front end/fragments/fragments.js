@@ -364,10 +364,10 @@
       'suppliers': `${prefix}suppliers/suppliers.html`,
       'employees': `${prefix}WorkforceManagement/workforce.html`,
       'branches': `${prefix}branches/branches.html`,
-      'company': `${prefix}company/company.html`,
+      'company': `${prefix}settings/company-profile/company-profile.html`,
       'profile': `${prefix}profile/profile.html`,
       'users-roles': `${prefix}users-roles/users-roles.html`,
-      'settings': `${prefix}settings/settings.html`
+      'settings': `${prefix}settings/company-profile/company-profile.html`
     };
 
     sidebar.querySelectorAll('.nav-item').forEach(item => {
@@ -1358,10 +1358,10 @@ function navNavigate(module, event) {
     'attendance': `${prefix}WorkforceManagement/workforce.html`,
     'workforce': `${prefix}WorkforceManagement/workforce.html`,
     'branches': `${prefix}branches/branches.html`,
-    'company': `${prefix}company/company.html`,
+    'company': `${prefix}settings/company-profile/company-profile.html`,
     'profile': `${prefix}profile/profile.html`,
     'users-roles': `${prefix}users-roles/users-roles.html`,
-    'settings': `${prefix}settings/settings.html`,
+    'settings': `${prefix}settings/company-profile/company-profile.html`,
   };
 
   const labelMap = {

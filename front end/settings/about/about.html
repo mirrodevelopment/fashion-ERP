@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="About & License — Settings">About &amp; License — Settings</title>
+  <meta name="description" content="System version, technology stack specifications, health checks and licensing information." />
+
+  <!-- Typography & Design Tokens -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared ERP Fragments & Common Settings Styles -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="../settings-common.css" />
+  <link rel="stylesheet" href="about.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../../fragments/';
+  </script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+</head>
+<body data-module="settings">
+
+  <!-- Ambient Glow Background -->
+  <div class="app-background">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <div id="sidebarSlot"></div>
+
+    <div class="main-wrapper">
+      <div id="navbarSlot"></div>
+
+      <!-- Settings Root -->
+      <div class="settings-root" id="settingsRoot">
+        <div id="breadcrumbSlot"></div>
+
+        <!-- Settings Header -->
+        <div class="settings-header">
+          <div>
+            <span class="page-section-label">System Architecture</span>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Configure boutique brand profile, team access, workflow automation and system preferences.</p>
+          </div>
+        </div>
+
+        <!-- Settings Layout -->
+        <div class="settings-layout">
+
+          <!-- Settings Sidenav -->
+          <nav class="settings-sidenav" aria-label="Settings navigation">
+            <div class="snav-group">
+              <span class="snav-group-label">Boutique</span>
+              <a href="../company-profile/company-profile.html" class="snav-item">
+                <i data-lucide="store" style="width:16px;height:16px;"></i>
+                Company &amp; Boutique Profile
+              </a>
+              <a href="../branding/branding.html" class="snav-item">
+                <i data-lucide="palette" style="width:16px;height:16px;"></i>
+                Branding &amp; Theme
+              </a>
+              <a href="../regional/regional.html" class="snav-item">
+                <i data-lucide="globe" style="width:16px;height:16px;"></i>
+                Regional &amp; Currency
+              </a>
+              <a href="../branches/branches.html" class="snav-item">
+                <i data-lucide="building-2" style="width:16px;height:16px;"></i>
+                Branches &amp; Locations
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Team & Access</span>
+              <a href="../users-roles/users-roles.html" class="snav-item">
+                <i data-lucide="users" style="width:16px;height:16px;"></i>
+                Users &amp; Roles
+              </a>
+              <a href="../security/security.html" class="snav-item">
+                <i data-lucide="shield" style="width:16px;height:16px;"></i>
+                Security &amp; Access
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Workflow</span>
+              <a href="../orders-production/orders-production.html" class="snav-item">
+                <i data-lucide="shopping-bag" style="width:16px;height:16px;"></i>
+                Orders &amp; Production
+              </a>
+              <a href="../notifications/notifications.html" class="snav-item">
+                <i data-lucide="bell" style="width:16px;height:16px;"></i>
+                Notifications
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">System</span>
+              <a href="../integrations/integrations.html" class="snav-item">
+                <i data-lucide="plug" style="width:16px;height:16px;"></i>
+                Integrations
+              </a>
+              <a href="../data-backup/data-backup.html" class="snav-item">
+                <i data-lucide="database" style="width:16px;height:16px;"></i>
+                Data &amp; Backup
+              </a>
+              <a href="../about/about.html" class="snav-item active">
+                <i data-lucide="info" style="width:16px;height:16px;"></i>
+                About &amp; License
+              </a>
+            </div>
+          </nav>
+
+          <!-- Settings Panels Content -->
+          <div class="settings-panels">
+            <section class="settings-panel active" aria-label="About & License">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="info" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">About &amp; License</h2>
+                    <p class="panel-desc">System version, core technology stack architecture and license information.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- About Hero -->
+              <div class="settings-card about-hero-card">
+                <div class="about-logo-block">
+                  <div class="about-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" width="38" height="38">
+                      <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#B8FF3D"/>
+                      <circle cx="6" cy="18.5" r="2.5" fill="#B8FF3D"/>
+                      <circle cx="18" cy="5.5" r="2.5" fill="#B8FF3D"/>
+                      <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#B8FF3D"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="about-brand" data-brand="systemName">HAULO Boutique ERP</h2>
+                    <p class="about-tagline" data-brand="tagline">High-Fashion Atelier &amp; Bespoke Studio Operating System</p>
+                  </div>
+                </div>
+                <div class="about-version-row">
+                  <div class="about-version-pill">Version 1.0.0</div>
+                  <div class="about-version-pill">Spring Boot 4.1.1</div>
+                  <div class="about-version-pill">Java 17 LTS</div>
+                  <div class="about-version-pill">PostgreSQL 17</div>
+                </div>
+              </div>
+
+              <!-- Technology Stack -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Technology Stack Specifications</h3>
+                <div class="stack-grid">
+                  <div class="stack-item">
+                    <span class="stack-layer">Backend</span>
+                    <span class="stack-value">Spring Boot 4.1.1 · Java 17 LTS · Hibernate JPA · Flyway Migrations</span>
+                  </div>
+                  <div class="stack-item">
+                    <span class="stack-layer">Database</span>
+                    <span class="stack-value">PostgreSQL 17 · HikariCP High-Performance Pool</span>
+                  </div>
+                  <div class="stack-item">
+                    <span class="stack-layer">Security</span>
+                    <span class="stack-value">Stateless JWT · HMAC-SHA256 · BCrypt Hash · Spring Security RBAC</span>
+                  </div>
+                  <div class="stack-item">
+                    <span class="stack-layer">Frontend</span>
+                    <span class="stack-value">Modern Vanilla ES6+ · Native CSS3 Variables &amp; Tokens · HTML5</span>
+                  </div>
+                  <div class="stack-item">
+                    <span class="stack-layer">Icons &amp; Viz</span>
+                    <span class="stack-value">Lucide Icons CDN · Chart.js 4.4.1</span>
+                  </div>
+                  <div class="stack-item">
+                    <span class="stack-layer">Typography</span>
+                    <span class="stack-value">Plus Jakarta Sans · Playfair Display · Inter</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- System Health -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Subsystem Health &amp; Telemetry</h3>
+                <div class="health-grid" id="healthGrid">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- License Block -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Software License &amp; Copyright</h3>
+                <div class="license-block">
+                  <p class="license-text">
+                    <span data-brand="systemName">HAULO Boutique ERP</span> is proprietary software engineered specifically for luxury fashion houses, bridal ateliers, bespoke tailoring studios, and garment manufacturing units. Unauthorised reproduction, distribution, reverse engineering, or commercial sub-licensing is strictly prohibited.
+                  </p>
+                  <p class="license-copy" data-brand="copyright">© 2026 Haulo Technologies Inc. All rights reserved.</p>
+                </div>
+              </div>
+
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Controller -->
+  <script src="about.js"></script>
+</body>
+</html>

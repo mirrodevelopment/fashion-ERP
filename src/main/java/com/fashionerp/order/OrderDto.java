@@ -33,6 +33,19 @@ public class OrderDto {
         private String paymentMethod;
         private String branch;
 
+        // V10 Extended Tailoring & Blueprint Attributes
+        private UUID designId;
+        private String designCode;
+        private String designCategory;
+        private String priority;
+        private String assignedTo;
+        private UUID measurementProfileId;
+        private String neckStyle;
+        private String sleeveStyle;
+        private String fabricType;
+        private String fabricColour;
+        private String fabricSource;
+
         public String getEffectiveMobile() {
             if (customerMobile != null && !customerMobile.isBlank()) return customerMobile;
             return customerId;
@@ -79,6 +92,20 @@ public class OrderDto {
         private String branch;
         private LocalDateTime createdAt;
 
+        // V10 Extended Tailoring & Blueprint Attributes
+        private UUID designId;
+        private String designCode;
+        private String designCategory;
+        private String priority;
+        private String assignedTo;
+        private UUID measurementProfileId;
+        private String neckStyle;
+        private String sleeveStyle;
+        private String fabricType;
+        private String fabricColour;
+        private String fabricSource;
+        private String paymentMethod;
+
         public static Response from(Order o) {
             String mobile = o.getCustomer() != null ? o.getCustomer().getMobileNumber() : o.getCustomerMobile();
             String name = (o.getCustomerName() != null && !o.getCustomerName().isBlank())
@@ -123,6 +150,18 @@ public class OrderDto {
                     .qcReworkCount(o.getQcReworkCount() != null ? o.getQcReworkCount() : 0)
                     .branch(o.getBranch())
                     .createdAt(o.getCreatedAt())
+                    .designId(o.getDesignId())
+                    .designCode(o.getDesignCode())
+                    .designCategory(o.getDesignCategory())
+                    .priority(o.getPriority())
+                    .assignedTo(o.getAssignedTo())
+                    .measurementProfileId(o.getMeasurementProfileId())
+                    .neckStyle(o.getNeckStyle())
+                    .sleeveStyle(o.getSleeveStyle())
+                    .fabricType(o.getFabricType())
+                    .fabricColour(o.getFabricColour())
+                    .fabricSource(o.getFabricSource())
+                    .paymentMethod(o.getPaymentMethod())
                     .build();
         }
     }

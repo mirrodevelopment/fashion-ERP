@@ -219,21 +219,9 @@
              =================================================================== -->
         <nav class="filter-toolbar" aria-label="Department Filtering and Search">
           <div class="department-tabs" id="deptTabs" role="tablist">
-            <button type="button" class="dept-tab active" data-dept="all" role="tab" aria-selected="true">All Employees
-              (0)</button>
-            <button type="button" class="dept-tab" data-dept="Designing" role="tab" aria-selected="false">Designing
-              (0)</button>
-            <button type="button" class="dept-tab" data-dept="Cutting" role="tab" aria-selected="false">Cutting
-              (0)</button>
-            <button type="button" class="dept-tab" data-dept="Stitching" role="tab" aria-selected="false">Stitching
-              (0)</button>
-            <button type="button" class="dept-tab" data-dept="Finishing" role="tab" aria-selected="false">Finishing
-              (0)</button>
-            <button type="button" class="dept-tab" data-dept="Embroidery" role="tab" aria-selected="false">Embroidery
-              (0)</button>
-            <button type="button" class="dept-tab" data-dept="Administration" role="tab"
-              aria-selected="false">Administration (0)</button>
+            <button type="button" class="dept-tab active" data-dept="all" role="tab" aria-selected="true">All Employees (0)</button>
           </div>
+
 
           <div class="toolbar-right-actions">
             <div class="table-search-box">
@@ -405,16 +393,20 @@
             <input type="text" id="empCode" required placeholder="Auto-generated" />
           </div>
           <div class="form-group">
-            <label for="empDept">Department *</label>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label for="empDept" style="margin-bottom:0;">Department *</label>
+              <button type="button" class="btn-text-link" id="btnToggleNewDept" style="font-size:11px;color:var(--accent-lime);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;">
+                <i data-lucide="plus-circle" style="width:12px;height:12px;"></i>
+                <span id="btnToggleNewDeptText">+ Create New Department</span>
+              </button>
+            </div>
             <select id="empDept" required>
-              <option value="Designing">Designing</option>
-              <option value="Cutting">Cutting</option>
-              <option value="Stitching" selected>Stitching</option>
-              <option value="Finishing">Finishing</option>
-              <option value="Embroidery">Embroidery</option>
-              <option value="Administration">Administration</option>
+              <option value="" disabled selected>Select or create department...</option>
+              <option value="__NEW__">+ Create New Department...</option>
             </select>
+            <input type="text" id="empDeptCustom" placeholder="Type new department name (e.g. Bridal Atelier, QC)" style="display:none;margin-top:6px;" />
           </div>
+
           <div class="form-group">
             <label for="empRole">Role Title *</label>
             <input type="text" id="empRole" required placeholder="e.g. Master Tailor" />
@@ -487,16 +479,20 @@
             <input type="text" id="editEmpCode" readonly style="opacity:0.6;cursor:not-allowed;" />
           </div>
           <div class="form-group">
-            <label for="editEmpDept">Department *</label>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label for="editEmpDept" style="margin-bottom:0;">Department *</label>
+              <button type="button" class="btn-text-link" id="btnToggleEditNewDept" style="font-size:11px;color:var(--accent-lime);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;">
+                <i data-lucide="plus-circle" style="width:12px;height:12px;"></i>
+                <span id="btnToggleEditNewDeptText">+ Create New Department</span>
+              </button>
+            </div>
             <select id="editEmpDept" required>
-              <option value="Designing">Designing</option>
-              <option value="Cutting">Cutting</option>
-              <option value="Stitching">Stitching</option>
-              <option value="Finishing">Finishing</option>
-              <option value="Embroidery">Embroidery</option>
-              <option value="Administration">Administration</option>
+              <option value="" disabled selected>Select or create department...</option>
+              <option value="__NEW__">+ Create New Department...</option>
             </select>
+            <input type="text" id="editEmpDeptCustom" placeholder="Type new department name" style="display:none;margin-top:6px;" />
           </div>
+
           <div class="form-group">
             <label for="editEmpRole">Role Title *</label>
             <input type="text" id="editEmpRole" required />

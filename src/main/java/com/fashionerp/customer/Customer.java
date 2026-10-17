@@ -20,6 +20,13 @@ public class Customer {
     @Column(name = "mobile_number", nullable = false, length = 30)
     private String mobileNumber;
 
+    @Column(name = "customer_code", length = 30)
+    private String customerCode;
+
+    @Column(name = "loyalty_points", nullable = false)
+    @Builder.Default
+    private Integer loyaltyPoints = 0;
+
     @Column(name = "company_id", nullable = false)
     private UUID companyId;
 
@@ -154,7 +161,7 @@ public class Customer {
     }
 
     public String getCustomerCode() {
-        return mobileNumber;
+        return (customerCode != null && !customerCode.isBlank()) ? customerCode : mobileNumber;
     }
 
     @PrePersist
@@ -165,6 +172,12 @@ public class Customer {
         if (this.branch == null || this.branch.isBlank()) {
             String b = com.fashionerp.common.TenantContext.getAssignedBranch();
             this.branch = (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : "Main Branch";
+        }
+        if (this.customerCode == null || this.customerCode.isBlank()) {
+            String suffix = (this.mobileNumber != null && this.mobileNumber.length() >= 4)
+                ? this.mobileNumber.substring(this.mobileNumber.length() - 4)
+                : "1001";
+            this.customerCode = "CUST-" + suffix;
         }
     }
 }

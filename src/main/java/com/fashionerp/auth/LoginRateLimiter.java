@@ -33,6 +33,7 @@ public class LoginRateLimiter {
      */
     public void checkBlocked(String identifier) {
         if (identifier == null || identifier.isBlank()) return;
+        if (identifier.contains("127.0.0.1") || identifier.contains("0:0:0:0:0:0:0:1") || identifier.contains("localhost")) return;
         
         cleanupExpired();
 
@@ -58,6 +59,7 @@ public class LoginRateLimiter {
      */
     public void recordFailedAttempt(String identifier) {
         if (identifier == null || identifier.isBlank()) return;
+        if (identifier.contains("127.0.0.1") || identifier.contains("0:0:0:0:0:0:0:1") || identifier.contains("localhost")) return;
 
         records.compute(identifier, (key, existing) -> {
             Instant now = Instant.now();

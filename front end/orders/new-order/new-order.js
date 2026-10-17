@@ -1540,7 +1540,19 @@ async function submitCreateOrder() {
       amount: total,
       dueDate: delivDate,
       notes: orderState.production?.notes || orderState.design?.notes || '',
-      paymentMethod: orderState.payment?.paymentMethod || 'CASH'
+      paymentMethod: orderState.payment?.paymentMethod || 'CASH',
+
+      // V10 First-Class Database Columns
+      priority: orderState.production?.priority ? orderState.production.priority.toUpperCase() : 'NORMAL',
+      assignedTo: orderState.production?.assignedTo || '',
+      designCode: orderState.design?.code || '',
+      designCategory: orderState.design?.category || '',
+      neckStyle: orderState.design?.neckStyle || '',
+      sleeveStyle: orderState.design?.sleeveStyle || '',
+      fabricType: orderState.fabric?.type || '',
+      fabricColour: orderState.fabric?.colour || '',
+      fabricSource: orderState.fabric?.source || 'BOUTIQUE',
+      measurementProfileId: (orderState.measurements?.profileId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderState.measurements.profileId)) ? orderState.measurements.profileId : null
     });
 
     if (createdOrder) {

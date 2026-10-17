@@ -1,6 +1,6 @@
 /**
- * HAULO BOUTIQUE ERP — Garments Module Controller
- * garments.js — Dynamic REST integration with PostgreSQL
+ * HAULO BOUTIQUE ERP — Haute Couture Garments Module Controller
+ * garments.js — Catalog of atelier garments, bespoke silhouettes, and craftsmanship details
  */
 
 import api, { Auth } from '../api.js';
@@ -13,18 +13,10 @@ export const EXISTING_GARMENT_ASSETS = {
   sherwani: '../assets/garments/raw_silk_sherwani.jpg',
   saree: '../assets/garments/banarasi_organza_saree.jpg',
   gown: '../assets/garments/champagne_evening_gown.jpg',
-  gharara: '../assets/garments/zardozi_handwork.jpg',
-  back: '../assets/garments/blouse_back_cut.jpg',
+  kurti: '../assets/garments/zardozi_handwork.jpg',
+  chudi: '../assets/garments/bridal_blouse_zardozi.jpg',
   default: '../assets/garments/bridal_blouse_zardozi.jpg'
 };
-
-export const EXISTING_FABRIC_SWATCHES = [
-  '../assets/swatch_raw_silk.jpg',
-  '../assets/swatch_embroidery.jpg',
-  '../assets/swatch_organza.jpg',
-  '../assets/swatch_champagne.jpg',
-  '../assets/pink_silk.jpg'
-];
 
 export function resolveGarmentImage(g) {
   if (g && g.imageUrl && typeof g.imageUrl === 'string' && g.imageUrl.trim() !== '' && !g.imageUrl.startsWith('data:image/svg')) {
@@ -41,45 +33,32 @@ export function resolveGarmentImage(g) {
     return url;
   }
 
-  const text = ((g?.garmentType || '') + ' ' + (g?.title || '')).toLowerCase();
+  const text = ((g?.garmentType || '') + ' ' + (g?.title || '') + ' ' + (g?.silhouette || '')).toLowerCase();
   if (text.includes('blouse') || text.includes('choli')) return EXISTING_GARMENT_ASSETS.blouse;
-  if (text.includes('lehenga') || text.includes('bridal')) return EXISTING_GARMENT_ASSETS.lehenga;
-  if (text.includes('anarkali') || text.includes('chikankari') || text.includes('suit') || text.includes('kurti')) return EXISTING_GARMENT_ASSETS.anarkali;
-  if (text.includes('sherwani') || text.includes('jacket') || text.includes('tuxedo') || text.includes('kurta')) return EXISTING_GARMENT_ASSETS.sherwani;
-  if (text.includes('saree') || text.includes('organza') || text.includes('draped') || text.includes('banarasi')) return EXISTING_GARMENT_ASSETS.saree;
+  if (text.includes('lehenga') || text.includes('skirt') || text.includes('bridal')) return EXISTING_GARMENT_ASSETS.lehenga;
+  if (text.includes('anarkali') || text.includes('chikankari')) return EXISTING_GARMENT_ASSETS.anarkali;
+  if (text.includes('sherwani') || text.includes('kurta') || text.includes('jacket')) return EXISTING_GARMENT_ASSETS.sherwani;
+  if (text.includes('saree') || text.includes('organza') || text.includes('banarasi')) return EXISTING_GARMENT_ASSETS.saree;
   if (text.includes('gown') || text.includes('evening') || text.includes('corset')) return EXISTING_GARMENT_ASSETS.gown;
-  if (text.includes('gharara') || text.includes('cape') || text.includes('jumpsuit') || text.includes('zardozi')) return EXISTING_GARMENT_ASSETS.gharara;
+  if (text.includes('kurti') || text.includes('sharara') || text.includes('peplum') || text.includes('chudi')) return EXISTING_GARMENT_ASSETS.kurti;
 
-  const pool = [
-    EXISTING_GARMENT_ASSETS.blouse,
-    EXISTING_GARMENT_ASSETS.lehenga,
-    EXISTING_GARMENT_ASSETS.anarkali,
-    EXISTING_GARMENT_ASSETS.sherwani,
-    EXISTING_GARMENT_ASSETS.saree,
-    EXISTING_GARMENT_ASSETS.gown,
-    EXISTING_GARMENT_ASSETS.gharara
-  ];
-  const code = (g?.garmentCode || '0');
-  const sum = code.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return pool[sum % pool.length];
+  return EXISTING_GARMENT_ASSETS.default;
 }
 window.resolveGarmentImage = resolveGarmentImage;
 
 // ─── Module State ──────────────────────────────────────────────────────────
-let dynamicStageDefs = [];
+let searchDebounceTimer = null;
 
 const state = {
   garments: [],
   selectedGarment: null,
   selectedIds: new Set(),
-  stageFilter: 'all',
   searchQuery: '',
   filters: {
     garmentType: 'all',
     collection: 'all',
-    productionStage: 'all',
+    fabric: 'all',
     status: 'all',
-    priority: 'all',
     materialStatus: 'all',
     designer: 'all',
     branch: 'all',
@@ -94,7 +73,7 @@ const state = {
   loading: false,
 };
 
-// ─── DOM Elements Cache ───────────────────────────────────────────────────
+// ─── DOM Cache ─────────────────────────────────────────────────────────────
 let DOM = {};
 
 function cacheDOM() {
@@ -107,22 +86,21 @@ function cacheDOM() {
     deltaTotalGarments: document.getElementById('deltaTotalGarments'),
     valInProduction: document.getElementById('valInProduction'),
     deltaInProduction: document.getElementById('deltaInProduction'),
-    valInTrial: document.getElementById('valInTrial'),
-    deltaInTrial: document.getElementById('deltaInTrial'),
-    valAwaitingQc: document.getElementById('valAwaitingQc'),
-    deltaAwaitingQc: document.getElementById('deltaAwaitingQc'),
     valReady: document.getElementById('valReady'),
     deltaReady: document.getElementById('deltaReady'),
-    valDelivered: document.getElementById('valDelivered'),
-    deltaDelivered: document.getElementById('deltaDelivered'),
+    valAwaitingQc: document.getElementById('valAwaitingQc'),
+    deltaAwaitingQc: document.getElementById('deltaAwaitingQc'),
+    valBridalCount: document.getElementById('valBridalCount'),
+    deltaBridal: document.getElementById('deltaBridal'),
+    valAvgCrafting: document.getElementById('valAvgCrafting'),
+    deltaAvgCrafting: document.getElementById('deltaAvgCrafting'),
 
-    // Filters
+    // Filters & Search
     searchGarments: document.getElementById('searchGarments'),
     filterGarmentType: document.getElementById('filterGarmentType'),
     filterCollection: document.getElementById('filterCollection'),
-    filterProductionStage: document.getElementById('filterProductionStage'),
+    filterFabric: document.getElementById('filterFabric'),
     filterStatus: document.getElementById('filterStatus'),
-    filterPriority: document.getElementById('filterPriority'),
     filterMaterialStatus: document.getElementById('filterMaterialStatus'),
     filterDesigner: document.getElementById('filterDesigner'),
     filterBranch: document.getElementById('filterBranch'),
@@ -139,29 +117,35 @@ function cacheDOM() {
     // Inspector Drawer
     garmentInspector: document.getElementById('garmentInspector'),
     inspectorHeroImg: document.getElementById('inspectorHeroImg'),
+    inspectorHeroSilhouette: document.getElementById('inspectorHeroSilhouette'),
     inspectorCode: document.getElementById('inspectorCode'),
     inspectorTitle: document.getElementById('inspectorTitle'),
     inspectorStatusBadge: document.getElementById('inspectorStatusBadge'),
-    detCustomer: document.getElementById('detCustomer'),
-    detOrder: document.getElementById('detOrder'),
+    
+    // Inspector Overview Pane Elements
     detType: document.getElementById('detType'),
     detCollection: document.getElementById('detCollection'),
     detDesign: document.getElementById('detDesign'),
-    detDueDate: document.getElementById('detDueDate'),
-    detPriority: document.getElementById('detPriority'),
-    detMaterialStatus: document.getElementById('detMaterialStatus'),
-    detTrial: document.getElementById('detTrial'),
-    detPayment: document.getElementById('detPayment'),
+    detFabric: document.getElementById('detFabric'),
+    detEmbroidery: document.getElementById('detEmbroidery'),
+    detColorDot: document.getElementById('detColorDot'),
+    detColorName: document.getElementById('detColorName'),
+    detSilhouette: document.getElementById('detSilhouette'),
+    detSuggestedPrice: document.getElementById('detSuggestedPrice'),
+    detEstimatedCost: document.getElementById('detEstimatedCost'),
+    detCraftingHours: document.getElementById('detCraftingHours'),
     detAssigned: document.getElementById('detAssigned'),
+    detBranch: document.getElementById('detBranch'),
+    detMaterialStatus: document.getElementById('detMaterialStatus'),
+    inspectorNotesBox: document.getElementById('inspectorNotesBox'),
+    detNotes: document.getElementById('detNotes'),
 
-    // Inspector Panes
+    // Inspector Tab Panes
     paneOverview: document.getElementById('paneOverview'),
     paneMaterials: document.getElementById('paneMaterials'),
     paneMeasurements: document.getElementById('paneMeasurements'),
-    paneTimeline: document.getElementById('paneTimeline'),
     inspectorMaterialsList: document.getElementById('inspectorMaterialsList'),
     inspectorMeasurementsList: document.getElementById('inspectorMeasurementsList'),
-    inspectorTimelineList: document.getElementById('inspectorTimelineList'),
 
     toastContainer: document.getElementById('toastContainer'),
   };
@@ -171,7 +155,7 @@ function cacheDOM() {
 document.addEventListener('DOMContentLoaded', async () => {
   cacheDOM();
 
-  // Highlight active sidebar item
+  // Highlight active sidebar navigation
   function highlightGarmentsNav() {
     const navGarments = document.getElementById('nav-garments');
     if (navGarments) {
@@ -184,82 +168,75 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('nav:ready', highlightGarmentsNav);
   document.addEventListener('nav:fragmentLoaded', highlightGarmentsNav);
 
-  // Load dynamic stages, KPI data & initial page of garments
-  await loadDynamicGarmentStages();
-  populateDynamicStageDropdown();
+  // Close header dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (DOM.headerDropdownMenu && !e.target.closest('.header-actions')) {
+      DOM.headerDropdownMenu.classList.remove('active');
+    }
+  });
+
+  // Enable mouse wheel horizontal scrolling for single-line filter bar
+  const fw = document.querySelector('.filters-wrap');
+  if (fw) {
+    fw.addEventListener('wheel', (evt) => {
+      if (evt.deltaY !== 0) {
+        fw.scrollLeft += evt.deltaY;
+        evt.preventDefault();
+      }
+    }, { passive: false });
+  }
+
+  // Load dynamic filter options, KPIs & Garments catalog
+  await loadDynamicFilterDropdowns();
+
   await Promise.all([
     loadKpiMetrics(),
     loadGarmentsData()
   ]);
-  renderDynamicStagePills();
 
   if (window.lucide) window.lucide.createIcons();
 });
 
-// ─── Load Dynamic Stage Definitions ───────────────────────────────────────
-async function loadDynamicGarmentStages() {
+// ─── Load Dynamic Filter Dropdowns (Branches, Designers, Collections) ──────
+async function loadDynamicFilterDropdowns() {
   try {
-    if (api?.production?.stageDefinitions?.list) {
-      const defs = await api.production.stageDefinitions.list({ activeOnly: true });
-      if (Array.isArray(defs) && defs.length > 0) {
-        dynamicStageDefs = defs;
+    // 1. Populate Branches from DB
+    if (api?.branches?.list) {
+      const branches = await api.branches.list();
+      const select = document.getElementById('filterBranch');
+      if (select && Array.isArray(branches) && branches.length > 0) {
+        select.innerHTML = '<option value="all">Branch</option>' +
+          branches.map(b => `<option value="${escapeHTML(b.name)}">${escapeHTML(b.name)}</option>`).join('');
       }
     }
-  } catch (e) {
-    console.warn('[Garments] Could not load dynamic stages:', e);
+
+    // 2. Populate Designers & Artisans from DB
+    if (api?.employees?.list) {
+      const empRes = await api.employees.list({ size: 100 });
+      const emps = empRes?.content || (Array.isArray(empRes) ? empRes : []);
+      const select = document.getElementById('filterDesigner');
+      if (select && Array.isArray(emps) && emps.length > 0) {
+        select.innerHTML = '<option value="all">Artisan</option>' +
+          emps.map(e => `<option value="${escapeHTML(e.name)}">${escapeHTML(e.name)}</option>`).join('');
+      }
+    }
+
+    // 3. Populate Collections from DB if available
+    if (api?.collections?.list) {
+      const colRes = await api.collections.list();
+      const cols = Array.isArray(colRes) ? colRes : (colRes?.content || []);
+      const select = document.getElementById('filterCollection');
+      if (select && cols.length > 0) {
+        select.innerHTML = '<option value="all">Collection</option>' +
+          cols.map(c => `<option value="${escapeHTML(c.name || c.title)}">${escapeHTML(c.name || c.title)}</option>`).join('');
+      }
+    }
+  } catch (err) {
+    console.warn('[Garments] Filter dropdown loading error:', err);
   }
 }
 
-function populateDynamicStageDropdown() {
-  const select = document.getElementById('filterProductionStage');
-  if (!select) return;
-
-  const currentVal = select.value || 'all';
-  let html = '<option value="all">Production Stage (All)</option>';
-  dynamicStageDefs.forEach(def => {
-    const name = def.displayName || def.stageKey;
-    html += `<option value="${name}">${name}</option>`;
-  });
-  select.innerHTML = html;
-  if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
-    select.value = currentVal;
-  }
-}
-
-function renderDynamicStagePills(kpis) {
-  const container = document.getElementById('stagePillsGroup');
-  if (!container) return;
-
-  const allCount = kpis?.allCount ?? state.pagination.totalElements ?? (state.garments ? state.garments.length : 0);
-  const activeFilter = (state.stageFilter || 'all').toLowerCase();
-
-  let html = `
-    <button type="button" class="stage-pill ${activeFilter === 'all' ? 'active' : ''}" data-stage="all" onclick="setStageFilter('all')">
-      <span>All</span> <span class="pill-badge" id="badgeStageAll">${allCount}</span>
-    </button>
-  `;
-
-  dynamicStageDefs.forEach(def => {
-    const stageName = def.displayName || def.stageKey;
-    const stageKey = def.stageKey;
-    const count = (state.garments || []).filter(g => {
-      const gStage = (g.productionStage || g.stage || g.currentStage || '').toLowerCase();
-      return gStage === stageName.toLowerCase() || gStage === stageKey.toLowerCase();
-    }).length;
-
-    const isActive = activeFilter === stageName.toLowerCase() || activeFilter === stageKey.toLowerCase();
-
-    html += `
-      <button type="button" class="stage-pill ${isActive ? 'active' : ''}" data-stage="${stageName}" onclick="setStageFilter('${stageName}')">
-        <span>${stageName}</span> <span class="pill-badge">${count}</span>
-      </button>
-    `;
-  });
-
-  container.innerHTML = html;
-}
-
-// ─── Load KPI Metrics & Stage Counts ──────────────────────────────────────
+// ─── Load Atelier KPI Metrics ─────────────────────────────────────────────
 async function loadKpiMetrics() {
   try {
     const kpis = await api.garments.kpis();
@@ -267,14 +244,12 @@ async function loadKpiMetrics() {
 
     if (DOM.valTotalGarments) DOM.valTotalGarments.textContent = kpis.totalGarments ?? 0;
     if (DOM.valInProduction) DOM.valInProduction.textContent = kpis.inProduction ?? 0;
-    if (DOM.valInTrial) DOM.valInTrial.textContent = kpis.inTrial ?? 0;
-    if (DOM.valAwaitingQc) DOM.valAwaitingQc.textContent = kpis.awaitingQc ?? 0;
     if (DOM.valReady) DOM.valReady.textContent = kpis.ready ?? 0;
-    if (DOM.valDelivered) DOM.valDelivered.textContent = kpis.delivered ?? 0;
-
-    renderDynamicStagePills(kpis);
+    if (DOM.valAwaitingQc) DOM.valAwaitingQc.textContent = kpis.awaitingQc ?? 0;
+    if (DOM.valBridalCount) DOM.valBridalCount.textContent = kpis.bridalCount ?? 0;
+    if (DOM.valAvgCrafting) DOM.valAvgCrafting.textContent = (kpis.avgCraftingHours ? Math.round(kpis.avgCraftingHours) + 'h' : '28h');
   } catch (err) {
-    console.warn('Could not load garment KPIs:', err);
+    console.warn('Could not load garment atelier KPIs:', err);
   }
 }
 
@@ -288,12 +263,10 @@ async function loadGarmentsData() {
     };
 
     if (state.searchQuery) params.search = state.searchQuery.trim();
-    if (state.stageFilter && state.stageFilter !== 'all') params.stage = state.stageFilter;
     if (state.filters.garmentType && state.filters.garmentType !== 'all') params.garmentType = state.filters.garmentType;
     if (state.filters.collection && state.filters.collection !== 'all') params.collection = state.filters.collection;
-    if (state.filters.productionStage && state.filters.productionStage !== 'all') params.stage = state.filters.productionStage;
+    if (state.filters.fabric && state.filters.fabric !== 'all') params.fabric = state.filters.fabric;
     if (state.filters.status && state.filters.status !== 'all') params.status = state.filters.status;
-    if (state.filters.priority && state.filters.priority !== 'all') params.priority = state.filters.priority;
     if (state.filters.materialStatus && state.filters.materialStatus !== 'all') params.materialStatus = state.filters.materialStatus;
     if (state.filters.designer && state.filters.designer !== 'all') params.designer = state.filters.designer;
     if (state.filters.branch && state.filters.branch !== 'all') params.branch = state.filters.branch;
@@ -305,17 +278,18 @@ async function loadGarmentsData() {
     state.pagination.totalElements = res.totalElements ?? list.length;
     state.pagination.totalPages = res.totalPages ?? Math.ceil(state.pagination.totalElements / state.pagination.size);
 
-    // If no garment selected yet, default to first item (e.g. BRD-0528)
+    // If no garment selected yet, select first
     if ((!state.selectedGarment || !state.garments.some(g => g.id === state.selectedGarment.id)) && state.garments.length > 0) {
       selectGarment(state.garments[0].id);
+    } else if (state.garments.length === 0) {
+      state.selectedGarment = null;
     }
 
     renderTable();
     renderPagination();
-    renderDynamicStagePills();
   } catch (err) {
     console.error('Failed to load garments:', err);
-    showToast('Failed to load garments from database', 'error');
+    showToast('Failed to load garments catalog from database', 'error');
   } finally {
     state.loading = false;
     if (window.lucide) window.lucide.createIcons();
@@ -330,7 +304,6 @@ function renderTable() {
     DOM.garmentsTableBody.innerHTML = '';
     if (DOM.emptyState) DOM.emptyState.style.display = 'flex';
     if (DOM.garmentInspector) DOM.garmentInspector.style.display = 'none';
-    renderEmptyInspector();
     return;
   }
 
@@ -343,77 +316,72 @@ function renderTable() {
     const isSelected = state.selectedGarment && state.selectedGarment.id === g.id;
     const isChecked = state.selectedIds.has(g.id);
 
-    const stageClass = getStageClass(g.productionStage);
     const matClass = (g.materialStatus || 'READY').toLowerCase();
-    const priorityClass = (g.priority || 'NORMAL').toLowerCase();
-    const paymentClass = (g.paymentStatus || 'PENDING').toLowerCase();
-    const statusCapsuleClass = getStatusCapsuleClass(g.status);
-
-    const daysLeftHtml = g.isOverdue
-      ? `<span class="days-left-badge days-left-red">${Math.abs(g.daysRemaining)} days overdue</span>`
-      : `<span class="days-left-badge days-left-green">${g.daysRemaining} days</span>`;
-
     const imgThumb = resolveGarmentImage(g);
 
+    const colorHex = g.colorHex || '#9B111E';
+    const colorName = g.colorName || 'Royal Tone';
+    const priceFormatted = g.suggestedPrice ? '₹' + Number(g.suggestedPrice).toLocaleString('en-IN') : '₹—';
+    const costFormatted = g.estimatedCost ? 'Cost: ₹' + Number(g.estimatedCost).toLocaleString('en-IN') : 'Cost: —';
+
     return `
-      <tr class="${isSelected ? 'selected' : ''}" onclick="window.selectGarment('${g.id}')" ondblclick="window.viewGarmentDetails()" title="Click to inspect, double-click for Garment 360" style="cursor:pointer;">
-        <td class="td-check" onclick="event.stopPropagation()">
-          <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.toggleRowSelect('${g.id}', event)" />
-        </td>
+      <tr class="${isSelected ? 'selected' : ''}" onclick="window.selectGarment('${g.id}')" ondblclick="window.viewGarmentDetails()" title="Click to inspect garment, double-click to launch 360° Dossier" style="cursor:pointer;">
         <td>
           <div class="cell-garment-info">
             <img class="garment-thumb-img" src="${imgThumb}" alt="${escapeHTML(g.title)}" onerror="this.src='${EXISTING_GARMENT_ASSETS.default}'" />
             <div class="garment-texts">
               <span class="garment-code-title">
-                ${escapeHTML(g.garmentCode)} &bull; ${escapeHTML(g.title)}
+                <span class="garment-code-chip">${escapeHTML(g.garmentCode)}</span>
+                <span class="garment-title-text">${escapeHTML(g.title)}</span>
               </span>
-              <span class="garment-spec-sub">${escapeHTML(g.specs || 'Custom Silhouette')}</span>
+              <span class="garment-spec-sub">${escapeHTML(g.silhouette || g.specs || 'Custom Atelier Cut')}</span>
             </div>
           </div>
         </td>
         <td>
-          <div class="cell-customer-order">
-            <span class="customer-name-bold">${escapeHTML(g.customerName)}</span>
-            <span class="order-code-sub">${escapeHTML(g.orderCode)}</span>
-          </div>
+          <span class="badge-silhouette-type">${escapeHTML(g.garmentType)}</span>
         </td>
-        <td>${escapeHTML(g.garmentType)}</td>
         <td>
           <div class="cell-design-col">
-            <span class="design-code-bold">${escapeHTML(g.designCode || '-')}</span>
-            <span class="collection-name-sub">${escapeHTML(g.collectionName || 'Main Edit')}</span>
+            <span class="collection-name-bold">${escapeHTML(g.collectionName || 'Main Haute Edit')}</span>
+            <span class="design-code-sub">${escapeHTML(g.designCode || 'Custom Blueprint')}</span>
           </div>
         </td>
         <td>
-          <div class="cell-stage-mat">
-            <span class="stage-badge-pill ${stageClass}">${escapeHTML(g.productionStage)}</span>
-            <div class="material-status-line">
+          <div class="cell-fabric-craft">
+            <span class="fabric-title">${escapeHTML(g.primaryFabric || 'Pure Silk / Brocade')}</span>
+            <span class="craft-sub">${escapeHTML(g.embroideryType || 'Artisanal Embroidery')}</span>
+          </div>
+        </td>
+        <td>
+          <div class="cell-color-swatch">
+            <span class="swatch-dot" style="background-color: ${colorHex};" title="${colorName}"></span>
+            <span class="color-name-text">${escapeHTML(colorName)}</span>
+          </div>
+        </td>
+        <td>
+          <div class="cell-material-readiness">
+            <span class="material-status-badge ${matClass}">
               <span class="dot-status ${matClass}"></span>
-              <span>Materials ${capitalize(g.materialStatus)}</span>
-            </div>
-          </div>
-        </td>
-        <td>${escapeHTML(g.trialStatus || 'Not Required')}</td>
-        <td>
-          <div class="cell-due-date">
-            <span class="due-date-str">${formatShortDate(g.dueDate)}</span>
-            ${daysLeftHtml}
+              <span>${capitalize(g.materialStatus || 'Ready')}</span>
+            </span>
           </div>
         </td>
         <td>
-          <span class="badge-priority ${priorityClass}">${escapeHTML(g.priority)}</span>
+          <div class="cell-artisan-branch">
+            <span class="branch-name-bold">${escapeHTML(g.branch || 'Main Atelier')}</span>
+            <span class="artisan-sub">${escapeHTML(g.assignedTo || g.designer || 'Master Artisan')}</span>
+          </div>
         </td>
         <td>
-          <span class="badge-payment ${paymentClass}">${escapeHTML(g.paymentStatus)}</span>
+          <div class="cell-pricing">
+            <span class="suggested-price-val">${priceFormatted}</span>
+            <span class="cost-estimate-sub">${costFormatted}</span>
+          </div>
         </td>
-        <td>
-          <span class="badge-status-capsule ${statusCapsuleClass}">
-            <span class="status-dot"></span> ${escapeHTML(g.status || 'Active')}
-          </span>
-        </td>
-        <td onclick="event.stopPropagation()">
-          <button type="button" class="btn-row-action" title="Actions" onclick="window.openRowActionMenu('${g.id}', event)">
-            <i data-lucide="more-horizontal" style="width:14px;height:14px;"></i>
+        <td class="td-actions" onclick="event.stopPropagation()">
+          <button type="button" class="btn-row-action" title="Garment Options" onclick="window.openRowMenu('${g.id}', event)">
+            <i data-lucide="more-horizontal" style="width:16px;height:16px;"></i>
           </button>
         </td>
       </tr>
@@ -421,447 +389,394 @@ function renderTable() {
   }).join('');
 }
 
-// ─── Render Pagination Controls ───────────────────────────────────────────
-function renderPagination() {
-  const p = state.pagination;
-  if (p.totalElements === 0) {
-    if (DOM.paginationInfo) DOM.paginationInfo.textContent = 'Showing 0 garments';
-    if (DOM.paginationControls) DOM.paginationControls.innerHTML = '';
-    return;
+// ─── Select & Inspect Garment ─────────────────────────────────────────────
+window.selectGarment = async function(id) {
+  const g = state.garments.find(item => item.id === id);
+  if (!g) return;
+
+  state.selectedGarment = g;
+
+  // Re-highlight row in table
+  document.querySelectorAll('#garmentsTableBody tr').forEach(tr => tr.classList.remove('selected'));
+  const allRows = Array.from(document.querySelectorAll('#garmentsTableBody tr'));
+  const idx = state.garments.findIndex(item => item.id === id);
+  if (allRows[idx]) allRows[idx].classList.add('selected');
+
+  // Open inspector
+  if (DOM.garmentInspector) DOM.garmentInspector.style.display = 'flex';
+
+  // Fetch full detail with materials, measurement specs & lifecycle
+  try {
+    const detail = await api.garments.get(id);
+    populateInspector(detail || g);
+  } catch (err) {
+    console.warn('Could not load garment detailed spec, falling back to summary:', err);
+    populateInspector(g);
+  }
+};
+
+function populateInspector(g) {
+  if (!g) return;
+
+  // Hero Image & Badges
+  const heroImg = DOM.inspectorHeroImg || document.getElementById('inspectorHeroImg');
+  if (heroImg) {
+    heroImg.src = resolveGarmentImage(g);
+  }
+  const heroWrap = document.querySelector('.inspector-hero-wrap');
+  if (heroWrap) {
+    heroWrap.style.display = 'block';
+  }
+  if (DOM.inspectorHeroSilhouette) {
+    DOM.inspectorHeroSilhouette.textContent = g.garmentType || 'Bespoke';
+  }
+  if (DOM.inspectorCode) DOM.inspectorCode.textContent = g.garmentCode || '—';
+  if (DOM.inspectorTitle) DOM.inspectorTitle.textContent = g.title || '—';
+
+  // Status Badge
+  if (DOM.inspectorStatusBadge) {
+    const sClass = getStatusCapsuleClass(g.status);
+    DOM.inspectorStatusBadge.className = `badge-status-capsule ${sClass}`;
+    DOM.inspectorStatusBadge.innerHTML = `<span class="status-dot"></span> ${escapeHTML(g.status || 'Active')}`;
   }
 
-  const start = p.page * p.size + 1;
-  const end = Math.min((p.page + 1) * p.size, p.totalElements);
+  // Pane 1: Overview
+  if (DOM.detType) DOM.detType.textContent = g.garmentType || '—';
+  if (DOM.detCollection) DOM.detCollection.textContent = g.collectionName || 'Main Collection';
+  if (DOM.detDesign) DOM.detDesign.textContent = g.designCode || 'Atelier Blueprint';
+  if (DOM.detFabric) DOM.detFabric.textContent = g.primaryFabric || 'Pure Raw Silk';
+  if (DOM.detEmbroidery) DOM.detEmbroidery.textContent = g.embroideryType || 'Artisanal Handwork';
+
+  if (DOM.detColorDot) {
+    DOM.detColorDot.style.backgroundColor = g.colorHex || '#9B111E';
+  }
+  if (DOM.detColorName) {
+    DOM.detColorName.textContent = g.colorName || 'Royal Crimson';
+  }
+
+  if (DOM.detSilhouette) DOM.detSilhouette.textContent = g.silhouette || g.specs || 'Custom Cut';
+
+  if (DOM.detSuggestedPrice) {
+    DOM.detSuggestedPrice.textContent = g.suggestedPrice ? '₹' + Number(g.suggestedPrice).toLocaleString('en-IN') : (g.totalAmount ? '₹' + Number(g.totalAmount).toLocaleString('en-IN') : '₹—');
+  }
+  if (DOM.detEstimatedCost) {
+    DOM.detEstimatedCost.textContent = g.estimatedCost ? '₹' + Number(g.estimatedCost).toLocaleString('en-IN') : '₹—';
+  }
+  if (DOM.detCraftingHours) {
+    DOM.detCraftingHours.textContent = g.craftingHours ? `${g.craftingHours} artisan hours` : '32 artisan hours';
+  }
+  if (DOM.detAssigned) DOM.detAssigned.textContent = g.assignedTo || g.designer || 'Master Artisan';
+  if (DOM.detBranch) DOM.detBranch.textContent = g.branch || 'Main Atelier';
+
+  if (DOM.detMaterialStatus) {
+    DOM.detMaterialStatus.textContent = capitalize(g.materialStatus || 'Ready');
+    const dot = DOM.detMaterialStatus.previousElementSibling;
+    if (dot) dot.className = `dot-status ${(g.materialStatus || 'READY').toLowerCase()}`;
+  }
+
+  if (DOM.inspectorNotesBox && DOM.detNotes) {
+    if (g.notes && g.notes.trim()) {
+      DOM.detNotes.textContent = g.notes;
+      DOM.inspectorNotesBox.style.display = 'block';
+    } else {
+      DOM.inspectorNotesBox.style.display = 'none';
+    }
+  }
+
+  // Pane 2: Materials & Fabrics
+  if (DOM.inspectorMaterialsList) {
+    const materials = g.materials && g.materials.length > 0 ? g.materials : [
+      { name: g.primaryFabric || 'Pure Micro Velvet 9000', variant: 'Main Body Fabric', meters: '3.50 m', status: 'READY', imageUrl: '../assets/swatch_raw_silk.jpg' },
+      { name: g.embroideryType || 'Zardozi Dabka & Mukaish', variant: 'Artisanal Embellishment', meters: 'Gold Thread & Pearls', status: 'READY', imageUrl: '../assets/swatch_embroidery.jpg' },
+      { name: 'Pure Cotton Silk Lining 80g', variant: 'Internal Structured Canvas', meters: '2.50 m', status: 'READY', imageUrl: '../assets/pink_silk.jpg' }
+    ];
+
+    DOM.inspectorMaterialsList.innerHTML = materials.map(m => `
+      <div class="material-item-card">
+        <img class="material-swatch-img" src="${m.imageUrl || '../assets/swatch_raw_silk.jpg'}" alt="${escapeHTML(m.name)}" onerror="this.src='../assets/swatch_raw_silk.jpg'" />
+        <div class="material-meta">
+          <span class="material-name">${escapeHTML(m.name)}</span>
+          <span class="material-sub">${escapeHTML(m.variant || 'Atelier Sourced')} &bull; ${escapeHTML(m.meters || 'Ready')}</span>
+        </div>
+        <span class="badge-mat-status ${(m.status || 'READY').toLowerCase()}">${capitalize(m.status || 'Ready')}</span>
+      </div>
+    `).join('');
+  }
+
+  // Pane 3: Silhouette Specs & Anatomical Measurements
+  if (DOM.inspectorMeasurementsList) {
+    const measurements = g.measurements && g.measurements.length > 0 ? g.measurements : [
+      { label: 'Silhouette Flare / Sweep', value: '180.0"' },
+      { label: 'Waistband Circumference', value: '32.0"' },
+      { label: 'Hip Ease Allowance', value: '+3.5"' },
+      { label: 'Garment Length', value: '42.0"' },
+      { label: 'Neckline Anchor Depth', value: '7.5"' },
+      { label: 'Can-Can Stiffener Layers', value: 'Double Layer' }
+    ];
+
+    DOM.inspectorMeasurementsList.innerHTML = measurements.map(item => `
+      <div class="spec-measure-card">
+        <span class="spec-measure-label">${escapeHTML(item.label)}</span>
+        <span class="spec-measure-value">${escapeHTML(item.value)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+// ─── Inspector Tabs Switcher ──────────────────────────────────────────────
+window.switchInspectorTab = function(tabName) {
+  state.activeTab = tabName;
+  document.querySelectorAll('.inspector-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabName);
+  });
+
+  const tabPanes = {
+    overview: DOM.paneOverview,
+    materials: DOM.paneMaterials,
+    measurements: DOM.paneMeasurements
+  };
+
+  Object.keys(tabPanes).forEach(k => {
+    if (tabPanes[k]) {
+      tabPanes[k].classList.toggle('active', k === tabName);
+    }
+  });
+
+  if (window.lucide) window.lucide.createIcons();
+};
+
+window.closeInspector = function() {
+  if (DOM.garmentInspector) DOM.garmentInspector.style.display = 'none';
+  document.querySelectorAll('#garmentsTableBody tr').forEach(tr => tr.classList.remove('selected'));
+  state.selectedGarment = null;
+};
+
+window.toggleInspectorExpand = function() {
+  if (DOM.garmentInspector) {
+    DOM.garmentInspector.classList.toggle('expanded');
+  }
+};
+
+// ─── View 360° Dossier Navigation ─────────────────────────────────────────
+window.viewGarmentDetails = function() {
+  const g = state.selectedGarment || (state.garments && state.garments[0]);
+  if (!g) {
+    showToast('Select a garment to view its 360° Dossier', 'info');
+    return;
+  }
+  const query = g.id ? `id=${encodeURIComponent(g.id)}&code=${encodeURIComponent(g.garmentCode || '')}` : `code=${encodeURIComponent(g.garmentCode || '')}`;
+  window.location.href = `garaments 360/garament360.html?${query}`;
+};
+
+window.editGarmentRecord = function() {
+  const g = state.selectedGarment;
+  if (!g) return;
+  // Route to edit garment if supported or alert
+  showToast(`Editing specifications for ${g.garmentCode}`, 'info');
+};
+
+window.printSingleGarment = function() {
+  const g = state.selectedGarment;
+  if (!g) return;
+  window.print();
+};
+
+window.printGarmentBatch = function() {
+  window.print();
+};
+
+// ─── Filter & Search Handlers ─────────────────────────────────────────────
+window.handleSearchInput = function(e) {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    state.searchQuery = e.target.value || '';
+    state.pagination.page = 0;
+    loadGarmentsData();
+  }, 300);
+};
+
+window.handleFilterChange = function() {
+  state.filters.garmentType = DOM.filterGarmentType?.value || 'all';
+  state.filters.collection = DOM.filterCollection?.value || 'all';
+  state.filters.fabric = DOM.filterFabric?.value || 'all';
+  state.filters.status = DOM.filterStatus?.value || 'all';
+  state.filters.materialStatus = DOM.filterMaterialStatus?.value || 'all';
+  state.filters.designer = DOM.filterDesigner?.value || 'all';
+  state.filters.branch = DOM.filterBranch?.value || 'all';
+
+  state.pagination.page = 0;
+  loadGarmentsData();
+};
+
+window.clearAllFilters = function() {
+  if (DOM.searchGarments) DOM.searchGarments.value = '';
+  if (DOM.filterGarmentType) DOM.filterGarmentType.value = 'all';
+  if (DOM.filterCollection) DOM.filterCollection.value = 'all';
+  if (DOM.filterFabric) DOM.filterFabric.value = 'all';
+  if (DOM.filterStatus) DOM.filterStatus.value = 'all';
+  if (DOM.filterMaterialStatus) DOM.filterMaterialStatus.value = 'all';
+  if (DOM.filterDesigner) DOM.filterDesigner.value = 'all';
+  if (DOM.filterBranch) DOM.filterBranch.value = 'all';
+
+  state.searchQuery = '';
+  state.filters = {
+    garmentType: 'all',
+    collection: 'all',
+    fabric: 'all',
+    status: 'all',
+    materialStatus: 'all',
+    designer: 'all',
+    branch: 'all',
+  };
+  state.pagination.page = 0;
+  loadGarmentsData();
+};
+
+// ─── Pagination ───────────────────────────────────────────────────────────
+function renderPagination() {
+  const { page, size, totalElements, totalPages } = state.pagination;
+  const start = totalElements === 0 ? 0 : page * size + 1;
+  const end = Math.min((page + 1) * size, totalElements);
 
   if (DOM.paginationInfo) {
-    DOM.paginationInfo.textContent = `Showing ${start}–${end} of ${p.totalElements} garments`;
+    DOM.paginationInfo.textContent = `Showing ${start}–${end} of ${totalElements} silhouettes`;
   }
 
   if (!DOM.paginationControls) return;
 
-  const totalPages = Math.max(1, p.totalPages);
-  const current = p.page;
-  const btns = [];
+  let btns = '';
+  // Prev button
+  btns += `<button type="button" class="btn-page-nav" ${page === 0 ? 'disabled' : ''} onclick="changePage(${page - 1})"><i data-lucide="chevron-left"></i></button>`;
 
-  // Prev
-  btns.push(`
-    <button type="button" class="page-btn" ${current === 0 ? 'disabled' : ''} onclick="window.handlePageChange(${current - 1})">
-      <i data-lucide="chevron-left" style="width:13px;height:13px;"></i>
-    </button>
-  `);
-
-  const pagesToShow = [0];
-  if (current > 2) pagesToShow.push(-1); // ellipsis
-  for (let i = Math.max(1, current - 1); i <= Math.min(totalPages - 2, current + 1); i++) {
-    if (!pagesToShow.includes(i)) pagesToShow.push(i);
-  }
-  if (current < totalPages - 3) pagesToShow.push(-2); // ellipsis
-  if (totalPages > 1 && !pagesToShow.includes(totalPages - 1)) pagesToShow.push(totalPages - 1);
-
-  pagesToShow.forEach(idx => {
-    if (idx === -1 || idx === -2) {
-      btns.push(`<span style="padding:0 4px;color:var(--text-muted);">&hellip;</span>`);
-    } else {
-      btns.push(`
-        <button type="button" class="page-btn ${idx === current ? 'active' : ''}" onclick="window.handlePageChange(${idx})">
-          ${idx + 1}
-        </button>
-      `);
-    }
-  });
-
-  // Next
-  btns.push(`
-    <button type="button" class="page-btn" ${current >= totalPages - 1 ? 'disabled' : ''} onclick="window.handlePageChange(${current + 1})">
-      <i data-lucide="chevron-right" style="width:13px;height:13px;"></i>
-    </button>
-  `);
-
-  DOM.paginationControls.innerHTML = btns.join('');
-}
-
-// ─── Select & Render Garment in Inspector ──────────────────────────────────
-export async function selectGarment(id) {
-  const found = state.garments.find(g => g.id === id);
-  if (!found) return;
-
-  state.selectedGarment = found;
-  sessionStorage.setItem('haulo_selected_garment', JSON.stringify(found));
-  renderTable(); // Update selected highlight in table rows
-  renderInspectorBasics(found);
-
-  try {
-    const detail = await api.garments.getById(id);
-    if (detail && state.selectedGarment && state.selectedGarment.id === id) {
-      state.selectedGarment = { ...state.selectedGarment, ...detail };
-      sessionStorage.setItem('haulo_selected_garment', JSON.stringify(state.selectedGarment));
-      renderInspectorPanes(state.selectedGarment);
-    }
-  } catch (err) {
-    console.warn('Could not load detailed garment info:', err);
+  // Page Numbers
+  const maxButtons = 5;
+  let startP = Math.max(0, page - 2);
+  let endP = Math.min(totalPages, startP + maxButtons);
+  if (endP - startP < maxButtons) {
+    startP = Math.max(0, endP - maxButtons);
   }
 
-  if (window.lucide) window.lucide.createIcons();
-}
-window.selectGarment = selectGarment;
-
-function renderInspectorBasics(g) {
-  if (DOM.inspectorHeroImg) {
-    DOM.inspectorHeroImg.src = resolveGarmentImage(g);
-    DOM.inspectorHeroImg.style.opacity = '1';
-    DOM.inspectorHeroImg.onerror = function() { this.src = EXISTING_GARMENT_ASSETS.default; };
-  }
-  if (DOM.inspectorCode) DOM.inspectorCode.textContent = g.garmentCode;
-  if (DOM.inspectorTitle) DOM.inspectorTitle.textContent = g.title;
-
-  if (DOM.inspectorStatusBadge) {
-    DOM.inspectorStatusBadge.className = `badge-status-capsule ${getStatusCapsuleClass(g.status)}`;
-    DOM.inspectorStatusBadge.innerHTML = `<span class="status-dot"></span> ${escapeHTML(g.status || 'Active')}`;
+  for (let p = startP; p < endP; p++) {
+    btns += `<button type="button" class="btn-page-num ${p === page ? 'active' : ''}" onclick="changePage(${p})">${p + 1}</button>`;
   }
 
-  // 2-Column Details
-  if (DOM.detCustomer) DOM.detCustomer.textContent = g.customerName;
-  if (DOM.detOrder) DOM.detOrder.textContent = g.orderCode;
-  if (DOM.detType) DOM.detType.textContent = g.garmentType;
-  if (DOM.detCollection) DOM.detCollection.textContent = g.collectionName || 'Boutique Edit';
-  if (DOM.detDesign) DOM.detDesign.textContent = g.designCode || '-';
-  if (DOM.detDueDate) {
-    const daysStr = g.isOverdue ? `(${Math.abs(g.daysRemaining)} days overdue)` : `(${g.daysRemaining} days)`;
-    DOM.detDueDate.textContent = `${formatShortDate(g.dueDate)} ${daysStr}`;
-    DOM.detDueDate.className = `pair-value ${g.isOverdue ? 'days-left-red' : 'text-green'}`;
-  }
-  if (DOM.detPriority) {
-    const pClass = (g.priority || 'NORMAL').toLowerCase();
-    DOM.detPriority.textContent = g.priority;
-    DOM.detPriority.className = `badge-priority ${pClass}`;
-  }
-  if (DOM.detMaterialStatus) {
-    DOM.detMaterialStatus.textContent = capitalize(g.materialStatus || 'Ready');
-    const dot = DOM.detMaterialStatus.parentElement?.querySelector('.dot-status');
-    if (dot) dot.className = `dot-status ${(g.materialStatus || 'READY').toLowerCase()}`;
-  }
-  if (DOM.detTrial) DOM.detTrial.textContent = g.trialDate ? formatShortDate(g.trialDate) : (g.trialStatus || 'Not Required');
-  if (DOM.detPayment) {
-    const pClass = (g.paymentStatus || 'PENDING').toLowerCase();
-    DOM.detPayment.innerHTML = `<span class="dot-payment ${pClass}"></span> ${escapeHTML(g.formattedPaymentRatio || '₹0 / ₹0')}`;
-  }
-  if (DOM.detAssigned) DOM.detAssigned.textContent = g.assignedTo || 'Unassigned';
-}
+  // Next button
+  btns += `<button type="button" class="btn-page-nav" ${page >= totalPages - 1 ? 'disabled' : ''} onclick="changePage(${page + 1})"><i data-lucide="chevron-right"></i></button>`;
 
-function renderInspectorPanes(g) {
-  // Materials Pane
-  if (DOM.inspectorMaterialsList) {
-    const mats = (g.materials && g.materials.length > 0) ? g.materials : [
-      { name: 'Raw Silk Base Fabric', variant: 'Pure Handloom 80g', meters: '3.5m', status: 'Allocated', imageUrl: EXISTING_FABRIC_SWATCHES[0] },
-      { name: 'Gold Zari & Dabka Embroidery', variant: 'Antique Dull Gold Wire', meters: '1.2m', status: 'In Atelier', imageUrl: EXISTING_FABRIC_SWATCHES[1] },
-      { name: 'Pure Organza Trim', variant: 'Sheer Glaze Finish', meters: '2.0m', status: 'Allocated', imageUrl: EXISTING_FABRIC_SWATCHES[2] }
-    ];
-    DOM.inspectorMaterialsList.innerHTML = mats.map((m, idx) => `
-      <div class="material-card-row">
-        <img src="${m.imageUrl || EXISTING_FABRIC_SWATCHES[idx % EXISTING_FABRIC_SWATCHES.length]}" alt="${escapeHTML(m.name)}" onerror="this.src='${EXISTING_FABRIC_SWATCHES[0]}'" />
-        <div style="flex:1;">
-          <div style="font-size:12px;font-weight:600;color:var(--text-primary);">${escapeHTML(m.name)}</div>
-          <div style="font-size:10.5px;color:var(--text-muted);">${escapeHTML(m.variant || '')} &bull; ${escapeHTML(m.meters || '')}</div>
-        </div>
-        <span style="font-size:11px;color:var(--lime-accent, #b8ff3d);font-weight:600;">${escapeHTML(m.status || 'Ready')}</span>
-      </div>
-    `).join('');
-  }
-
-  // Measurements Pane
-  if (DOM.inspectorMeasurementsList) {
-    const meas = g.measurements || [];
-    DOM.inspectorMeasurementsList.innerHTML = meas.map(m => `
-      <div class="meas-item">
-        <span class="meas-lbl">${escapeHTML(m.label)}</span>
-        <span class="meas-val">${escapeHTML(m.value)}</span>
-      </div>
-    `).join('');
-  }
-
-  // Timeline Pane
-  if (DOM.inspectorTimelineList) {
-    const time = g.timeline || [];
-    DOM.inspectorTimelineList.innerHTML = time.map(t => `
-      <div class="timeline-feed-item">
-        <div class="timeline-feed-dot" style="background-color:${t.color || 'var(--purple, #a855f7)'};"></div>
-        <div class="timeline-feed-content">
-          <span class="timeline-feed-date">${escapeHTML(t.date)} &bull; <strong>${escapeHTML(t.stage)}</strong></span>
-          <span class="timeline-feed-desc">${escapeHTML(t.description)}</span>
-        </div>
-      </div>
-    `).join('');
-  }
-}
-
-function renderEmptyInspector() {
-  state.selectedGarment = null;
-  if (DOM.inspectorHeroImg) {
-    DOM.inspectorHeroImg.src = '';
-    DOM.inspectorHeroImg.style.opacity = '0';
-  }
-  if (DOM.inspectorCode) DOM.inspectorCode.textContent = '—';
-  if (DOM.inspectorTitle) DOM.inspectorTitle.textContent = 'No Garment Selected';
-
-  if (DOM.inspectorStatusBadge) {
-    DOM.inspectorStatusBadge.className = 'badge-status-capsule capsule-gray';
-    DOM.inspectorStatusBadge.innerHTML = `<span class="status-dot"></span> —`;
-  }
-
-  // 2-Column Details
-  if (DOM.detCustomer) DOM.detCustomer.textContent = '—';
-  if (DOM.detOrder) DOM.detOrder.textContent = '—';
-  if (DOM.detType) DOM.detType.textContent = '—';
-  if (DOM.detCollection) DOM.detCollection.textContent = '—';
-  if (DOM.detDesign) DOM.detDesign.textContent = '—';
-  if (DOM.detDueDate) DOM.detDueDate.textContent = '—';
-  if (DOM.detPriority) DOM.detPriority.textContent = '—';
-  if (DOM.detMaterialStatus) DOM.detMaterialStatus.textContent = '—';
-  if (DOM.detTrial) DOM.detTrial.textContent = '—';
-  if (DOM.detPayment) DOM.detPayment.textContent = '—';
-  if (DOM.detAssigned) DOM.detAssigned.textContent = '—';
-
-  // Secondary tabs
-  if (DOM.paneOverview) {
-    DOM.paneOverview.innerHTML = `
-      <div style="padding:28px 16px;text-align:center;color:var(--text-muted);">
-        <i data-lucide="package-open" style="width:36px;height:36px;margin:0 auto 8px auto;opacity:0.6;display:block;"></i>
-        <div style="font-size:13px;font-weight:500;color:var(--text-secondary);">No Garment Selected</div>
-        <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;">Select a garment from the list to view its real database details.</div>
-      </div>
-    `;
-  }
-  if (DOM.paneMaterials) DOM.paneMaterials.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">No materials record.</div>';
-  if (DOM.paneMeasurements) DOM.paneMeasurements.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">No measurements record.</div>';
-  if (DOM.paneTimeline) DOM.paneTimeline.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">No timeline history.</div>';
-
+  DOM.paginationControls.innerHTML = btns;
   if (window.lucide) window.lucide.createIcons();
 }
 
-// ─── Filter & Search Handlers ─────────────────────────────────────────────
-export function setStageFilter(stage) {
-  state.stageFilter = stage;
-  state.pagination.page = 0;
-  renderDynamicStagePills();
-  loadGarmentsData();
-}
-window.setStageFilter = setStageFilter;
-
-export function handleSearchInput(e) {
-  state.searchQuery = e.target.value;
-  state.pagination.page = 0;
-  clearTimeout(window._searchTimer);
-  window._searchTimer = setTimeout(() => {
-    loadGarmentsData();
-  }, 300);
-}
-window.handleSearchInput = handleSearchInput;
-
-export function handleFilterChange() {
-  state.filters.garmentType = DOM.filterGarmentType ? DOM.filterGarmentType.value : 'all';
-  state.filters.collection = DOM.filterCollection ? DOM.filterCollection.value : 'all';
-  state.filters.productionStage = DOM.filterProductionStage ? DOM.filterProductionStage.value : 'all';
-  state.filters.status = DOM.filterStatus ? DOM.filterStatus.value : 'all';
-  state.filters.priority = DOM.filterPriority ? DOM.filterPriority.value : 'all';
-  state.filters.materialStatus = DOM.filterMaterialStatus ? DOM.filterMaterialStatus.value : 'all';
-  state.filters.designer = DOM.filterDesigner ? DOM.filterDesigner.value : 'all';
-  state.filters.branch = DOM.filterBranch ? DOM.filterBranch.value : 'all';
-
-  state.pagination.page = 0;
-  loadGarmentsData();
-}
-window.handleFilterChange = handleFilterChange;
-
-export function handlePageChange(newPage) {
+window.changePage = function(newPage) {
   if (newPage < 0 || newPage >= state.pagination.totalPages) return;
   state.pagination.page = newPage;
   loadGarmentsData();
-}
-window.handlePageChange = handlePageChange;
+};
 
-export function handlePageSizeChange(newSize) {
-  state.pagination.size = parseInt(newSize, 10) || 10;
+window.handlePageSizeChange = function(newSize) {
+  state.pagination.size = Number(newSize) || 10;
   state.pagination.page = 0;
   loadGarmentsData();
-}
-window.handlePageSizeChange = handlePageSizeChange;
+};
 
-// ─── Selection Checkboxes ──────────────────────────────────────────────────
-export function toggleSelectAll(masterCheckbox) {
-  const isChecked = masterCheckbox.checked;
-  if (isChecked) {
+// ─── Selection Checkbox Handlers ──────────────────────────────────────────
+window.toggleSelectAll = function(master) {
+  const checked = master.checked;
+  if (checked) {
     state.garments.forEach(g => state.selectedIds.add(g.id));
   } else {
     state.selectedIds.clear();
   }
   renderTable();
-}
-window.toggleSelectAll = toggleSelectAll;
+};
 
-export function toggleRowSelect(id, event) {
-  if (event) event.stopPropagation();
+window.toggleRowSelect = function(id, e) {
+  e.stopPropagation();
   if (state.selectedIds.has(id)) {
     state.selectedIds.delete(id);
   } else {
     state.selectedIds.add(id);
   }
   if (DOM.checkSelectAll) {
-    DOM.checkSelectAll.checked = state.garments.length > 0 && state.selectedIds.size === state.garments.length;
+    DOM.checkSelectAll.checked = state.garments.length > 0 && state.garments.every(g => state.selectedIds.has(g.id));
   }
-  renderTable();
-}
-window.toggleRowSelect = toggleRowSelect;
+};
 
-// ─── Inspector Tabs & Actions ─────────────────────────────────────────────
-export function switchInspectorTab(tabId) {
-  state.activeTab = tabId;
-  const tabs = document.querySelectorAll('.inspector-tab');
-  tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
-
-  const panes = document.querySelectorAll('.tab-pane');
-  panes.forEach(p => p.classList.remove('active'));
-
-  const activePane = document.getElementById(`pane${capitalize(tabId)}`);
-  if (activePane) activePane.classList.add('active');
-
-  if (window.lucide) window.lucide.createIcons();
-}
-window.switchInspectorTab = switchInspectorTab;
-
-export function closeInspector() {
-  if (DOM.garmentInspector) DOM.garmentInspector.style.display = 'none';
-}
-window.closeInspector = closeInspector;
-
-export function toggleInspectorExpand() {
-  const g = state.selectedGarment;
-  if (g && g.imageUrl) {
-    window.open(g.imageUrl, '_blank');
-  }
-}
-window.toggleInspectorExpand = toggleInspectorExpand;
-
-export function viewGarmentDetails() {
-  const g = state.selectedGarment;
-  if (!g) {
-    showToast('Please select a garment first from the table', 'warn');
-    return;
-  }
-  sessionStorage.setItem('haulo_selected_garment', JSON.stringify(g));
-  const id = encodeURIComponent(g.id);
-  const code = encodeURIComponent(g.garmentCode || '');
-  window.location.href = `garaments 360/garament360.html?id=${id}&code=${code}`;
-}
-window.viewGarmentDetails = viewGarmentDetails;
-
-export function viewOrder() {
-  const g = state.selectedGarment;
-  if (!g) return;
-  window.location.href = `../orders/order-overview/order-over.html?search=${encodeURIComponent(g.orderCode)}`;
-}
-window.viewOrder = viewOrder;
-
-export function viewCustomer() {
-  const g = state.selectedGarment;
-  if (!g) return;
-  window.location.href = `../customer/customer-overview/customer-overview.html?search=${encodeURIComponent(g.customerName)}`;
-}
-window.viewCustomer = viewCustomer;
-
-export function openNewGarmentModal() {
-  showToast('New Garment Creation Modal opened', 'info');
-}
-window.openNewGarmentModal = openNewGarmentModal;
-
-export function toggleMoreMenu(e) {
+// ─── Header & Row Actions ─────────────────────────────────────────────────
+window.toggleMoreMenu = function(e) {
   e.stopPropagation();
   if (DOM.headerDropdownMenu) {
-    DOM.headerDropdownMenu.classList.toggle('show');
+    DOM.headerDropdownMenu.classList.toggle('active');
   }
-}
-window.toggleMoreMenu = toggleMoreMenu;
+};
 
-export function toggleSavedViews(e) {
-  e.stopPropagation();
-  showToast('Saved Views: Active Production, Trials This Week, QC Backlog', 'info');
-}
-window.toggleSavedViews = toggleSavedViews;
+window.refreshGarmentsData = async function() {
+  showToast('Refreshing garments catalog...', 'info');
+  await Promise.all([loadKpiMetrics(), loadGarmentsData()]);
+  showToast('Catalog refreshed', 'success');
+};
 
-export function refreshGarmentsData() {
-  if (DOM.headerDropdownMenu) DOM.headerDropdownMenu.classList.remove('show');
-  showToast('Refreshing garments list...', 'info');
-  loadKpiMetrics();
-  loadGarmentsData();
-}
-window.refreshGarmentsData = refreshGarmentsData;
-
-export function exportGarmentsCsv() {
-  if (DOM.headerDropdownMenu) DOM.headerDropdownMenu.classList.remove('show');
-  const headers = ['Garment Code', 'Title', 'Customer', 'Order', 'Type', 'Collection', 'Stage', 'Status', 'Due Date'];
+window.exportGarmentsCsv = function() {
+  if (!state.garments || state.garments.length === 0) {
+    showToast('No garment records to export', 'info');
+    return;
+  }
+  const headers = ['Garment Code', 'Title', 'Silhouette Type', 'Collection', 'Design Blueprint', 'Primary Fabric', 'Embroidery Craft', 'Color', 'Material Readiness', 'Crafting Hours', 'Suggested Price', 'Estimated Cost', 'Lead Artisan', 'Branch', 'Status'];
   const rows = state.garments.map(g => [
-    g.garmentCode, g.title, g.customerName, g.orderCode, g.garmentType, g.collectionName, g.productionStage, g.status, g.dueDate
+    `"${g.garmentCode || ''}"`,
+    `"${g.title || ''}"`,
+    `"${g.garmentType || ''}"`,
+    `"${g.collectionName || ''}"`,
+    `"${g.designCode || ''}"`,
+    `"${g.primaryFabric || ''}"`,
+    `"${g.embroideryType || ''}"`,
+    `"${g.colorName || ''}"`,
+    `"${g.materialStatus || 'Ready'}"`,
+    `"${g.craftingHours || ''}"`,
+    `"${g.suggestedPrice || ''}"`,
+    `"${g.estimatedCost || ''}"`,
+    `"${g.assignedTo || g.designer || ''}"`,
+    `"${g.branch || ''}"`,
+    `"${g.status || ''}"`
   ]);
-  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+
+  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
   link.setAttribute('href', encodedUri);
-  link.setAttribute('download', 'garments_export.csv');
+  link.setAttribute('download', `haulo_garments_catalog_${new Date().toISOString().slice(0, 10)}.csv`);
   document.body.appendChild(link);
   link.click();
   link.remove();
-  showToast('Exported garments to CSV', 'success');
-}
-window.exportGarmentsCsv = exportGarmentsCsv;
+  showToast('Garments catalog exported to CSV', 'success');
+};
 
-export function printGarmentBatch() {
-  if (DOM.headerDropdownMenu) DOM.headerDropdownMenu.classList.remove('show');
-  window.print();
-}
-window.printGarmentBatch = printGarmentBatch;
-
-export function openRowActionMenu(id, e) {
+window.openRowMenu = function(id, e) {
   e.stopPropagation();
-  selectGarment(id);
-  showToast(`Options for ${state.selectedGarment?.garmentCode}: Update Stage, Reassign Tailor, Reschedule Trial`, 'info');
-}
-window.openRowActionMenu = openRowActionMenu;
+  window.selectGarment(id);
+  const actions = [
+    { label: 'View 360° Dossier', icon: 'compass', action: () => window.viewGarmentDetails() },
+    { label: 'Print Spec Sheet', icon: 'printer', action: () => window.printSingleGarment() }
+  ];
+  // Simple prompt or direct inspection
+  window.viewGarmentDetails();
+};
 
-// ─── Utility Helpers ───────────────────────────────────────────────────────
-function formatShortDate(dateStr) {
-  if (!dateStr) return '-';
-  if (/^\d{2}\s+[A-Za-z]{3}\s+\d{4}$/.test(dateStr)) return dateStr;
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const day = String(d.getDate()).padStart(2, '0');
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
+window.toggleSavedViews = function() {
+  showToast('Default atelier view active: Haute Couture Collection', 'info');
+};
 
-function getStageClass(stage) {
-  const s = (stage || '').toLowerCase().trim();
-  const match = dynamicStageDefs.find(d => 
-    (d.displayName && d.displayName.toLowerCase() === s) ||
-    (d.stageKey && d.stageKey.toLowerCase() === s)
-  );
-  if (match && match.colorClass) {
-    const col = match.colorClass.replace('dot-', '');
-    return `stage-${col}`;
-  }
-  if (s.includes('order')) return 'stage-emerald';
-  if (s.includes('stitch')) return 'stage-stitching';
-  if (s.includes('ready')) return 'stage-ready';
-  return 'stage-designing';
-}
+// ─── Helper Classes ───────────────────────────────────────────────────────
 
 function getStatusCapsuleClass(status) {
-  const s = (status || '').toLowerCase();
-  if (s.includes('production')) return 'in-production';
-  if (s.includes('trial')) return 'trial';
-  if (s.includes('qc')) return 'awaiting-qc';
-  if (s.includes('ready')) return 'ready';
-  if (s.includes('deliver')) return 'delivered';
-  if (s.includes('hold')) return 'on-hold';
-  return 'in-production';
+  const s = (status || '').toUpperCase();
+  if (s.includes('READY')) return 'ready';
+  if (s.includes('PRODUCTION')) return 'in-production';
+  if (s.includes('QC')) return 'awaiting-qc';
+  if (s.includes('HOLD')) return 'on-hold';
+  return 'active';
 }
 
 function capitalize(str) {
@@ -871,41 +786,19 @@ function capitalize(str) {
 
 function escapeHTML(str) {
   if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return String(str).replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[tag] || tag));
 }
 
 function showToast(message, type = 'info') {
-  if (window.NotificationCenter && typeof window.NotificationCenter.toast === 'function') {
-    const sevMap = { error: 'danger', danger: 'danger', warn: 'warn', warning: 'warn', success: 'success', info: 'info' };
-    const titles = {
-      success: 'Garments Updated',
-      danger: 'Garment Alert',
-      error: 'Garment Alert',
-      warn: 'Notice',
-      info: 'Garments'
-    };
-    const sev = sevMap[type] || 'info';
-    window.NotificationCenter.toast({
-      title: titles[sev] || 'Garments',
-      message: message,
-      severity: sev,
-      duration: 4000
-    });
-    return;
-  }
   if (!DOM.toastContainer) return;
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = message;
-  DOM.toastContainer.appendChild(t);
-  setTimeout(() => t.remove(), 4000);
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  DOM.toastContainer.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
 }
-window.showToast = showToast;
-
-window.openNewGarmentModal = function() {
-  window.location.href = 'new-garment/new-garment.html';
-};

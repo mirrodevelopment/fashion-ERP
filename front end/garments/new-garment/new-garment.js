@@ -109,6 +109,44 @@ async function loadReferenceOptions() {
         `).join('');
       }
     }
+
+    // 3. Populate Employees / Artisans & Designers from DB
+    if (api?.employees?.list) {
+      const empRes = await api.employees.list({ size: 100 });
+      const emps = empRes?.content || (Array.isArray(empRes) ? empRes : []);
+      if (Array.isArray(emps) && emps.length > 0) {
+        const selAssigned = document.getElementById('selAssignedTo');
+        if (selAssigned) {
+          selAssigned.innerHTML = emps.map((e, i) => `
+            <option value="${escapeHTML(e.name)}" ${i === 0 ? 'selected' : ''}>${escapeHTML(e.name)}${e.role ? ` (${escapeHTML(e.role)})` : ''}</option>
+          `).join('');
+        }
+
+        const selDesigner = document.getElementById('selDesigner');
+        if (selDesigner) {
+          const designers = emps.filter(e => {
+            const r = (e.role || '').toUpperCase();
+            const d = (e.department || '').toUpperCase();
+            return r.includes('DESIGNER') || r.includes('LEAD') || d.includes('DESIGN');
+          });
+          const list = designers.length > 0 ? designers : emps;
+          selDesigner.innerHTML = list.map((e, i) => `
+            <option value="${escapeHTML(e.name)}" ${i === 0 ? 'selected' : ''}>${escapeHTML(e.name)}${e.role ? ` (${escapeHTML(e.role)})` : ''}</option>
+          `).join('');
+        }
+      }
+    }
+
+    // 4. Populate Dynamic Stages from stage_definitions table
+    if (api?.production?.stageDefinitions?.list) {
+      const defs = await api.production.stageDefinitions.list({ activeOnly: true });
+      const selStage = document.getElementById('selProductionStage');
+      if (selStage && Array.isArray(defs) && defs.length > 0) {
+        selStage.innerHTML = defs.map((d, i) => `
+          <option value="${escapeHTML(d.displayName || d.stageKey)}" ${i === 0 ? 'selected' : ''}>${escapeHTML(d.displayName || d.stageKey)}</option>
+        `).join('');
+      }
+    }
   } catch (err) {
     console.warn('[New Garment] Reference lookup fallback:', err);
   }

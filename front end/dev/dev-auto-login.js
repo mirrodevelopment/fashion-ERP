@@ -17,8 +17,10 @@
       return window.HAULO_API_BASE;
     }
     if (typeof window !== 'undefined' && window.location) {
-      const p = window.location.port;
-      if (p === '8080' || p === '' || p === '80' || p === '443') {
+      if (window.location.protocol === 'file:') {
+        return 'http://localhost:8080/api/v1';
+      }
+      if (window.location.origin && window.location.origin !== 'null') {
         return `${window.location.origin}/api/v1`;
       }
     }
@@ -119,19 +121,15 @@
     const btnFillOnly   = document.getElementById('btn-dev-fill-only');
     const chkInstant    = document.getElementById('chk-dev-instant-login');
 
-    // ── Collapsible Panel State (Default to COLLAPSED for clean viewport fit) ──
-    const savedCollapsed = localStorage.getItem('haulo_dev_collapsed');
-    const isCollapsed = savedCollapsed !== null ? savedCollapsed === 'true' : true;
-    if (isCollapsed) {
-      devBody.classList.add('collapsed');
-      devChevron.classList.add('collapsed');
-    }
+    // ── Collapsible Panel State (Always default to EXPANDED so developer options are immediately accessible) ──
+    localStorage.removeItem('haulo_dev_collapsed');
+    devBody.classList.remove('collapsed');
+    devChevron.classList.remove('collapsed');
 
     toggleHeader.addEventListener('click', () => {
       const willCollapse = !devBody.classList.contains('collapsed');
       devBody.classList.toggle('collapsed', willCollapse);
       devChevron.classList.toggle('collapsed', willCollapse);
-      localStorage.setItem('haulo_dev_collapsed', String(willCollapse));
     });
 
     // ── Instant Login Checkbox State ──
@@ -352,11 +350,24 @@
 
   // ── Fill Fields Only ──
   function fillFieldsOnly() {
-    if (!selectedUser) return;
+    if (!selectedUser || !selectedCompany) return;
+    const companyNameInput = document.getElementById('company-name');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const rememberChk   = document.getElementById('remember');
 
+    // 1. Set Company context
+    if (companyNameInput) companyNameInput.value = selectedCompany.companyName;
+    if (typeof window.setResolvedCompany === 'function') {
+      window.setResolvedCompany(selectedCompany.companyId, selectedCompany.companyName);
+    }
+
+    // 2. Switch to Step 2 so credentials fields are visible and focused
+    if (typeof window.showStep === 'function') {
+      window.showStep(2);
+    }
+
+    // 3. Fill user credentials
     if (usernameInput) usernameInput.value = selectedUser.username;
     if (passwordInput) passwordInput.value = selectedUser.devPassword || 'Admin@123';
     if (rememberChk)   rememberChk.checked = true;
@@ -366,18 +377,48 @@
   }
 
   // ── Execute Auto-Login ──
-  function executeAutoLogin() {
-    if (!selectedUser) return;
+  async function executeAutoLogin() {
+    if (!selectedUser || !selectedCompany) return;
 
-    fillFieldsOnly();
+    const btnAutoLogin = document.getElementById('btn-dev-auto-login');
+    const btnText = document.getElementById('btn-dev-login-text');
+    const originalText = btnText ? btnText.textContent : '⚡ Auto-Login';
 
-    const form = document.getElementById('login-form');
-    const btnLogin = document.getElementById('btn-login');
+    try {
+      if (btnAutoLogin) btnAutoLogin.disabled = true;
+      if (btnText) btnText.textContent = '⚡ Signing in...';
 
-    if (form && typeof form.requestSubmit === 'function') {
-      form.requestSubmit();
-    } else if (btnLogin) {
-      btnLogin.click();
+      fillFieldsOnly();
+
+      let success = false;
+      if (typeof window.performLogin === 'function') {
+        success = await window.performLogin(
+          selectedUser.username,
+          selectedUser.devPassword || 'Admin@123',
+          true,
+          selectedCompany.companyName
+        );
+      } else {
+        const form = document.getElementById('login-form');
+        const btnLogin = document.getElementById('btn-login');
+
+        if (form && typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+          success = true;
+        } else if (btnLogin) {
+          btnLogin.click();
+          success = true;
+        }
+      }
+
+      if (!success) {
+        throw new Error('Sign-in rejected. Check database credentials or network.');
+      }
+    } catch (err) {
+      console.error('[DevAutoLogin] executeAutoLogin error:', err);
+      showStatus(`Login failed: ${err.message || 'Unknown error'}`, 'error');
+      if (btnAutoLogin) btnAutoLogin.disabled = false;
+      if (btnText) btnText.textContent = originalText;
     }
   }
 

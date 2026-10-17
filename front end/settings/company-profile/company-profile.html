@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Company & Boutique Profile — Settings">Company &amp; Boutique Profile — Settings</title>
+  <meta name="description" content="Manage boutique brand profile, legal registrations, contact information and cross-branch sharing policies." />
+
+  <!-- Typography & Design Tokens -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared ERP Fragments & Common Settings Styles -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="../settings-common.css" />
+  <link rel="stylesheet" href="company-profile.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../../fragments/';
+  </script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+</head>
+<body data-module="settings">
+
+  <!-- Ambient Glow Background -->
+  <div class="app-background">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <!-- Sidebar Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Navbar Slot -->
+      <div id="navbarSlot"></div>
+
+      <!-- Settings Root -->
+      <div class="settings-root" id="settingsRoot">
+        <div id="breadcrumbSlot"></div>
+
+        <!-- Settings Header -->
+        <div class="settings-header">
+          <div>
+            <span class="page-section-label">Boutique Configuration</span>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Configure boutique brand profile, team access, workflow automation and system preferences.</p>
+          </div>
+          <button class="btn-save-all" id="btnSaveAll" onclick="CompanyProfileSettings.save()">
+            <i data-lucide="save" style="width:15px;height:15px;"></i>
+            Save Changes
+          </button>
+        </div>
+
+        <!-- Settings Layout -->
+        <div class="settings-layout">
+
+          <!-- Settings Sidenav -->
+          <nav class="settings-sidenav" aria-label="Settings navigation">
+            <div class="snav-group">
+              <span class="snav-group-label">Boutique</span>
+              <a href="../company-profile/company-profile.html" class="snav-item active">
+                <i data-lucide="store" style="width:16px;height:16px;"></i>
+                Company &amp; Boutique Profile
+              </a>
+              <a href="../branding/branding.html" class="snav-item">
+                <i data-lucide="palette" style="width:16px;height:16px;"></i>
+                Branding &amp; Theme
+              </a>
+              <a href="../regional/regional.html" class="snav-item">
+                <i data-lucide="globe" style="width:16px;height:16px;"></i>
+                Regional &amp; Currency
+              </a>
+              <a href="../branches/branches.html" class="snav-item">
+                <i data-lucide="building-2" style="width:16px;height:16px;"></i>
+                Branches &amp; Locations
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Team & Access</span>
+              <a href="../users-roles/users-roles.html" class="snav-item">
+                <i data-lucide="users" style="width:16px;height:16px;"></i>
+                Users &amp; Roles
+              </a>
+              <a href="../security/security.html" class="snav-item">
+                <i data-lucide="shield" style="width:16px;height:16px;"></i>
+                Security &amp; Access
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Workflow</span>
+              <a href="../orders-production/orders-production.html" class="snav-item">
+                <i data-lucide="shopping-bag" style="width:16px;height:16px;"></i>
+                Orders &amp; Production
+              </a>
+              <a href="../notifications/notifications.html" class="snav-item">
+                <i data-lucide="bell" style="width:16px;height:16px;"></i>
+                Notifications
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">System</span>
+              <a href="../integrations/integrations.html" class="snav-item">
+                <i data-lucide="plug" style="width:16px;height:16px;"></i>
+                Integrations
+              </a>
+              <a href="../data-backup/data-backup.html" class="snav-item">
+                <i data-lucide="database" style="width:16px;height:16px;"></i>
+                Data &amp; Backup
+              </a>
+              <a href="../about/about.html" class="snav-item">
+                <i data-lucide="info" style="width:16px;height:16px;"></i>
+                About &amp; License
+              </a>
+            </div>
+          </nav>
+
+          <!-- Settings Panels Content -->
+          <div class="settings-panels">
+            <section class="settings-panel" aria-label="Company & Boutique Profile">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="store" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Company &amp; Boutique Profile</h2>
+                    <p class="panel-desc">Manage boutique brand identity, legal registrations, and showroom information.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Brand Identity & Logo -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Brand Identity</h3>
+                <div class="logo-upload-row">
+                  <div class="logo-preview" id="logoPreview" onclick="document.getElementById('logoFileInput').click()" title="Click to upload logo">
+                    <span class="logo-initials" id="logoInitials" data-company="initials">—</span>
+                    <div class="logo-upload-overlay">
+                      <i data-lucide="camera" style="width:18px;height:18px;"></i>
+                    </div>
+                  </div>
+                  <div class="logo-upload-info">
+                    <p class="logo-upload-title">Boutique Logo</p>
+                    <p class="logo-upload-hint">PNG, JPG, SVG or WEBP · Max 20 MB · Recommended 200×200px</p>
+                    <div class="logo-upload-btns">
+                      <button class="btn-outline-sm" onclick="document.getElementById('logoFileInput').click()">
+                        <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload Logo
+                      </button>
+                      <button class="btn-ghost-sm" onclick="CompanyProfileSettings.removeLogo()">Remove</button>
+                    </div>
+                    <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="CompanyProfileSettings.handleLogoUpload(event)" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Business Details -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Business Details</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Boutique / Legal Name <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="boutiqueName" placeholder="Enter boutique / company name" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Short Name / Brand Code</label>
+                    <input type="text" class="form-input" id="shortName" placeholder="e.g. HAULO, RITHAM" maxlength="60" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Tagline</label>
+                    <input type="text" class="form-input" id="boutiqueTagline" placeholder="Enter boutique tagline or slogan" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Owner / Director Name</label>
+                    <input type="text" class="form-input" id="ownerName" placeholder="Enter owner or director full name" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Business Type</label>
+                    <select class="form-select" id="businessType">
+                      <option selected>Bespoke Atelier</option>
+                      <option>Luxury Boutique</option>
+                      <option>Garment Manufacturer</option>
+                      <option>Bridal Studio</option>
+                      <option>Fashion House</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tax & Legal Registration -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Tax &amp; Legal Registration</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">GSTIN</label>
+                    <input type="text" class="form-input" id="gstin" placeholder="Enter 15-digit GSTIN" maxlength="15" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">PAN Number</label>
+                    <input type="text" class="form-input" id="panNumber" placeholder="Enter 10-digit PAN" maxlength="10" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">CIN (Corporate Identity)</label>
+                    <input type="text" class="form-input" id="cinNumber" placeholder="e.g. U18101DL2026PTC..." maxlength="25" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">TAN Number</label>
+                    <input type="text" class="form-input" id="tanNumber" placeholder="e.g. DELH12345A" maxlength="15" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact & Address -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Contact &amp; Address</h3>
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Primary Phone</label>
+                    <input type="tel" class="form-input" id="primaryPhone" placeholder="+91 XXXXX XXXXX" data-brand-placeholder="phone" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">WhatsApp Number</label>
+                    <input type="tel" class="form-input" id="whatsappNumber" placeholder="+91 XXXXX XXXXX" data-brand-placeholder="whatsapp" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="boutiqueEmail" placeholder="info@yourdomain.com" data-brand-placeholder="generalEmail" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Website</label>
+                    <input type="url" class="form-input" id="boutiqueWebsite" placeholder="https://yourdomain.com" data-brand-placeholder="website" />
+                  </div>
+                  <div class="form-group form-group-full">
+                    <label class="form-label">Street Address</label>
+                    <input type="text" class="form-input" id="streetAddress" placeholder="Enter street, building, area" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-input" id="city" placeholder="Enter city" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-input" id="state" placeholder="Enter state / province" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">PIN Code</label>
+                    <input type="text" class="form-input" id="pinCode" placeholder="Enter postal / PIN code" maxlength="10" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <select class="form-select" id="country">
+                      <option selected>India</option>
+                      <option>United Arab Emirates</option>
+                      <option>United Kingdom</option>
+                      <option>United States</option>
+                      <option>Singapore</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Branch Data Sharing Policies -->
+              <div class="settings-card">
+                <h3 class="card-section-title">Branch Data Sharing &amp; Visibility Policies</h3>
+                <p class="input-hint" style="margin-bottom:14px;">Configure whether staff across your boutique showrooms share records or maintain branch-level isolation. Owners and Admins always retain cross-branch visibility.</p>
+                <div class="policy-grid">
+                  <div class="policy-item">
+                    <div class="policy-meta">
+                      <span class="policy-title">Share Customer Profiles</span>
+                      <span class="policy-desc">Allow stylists and counter staff at any branch to access shared customer directories and histories.</span>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="shareCustomersAcrossBranches" checked />
+                      <span class="toggle-thumb"></span>
+                    </label>
+                  </div>
+                  <div class="policy-item">
+                    <div class="policy-meta">
+                      <span class="policy-title">Share Order Pipeline &amp; Status</span>
+                      <span class="policy-desc">Allow all branches to track orders and garment progress across atelier production hubs.</span>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="shareOrdersAcrossBranches" checked />
+                      <span class="toggle-thumb"></span>
+                    </label>
+                  </div>
+                  <div class="policy-item">
+                    <div class="policy-meta">
+                      <span class="policy-title">Shared Client Inquiries &amp; Appointments</span>
+                      <span class="policy-desc">Enable stylists to review customer consultation logs across all boutique locations.</span>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="shareEnquiriesAcrossBranches" checked />
+                      <span class="toggle-thumb"></span>
+                    </label>
+                  </div>
+                  <div class="policy-item">
+                    <div class="policy-meta">
+                      <span class="policy-title">Universal Body Measurements &amp; 3D Profiles</span>
+                      <span class="policy-desc">Synchronize bespoke client tailor measurements and fit history across all branches.</span>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="shareMeasurementsAcrossBranches" checked />
+                      <span class="toggle-thumb"></span>
+                    </label>
+                  </div>
+                  <div class="policy-item">
+                    <div class="policy-meta">
+                      <span class="policy-title">Fabric &amp; Material Stock Visibility</span>
+                      <span class="policy-desc">Display warehouse and boutique raw material inventory levels across all locations.</span>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="shareInventoryAcrossBranches" checked />
+                      <span class="toggle-thumb"></span>
+                    </label>
+                  </div>
+                  <div class="policy-item">
+                    <div class="policy-meta">
+                      <span class="policy-title">Couture Catalog &amp; Ready-to-Wear Stock</span>
+                      <span class="policy-desc">Allow consultants to view garment design samples and stock held in other showrooms.</span>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="shareGarmentsAcrossBranches" checked />
+                      <span class="toggle-thumb"></span>
+                    </label>
+                  </div>
+                  <div class="policy-item">
+                    <div class="policy-meta">
+                      <span class="policy-title">Shared Fitting &amp; Alteration Trials</span>
+                      <span class="policy-desc">Allow scheduling and trial alteration notes to be reviewed across boutique fitting rooms.</span>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="shareTrialsAcrossBranches" checked />
+                      <span class="toggle-thumb"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+            </section>
+          </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="settings-toast" id="settingsToast" role="alert" aria-live="polite"></div>
+
+      </div><!-- /settings-root -->
+
+      <!-- Footer Slot -->
+      <div id="footerSlot"></div>
+    </div>
+  </div>
+
+  <script src="company-profile.js"></script>
+</body>
+</html>

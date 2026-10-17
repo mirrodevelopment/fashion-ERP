@@ -30,6 +30,7 @@ public class GarmentController {
             @RequestParam(required = false) String collection,
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) String materialStatus,
+            @RequestParam(required = false) String fabric,
             @RequestParam(required = false) String designer,
             @RequestParam(required = false) String branch,
             @RequestParam(defaultValue = "0") int page,
@@ -41,7 +42,7 @@ public class GarmentController {
         Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity.ok(garmentService.search(
                 search, stage, status, garmentType, collection,
-                priority, materialStatus, designer, branch, pageable
+                priority, materialStatus, fabric, designer, branch, pageable
         ));
     }
 

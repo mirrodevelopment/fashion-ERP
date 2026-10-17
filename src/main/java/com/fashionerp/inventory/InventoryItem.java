@@ -89,6 +89,15 @@ public class InventoryItem {
     @Column(name = "supplier_contact", length = 100)
     private String supplierContact;
 
+    @Column(name = "supplier_id")
+    private UUID supplierId;
+
+    @Column(name = "color_hex", length = 30)
+    private String colorHex;
+
+    @Column(name = "color_name", length = 100)
+    private String colorName;
+
     @Column(columnDefinition = "TEXT")
     private String notes;
 

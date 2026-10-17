@@ -44,6 +44,15 @@ public class GarmentDto {
         private String designer;
         private String branch;
         private String imageUrl;
+        private String primaryFabric;
+        private String embroideryType;
+        private String colorName;
+        private String colorHex;
+        private BigDecimal estimatedCost;
+        private BigDecimal suggestedPrice;
+        private Integer craftingHours;
+        private String silhouette;
+        private Boolean isSample;
         private String notes;
         private LocalDateTime createdAt;
     }
@@ -82,6 +91,15 @@ public class GarmentDto {
         private String designer;
         private String branch;
         private String imageUrl;
+        private String primaryFabric;
+        private String embroideryType;
+        private String colorName;
+        private String colorHex;
+        private BigDecimal estimatedCost;
+        private BigDecimal suggestedPrice;
+        private Integer craftingHours;
+        private String silhouette;
+        private Boolean isSample;
         private String notes;
         private List<MaterialItem> materials;
         private List<MeasurementItem> measurements;
@@ -143,6 +161,8 @@ public class GarmentDto {
         private String readyDelta;
         private long delivered;
         private String deliveredDelta;
+        private long bridalCount;
+        private double avgCraftingHours;
 
         // Stage Tabs Counts
         private long allCount;
@@ -184,6 +204,15 @@ public class GarmentDto {
         private String designer;
         private String branch;
         private String imageUrl;
+        private String primaryFabric;
+        private String embroideryType;
+        private String colorName;
+        private String colorHex;
+        private BigDecimal estimatedCost;
+        private BigDecimal suggestedPrice;
+        private Integer craftingHours;
+        private String silhouette;
+        private Boolean isSample;
         private String notes;
     }
 
@@ -210,6 +239,15 @@ public class GarmentDto {
         private String assignedTo;
         private String designer;
         private String branch;
+        private String primaryFabric;
+        private String embroideryType;
+        private String colorName;
+        private String colorHex;
+        private BigDecimal estimatedCost;
+        private BigDecimal suggestedPrice;
+        private Integer craftingHours;
+        private String silhouette;
+        private Boolean isSample;
         private String notes;
     }
 }

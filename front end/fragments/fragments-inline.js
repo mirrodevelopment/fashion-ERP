@@ -14,6 +14,7 @@ window.FRAGMENT_HTML = {
   <!-- Logo + Toggle -->
   <div class="sidebar-logo">
     <div class="logo-icon" onclick="toggleSidebar()" title="Toggle sidebar">
+      <img class="company-custom-logo" src="" alt="Logo" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />
       <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
         <rect x="3.5" y="2.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
         <circle cx="6" cy="18.5" r="2.5" fill="#a3e635"/>
@@ -21,6 +22,7 @@ window.FRAGMENT_HTML = {
         <rect x="15.5" y="10.5" width="5" height="11" rx="2.5" fill="#a3e635"/>
       </svg>
     </div>
+
     <div class="logo-text">
       <span class="brand-name" data-company="shortName"></span>
       <span class="brand-sub" data-company="businessType"></span>

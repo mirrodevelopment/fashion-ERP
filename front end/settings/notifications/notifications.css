@@ -1,0 +1,21 @@
+/* ============================================================
+   HAULO BOUTIQUE ERP — Notifications Settings Styles
+   Path: front end/settings/notifications/notifications.css
+   ============================================================ */
+
+/* ── Notifications List ── */
+.notif-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.notif-toggle-row:last-child {
+  border-bottom: none;
+}
+.notif-label {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}

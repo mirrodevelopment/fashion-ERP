@@ -103,6 +103,27 @@ public class CompanySettingsService {
         if (req.getShareTrialsAcrossBranches() != null) {
             settings.setShareTrialsAcrossBranches(req.getShareTrialsAcrossBranches());
         }
+        if (req.getShareDesignsAcrossBranches() != null) {
+            settings.setShareDesignsAcrossBranches(req.getShareDesignsAcrossBranches());
+        }
+        if (req.getSharePurchasesAcrossBranches() != null) {
+            settings.setSharePurchasesAcrossBranches(req.getSharePurchasesAcrossBranches());
+        }
+        if (req.getShareWorkforceAcrossBranches() != null) {
+            settings.setShareWorkforceAcrossBranches(req.getShareWorkforceAcrossBranches());
+        }
+        if (req.getCurrencySymbol() != null && !req.getCurrencySymbol().isBlank()) {
+            settings.setCurrencySymbol(clean(req.getCurrencySymbol()));
+        }
+        if (req.getOrderPrefix() != null && !req.getOrderPrefix().isBlank()) {
+            settings.setOrderPrefix(clean(req.getOrderPrefix()));
+        }
+        if (req.getInvoicePrefix() != null && !req.getInvoicePrefix().isBlank()) {
+            settings.setInvoicePrefix(clean(req.getInvoicePrefix()));
+        }
+        if (req.getSessionTimeoutMinutes() != null && req.getSessionTimeoutMinutes() >= 0) {
+            settings.setSessionTimeoutMinutes(req.getSessionTimeoutMinutes());
+        }
 
         return CompanySettingsDto.Response.from(repository.save(settings));
     }

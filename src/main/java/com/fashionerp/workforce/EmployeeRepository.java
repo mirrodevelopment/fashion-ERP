@@ -37,6 +37,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     long countByCompanyId(UUID companyId);
     long countByCompanyIdAndStatus(UUID companyId, String status);
 
+    @Query("SELECT COALESCE(NULLIF(TRIM(e.department), ''), 'General') AS department, COUNT(e) AS count FROM Employee e WHERE (:companyId IS NULL OR e.companyId = :companyId) GROUP BY COALESCE(NULLIF(TRIM(e.department), ''), 'General') ORDER BY count DESC")
+    List<Map<String, Object>> countByDepartment(@Param("companyId") UUID companyId);
+
+    @Query("SELECT DISTINCT TRIM(e.department) FROM Employee e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND e.department IS NOT NULL AND TRIM(e.department) <> '' ORDER BY TRIM(e.department) ASC")
+    List<String> findDistinctDepartments(@Param("companyId") UUID companyId);
+
     @Query("SELECT e.role AS role, COUNT(e) AS count FROM Employee e WHERE (:companyId IS NULL OR e.companyId = :companyId) GROUP BY e.role ORDER BY e.role")
     List<Map<String, Object>> countByRole(@Param("companyId") UUID companyId);
 }
+

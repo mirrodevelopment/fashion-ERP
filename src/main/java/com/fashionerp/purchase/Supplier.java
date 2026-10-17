@@ -47,6 +47,12 @@ public class Supplier {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(length = 20)
+    private String gstin;
+
+    @Column(name = "pan_number", length = 15)
+    private String panNumber;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

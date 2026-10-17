@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Branches & Locations — Settings">Branches &amp; Locations — Settings</title>
+  <meta name="description" content="Manage boutique showrooms, flagship ateliers, and regional production hubs." />
+
+  <!-- Typography & Design Tokens -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared ERP Fragments & Common Settings Styles -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="../settings-common.css" />
+  <link rel="stylesheet" href="branches.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../../fragments/';
+  </script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+</head>
+<body data-module="settings">
+
+  <!-- Ambient Glow Background -->
+  <div class="app-background">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <div id="sidebarSlot"></div>
+
+    <div class="main-wrapper">
+      <div id="navbarSlot"></div>
+
+      <!-- Settings Root -->
+      <div class="settings-root" id="settingsRoot">
+        <div id="breadcrumbSlot"></div>
+
+        <!-- Settings Header -->
+        <div class="settings-header">
+          <div>
+            <span class="page-section-label">Boutique Configuration</span>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Configure boutique brand profile, team access, workflow automation and system preferences.</p>
+          </div>
+          <button class="btn-lime-sm" onclick="BranchesSettings.openBranchModal()" style="display:inline-flex;align-items:center;gap:6px;">
+            <i data-lucide="plus" style="width:14px;height:14px;"></i> Add Branch
+          </button>
+        </div>
+
+        <!-- Settings Layout -->
+        <div class="settings-layout">
+
+          <!-- Settings Sidenav -->
+          <nav class="settings-sidenav" aria-label="Settings navigation">
+            <div class="snav-group">
+              <span class="snav-group-label">Boutique</span>
+              <a href="../company-profile/company-profile.html" class="snav-item">
+                <i data-lucide="store" style="width:16px;height:16px;"></i>
+                Company &amp; Boutique Profile
+              </a>
+              <a href="../branding/branding.html" class="snav-item">
+                <i data-lucide="palette" style="width:16px;height:16px;"></i>
+                Branding &amp; Theme
+              </a>
+              <a href="../regional/regional.html" class="snav-item">
+                <i data-lucide="globe" style="width:16px;height:16px;"></i>
+                Regional &amp; Currency
+              </a>
+              <a href="../branches/branches.html" class="snav-item active">
+                <i data-lucide="building-2" style="width:16px;height:16px;"></i>
+                Branches &amp; Locations
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Team & Access</span>
+              <a href="../users-roles/users-roles.html" class="snav-item">
+                <i data-lucide="users" style="width:16px;height:16px;"></i>
+                Users &amp; Roles
+              </a>
+              <a href="../security/security.html" class="snav-item">
+                <i data-lucide="shield" style="width:16px;height:16px;"></i>
+                Security &amp; Access
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">Workflow</span>
+              <a href="../orders-production/orders-production.html" class="snav-item">
+                <i data-lucide="shopping-bag" style="width:16px;height:16px;"></i>
+                Orders &amp; Production
+              </a>
+              <a href="../notifications/notifications.html" class="snav-item">
+                <i data-lucide="bell" style="width:16px;height:16px;"></i>
+                Notifications
+              </a>
+            </div>
+
+            <div class="snav-group">
+              <span class="snav-group-label">System</span>
+              <a href="../integrations/integrations.html" class="snav-item">
+                <i data-lucide="plug" style="width:16px;height:16px;"></i>
+                Integrations
+              </a>
+              <a href="../data-backup/data-backup.html" class="snav-item">
+                <i data-lucide="database" style="width:16px;height:16px;"></i>
+                Data &amp; Backup
+              </a>
+              <a href="../about/about.html" class="snav-item">
+                <i data-lucide="info" style="width:16px;height:16px;"></i>
+                About &amp; License
+              </a>
+            </div>
+          </nav>
+
+          <!-- Settings Panels Content -->
+          <div class="settings-panels">
+            <section class="settings-panel active" aria-label="Branches & Locations">
+              <div class="panel-header">
+                <div class="panel-title-row">
+                  <div class="panel-icon-wrap"><i data-lucide="building-2" style="width:20px;height:20px;"></i></div>
+                  <div>
+                    <h2 class="panel-title">Branches &amp; Locations</h2>
+                    <p class="panel-desc">Manage boutique showrooms, flagship ateliers, and regional production hubs.</p>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <a href="../../branches/branches.html" class="btn-ghost-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                    <i data-lucide="network" style="width:14px;height:14px;"></i> Network Command
+                  </a>
+                  <button class="btn-lime-sm" onclick="BranchesSettings.openBranchModal()" style="display:inline-flex;align-items:center;gap:6px;">
+                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Add Branch
+                  </button>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <div class="panel-toolbar">
+                  <div class="panel-search-wrap">
+                    <i data-lucide="search" style="width:14px;height:14px;color:rgba(255,255,255,0.4);"></i>
+                    <input type="text" id="branchSearchInput" placeholder="Search branch name, code, or city..." oninput="BranchesSettings.filterBranches()" />
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <select class="form-select" id="branchTypeFilter" style="width:auto;min-width:140px;padding:6px 12px;font-size:12.5px;" onchange="BranchesSettings.filterBranches()">
+                      <option value="ALL">All Types</option>
+                      <option value="FLAGSHIP">Flagship</option>
+                      <option value="SHOWROOM">Showroom</option>
+                      <option value="BOUTIQUE">Boutique</option>
+                      <option value="PRODUCTION_UNIT">Production Unit</option>
+                      <option value="WAREHOUSE">Warehouse</option>
+                      <option value="EXPERIENCE_STUDIO">Experience Studio</option>
+                      <option value="POPUP">Pop-up</option>
+                    </select>
+                    <select class="form-select" id="branchStatusFilter" style="width:auto;min-width:120px;padding:6px 12px;font-size:12.5px;" onchange="BranchesSettings.filterBranches()">
+                      <option value="ALL">All Status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="settings-table-wrap">
+                  <table class="settings-table" id="branchesTable">
+                    <thead>
+                      <tr>
+                        <th>Branch / Code</th>
+                        <th>Type</th>
+                        <th>City / Location</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="branchesTableBody">
+                      <tr>
+                        <td colspan="6" style="text-align:center;padding:28px;color:rgba(255,255,255,0.4);">Loading branches...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- Add / Edit Branch Modal -->
+        <div class="modal-overlay" id="branchModal" style="display:none;" onclick="BranchesSettings.closeBranchModal()">
+          <div class="modal-box modal-box-lg" onclick="event.stopPropagation()">
+            <div class="modal-header">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(184,255,61,0.15);display:flex;align-items:center;justify-content:center;color:#b8ff3d;">
+                  <i data-lucide="building-2" style="width:16px;height:16px;"></i>
+                </div>
+                <h3 class="modal-title" id="branchModalTitle">Add New Branch</h3>
+              </div>
+              <button class="modal-close" onclick="BranchesSettings.closeBranchModal()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="modalBranchId" />
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Branch Name <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="modalBranchName" placeholder="e.g. Flagship Atelier - Coimbatore" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Branch Code <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="modalBranchCode" placeholder="e.g. CBE-01" maxlength="20" style="text-transform:uppercase;" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Branch Type <span class="req">*</span></label>
+                  <select class="form-select" id="modalBranchType">
+                    <option value="SHOWROOM">Showroom</option>
+                    <option value="FLAGSHIP">Flagship</option>
+                    <option value="BOUTIQUE">Boutique</option>
+                    <option value="PRODUCTION_UNIT">Production Unit</option>
+                    <option value="WAREHOUSE">Warehouse</option>
+                    <option value="EXPERIENCE_STUDIO">Experience Studio</option>
+                    <option value="POPUP">Pop-up</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone</label>
+                  <input type="tel" class="form-input" id="modalBranchPhone" placeholder="+91 98765 43210" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-input" id="modalBranchEmail" placeholder="branch@haulo.luxury" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">City <span class="req">*</span></label>
+                  <input type="text" class="form-input" id="modalBranchCity" placeholder="e.g. Coimbatore" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">State</label>
+                  <input type="text" class="form-input" id="modalBranchState" placeholder="e.g. Tamil Nadu" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">PIN Code</label>
+                  <input type="text" class="form-input" id="modalBranchPinCode" placeholder="641012" maxlength="10" />
+                </div>
+                <div class="form-group form-group-full">
+                  <label class="form-label">Street Address</label>
+                  <input type="text" class="form-input" id="modalBranchAddress" placeholder="Street, area, landmarks" />
+                </div>
+                <div class="form-group form-group-full" style="display:flex;align-items:center;gap:20px;padding-top:4px;">
+                  <label class="toggle-wrap" style="cursor:pointer;display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="modalBranchHq" />
+                    <span style="font-size:13px;color:rgba(255,255,255,0.85);font-weight:500;">Set as Headquarters</span>
+                  </label>
+                  <label class="toggle-wrap" style="cursor:pointer;display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="modalBranchActive" checked />
+                    <span style="font-size:13px;color:rgba(255,255,255,0.85);font-weight:500;">Active Branch</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-ghost-sm" onclick="BranchesSettings.closeBranchModal()">Cancel</button>
+              <button class="btn-lime-sm" id="btnSaveBranch" onclick="BranchesSettings.saveBranch()">Save Branch</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="settings-toast" id="settingsToast" role="alert" aria-live="polite"></div>
+
+      </div><!-- /settings-root -->
+
+      <!-- Footer Slot -->
+      <div id="footerSlot"></div>
+    </div>
+  </div>
+
+  <script src="branches.js"></script>
+</body>
+</html>

@@ -125,6 +125,18 @@ public class OrderService {
                 .currentStage(req.getCurrentStage() != null ? req.getCurrentStage() : "ORDER_TAKEN")
                 .productionNotes(req.getProductionNotes())
                 .branch(req.getBranch() != null && !req.getBranch().isBlank() ? req.getBranch().trim() : branchAccessService.getDefaultBranchForCreation())
+                .designId(req.getDesignId())
+                .designCode(req.getDesignCode())
+                .designCategory(req.getDesignCategory())
+                .priority(req.getPriority() != null && !req.getPriority().isBlank() ? req.getPriority().trim().toUpperCase() : "NORMAL")
+                .assignedTo(req.getAssignedTo())
+                .measurementProfileId(req.getMeasurementProfileId())
+                .neckStyle(req.getNeckStyle())
+                .sleeveStyle(req.getSleeveStyle())
+                .fabricType(req.getFabricType())
+                .fabricColour(req.getFabricColour())
+                .fabricSource(req.getFabricSource() != null && !req.getFabricSource().isBlank() ? req.getFabricSource() : "BOUTIQUE")
+                .paymentMethod(req.getPaymentMethod() != null && !req.getPaymentMethod().isBlank() ? req.getPaymentMethod() : "CASH")
                 .build();
         if (req.getStatus() != null) {
             order.setStatus(req.getStatus());
@@ -234,7 +246,7 @@ public class OrderService {
                     .collectionName(saved.getCollection())
                     .productionStage(saved.getCurrentStage() != null ? saved.getCurrentStage() : "ORDER_TAKEN")
                     .status("IN_PRODUCTION")
-                    .priority("NORMAL")
+                    .priority(saved.getPriority() != null ? saved.getPriority() : "NORMAL")
                     .totalAmount(total)
                     .paidAmount(advance)
                     .paymentStatus(balance.compareTo(BigDecimal.ZERO) == 0 ? "PAID" : (advance.compareTo(BigDecimal.ZERO) > 0 ? "PARTIAL" : "PENDING"))
@@ -321,6 +333,32 @@ public class OrderService {
             order.setReferenceImageList(req.getReferenceImages());
         if (req.getProductionNotes() != null)
             order.setProductionNotes(req.getProductionNotes());
+
+        // V10 Extended Tailoring & Blueprint Attributes
+        if (req.getDesignId() != null)
+            order.setDesignId(req.getDesignId());
+        if (req.getDesignCode() != null)
+            order.setDesignCode(req.getDesignCode());
+        if (req.getDesignCategory() != null)
+            order.setDesignCategory(req.getDesignCategory());
+        if (req.getPriority() != null && !req.getPriority().isBlank())
+            order.setPriority(req.getPriority().trim().toUpperCase());
+        if (req.getAssignedTo() != null)
+            order.setAssignedTo(req.getAssignedTo());
+        if (req.getMeasurementProfileId() != null)
+            order.setMeasurementProfileId(req.getMeasurementProfileId());
+        if (req.getNeckStyle() != null)
+            order.setNeckStyle(req.getNeckStyle());
+        if (req.getSleeveStyle() != null)
+            order.setSleeveStyle(req.getSleeveStyle());
+        if (req.getFabricType() != null)
+            order.setFabricType(req.getFabricType());
+        if (req.getFabricColour() != null)
+            order.setFabricColour(req.getFabricColour());
+        if (req.getFabricSource() != null)
+            order.setFabricSource(req.getFabricSource());
+        if (req.getPaymentMethod() != null)
+            order.setPaymentMethod(req.getPaymentMethod());
 
         Order savedOrder = orderRepository.save(order);
 

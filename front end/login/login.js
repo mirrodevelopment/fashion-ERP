@@ -15,8 +15,10 @@ function getApiBase() {
     return window.HAULO_API_BASE;
   }
   if (typeof window !== 'undefined' && window.location) {
-    const p = window.location.port;
-    if (p === '8080' || p === '' || p === '80' || p === '443') {
+    if (window.location.protocol === 'file:') {
+      return 'http://localhost:8080/api/v1';
+    }
+    if (window.location.origin && window.location.origin !== 'null') {
       return `${window.location.origin}/api/v1`;
     }
   }
@@ -333,6 +335,7 @@ async function performLogin(username, password, remember, companyName) {
 
     const needsSetup = resp.needsCompanySetup === true;
     setTimeout(() => _redirectPostAuth(needsSetup), 250);
+    return true;
 
   } catch (err) {
     console.error('Login error:', err);
@@ -343,9 +346,23 @@ async function performLogin(username, password, remember, companyName) {
     );
     if (passwordInput) { passwordInput.value = ''; passwordInput.focus(); }
     if (btnAutoText)   btnAutoText.textContent = 'Auto-Fill Admin Credentials';
+    return false;
   } finally {
     setLoading(false);
   }
+}
+
+// Expose on window for Developer Mode and automation
+if (typeof window !== 'undefined') {
+  window.performLogin = performLogin;
+  window.handleCompanyContinue = handleCompanyContinue;
+  window.showStep = showStep;
+  window.setResolvedCompany = function(id, name) {
+    resolvedCompanyId = id;
+    resolvedCompanyName = name;
+    if (companyBadgeName) companyBadgeName.textContent = name;
+    if (companyNameInput) companyNameInput.value = name;
+  };
 }
 
 // ── 10. Form Submit Handler (Step 2) ───────────────────────────────────────
@@ -370,6 +387,12 @@ if (form) {
 function startSetupFlow() {
   const compInput = document.getElementById('reg-company-name');
   const compName  = (compInput?.value || '').trim();
+
+  // Clear any existing session so the new company setup creates fresh admin credentials
+  ['erp_token', 'haulo_token', 'fashion_erp_token', 'erp_user', 'haulo_session_start', 'haulo_last_activity'].forEach(k => {
+    try { localStorage.removeItem(k); } catch (_) {}
+    try { sessionStorage.removeItem(k); } catch (_) {}
+  });
 
   if (compName) {
     sessionStorage.setItem('haulo_setup_initial_name', compName);
@@ -401,18 +424,38 @@ if (btnAutoLogin) {
     hideError();
     if (btnAutoText) btnAutoText.textContent = 'Fetching company...';
 
+    let autoUser = 'admin';
+    let autoPass = 'Admin@123';
     try {
-      // Try to lookup the first available company from the server
-      // and auto-fill the company name before advancing to Step 2.
-      const res = await fetch(`${getApiBase()}/company`);
-      if (res.ok) {
-        const compData = await res.json();
-        const cName = compData.companyName || compData.shortName || '';
-        if (cName && companyNameInput) {
-          companyNameInput.value = cName;
-          // Highlight field briefly
-          companyNameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
-          setTimeout(() => companyNameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+      // 1. Try to fetch personas from /api/v1/dev/personas for live company and owner credentials
+      const pRes = await fetch(`${getApiBase()}/dev/personas`);
+      if (pRes.ok) {
+        const personas = await pRes.json();
+        const pList = Array.isArray(personas) ? personas : [personas];
+        const matchComp = pList[0];
+        if (matchComp) {
+          const cName = matchComp.companyName || matchComp.shortName || '';
+          if (cName && companyNameInput) {
+            companyNameInput.value = cName;
+            companyNameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+            setTimeout(() => companyNameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+          }
+          const ownerUser = (matchComp.users || []).find(u => (u.role || '').toUpperCase() === 'OWNER') || (matchComp.users || [])[0];
+          if (ownerUser) {
+            autoUser = ownerUser.username || autoUser;
+            autoPass = ownerUser.devPassword || autoPass;
+          }
+        }
+      } else {
+        const res = await fetch(`${getApiBase()}/company`);
+        if (res.ok) {
+          const compData = await res.json();
+          const cName = compData.companyName || compData.shortName || '';
+          if (cName && companyNameInput) {
+            companyNameInput.value = cName;
+            companyNameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+            setTimeout(() => companyNameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+          }
         }
       }
     } catch (_) {
@@ -426,12 +469,12 @@ if (btnAutoLogin) {
 
     // Fill credentials on Step 2 after transition
     if (usernameInput) {
-      usernameInput.value = 'admin';
+      usernameInput.value = autoUser;
       usernameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
       setTimeout(() => usernameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
     }
     if (passwordInput) {
-      passwordInput.value = 'Admin@123';
+      passwordInput.value = autoPass;
       passwordInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
       setTimeout(() => passwordInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
     }
@@ -440,7 +483,7 @@ if (btnAutoLogin) {
 
     // Auto-submit
     if (resolvedCompanyName) {
-      await performLogin('admin', 'Admin@123', true, resolvedCompanyName);
+      await performLogin(autoUser, autoPass, true, resolvedCompanyName);
     }
   });
 }

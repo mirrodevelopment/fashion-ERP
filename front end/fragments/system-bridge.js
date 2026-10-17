@@ -64,13 +64,14 @@
 
     toSessionExpired(options = {}) {
       saveCurrentPage();
-      const reason = encodeURIComponent(options.reason || 'inactivity_20m');
+      const reason = encodeURIComponent(options.reason || 'inactivity');
+      const minutesParam = options.minutes ? `&minutes=${encodeURIComponent(options.minutes)}` : '';
       const returnUrl = options.returnUrl || window.location.href;
       try {
         sessionStorage.setItem('haulo_redirect_after_login', returnUrl);
         localStorage.setItem('haulo_redirect_after_login', returnUrl);
       } catch (_) {}
-      window.location.href = this.resolvePath(`session-expired/session-expired.html?reason=${reason}&returnUrl=${encodeURIComponent(returnUrl)}`);
+      window.location.href = this.resolvePath(`session-expired/session-expired.html?reason=${reason}${minutesParam}&returnUrl=${encodeURIComponent(returnUrl)}`);
     },
 
     toForbidden(options = {}) {
@@ -165,12 +166,27 @@
     // - Multi-tab synchronization via localStorage & storage event
     // - Elegant, non-blocking atelier countdown warning modal
     if (!isSysPage && !window.location.pathname.includes('login.html')) {
-      const STANDARD_IDLE_LIMIT = 20 * 60 * 1000;       // 20 minutes
-      const STANDARD_WARN_TIME  = 18 * 60 * 1000;       // 18 minutes (2 min grace)
-      const EXTENDED_SESSION_THRESHOLD = 3 * 60 * 60 * 1000; // 3 hours continuous session
-      const STRICT_IDLE_LIMIT   = 5 * 60 * 1000;        // 5 minutes
-      const STRICT_WARN_TIME    = 4 * 60 * 1000;        // 4 minutes (1 min grace)
       const HEARTBEAT_THROTTLE  = 10 * 1000;            // Write to storage at most once every 10s
+
+      // Dynamic Inactivity Limit from Settings (PostgreSQL & localStorage)
+      const getCustomIdleMinutes = () => {
+        try {
+          const raw = localStorage.getItem('haulo_session_timeout_minutes')
+            || sessionStorage.getItem('haulo_session_timeout_minutes');
+          if (raw !== null && raw !== undefined && raw !== '') {
+            const parsed = parseInt(raw, 10);
+            if (!isNaN(parsed)) return parsed;
+          }
+          if (window.CompanyBridge && typeof window.CompanyBridge.get === 'function') {
+            const co = window.CompanyBridge.get();
+            if (co && co.sessionTimeoutMinutes !== undefined && co.sessionTimeoutMinutes !== null) {
+              const coMins = parseInt(co.sessionTimeoutMinutes, 10);
+              if (!isNaN(coMins)) return coMins;
+            }
+          }
+        } catch (_) {}
+        return 20; // Default 20 minutes
+      };
 
       let localLastActivity = Date.now();
       let lastStorageWrite = 0;
@@ -379,13 +395,12 @@
         });
 
         modalDiv.querySelector('#hauloSessionBtnLogout').addEventListener('click', () => {
-          const sessionStart = ensureSessionStart();
-          const isExtended = (Date.now() - sessionStart) >= EXTENDED_SESSION_THRESHOLD;
-          terminateSession(isExtended ? 'extended_session_5m' : 'inactivity_20m');
+          const configuredMins = getCustomIdleMinutes();
+          terminateSession(configuredMins > 0 ? `inactivity_${configuredMins}m` : 'manual_lock', configuredMins);
         });
       }
 
-      function showWarningModal(secondsRemaining, isExtendedSession) {
+      function showWarningModal(secondsRemaining, minutes) {
         ensureWarningModal();
         if (!warningModalEl) return;
 
@@ -397,11 +412,8 @@
         }
 
         if (warningNoticeEl) {
-          if (isExtendedSession) {
-            warningNoticeEl.innerHTML = `Workstation security policy: Following <strong>3 hours</strong> of active shift, the idle threshold is <strong>5 minutes</strong>.<br />Your session will lock in <span class="haulo-session-warn-countdown">${secondsRemaining}s</span>.`;
-          } else {
-            warningNoticeEl.innerHTML = `You have been inactive for <strong>18 minutes</strong>. For atelier security, your session will expire in <span class="haulo-session-warn-countdown">${secondsRemaining}s</span>.`;
-          }
+          const displayMins = (minutes && minutes > 0) ? `${minutes} minutes` : 'a period';
+          warningNoticeEl.innerHTML = `You have been idle for a while (policy: <strong>${displayMins}</strong>).<br />For boutique data security, your session will lock and expire in <span class="haulo-session-warn-countdown">${secondsRemaining}s</span>.`;
         }
       }
 
@@ -412,7 +424,7 @@
         }
       }
 
-      function terminateSession(reason) {
+      function terminateSession(reason, minutes = 20) {
         dismissWarningModal();
         sessionStorage.removeItem('erp_token');
         sessionStorage.removeItem('erp_user');
@@ -425,7 +437,7 @@
         localStorage.removeItem('haulo_session_start');
         localStorage.removeItem('haulo_last_activity');
 
-        HauloSystem.toSessionExpired({ reason });
+        HauloSystem.toSessionExpired({ reason, minutes });
       }
 
       // Check loop every 3 seconds for smooth precision
@@ -433,25 +445,30 @@
         const token = sessionStorage.getItem('erp_token') || localStorage.getItem('erp_token');
         if (!token) return;
 
-        const now = Date.now();
-        const sessionStart = ensureSessionStart();
+        const configuredMins = getCustomIdleMinutes();
+        if (configuredMins <= 0) {
+          // Inactivity auto-logout disabled
+          dismissWarningModal();
+          return;
+        }
 
-        // Read stored activity or fall back to local
+        const now = Date.now();
         const storedActivity = parseInt(localStorage.getItem('haulo_last_activity') || sessionStorage.getItem('haulo_last_activity') || localLastActivity, 10);
         const lastEffectiveActivity = Math.max(localLastActivity, storedActivity);
 
-        const sessionAge = now - sessionStart;
         const idleTime = now - lastEffectiveActivity;
-
-        const isExtendedSession = sessionAge >= EXTENDED_SESSION_THRESHOLD;
-        const idleLimit = isExtendedSession ? STRICT_IDLE_LIMIT : STANDARD_IDLE_LIMIT;
-        const warnThreshold = isExtendedSession ? STRICT_WARN_TIME : STANDARD_WARN_TIME;
+        const idleLimit = configuredMins * 60 * 1000;
+        
+        // Dynamic grace period for warning countdown:
+        // <= 2 min: warn 30s before; <= 5 min: warn 60s before; > 5 min: warn 120s before
+        const warnGraceMs = idleLimit <= 2 * 60 * 1000 ? 30 * 1000 : (idleLimit <= 5 * 60 * 1000 ? 60 * 1000 : 120 * 1000);
+        const warnThreshold = Math.max(5 * 1000, idleLimit - warnGraceMs);
 
         if (idleTime >= idleLimit) {
-          terminateSession(isExtendedSession ? 'extended_session_5m' : 'inactivity_20m');
+          terminateSession(`inactivity_${configuredMins}m`, configuredMins);
         } else if (idleTime >= warnThreshold) {
           const remainingSec = Math.max(1, Math.ceil((idleLimit - idleTime) / 1000));
-          showWarningModal(remainingSec, isExtendedSession);
+          showWarningModal(remainingSec, configuredMins);
         } else {
           dismissWarningModal();
         }

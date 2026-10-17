@@ -56,6 +56,19 @@ public class PurchaseOrder {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    // --- V10 Branch Attribution & Payment Tracking ---
+    @Column(nullable = false, length = 100)
+    @Builder.Default
+    private String branch = "Main Branch";
+
+    @Column(name = "payment_status", nullable = false, length = 30)
+    @Builder.Default
+    private String paymentStatus = "PENDING";
+
+    @Column(name = "paid_amount", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal paidAmount = BigDecimal.ZERO;
+
     @Builder.Default
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<PurchaseOrderItem> items = new ArrayList<>();
@@ -72,6 +85,10 @@ public class PurchaseOrder {
     protected void assignTenant() {
         if (this.companyId == null) {
             this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        }
+        if (this.branch == null || this.branch.isBlank()) {
+            String b = com.fashionerp.common.TenantContext.getAssignedBranch();
+            this.branch = (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : "Main Branch";
         }
     }
 }

@@ -7,14 +7,8 @@
 // Neutral SVG silhouette in case any image fails to load
 const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 14 L24 4 L42 14 L34 44 L14 44 Z'/%3E%3Cpath d='M24 4 L24 44' stroke-dasharray='3 3'/%3E%3C/svg%3E";
 
-// Available Stages — populated from stage_definitions table on load.
-// STAGES_FALLBACK contains strictly the 2 fixed system stages used as a safety net
-// when the API is unreachable. All other intermediate stages are 100% user-managed.
-const STAGES_FALLBACK = [
-  { id: 'ordertaken', name: 'Order Taken', dot: 'dot-emerald', barClass: 'bar-emerald', pillClass: 'pill-emerald', stageKey: 'ORDER_TAKEN', deptLabel: 'Order Intake & Reception', imageUrl: '/front end/assets/stages/Order_Taken_1010.jpg' },
-  { id: 'readytodeliver', name: 'Ready to Deliver', dot: 'dot-silver', barClass: 'bar-silver', pillClass: 'pill-silver', stageKey: 'READY_TO_DELIVER', deptLabel: 'Delivery & Handover', imageUrl: '/front end/assets/stages/Ready_8043.jpg' }
-];
-let STAGES = [...STAGES_FALLBACK];
+// Available Stages — populated 100% dynamically from stage_definitions table on load.
+let STAGES = [];
 
 // Workflow Collapse State Keys & Variables (declared early to prevent TDZ ReferenceErrors)
 var _COL_STORAGE_KEY = 'haulo_prod_collapsed_cols';
@@ -84,7 +78,11 @@ function getStageHeaderIconSvg(stageId) {
 async function loadStageDefinitions(api) {
   try {
     let defs = await api.production.stageDefinitions.list({ activeOnly: true });
-    if (!defs || defs.length === 0) return; // keep fallback
+    if (!defs || defs.length === 0) {
+      STAGES = [];
+      renderKanbanColumns();
+      return;
+    }
 
     // Client-side boundary invariant enforcement:
     // 1. Enforce ORDER_TAKEN is strictly at index 0 (Stage 1)
@@ -154,6 +152,11 @@ async function loadStageDefinitions(api) {
 function renderKanbanColumns() {
   const board = document.getElementById('kanbanBoard');
   if (!board) return;
+
+  if (!STAGES || STAGES.length === 0) {
+    board.innerHTML = `<div style="padding:48px;text-align:center;color:var(--text-muted);grid-column:1/-1;">No active workflow stages found in stage_definitions.</div>`;
+    return;
+  }
 
   board.innerHTML = STAGES.map(stage => {
     const imgHtml = stage.imageUrl

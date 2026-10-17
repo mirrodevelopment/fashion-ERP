@@ -1,0 +1,21 @@
+/* ============================================================
+   HAULO BOUTIQUE ERP — Branding & Theme Settings Styles
+   Path: front end/settings/branding/branding.css
+   ============================================================ */
+
+.theme-presets { display: flex; gap: 12px; flex-wrap: wrap; }
+.theme-preset {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px; padding: 14px 18px; cursor: pointer;
+  font-family: inherit; font-size: 12px; color: rgba(255,255,255,.55);
+  font-weight: 600; transition: all .18s; position: relative;
+}
+.theme-preset:hover { border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.8); }
+.theme-preset.active { border-color: rgba(184,255,61,.4); color: rgba(255,255,255,.9); background: rgba(184,255,61,.06); }
+.theme-swatch { width: 64px; height: 40px; border-radius: 8px; }
+.theme-check { position: absolute; top: 7px; right: 7px; }
+
+.color-input-row { display: flex; align-items: center; gap: 8px; }
+.color-picker { width: 40px; height: 38px; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 2px; background: rgba(255,255,255,.07); cursor: pointer; }
+.color-input-row .form-input { flex: 1; }

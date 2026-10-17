@@ -33,12 +33,13 @@ public class StageDefinitionService {
     private final EmployeeRepository employeeRepository;
     private final OrderRepository orderRepository;
     private final ProductionStageRepository productionStageRepository;
+    private final com.fashionerp.company.CompanySettingsRepository companySettingsRepository;
 
     // ─── Self-Healing System Boundary Stages ─────────────────────────────────
 
     @Transactional
     public void ensureBoundaryStagesExist(UUID companyId) {
-        if (companyId == null) return;
+        if (companyId == null || !companySettingsRepository.existsById(companyId)) return;
         if (!stageDefRepo.existsByCompanyIdAndStageKey(companyId, "ORDER_TAKEN")) {
             StageDefinition ot = StageDefinition.builder()
                     .companyId(companyId)

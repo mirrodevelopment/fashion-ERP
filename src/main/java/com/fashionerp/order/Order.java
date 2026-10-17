@@ -107,6 +107,47 @@ public class Order {
     @Builder.Default
     private Integer qcReworkCount = 0;
 
+    // --- Design Blueprint, Tailoring & Production Attributes (V10) ---
+
+    @Column(name = "design_id")
+    private UUID designId;
+
+    @Column(name = "design_code", length = 50)
+    private String designCode;
+
+    @Column(name = "design_category", length = 100)
+    private String designCategory;
+
+    @Column(nullable = false, length = 30)
+    @Builder.Default
+    private String priority = "NORMAL";
+
+    @Column(name = "assigned_to", length = 100)
+    private String assignedTo;
+
+    @Column(name = "measurement_profile_id")
+    private UUID measurementProfileId;
+
+    @Column(name = "neck_style", length = 100)
+    private String neckStyle;
+
+    @Column(name = "sleeve_style", length = 100)
+    private String sleeveStyle;
+
+    @Column(name = "fabric_type", length = 100)
+    private String fabricType;
+
+    @Column(name = "fabric_colour", length = 100)
+    private String fabricColour;
+
+    @Column(name = "fabric_source", length = 50)
+    @Builder.Default
+    private String fabricSource = "BOUTIQUE";
+
+    @Column(name = "payment_method", length = 50)
+    @Builder.Default
+    private String paymentMethod = "CASH";
+
     /**
      * Deserialise the stored JSON string into a typed list (never null).
      * Uses pure Java — no Jackson dependency required at the entity level.
@@ -191,14 +232,24 @@ public class Order {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void assignTenant() {
+    @PrePersist @PreUpdate
+    protected void assignTenantAndSync() {
         if (this.companyId == null) {
             this.companyId = com.fashionerp.common.TenantContext.getCompanyId();
         }
         if (this.branch == null || this.branch.isBlank()) {
             String b = com.fashionerp.common.TenantContext.getAssignedBranch();
             this.branch = (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : "Main Branch";
+        }
+        if (this.totalAmount != null && (this.amount == null || this.amount.compareTo(BigDecimal.ZERO) == 0)) {
+            this.amount = this.totalAmount;
+        } else if (this.amount != null && (this.totalAmount == null || this.totalAmount.compareTo(BigDecimal.ZERO) == 0)) {
+            this.totalAmount = this.amount;
+        }
+        if (this.expectedDeliveryDate != null && this.dueDate == null) {
+            this.dueDate = this.expectedDeliveryDate;
+        } else if (this.dueDate != null && this.expectedDeliveryDate == null) {
+            this.expectedDeliveryDate = this.dueDate;
         }
     }
 }

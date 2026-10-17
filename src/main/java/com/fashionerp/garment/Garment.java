@@ -37,10 +37,10 @@ public class Garment {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private com.fashionerp.order.Order order;
 
-    @Column(name = "order_code", nullable = false, length = 50)
+    @Column(name = "order_code", length = 50)
     private String orderCode;
 
-    @Column(name = "customer_name", nullable = false, length = 150)
+    @Column(name = "customer_name", length = 150)
     private String customerName;
 
     @Column(name = "customer_mobile", length = 30)
@@ -75,7 +75,7 @@ public class Garment {
     @Column(name = "trial_date")
     private LocalDate trialDate;
 
-    @Column(name = "due_date", nullable = false)
+    @Column(name = "due_date")
     private LocalDate dueDate;
 
     @Column(nullable = false, length = 30)
@@ -109,6 +109,37 @@ public class Garment {
 
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
+
+    @Column(name = "primary_fabric", length = 150)
+    private String primaryFabric;
+
+    @Column(name = "embroidery_type", length = 150)
+    private String embroideryType;
+
+    @Column(name = "color_name", length = 100)
+    private String colorName;
+
+    @Column(name = "color_hex", length = 30)
+    private String colorHex;
+
+    @Column(name = "estimated_cost", precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal estimatedCost = BigDecimal.ZERO;
+
+    @Column(name = "suggested_price", precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal suggestedPrice = BigDecimal.ZERO;
+
+    @Column(name = "crafting_hours")
+    @Builder.Default
+    private Integer craftingHours = 24;
+
+    @Column(length = 150)
+    private String silhouette;
+
+    @Column(name = "is_sample")
+    @Builder.Default
+    private Boolean isSample = true;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

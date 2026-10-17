@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="New Design — Atelier Studio">New Design — Atelier Studio</title>
+  <meta name="description" content="Haute couture design variant and master creation workspace. Derive bespoke variations with customized blueprints, fabrics, embroidery, and live margin intelligence." />
+
+  <!-- Central Boutique Typography Design System -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Base ERP Stylesheets -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="new-design.css?v=1.0" />
+
+  <!-- Navigation & Fragment Base Configuration -->
+  <script>window.FRAGMENT_BASE = '../../fragments/';</script>
+</head>
+<body data-module="designs">
+
+  <!-- Background Atmospheric Layer -->
+  <div class="app-bg">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Shared Sidebar Fragment Slot -->
+    <div id="sidebarSlot"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Global Top Header Bar -->
+      <div id="navbarSlot"></div>
+
+      <!-- New Design Scrollable Container -->
+      <div class="new-design-scroll" id="newDesignScroll">
+
+        <!-- Page Operations Header with Breadcrumbs & Stepper -->
+        <header class="page-header-row">
+          <div class="page-title-group">
+            <div id="breadcrumbSlot"></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:2px;">
+              <h1 class="page-title" id="pageHeaderTitle">Create Design Variant</h1>
+              <span class="badge-mode-pill" id="badgeMode">Variant Mode</span>
+            </div>
+            <p class="page-subtitle" id="pageHeaderSubtitle">
+              Derive a new bespoke design variant from an atelier master piece with custom silhouette, materials, and pricing.
+            </p>
+          </div>
+
+          <!-- 5-Step Horizontal Workflow Stepper -->
+          <div class="workflow-stepper" id="workflowStepper" role="tablist" aria-label="Creation Steps">
+            <div class="step-node active" data-step="1" title="Identity & Lineage">
+              <div class="step-circle">1</div>
+              <div class="step-label">Identity</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="2" title="Silhouette & Blueprint">
+              <div class="step-circle">2</div>
+              <div class="step-label">Silhouette</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="3" title="Fabrics & Palette">
+              <div class="step-circle">3</div>
+              <div class="step-label">Palette</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="4" title="Costing & Margins">
+              <div class="step-circle">4</div>
+              <div class="step-label">Costing</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-node" data-step="5" title="Media & Tech Pack">
+              <div class="step-circle">5</div>
+              <div class="step-label">Media</div>
+            </div>
+          </div>
+        </header>
+
+        <!-- =====================================================
+             MAIN TWO-COLUMN WORKSPACE: FORM (65%) & PREVIEW (35%)
+             ===================================================== -->
+        <div class="workspace-grid">
+
+          <!-- LEFT COLUMN: THE ATELIER CONFIGURATION WORKSTATION -->
+          <div class="form-column">
+            <form id="newDesignForm" novalidate>
+
+              <!-- STEP 1: IDENTITY & MASTER DESIGN LINEAGE -->
+              <section class="section-card" id="cardIdentity">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">1</div>
+                    <div>
+                      <h2 class="card-title">Identity & Lineage</h2>
+                      <p class="card-subtitle">Master design relationship, variant codes, and catalog categorization</p>
+                    </div>
+                  </div>
+                  <div class="card-header-right">
+                    <button type="button" class="btn-ghost-sm" id="btnChangeMaster" title="Change Base Master Design">
+                      <i data-lucide="layers" style="width:13px;height:13px;"></i>
+                      <span id="btnChangeMasterText">Change Master</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Master Design Reference Banner -->
+                <div class="master-lineage-banner" id="masterLineageBanner">
+                  <div class="master-banner-thumb-wrap">
+                    <img id="masterThumbImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='1.5'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3C/svg%3E" alt="Master Design Thumbnail" />
+                  </div>
+                  <div class="master-banner-info">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span class="master-badge">MASTER DESIGN</span>
+                      <span class="master-code" id="masterCodeLabel">—</span>
+                    </div>
+                    <div class="master-title" id="masterTitleLabel">Loading Master Design from Database...</div>
+                    <div class="master-meta" id="masterMetaLabel">—</div>
+                  </div>
+                  <div class="master-banner-status">
+                    <span class="kpi-dot dot-green" id="masterStatusDot" style="display:none;"></span>
+                    <span id="masterStatusLabel">—</span>
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <div class="label-row">
+                      <label for="varCode" class="form-label">Variant Code <span class="req">*</span></label>
+                      <span class="badge-auto-code" id="badgeAutoCode"><i data-lucide="sparkles" style="width:11px;height:11px;"></i> Auto</span>
+                    </div>
+                    <div class="code-input-wrap">
+                      <input type="text" id="varCode" class="form-input" required placeholder="Generating from DB..." />
+                      <button type="button" class="btn-code-refresh" id="btnRegenCode" title="Regenerate next sequence code" aria-label="Regenerate code">
+                        <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varTitle" class="form-label">Variant Title / Name <span class="req">*</span></label>
+                    <input type="text" id="varTitle" class="form-input" required placeholder="Enter variant name or title" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varCategory" class="form-label">Garment Category <span class="req">*</span></label>
+                    <select id="varCategory" class="form-select" required>
+                      <option value="" disabled selected>Select garment category...</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varSubCategory" class="form-label">Sub-Category / Silhouette Tag</label>
+                    <input type="text" id="varSubCategory" class="form-input" placeholder="e.g. Bridal, Contemporary, Festive" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varCollection" class="form-label">Collection</label>
+                    <input type="text" id="varCollection" class="form-input" list="collectionDatalist" placeholder="e.g. Heritage Bridal 2026" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varOccasion" class="form-label">Occasion</label>
+                    <input type="text" id="varOccasion" class="form-input" list="occasionDatalist" placeholder="e.g. Wedding, Reception, Sangeet" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varDesigner" class="form-label">Designer / Attribution</label>
+                    <input type="text" id="varDesigner" class="form-input" placeholder="e.g. Atelier Lead Couturier" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varSizes" class="form-label">Sizing / Fit Specification</label>
+                    <input type="text" id="varSizes" class="form-input" placeholder="e.g. Custom Made to Measure, XS-XXL" />
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 2: SILHOUETTE & BLUEPRINT SPECIFICATIONS -->
+              <section class="section-card" id="cardSilhouette">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">2</div>
+                    <div>
+                      <h2 class="card-title">Silhouette & Blueprint Specs</h2>
+                      <p class="card-subtitle">Technical neckline, sleeve cut, back pattern, padding, and structural architecture</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="varNeckline" class="form-label">Neckline Cut & Depth <span class="req">*</span></label>
+                    <div class="input-with-icon">
+                      <i data-lucide="scissors" class="input-icon"></i>
+                      <input type="text" id="varNeckline" class="form-input" required placeholder="e.g. Deep Sweetheart • 8.0&quot;" list="necklineDatalist" />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varSleeve" class="form-label">Sleeve Cut & Length</label>
+                    <div class="input-with-icon">
+                      <i data-lucide="sparkle" class="input-icon"></i>
+                      <input type="text" id="varSleeve" class="form-input" placeholder="e.g. Elbow length structured cuff with zardozi" list="sleeveDatalist" />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varBackDesign" class="form-label">Back Opening & Closure</label>
+                    <div class="input-with-icon">
+                      <i data-lucide="shield" class="input-icon"></i>
+                      <input type="text" id="varBackDesign" class="form-input" placeholder="e.g. Deep U • tie closure with hand-crafted tassels" list="backDatalist" />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varPadding" class="form-label">Bust Padding & Internal Structure</label>
+                    <select id="varPadding" class="form-select">
+                      <option value="Medium">Medium Pre-shaped Cups (Standard)</option>
+                      <option value="Soft">Soft Micro-fiber Cups</option>
+                      <option value="Heavy Boned">Heavy Boned Couture Bodice</option>
+                      <option value="None">None (Unpadded / Natural Fit)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varLining" class="form-label">Inner Lining Fabric</label>
+                    <input type="text" id="varLining" class="form-input" placeholder="e.g. Premium Cotton Silk (Sweat Absorbent)" list="liningDatalist" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varAlterationNotes" class="form-label">Variant Alteration Notes (Diff vs Master)</label>
+                    <input type="text" id="varAlterationNotes" class="form-input" placeholder="e.g. Deepened neck by 0.5&quot;, replaced hooks with concealed side zip" />
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label for="varConstruction" class="form-label">Master Tailor Construction Instructions</label>
+                    <textarea id="varConstruction" class="form-textarea" rows="2" placeholder="Enter specific piping, interlining, canvas, and reinforced seam instructions..."></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 3: MATERIALS, PALETTE & EMBELLISHMENTS -->
+              <section class="section-card" id="cardPalette">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">3</div>
+                    <div>
+                      <h2 class="card-title">Materials, Palette & Craftsmanship</h2>
+                      <p class="card-subtitle">Primary fabric, luxury colorway swatches, embroidery, and artisan complexity</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="varPrimaryFabric" class="form-label">Primary Body Fabric <span class="req">*</span></label>
+                    <input type="text" id="varPrimaryFabric" class="form-input" required placeholder="e.g. Banarasi Raw Silk (70 GSM)" list="fabricDatalist" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varAccentFabric" class="form-label">Secondary / Accent Fabric</label>
+                    <input type="text" id="varAccentFabric" class="form-input" placeholder="e.g. Tissue Organza border, Net cape" list="fabricDatalist" />
+                  </div>
+
+                  <!-- Colorways Swatches Section -->
+                  <div class="form-group full-width">
+                    <div class="label-row">
+                      <label class="form-label">Colorways & Hex Swatches</label>
+                      <span class="hint-label" id="swatchCountHint">0 swatches added</span>
+                    </div>
+
+                    <div class="swatches-manager-wrap">
+                      <div class="active-swatches-list" id="activeSwatchesList">
+                        <!-- Rendered dynamically via JS from DB -->
+                      </div>
+
+                      <div class="swatch-picker-controls">
+                        <div class="quick-presets" id="quickPresetsList">
+                          <span class="preset-label">Atelier Palette:</span>
+                          <!-- Rendered dynamically via JS from DB -->
+                        </div>
+
+                        <div class="custom-color-adder">
+                          <input type="color" id="customColorPicker" value="#c59b27" title="Pick a color" />
+                          <input type="text" id="customColorHex" class="form-input form-input-sm" value="" placeholder="#HEX" maxlength="7" />
+                          <button type="button" class="btn-secondary-glass btn-sm" id="btnAddColor">Add Swatch</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varEmbroidery" class="form-label">Embroidery Craft & Surface Detailing</label>
+                    <input type="text" id="varEmbroidery" class="form-input" placeholder="e.g. Zardozi + Hand dabka + sleeve border" list="embroideryDatalist" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varComplexity" class="form-label">Artisan Craftsmanship Complexity</label>
+                    <select id="varComplexity" class="form-select">
+                      <option value="High" selected>High (Intricate Hand Zardozi / Pattern)</option>
+                      <option value="Medium">Medium (Moderate Border Detailing)</option>
+                      <option value="Low">Low (Minimalist / Clean Seams)</option>
+                      <option value="Couture Level">Couture Level (Masterpiece > 40 hrs)</option>
+                    </select>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 4: COSTING, PRICING & MARGIN ANALYTICS -->
+              <section class="section-card" id="cardCosting">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">4</div>
+                    <div>
+                      <h2 class="card-title">Commercial Costing & Margin Engine</h2>
+                      <p class="card-subtitle">Real-time cost derivation, suggested retail price, and automated gross margin analytics</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-grid-3">
+                  <div class="form-group">
+                    <label for="varCostMaterial" class="form-label">Material & Fabric Cost (₹)</label>
+                    <input type="number" id="varCostMaterial" class="form-input" placeholder="0.00" min="0" step="50" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varCostLabour" class="form-label">Artisan Labour Cost (₹)</label>
+                    <input type="number" id="varCostLabour" class="form-input" placeholder="0.00" min="0" step="50" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varLabourHours" class="form-label">Estimated Labour Time</label>
+                    <input type="text" id="varLabourHours" class="form-input" placeholder="e.g. 14.5 hrs" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varTotalCost" class="form-label">Total Manufacturing Cost (₹)</label>
+                    <input type="number" id="varTotalCost" class="form-input" readonly placeholder="0.00" style="background:rgba(255,255,255,0.03);color:#e5e7eb;font-weight:700;" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varSuggestedPrice" class="form-label">Suggested Retail Price (₹) <span class="req">*</span></label>
+                    <input type="number" id="varSuggestedPrice" class="form-input" required placeholder="0.00" min="0" step="100" style="font-weight:700;color:var(--accent-lime);" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Gross Margin Analytics</label>
+                    <div class="margin-badge-wrap" id="marginBadgeWrap">
+                      <span class="margin-val" id="marginVal">—</span>
+                      <span class="margin-status-tag tag-moderate" id="marginStatusTag">Enter Price</span>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varTurnaround" class="form-label">Production Turnaround Days</label>
+                    <input type="number" id="varTurnaround" class="form-input" placeholder="e.g. 12" min="1" max="90" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varProductionStatus" class="form-label">Initial Production Status</label>
+                    <select id="varProductionStatus" class="form-select">
+                      <option value="Active" selected>Active (Production Ready)</option>
+                      <option value="In Development">In Development</option>
+                      <option value="Sample Pending">Sample Pending</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="varTags" class="form-label">Catalog Discovery Tags</label>
+                    <input type="text" id="varTags" class="form-input" placeholder="e.g. Bridal, Zari, Masterpiece, Variant" />
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 5: MEDIA, BLUEPRINT & TECHNICAL SKETCHES -->
+              <section class="section-card" id="cardMedia">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="step-badge">5</div>
+                    <div>
+                      <h2 class="card-title">Media, Blueprints & Sketches</h2>
+                      <p class="card-subtitle">Upload high-res renders, inherited master photos, and technical spec drawings</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="media-workspace-grid">
+                  <!-- Drag-and-Drop Zone -->
+                  <div class="media-dropzone" id="mediaDropzone">
+                    <input type="file" id="mediaFileInput" multiple accept="image/*" style="display:none;" />
+                    <i data-lucide="cloud-upload" class="dropzone-icon"></i>
+                    <h3 class="dropzone-title">Upload High-Res Garment Photos or Sketches</h3>
+                    <p class="dropzone-desc">Drag & drop files here, or <button type="button" class="btn-link" id="btnBrowseFiles">browse workstation</button></p>
+                    <span class="dropzone-formats">Supports JPG, PNG, WEBP, SVG • Auto-optimized for atelier catalog</span>
+                  </div>
+
+                  <!-- Direct URL Input -->
+                  <div class="media-url-input-wrap">
+                    <input type="url" id="inputDirectImageUrl" class="form-input" placeholder="Or paste external image URL (e.g. https://... or ../assets/designs/...)" />
+                    <button type="button" class="btn-secondary-glass" id="btnAddImageUrl">Add URL</button>
+                  </div>
+
+                  <!-- Images Reel / Gallery -->
+                  <div class="media-reel-section">
+                    <div class="reel-header">
+                      <span class="reel-title">Design Media Reel (<span id="reelCount">0</span>)</span>
+                      <span class="reel-hint">Click a photo to set as Primary Hero thumbnail</span>
+                    </div>
+                    <div class="media-reel-grid" id="mediaReelGrid">
+                      <!-- Rendered dynamically via JS -->
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Form Actions Bar (Bottom Mobile / Primary Form) -->
+              <div class="form-footer-actions">
+                <a href="../design-studio.html" class="btn-secondary-glass" id="btnBottomCancel">Cancel & Return</a>
+                <button type="button" class="btn-secondary-glass" id="btnBottomDraft">Save Draft</button>
+                <button type="submit" class="btn-primary-lime" id="btnBottomSubmit">
+                  <span>Publish Variant</span>
+                  <i data-lucide="arrow-right" style="width:15px;height:15px;"></i>
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- RIGHT COLUMN: LIVE ATELIER CARD MIRROR & TECH PACK PREVIEW -->
+          <aside class="preview-column" id="previewColumn" aria-label="Live Variant Preview">
+
+            <!-- 1. LIVE DESIGN STUDIO CARD MIRROR -->
+            <div class="preview-box">
+              <div class="preview-box-header">
+                <span class="preview-box-title">Live Catalog Mirror</span>
+                <span class="preview-live-badge"><span class="live-dot"></span> LIVE SYNC</span>
+              </div>
+
+              <div class="live-card-container">
+                <article class="design-card preview-card-active" id="liveDesignCard">
+                  <div class="card-image-wrap" id="liveCardImageWrap">
+                    <img id="liveCardImg" src="" alt="Preview" style="display:none;" />
+                    <div class="card-image-placeholder" id="liveCardPlaceholder">
+                      <i data-lucide="image-plus" style="width:26px;height:26px;color:rgba(255,255,255,0.25);"></i>
+                      <span class="placeholder-text">Awaiting Image</span>
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <span class="card-code" id="liveCardCode">—</span>
+                    <h3 class="card-title" id="liveCardTitle">—</h3>
+                    <span class="card-collection" id="liveCardCollection">—</span>
+                    <div class="card-footer-meta">
+                      <span class="card-status-label">
+                        <span class="kpi-dot dot-green" id="liveCardStatusDot" style="display:none;"></span>
+                        <span id="liveCardStatusText">—</span>
+                      </span>
+                      <span class="card-used-count" id="liveCardPrice">₹0</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <!-- 2. LINEAGE COMPARISON MATRIX (MASTER VS VARIANT) -->
+            <div class="preview-box" id="lineageDiffCard">
+              <div class="preview-box-header">
+                <span class="preview-box-title">Lineage Alteration Diff</span>
+                <span class="diff-chip">Master vs Variant</span>
+              </div>
+
+              <div class="diff-table-wrap">
+                <table class="diff-table">
+                  <thead>
+                    <tr>
+                      <th>Specification</th>
+                      <th>Master (Base)</th>
+                      <th>New Variant</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="diff-prop">Design Code</td>
+                      <td class="diff-base" id="diffBaseCode">—</td>
+                      <td class="diff-var" id="diffVarCode">—</td>
+                    </tr>
+                    <tr>
+                      <td class="diff-prop">Neckline</td>
+                      <td class="diff-base" id="diffBaseNeck">—</td>
+                      <td class="diff-var" id="diffVarNeck">—</td>
+                    </tr>
+                    <tr>
+                      <td class="diff-prop">Primary Fabric</td>
+                      <td class="diff-base" id="diffBaseFabric">—</td>
+                      <td class="diff-var" id="diffVarFabric">—</td>
+                    </tr>
+                    <tr>
+                      <td class="diff-prop">Sleeve Style</td>
+                      <td class="diff-base" id="diffBaseSleeve">—</td>
+                      <td class="diff-var" id="diffVarSleeve">—</td>
+                    </tr>
+                    <tr>
+                      <td class="diff-prop">Retail Price</td>
+                      <td class="diff-base" id="diffBasePrice">—</td>
+                      <td class="diff-var" id="diffVarPrice">—</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 3. PRODUCTION READINESS GAUGE -->
+            <div class="preview-box">
+              <div class="preview-box-header">
+                <span class="preview-box-title">Production Readiness</span>
+                <span class="score-badge" id="readinessScoreVal">0%</span>
+              </div>
+
+              <div class="readiness-progress-bar">
+                <div class="readiness-fill" id="readinessFill" style="width: 0%;"></div>
+              </div>
+
+              <div class="readiness-checklist">
+                <div class="chk-item" id="chkIdentity"><i data-lucide="circle" class="chk-icon"></i> Identity & Codes mapped</div>
+                <div class="chk-item" id="chkBlueprint"><i data-lucide="circle" class="chk-icon"></i> Blueprint & Silhouette specified</div>
+                <div class="chk-item" id="chkFabric"><i data-lucide="circle" class="chk-icon"></i> Primary Fabric & Colorways mapped</div>
+                <div class="chk-item" id="chkCosting"><i data-lucide="circle" class="chk-icon"></i> Costing & Pricing complete</div>
+                <div class="chk-item" id="chkMedia"><i data-lucide="circle" class="chk-icon"></i> Garment media / render attached</div>
+              </div>
+            </div>
+
+            <!-- 4. STICKY ACTION PANEL -->
+            <div class="sticky-action-card">
+              <button type="button" class="btn-primary-lime btn-block" id="btnStickyPublish">
+                <span id="btnPublishText">Publish Variant</span>
+                <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+              </button>
+              <button type="button" class="btn-secondary-glass btn-block" id="btnStickyDraft">
+                Save as Draft
+              </button>
+              <a href="../design-studio.html" class="btn-link-cancel" id="btnStickyCancel">
+                Discard Changes &amp; Return
+              </a>
+            </div>
+
+          </aside>
+
+        </div>
+        <!-- /workspace-grid -->
+
+        <!-- Standard Footer Slot from fragments -->
+        <div id="footerSlot"></div>
+
+      </div>
+      <!-- /new-design-scroll -->
+
+    </main>
+  </div>
+  <!-- /app-shell -->
+
+  <!-- ===================================================================
+       MASTER DESIGN SELECTION MODAL
+       =================================================================== -->
+  <div class="modal-backdrop" id="modalMasterPicker" style="display:none;">
+    <div class="modal-card modal-medium" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <i data-lucide="layers" style="width:18px;height:18px;color:var(--accent-lime);"></i>
+          <h3 class="modal-title" id="pickerTitle">Select Master Design to Derive Variant</h3>
+        </div>
+        <button type="button" class="btn-modal-close" id="btnCloseMasterPicker">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="picker-search-wrap">
+          <i data-lucide="search" class="picker-search-icon"></i>
+          <input type="text" id="pickerSearchInput" class="form-input" placeholder="Search master design code, title, collection, fabric..." />
+        </div>
+
+        <div class="picker-designs-grid" id="pickerDesignsGrid">
+          <!-- Rendered dynamically via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Datalists for Autocomplete (Populated dynamically from DB) -->
+  <datalist id="collectionDatalist"></datalist>
+  <datalist id="fabricDatalist"></datalist>
+  <datalist id="necklineDatalist"></datalist>
+  <datalist id="sleeveDatalist"></datalist>
+  <datalist id="backDatalist"></datalist>
+  <datalist id="liningDatalist"></datalist>
+  <datalist id="occasionDatalist"></datalist>
+  <datalist id="embroideryDatalist"></datalist>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Shared Fragment Scripts -->
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/fragments.js"></script>
+  <script src="../../fragments/nav.js"></script>
+
+  <!-- Controller Script -->
+  <script type="module" src="new-design.js?v=1.0"></script>
+</body>
+</html>
