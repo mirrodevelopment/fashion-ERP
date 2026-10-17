@@ -13,34 +13,63 @@ public class CompanySettingsService {
 
     private final CompanySettingsRepository repository;
 
-    /* ── Is Configured (used by status endpoint) ── */
-    @Transactional(readOnly = true)
-    public boolean isConfigured() {
-        UUID companyId = TenantContext.getCompanyId();
-        var companyOpt = companyId != null
-            ? repository.findById(companyId)
+    /* ── Get or create default company ── */
+    @Transactional
+    public CompanySettings getOrCreateDefault(UUID companyId) {
+        UUID targetId = companyId != null ? companyId : TenantContext.getCompanyId();
+        var companyOpt = targetId != null
+            ? repository.findById(targetId)
             : repository.findFirstByOrderByCreatedAtAsc();
 
+        return companyOpt.orElseGet(() -> repository.save(CompanySettings.builder()
+            .companyName("Fashion ERP Boutique")
+            .shortName("BOUTIQUE")
+            .tagline("Haute Couture & Bespoke Bridal Atelier")
+            .businessType("Luxury Bespoke Tailoring")
+            .country("India")
+            .primaryPhone("+91 98400 12345")
+            .email("contact@fashionerp.com")
+            .streetAddress("12, Fashion Promenade")
+            .city("Chennai")
+            .state("Tamil Nadu")
+            .build()));
+    }
+
+    @Transactional
+    public CompanySettings getOrCreateDefault() {
+        return getOrCreateDefault(TenantContext.getCompanyId());
+    }
+
+    /* ── Is Configured (used by status endpoint & auth) ── */
+    @Transactional
+    public boolean isConfigured(UUID companyId) {
+        UUID targetId = companyId != null ? companyId : TenantContext.getCompanyId();
+        var companyOpt = targetId != null
+            ? repository.findById(targetId)
+            : repository.findFirstByOrderByCreatedAtAsc();
+
+        if (companyOpt.isEmpty()) {
+            if (repository.count() == 0) {
+                getOrCreateDefault(null);
+                return true;
+            }
+            return false;
+        }
+
         return companyOpt
-            .map(s -> (s.getPrimaryPhone() != null && !s.getPrimaryPhone().isBlank())
-                   || (s.getEmail() != null && !s.getEmail().isBlank())
-                   || (s.getStreetAddress() != null && !s.getStreetAddress().isBlank())
-                   || (s.getGstin() != null && !s.getGstin().isBlank()))
+            .map(s -> s.getCompanyName() != null && !s.getCompanyName().isBlank())
             .orElse(false);
     }
 
+    @Transactional
+    public boolean isConfigured() {
+        return isConfigured(TenantContext.getCompanyId());
+    }
+
     /* ── Get (current tenant company) ── */
-    @Transactional(readOnly = true)
+    @Transactional
     public CompanySettingsDto.Response get() {
-        UUID companyId = TenantContext.getCompanyId();
-        CompanySettings settings = (companyId != null
-            ? repository.findById(companyId)
-            : repository.findFirstByOrderByCreatedAtAsc())
-            .orElseGet(() -> CompanySettings.builder()
-                .companyName("Fashion ERP Boutique")
-                .country("India")
-                .build());
-        return CompanySettingsDto.Response.from(settings);
+        return CompanySettingsDto.Response.from(getOrCreateDefault());
     }
 
     /* ── Update current tenant company ── */

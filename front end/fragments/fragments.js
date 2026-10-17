@@ -159,18 +159,17 @@
     // If the company has not yet been configured and the user is authenticated,
     // redirect them to the setup wizard before anything else loads.
     try {
-      const setupRes = await fetch(`${window.HAULO_API_BASE}/company/status`);
+      const tokenKeys = ['erp_token', 'haulo_token', 'fashion_erp_token'];
+      const token = tokenKeys.map(k => sessionStorage.getItem(k) || localStorage.getItem(k)).find(Boolean);
+      const setupRes = await fetch(`${window.HAULO_API_BASE}/company/status`, {
+        headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+      });
       if (setupRes.ok) {
         const statusData = await setupRes.json();
-        if (!statusData.configured) {
-          // Only redirect authenticated users — guests should see the login page
-          const tokenKeys = ['erp_token', 'haulo_token', 'fashion_erp_token'];
-          const hasToken = tokenKeys.some(k => !!(sessionStorage.getItem(k) || localStorage.getItem(k)));
-          if (hasToken) {
-            const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
-            window.location.replace(`${prefix}company/setup/setup.html`);
-            return;
-          }
+        if (statusData && statusData.configured === false && token) {
+          const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
+          window.location.replace(`${prefix}company/setup/setup.html`);
+          return;
         }
       }
     } catch (_) {

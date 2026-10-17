@@ -260,29 +260,6 @@ async function _redirectPostAuth(needsCompanySetup) {
     window.location.href = '../company/setup/setup.html';
     return;
   }
-  if (needsCompanySetup === false) {
-    _goToDashboard();
-    return;
-  }
-  // needsCompanySetup is null (e.g. already logged in preflight) — check via API
-  try {
-    const token = Auth.getToken();
-    const res = await fetch(`${getApiBase()}/company/status`, {
-      headers: token ? { 'Authorization': 'Bearer ' + token } : {}
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (!data.configured) {
-        // Do not redirect to setup wizard if user is visiting login page.
-        // Clear stale unconfigured session so the login page stays open.
-        Auth.clear();
-        return;
-      }
-    }
-  } catch (_) {
-    // If can't reach server remain on login page
-    return;
-  }
   _goToDashboard();
 }
 
@@ -292,7 +269,7 @@ function _goToDashboard() {
                       localStorage.getItem('haulo_redirect_after_login');
   sessionStorage.removeItem('haulo_redirect_after_login');
   localStorage.removeItem('haulo_redirect_after_login');
-  const destination = (redirectUrl && !redirectUrl.includes('login') && !redirectUrl.includes('session-expired'))
+  const destination = (redirectUrl && !redirectUrl.includes('login') && !redirectUrl.includes('session-expired') && !redirectUrl.includes('setup'))
     ? redirectUrl
     : '../dashboard/dashboard.html';
   window.location.href = destination;

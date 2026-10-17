@@ -145,11 +145,49 @@ ON CONFLICT (stage_key) DO UPDATE
 -- Default credentials: admin / Admin@123
 -- =============================================================================
 
+-- Ensure Default Company and Branch exist for admin login workspace
+INSERT INTO company_settings (
+    id, company_name, short_name, tagline, business_type,
+    primary_phone, email, street_address, city, state, country, created_at, updated_at
+) VALUES (
+    'c0000000-0000-0000-0000-000000000001',
+    'Riwayat Haute Couture',
+    'RIWAYAT',
+    'Haute Couture & Bespoke Bridal Atelier',
+    'Luxury Bespoke Tailoring',
+    '+91 98400 12345',
+    'contact@riwayat.com',
+    '12, Cathedral Road, Gopalapuram',
+    'Chennai',
+    'Tamil Nadu',
+    'India',
+    NOW(),
+    NOW()
+) ON CONFLICT (id) DO UPDATE
+    SET company_name = EXCLUDED.company_name,
+        short_name   = EXCLUDED.short_name,
+        updated_at   = NOW();
+
+INSERT INTO branches (
+    id, company_id, branch_code, name, type, active, is_headquarters, created_at, updated_at
+) VALUES (
+    'b0000000-0000-0000-0000-000000000001',
+    'c0000000-0000-0000-0000-000000000001',
+    'HQ-01',
+    'Main Branch',
+    'STORE',
+    true,
+    true,
+    NOW(),
+    NOW()
+) ON CONFLICT (id) DO NOTHING;
+
 DELETE FROM user_profiles WHERE user_id NOT IN (SELECT id FROM app_users WHERE username = 'admin');
 DELETE FROM app_users WHERE username != 'admin';
 
 INSERT INTO app_users (
     id,
+    company_id,
     username,
     password_hash,
     full_name,
@@ -160,6 +198,7 @@ INSERT INTO app_users (
 )
 VALUES (
     'd74e0819-2f3d-401b-a5ab-102d02ae74b8',
+    'c0000000-0000-0000-0000-000000000001',
     'admin',
     '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', -- Admin@123
     'Boutique Admin',
@@ -171,6 +210,7 @@ VALUES (
 ON CONFLICT (username) DO UPDATE
     SET active     = true,
         role       = 'OWNER',
+        company_id = 'c0000000-0000-0000-0000-000000000001',
         updated_at = NOW();
 
 INSERT INTO user_profiles (

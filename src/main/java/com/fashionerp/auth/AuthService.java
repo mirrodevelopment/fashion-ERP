@@ -82,14 +82,13 @@ public class AuthService {
             if (comp != null) {
                 companyName = comp.getCompanyName();
             }
-        } else {
-            var defaultComp = companySettingsRepository.findFirstByOrderByCreatedAtAsc().orElse(null);
-            if (defaultComp != null) {
-                companyId = defaultComp.getId();
-                companyName = defaultComp.getCompanyName();
-                user.setCompanyId(companyId);
-                userRepository.save(user);
-            }
+        }
+        if (companyId == null || companyName == null) {
+            CompanySettings defaultComp = companySettingsService.getOrCreateDefault(companyId);
+            companyId = defaultComp.getId();
+            companyName = defaultComp.getCompanyName();
+            user.setCompanyId(companyId);
+            userRepository.save(user);
         }
 
         java.util.List<String> userAllowedBranches = UserManagementService.resolveAllowedBranches(user);
@@ -110,7 +109,8 @@ public class AuthService {
             } catch (Exception ignored) {}
         }
 
-        boolean needsSetup = !companySettingsService.isConfigured();
+        // Active existing user logging into their workspace does not need to redo the onboarding wizard
+        boolean needsSetup = false;
 
         return AuthDto.LoginResponse.builder()
                 .token(token)
