@@ -155,26 +155,6 @@
     const isSetup = window.location.pathname.includes('/setup/');
     if (isLogin || isSetup) return;
 
-    // ── Company Setup Guard ──────────────────────────────────────────────────
-    // If the company has not yet been configured and the user is authenticated,
-    // redirect them to the setup wizard before anything else loads.
-    try {
-      const tokenKeys = ['erp_token', 'haulo_token', 'fashion_erp_token'];
-      const token = tokenKeys.map(k => sessionStorage.getItem(k) || localStorage.getItem(k)).find(Boolean);
-      const setupRes = await fetch(`${window.HAULO_API_BASE}/company/status`, {
-        headers: token ? { 'Authorization': 'Bearer ' + token } : {}
-      });
-      if (setupRes.ok) {
-        const statusData = await setupRes.json();
-        if (statusData && statusData.configured === false && token) {
-          const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
-          window.location.replace(`${prefix}company/setup/setup.html`);
-          return;
-        }
-      }
-    } catch (_) {
-      // Server unreachable — don't block navigation
-    }
 
     let allowedModules = null;
     try {

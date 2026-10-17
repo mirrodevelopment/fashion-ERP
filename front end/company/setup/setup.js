@@ -662,17 +662,6 @@ if (companyNameInput && shortNameInput) {
   // Ensure Admin account form grid is visible so the user can create login ID & password
   if (adminFormGrid) adminFormGrid.style.display = 'grid';
 
-  // Verify backend company configuration and stored authentication token
-  try {
-    const statusRes = await fetch(`${getApiBase()}/company/status`).catch(() => null);
-    if (statusRes && statusRes.ok) {
-      const statusData = await statusRes.json().catch(() => ({}));
-      if (!statusData.configured) {
-        // System is unconfigured / clean database. Any local token is stale leftover
-        clearStaleAuth();
-      }
-    }
-  } catch (_) {}
 
   if (activeToken) {
     try {

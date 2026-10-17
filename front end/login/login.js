@@ -310,8 +310,7 @@ async function performLogin(username, password, remember, companyName) {
 
     if (btnText) btnText.textContent = 'Welcome back!';
 
-    const needsSetup = resp.needsCompanySetup === true;
-    setTimeout(() => _redirectPostAuth(needsSetup), 250);
+    setTimeout(() => _goToDashboard(), 250);
     return true;
 
   } catch (err) {
