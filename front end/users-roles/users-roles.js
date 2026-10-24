@@ -34,6 +34,8 @@ const state = {
   branches: [],
   roles: [],
   kpiStats: null,
+  mfpActiveFilter: 'ALL',
+  mfpSearchText: '',
 };
 
 // ─── Initialisation ────────────────────────────────────────────────────
@@ -66,6 +68,9 @@ async function init() {
     showToast(err.message || 'Failed to initialize Users & Roles module', 'error');
   } finally {
     showLoading(false);
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
   }
 }
 
@@ -204,6 +209,47 @@ function wireEventListeners() {
       showToast(err.message || 'Failed to activate all users', 'error');
     } finally {
       showLoading(false);
+    }
+  });
+
+  // ── Modal: View Full Permissions ──
+  document.getElementById('btnViewFullPermissions')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openFullPermissionsModal();
+  });
+
+  document.getElementById('btnModalCloseFullPerm')?.addEventListener('click', closeFullPermissionsModal);
+  document.getElementById('btnModalCloseFullPermSecondary')?.addEventListener('click', closeFullPermissionsModal);
+
+  document.getElementById('modalFullPermissions')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modalFullPermissions') {
+      closeFullPermissionsModal();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeFullPermissionsModal();
+    }
+  });
+
+  document.getElementById('mfpFilterTabs')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.ur-modal-filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.ur-modal-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.mfpActiveFilter = btn.dataset.filter || 'ALL';
+    renderModalCapabilitiesGrid();
+  });
+
+  document.getElementById('mfpSearchInput')?.addEventListener('input', (e) => {
+    state.mfpSearchText = e.target.value.trim().toLowerCase();
+    renderModalCapabilitiesGrid();
+  });
+
+  document.getElementById('btnModalEditAccess')?.addEventListener('click', () => {
+    if (state.selectedUserId) {
+      window.location.href = `create-user/create-user.html?edit=${state.selectedUserId}`;
     }
   });
 }
@@ -860,4 +906,352 @@ function showToast(message, type = 'info') {
   setTimeout(() => {
     toast.remove();
   }, 3500);
+}
+
+// ─── Enterprise Capabilities Matrix & Modal Logic ───────────────────────
+
+const ERP_CAPABILITIES = [
+  // Operational & Financial Clearances
+  {
+    key: 'orders.create',
+    name: 'Create Orders Clearance',
+    category: 'Security & Clearances',
+    icon: 'shopping-bag',
+    badge: 'Standard Action',
+    desc: 'Permits booking, drafting, and registering customer tailoring orders & bespoke requests.'
+  },
+  {
+    key: 'orders.delete',
+    name: 'Delete Orders Clearance',
+    category: 'Security & Clearances',
+    icon: 'trash-2',
+    badge: 'Elevated Privilege',
+    desc: 'High-security authority to permanently void, delete, or cancel customer orders.'
+  },
+  {
+    key: 'finance.view',
+    name: 'Financial Data Visibility',
+    category: 'Security & Clearances',
+    icon: 'dollar-sign',
+    badge: 'Confidential',
+    desc: 'Visibility to revenue KPIs, financial margins, pricing breakdowns, and cash ledger records.'
+  },
+
+  // Overview & Analytics
+  {
+    key: 'dashboard',
+    name: 'Executive Dashboard',
+    category: 'Overview',
+    icon: 'layout-dashboard',
+    desc: 'High-level atelier business performance overview, sales metrics, and active orders.'
+  },
+
+  // Front Office & CRM
+  {
+    key: 'enquiries',
+    name: 'Client Enquiries',
+    category: 'Front Office',
+    icon: 'help-circle',
+    desc: 'Prospective client leads, custom tailoring requests, and initial consultations.'
+  },
+  {
+    key: 'appointments',
+    name: 'Fitting Appointments',
+    category: 'Front Office',
+    icon: 'calendar',
+    desc: 'Trial bookings, consultation calendars, and designer schedule management.'
+  },
+  {
+    key: 'customers',
+    name: 'Customer CRM',
+    category: 'Front Office',
+    icon: 'users',
+    desc: 'Comprehensive VIP client directory, preferences, order history, and measurements.'
+  },
+  {
+    key: 'orders',
+    name: 'Boutique Orders',
+    category: 'Front Office',
+    icon: 'shopping-bag',
+    desc: 'Active orders pipeline, milestone progress, and custom tailoring jobs.'
+  },
+  {
+    key: 'payments',
+    name: 'Payments & Ledger',
+    category: 'Front Office',
+    icon: 'credit-card',
+    desc: 'Client advance deposits, milestone payments, invoices, and payment receipts.'
+  },
+
+  // Fashion Atelier & Design
+  {
+    key: 'garments',
+    name: 'Garment Catalog',
+    category: 'Fashion Atelier',
+    icon: 'scissors',
+    desc: 'Boutique couture collections, master dress patterns, pricing, and silhouettes.'
+  },
+  {
+    key: 'designs',
+    name: 'Design Studio',
+    category: 'Fashion Atelier',
+    icon: 'palette',
+    desc: 'Sketch gallery, custom embroidery motifs, couture designs, and client moodboards.'
+  },
+  {
+    key: 'measurements',
+    name: 'Bespoke Measurements',
+    category: 'Fashion Atelier',
+    icon: 'ruler',
+    desc: 'Granular client tailoring profiles, body posture notes, and custom measurement charts.'
+  },
+  {
+    key: 'fabrics',
+    name: 'Fabrics & Materials',
+    category: 'Fashion Atelier',
+    icon: 'layers',
+    desc: 'Raw textiles, silk swatches, lining materials, lace, and embellishments inventory.'
+  },
+  {
+    key: 'collections',
+    name: 'Seasonal Collections',
+    category: 'Fashion Atelier',
+    icon: 'sparkles',
+    desc: 'Curated seasonal lookbooks, wedding edits, festive lines, and theme portfolios.'
+  },
+
+  // Production & Workshop
+  {
+    key: 'production-room',
+    name: 'Production Room',
+    category: 'Production & Workshop',
+    icon: 'activity',
+    desc: 'Workshop floor tracking, cutting masters, stitching queue, and artisan assignments.'
+  },
+  {
+    key: 'job-cards',
+    name: 'Artisan Job Cards',
+    category: 'Production & Workshop',
+    icon: 'clipboard-list',
+    desc: 'Detailed workshop job routing, task slips, artisan instructions, and labor hours.'
+  },
+  {
+    key: 'trials-alterations',
+    name: 'Trials & Alterations',
+    category: 'Production & Workshop',
+    icon: 'refresh-cw',
+    desc: 'Customer fitting trials, alteration markings, trial feedback, and re-stitching loops.'
+  },
+  {
+    key: 'quality-control',
+    name: 'Quality Control',
+    category: 'Production & Workshop',
+    icon: 'check-circle-2',
+    desc: 'Defect audits, stitching verification, finish inspection, and final packaging sign-off.'
+  },
+
+  // Inventory & Logistics
+  {
+    key: 'stock',
+    name: 'Stock & Inventory',
+    category: 'Inventory & Logistics',
+    icon: 'boxes',
+    desc: 'Warehouse fabric rolls, boutique accessories, stock thresholds, and alerts.'
+  },
+  {
+    key: 'purchases',
+    name: 'Procurement & POs',
+    category: 'Inventory & Logistics',
+    icon: 'shopping-cart',
+    desc: 'Supplier purchase orders, inward material verification, and vendor invoices.'
+  },
+  {
+    key: 'delivery',
+    name: 'Dispatch & Delivery',
+    category: 'Inventory & Logistics',
+    icon: 'truck',
+    desc: 'Finished garment shipping, boutique pickup scheduling, and courier track slips.'
+  },
+
+  // Governance & Administration
+  {
+    key: 'employees',
+    name: 'Employee Directory',
+    category: 'Governance & Administration',
+    icon: 'user-check',
+    desc: 'Staff directory, atelier craftsmen, attendance schedules, and shift records.'
+  },
+  {
+    key: 'branches',
+    name: 'Boutique Branches',
+    category: 'Governance & Administration',
+    icon: 'git-branch',
+    desc: 'Branch retail hubs, production workshops, workstations, and location settings.'
+  },
+  {
+    key: 'users-roles',
+    name: 'Users & Roles',
+    category: 'Governance & Administration',
+    icon: 'shield-check',
+    desc: 'Enterprise access governance, credentials, role privileges, and security matrix.'
+  },
+  {
+    key: 'settings',
+    name: 'Boutique Settings',
+    category: 'Governance & Administration',
+    icon: 'settings',
+    desc: 'Company branding, invoice formats, tax profiles, currency, and system preferences.'
+  }
+];
+
+function openFullPermissionsModal() {
+  if (!state.selectedUserDetail || !state.selectedUserDetail.summary) {
+    showToast('Please select a user to view full permissions', 'info');
+    return;
+  }
+
+  const modal = document.getElementById('modalFullPermissions');
+  if (!modal) return;
+
+  const u = state.selectedUserDetail.summary;
+
+  // Monogram / Avatar in modal header
+  const mfpAvatar = document.getElementById('mfpAvatar');
+  if (mfpAvatar) {
+    const initials = (u.avatarUrl && u.avatarUrl.startsWith('monogram:'))
+      ? u.avatarUrl.substring(9).trim().slice(0, 2).toUpperCase()
+      : getInitials(u.fullName || u.username);
+    if (u.avatarUrl && !u.avatarUrl.startsWith('monogram:')) {
+      mfpAvatar.innerHTML = `<img src="${escapeHtml(u.avatarUrl)}" alt="${escapeHtml(u.fullName)}" />`;
+    } else {
+      mfpAvatar.textContent = initials;
+    }
+  }
+
+  setText('mfpFullName', u.fullName || u.username);
+  setText('mfpRoleBadge', u.designation || formatRoleName(u.role));
+
+  // Reset filter controls
+  state.mfpActiveFilter = 'ALL';
+  state.mfpSearchText = '';
+  const searchInput = document.getElementById('mfpSearchInput');
+  if (searchInput) searchInput.value = '';
+  document.querySelectorAll('.ur-modal-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === 'ALL');
+  });
+
+  renderModalCapabilitiesGrid();
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+
+  if (window.lucide) {
+    window.lucide.createIcons({ root: modal });
+  }
+}
+
+function closeFullPermissionsModal() {
+  const modal = document.getElementById('modalFullPermissions');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function renderModalCapabilitiesGrid() {
+  const container = document.getElementById('mfpCapabilitiesContainer');
+  if (!container || !state.selectedUserDetail) return;
+
+  const u = state.selectedUserDetail.summary;
+  const detail = state.selectedUserDetail;
+  const allowedModules = detail.allowedModules || [];
+  const isOwner = (u.role === 'OWNER' || u.role === 'ADMIN');
+
+  // Compute total granted
+  const totalGranted = ERP_CAPABILITIES.filter(c => isOwner || allowedModules.includes(c.key)).length;
+  setText('mfpGrantedSummary', `${totalGranted} / ${ERP_CAPABILITIES.length} Granted`);
+
+  // Filter capabilities
+  const filter = state.mfpActiveFilter || 'ALL';
+  const query = (state.mfpSearchText || '').trim().toLowerCase();
+
+  const filtered = ERP_CAPABILITIES.filter(c => {
+    const isGranted = isOwner || allowedModules.includes(c.key);
+    if (filter === 'GRANTED' && !isGranted) return false;
+    if (filter === 'LOCKED' && isGranted) return false;
+    if (query) {
+      const match = c.name.toLowerCase().includes(query) ||
+                    c.key.toLowerCase().includes(query) ||
+                    c.category.toLowerCase().includes(query) ||
+                    (c.desc && c.desc.toLowerCase().includes(query));
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="ur-modal-empty-state">
+        <i data-lucide="shield-alert" class="ur-modal-empty-icon"></i>
+        <div class="ur-modal-empty-title">No Capabilities Match Filter</div>
+        <div class="ur-modal-empty-desc">No module authorizations match "${escapeHtml(query || filter)}". Try adjusting your search or tab.</div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons({ root: container });
+    return;
+  }
+
+  // Group by category
+  const categoriesMap = new Map();
+  filtered.forEach(c => {
+    if (!categoriesMap.has(c.category)) {
+      categoriesMap.set(c.category, []);
+    }
+    categoriesMap.get(c.category).push(c);
+  });
+
+  let html = '';
+  categoriesMap.forEach((items, catName) => {
+    html += `
+      <div class="ur-cap-section">
+        <div class="ur-cap-section-header">
+          <div class="ur-cap-section-title-wrap">
+            <span class="ur-cap-section-title">${escapeHtml(catName)}</span>
+            <span class="ur-cap-section-count">${items.length} items</span>
+          </div>
+        </div>
+        <div class="ur-cap-grid">
+          ${items.map(item => {
+            const isGranted = isOwner || allowedModules.includes(item.key);
+            return `
+              <div class="ur-cap-card ${isGranted ? 'granted' : 'locked'}">
+                <div class="ur-cap-card-top">
+                  <div class="ur-cap-icon-box ${isGranted ? 'box-granted' : 'box-locked'}">
+                    <i data-lucide="${escapeHtml(item.icon || 'shield')}"></i>
+                  </div>
+                  <div class="ur-cap-meta">
+                    <div class="ur-cap-name">${escapeHtml(item.name)}</div>
+                    <div class="ur-cap-key">${escapeHtml(item.key)}</div>
+                  </div>
+                  <span class="ur-perm-status-pill ${isGranted ? 'pill-granted' : 'pill-locked'}">
+                    <i data-lucide="${isGranted ? 'check' : 'lock'}"></i>
+                    <span>${isGranted ? 'Granted' : 'Locked'}</span>
+                  </span>
+                </div>
+                ${item.badge ? `<div class="ur-cap-badge-row"><span class="ur-cap-sub-badge">${escapeHtml(item.badge)}</span></div>` : ''}
+                <p class="ur-cap-desc">${escapeHtml(item.desc)}</p>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  if (window.lucide) {
+    window.lucide.createIcons({ root: container });
+  }
 }

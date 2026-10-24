@@ -191,11 +191,11 @@ public class UserManagementController {
     public ResponseEntity<java.util.Map<String, Object>> activateAll() {
         requireManagementAccess();
         int count = userManagementService.activateAllUsers();
-        return ResponseEntity.ok(java.util.Map.of(
-            "success", true,
-            "activatedCount", count,
-            "message", "All users are now active."
-        ));
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("success", true);
+        response.put("activatedCount", count);
+        response.put("message", "All users are now active.");
+        return ResponseEntity.ok(response);
     }
 
     // ─── Private Helpers ───────────────────────────────────────────────────

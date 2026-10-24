@@ -266,7 +266,7 @@ public class GarmentService {
             String prefix = (garmentCode != null && !garmentCode.isBlank())
                     ? garmentCode.trim().replaceAll("[^a-zA-Z0-9_-]", "")
                     : "GAR_" + System.currentTimeMillis();
-            int randSuffix = 1000 + new java.util.Random().nextInt(9000);
+            int randSuffix = java.util.concurrent.ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = prefix + "_" + randSuffix + ext;
 
             java.nio.file.Path storageDir = java.nio.file.Paths.get("front end", "assets", "garments").toAbsolutePath();

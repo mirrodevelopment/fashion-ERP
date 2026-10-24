@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -265,7 +265,7 @@ public class StageDefinitionService {
             if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
             }
-            int randNumber = 1000 + new Random().nextInt(9000);
+            int randNumber = ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = safeStageName + "_" + randNumber + ext;
 
             Path storageDir = Paths.get("front end", "assets", "stages").toAbsolutePath();

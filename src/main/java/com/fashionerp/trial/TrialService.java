@@ -84,7 +84,7 @@ public class TrialService {
         }
 
         String code = "TRL-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + "-"
-                + (100 + (int) (Math.random() * 900));
+                + java.util.concurrent.ThreadLocalRandom.current().nextInt(100, 1000);
 
         int attempt = req.getTrialAttempt() != null ? req.getTrialAttempt() : 1;
         int altCount = req.getAlterationCount() != null ? req.getAlterationCount() : 0;

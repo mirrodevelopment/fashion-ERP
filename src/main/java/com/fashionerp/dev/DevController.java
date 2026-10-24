@@ -13,7 +13,7 @@ import java.util.List;
  * Base path: /api/v1/dev
  * 
  * Provides live, database-driven persona switching and auto-login data.
- * Zero hardcoded seed data or dummy values.
+ * Zero hardcoded seed data or dummy values. Fully dynamic.
  */
 @RestController
 @RequestMapping("/api/v1/dev")

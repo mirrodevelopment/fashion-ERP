@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -166,7 +166,7 @@ public class CustomerService {
             if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext.toLowerCase())) {
                 throw new IllegalArgumentException("Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
             }
-            int fourDigits = 1000 + new Random().nextInt(9000);
+            int fourDigits = ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = customerName + "_" + fourDigits + ext;
 
             // Resolve storage directory: <project-root>/front end/assets/user uploads/user img/

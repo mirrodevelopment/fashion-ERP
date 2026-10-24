@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Developer Tooling Service
  * Dynamically queries active companies, branches, and user accounts
- * directly from PostgreSQL database.
+ * directly from PostgreSQL database. Fully dynamic.
  */
 @Service
 @RequiredArgsConstructor

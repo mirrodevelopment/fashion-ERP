@@ -11,6 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Core authentication service handling login, registration, and tenant lookup.
+ * Backed by live database settings and JWT security.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,7 @@ public class AuthService {
     private final CompanySettingsService companySettingsService;
     private final CompanySettingsRepository companySettingsRepository;
     private final UserAccessLogRepository accessLogRepository;
+    private final UserActiveSessionRepository activeSessionRepository;
 
     // ── Company Lookup (multi-step login Step 1) ───────────────────────────
 
@@ -109,6 +114,19 @@ public class AuthService {
             } catch (Exception ignored) {}
         }
 
+        if (companyId != null && activeSessionRepository != null) {
+            try {
+                activeSessionRepository.save(UserActiveSession.builder()
+                        .companyId(companyId)
+                        .userId(user.getId())
+                        .device(clientIp != null ? "Web Browser (" + clientIp + ")" : "Desktop Client")
+                        .location(user.getAssignedBranch() != null ? user.getAssignedBranch() : "Main Studio")
+                        .lastSeenAt(LocalDateTime.now())
+                        .isCurrent(true)
+                        .build());
+            } catch (Exception ignored) {}
+        }
+
         // Active existing user logging into their workspace does not need to redo the onboarding wizard
         boolean needsSetup = false;
 
@@ -177,6 +195,19 @@ public class AuthService {
                         .location(user.getAssignedBranch() != null ? user.getAssignedBranch() : (clientIp != null ? clientIp : "Primary Terminal"))
                         .clientInfo(clientIp != null ? "IP: " + clientIp : "Developer Quick-Login")
                         .createdAt(LocalDateTime.now())
+                        .build());
+            } catch (Exception ignored) {}
+        }
+
+        if (companyId != null && activeSessionRepository != null) {
+            try {
+                activeSessionRepository.save(UserActiveSession.builder()
+                        .companyId(companyId)
+                        .userId(user.getId())
+                        .device(clientIp != null ? "Developer Persona (" + clientIp + ")" : "Dev Console")
+                        .location(user.getAssignedBranch() != null ? user.getAssignedBranch() : "Development Environment")
+                        .lastSeenAt(LocalDateTime.now())
+                        .isCurrent(true)
                         .build());
             } catch (Exception ignored) {}
         }

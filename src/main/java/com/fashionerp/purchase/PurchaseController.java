@@ -51,6 +51,10 @@ public class PurchaseController {
     @PostMapping("/purchases")
     @ResponseStatus(HttpStatus.CREATED)
     public PurchaseOrder createPurchase(@RequestBody PurchaseOrder po) {
+        UUID companyId = TenantContext.getCompanyId();
+        if (po.getCompanyId() == null && companyId != null) {
+            po.setCompanyId(companyId);
+        }
         if (po.getPoCode() == null || po.getPoCode().isBlank()) {
             po.setPoCode("PO-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
         }
@@ -166,6 +170,10 @@ public class PurchaseController {
     @PostMapping("/suppliers")
     @ResponseStatus(HttpStatus.CREATED)
     public Supplier createSupplier(@RequestBody Supplier supplier) {
+        UUID companyId = TenantContext.getCompanyId();
+        if (supplier.getCompanyId() == null && companyId != null) {
+            supplier.setCompanyId(companyId);
+        }
         if (supplier.getSupplierCode() == null || supplier.getSupplierCode().isBlank()) {
             supplier.setSupplierCode("SUP-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
         }

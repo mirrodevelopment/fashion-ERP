@@ -2,7 +2,6 @@ package com.fashionerp.auth;
 
 import com.fashionerp.profile.UserProfile;
 import com.fashionerp.profile.UserProfileRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,7 +16,6 @@ import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,39 +42,8 @@ public class UserManagementService {
     private final PasswordEncoder passwordEncoder;
     private final com.fashionerp.branch.BranchRepository branchRepository;
     private final UserDelegationRepository delegationRepository;
-
-    /**
-     * Startup verification sweep: Ensures all existing users are set to active=true and status='ACTIVE'.
-     */
-    @PostConstruct
-    @Transactional
-    public void ensureAllUsersActive() {
-        try {
-            List<AppUser> users = userRepository.findAll();
-            int updated = 0;
-            for (AppUser user : users) {
-                boolean changed = false;
-                if (!Boolean.TRUE.equals(user.getActive())) {
-                    user.setActive(true);
-                    changed = true;
-                }
-                if (user.getStatus() == null || !"ACTIVE".equalsIgnoreCase(user.getStatus())) {
-                    user.setStatus("ACTIVE");
-                    changed = true;
-                }
-                if (changed) {
-                    user.setUpdatedAt(LocalDateTime.now());
-                    userRepository.save(user);
-                    updated++;
-                }
-            }
-            if (updated > 0) {
-                log.info("[UserManagement] Initial sweep set {} users to active=true and status=ACTIVE.", updated);
-            }
-        } catch (Exception e) {
-            log.warn("[UserManagement] Initial user activation sweep skipped: {}", e.getMessage());
-        }
-    }
+    private final UserAccessLogRepository accessLogRepository;
+    private final UserActiveSessionRepository activeSessionRepository;
 
     /**
      * Activates all users within the company/system.
@@ -109,8 +76,6 @@ public class UserManagementService {
         log.info("Activated {} users to active=true and status=ACTIVE", count);
         return count;
     }
-    private final UserAccessLogRepository accessLogRepository;
-    private final UserActiveSessionRepository activeSessionRepository;
 
     // ─── Read ──────────────────────────────────────────────────────────────
 
@@ -261,13 +226,14 @@ public class UserManagementService {
         long newUsersLastMonth = userList.stream()
                 .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(thirtyDaysAgo)).count();
         String totalTrend = newUsersLastMonth > 0
-                ? "↑ " + Math.max(5, (newUsersLastMonth * 100 / Math.max(1, total))) + "% vs last month"
+                ? "↑ " + (newUsersLastMonth * 100 / Math.max(1, total)) + "% new users (30d)"
                 : "Stable";
-        String activeTrend = active > 0 ? "↑ 11% vs last month" : "No change";
-        String pendingTrend = pending > 0 ? "↓ 33% vs last month" : "No pending invites";
-        String adminTrend = "No change";
-        String elevatedTrend = elevated > 0 ? "↑ 50% vs last month" : "Standard";
-        String reviewTrend = reviewDue > 0 ? "↓ 67% vs last month" : "All reviews clear";
+        long activePct = total > 0 ? (active * 100 / total) : 0;
+        String activeTrend = activePct + "% of users active";
+        String pendingTrend = pending > 0 ? pending + " pending invites" : "All invitations accepted";
+        String adminTrend = adminLevel + " privileged roles";
+        String elevatedTrend = elevated > 0 ? elevated + " with elevated limits" : "Standard baseline";
+        String reviewTrend = reviewDue > 0 ? reviewDue + " requires audit" : "All reviews clear";
 
         return UserManagementDto.KpiStats.builder()
                 .totalUsers(total)
@@ -314,43 +280,88 @@ public class UserManagementService {
         boolean isOwner = user.getRole() == UserRole.OWNER || user.getRole() == UserRole.ADMIN;
         boolean isBranchAdmin = user.getRole() == UserRole.BRANCH_ADMIN;
 
-        // Dynamic Access Intelligence: Allowed Permissions
+        // ─── Real Database-Backed Access Intelligence ───────────────────────────
         List<String> allowed = new java.util.ArrayList<>();
-        if (modules.contains("orders") || isOwner || isBranchAdmin)
-            allowed.add("Can create and edit customer orders");
-        if (isOwner || modules.contains("branches"))
-            allowed.add("Can view all branches and production");
-        if (isOwner || (user.getApprovalLimit() == null
-                || user.getApprovalLimit().compareTo(new BigDecimal("50000")) >= 0)) {
-            allowed.add(isOwner || user.getApprovalLimit() == null ? "Can approve purchases (unlimited)"
-                    : "Can approve purchases (₹" + formatLimitNumber(user.getApprovalLimit()) + ")");
-        }
-        if (modules.contains("stock") || isOwner || isBranchAdmin)
-            allowed.add("Can manage inventory and adjustments");
-        if (isOwner || isBranchAdmin)
-            allowed.add("Can manage users and roles");
-        if (isOwner || modules.contains("reports") || modules.contains("profitability"))
-            allowed.add("Can access financial reports");
-        if (modules.contains("appointments") || modules.contains("customers"))
-            allowed.add("Can manage client appointments and CRM");
-        if (modules.contains("quality-control") || modules.contains("production-room"))
-            allowed.add("Can execute production quality sign-offs");
-        if (allowed.isEmpty())
-            allowed.add("Basic dashboard workspace access");
-
-        // Dynamic Access Intelligence: Restricted Permissions
         List<String> denied = new java.util.ArrayList<>();
-        if (!isOwner) {
-            denied.add("Cannot delete orders");
-            denied.add("Cannot modify audit logs");
-            denied.add("Cannot bypass approval workflow");
-            denied.add("Cannot approve own requests");
-            denied.add("Cannot modify payroll");
+
+        // 1. Operational Clearance: Create Orders
+        if (isOwner || modules.contains("orders.create") || modules.contains("orders")) {
+            allowed.add("Can create and draft customer orders");
+        } else {
+            denied.add("Cannot create or draft customer orders");
         }
-        if (!isOwner && !modules.contains("stock"))
-            denied.add("Cannot perform warehouse stock write-offs");
-        if (!isOwner && !modules.contains("reports"))
-            denied.add("Cannot export general ledger statements");
+
+        // 2. Operational Clearance: Delete Orders
+        if (isOwner || modules.contains("orders.delete")) {
+            allowed.add("Can delete and cancel customer orders");
+        } else {
+            denied.add("Cannot delete or void customer orders");
+        }
+
+        // 3. Operational Clearance: View Financial Data
+        if (isOwner || modules.contains("finance.view") || modules.contains("reports") || modules.contains("payments")) {
+            allowed.add("Can view financial data, pricing & revenue");
+        } else {
+            denied.add("Cannot access financial reports or revenue data");
+        }
+
+        // 4. Fashion Atelier: Garments & Design Studio
+        boolean hasFashion = isOwner || modules.stream().anyMatch(m -> m.equals("garments") || m.equals("designs") || m.equals("fabrics") || m.equals("measurements") || m.equals("collections"));
+        if (hasFashion) {
+            allowed.add("Can manage garment catalog and design atelier");
+        } else {
+            denied.add("Cannot access garment catalog or design studio");
+        }
+
+        // 5. Production & Quality Control
+        boolean hasProduction = isOwner || modules.stream().anyMatch(m -> m.equals("production-room") || m.equals("quality-control") || m.equals("trials-alterations") || m.equals("job-cards"));
+        if (hasProduction) {
+            allowed.add("Can manage workshop production and QC sign-offs");
+        } else {
+            denied.add("Cannot access workshop production room or QC");
+        }
+
+        // 6. Inventory & Warehouse Stock
+        boolean hasInventory = isOwner || modules.stream().anyMatch(m -> m.equals("stock") || m.equals("purchases") || m.equals("delivery"));
+        if (hasInventory) {
+            allowed.add("Can manage warehouse stock, materials & purchases");
+        } else {
+            denied.add("Cannot perform inventory stock adjustments or purchases");
+        }
+
+        // 7. Client CRM & Front Desk
+        boolean hasCrm = isOwner || modules.stream().anyMatch(m -> m.equals("customers") || m.equals("appointments") || m.equals("enquiries"));
+        if (hasCrm) {
+            allowed.add("Can manage client appointments and CRM records");
+        } else {
+            denied.add("No access to client appointments or customer CRM");
+        }
+
+        // 8. Administration, Users & Settings
+        boolean hasAdmin = isOwner || (isBranchAdmin && modules.contains("users-roles"));
+        if (hasAdmin) {
+            allowed.add("Can administer branch staff, users and security roles");
+        } else {
+            denied.add("Cannot administer users, security roles, or settings");
+        }
+
+        // 9. Purchase Order Approval Limits
+        if (isOwner || user.getRole() == UserRole.ADMIN) {
+            allowed.add("Purchase approval authority: Unlimited");
+        } else if (user.getApprovalLimit() != null && user.getApprovalLimit().compareTo(BigDecimal.ZERO) > 0) {
+            allowed.add("Purchase approval authority: Up to ₹" + formatLimitNumber(user.getApprovalLimit()));
+        } else {
+            denied.add("Cannot approve purchase orders (limit ₹0)");
+        }
+
+        // 10. Multi-Branch vs Single-Branch Scope
+        boolean hasMultiBranch = isOwner || (user.getAllowedBranches() != null && user.getAllowedBranches().contains(",") && !user.getAllowedBranches().equals("[]"));
+        if (hasMultiBranch) {
+            allowed.add("Authorized for multi-branch location switching");
+        } else if (!isOwner) {
+            String lockedBranch = user.getAssignedBranch() != null && !user.getAssignedBranch().isBlank() ? user.getAssignedBranch() : "Assigned Branch";
+            denied.add("Locked to single branch location (" + lockedBranch + ")");
+        }
 
         // Authority & Approval Limits
         int discountPct = isOwner ? 25
@@ -461,29 +472,7 @@ public class UserManagementService {
                     .isRecent(l.getCreatedAt().isAfter(LocalDateTime.now().minusHours(24)))
                     .build()).collect(Collectors.toList());
         } else {
-            accessLogs = new java.util.ArrayList<>();
-            if (user.getLastLogin() != null) {
-                accessLogs.add(UserManagementDto.AccessLogDto.builder()
-                        .actionType("LOGIN")
-                        .description("Logged into boutique ERP workspace")
-                        .location("Primary Session")
-                        .clientInfo("Browser")
-                        .createdAt(user.getLastLogin())
-                        .timeFormatted(formatRelativeTime(user.getLastLogin()))
-                        .isRecent(user.getLastLogin().isAfter(LocalDateTime.now().minusHours(24)))
-                        .build());
-            }
-            if (user.getUpdatedAt() != null) {
-                accessLogs.add(UserManagementDto.AccessLogDto.builder()
-                        .actionType("ROLE_UPDATE")
-                        .description("Profile & clearance verification checked")
-                        .location("System")
-                        .clientInfo("ERP Core")
-                        .createdAt(user.getUpdatedAt())
-                        .timeFormatted(formatRelativeTime(user.getUpdatedAt()))
-                        .isRecent(false)
-                        .build());
-            }
+            accessLogs = Collections.emptyList();
         }
 
         // Active sessions from database
@@ -499,13 +488,7 @@ public class UserManagementService {
                     .isCurrent(s.getIsCurrent())
                     .build()).collect(Collectors.toList());
         } else {
-            sessions = List.of(UserManagementDto.ActiveSessionDto.builder()
-                    .device("Active ERP Session")
-                    .location(user.getAssignedBranch() != null ? user.getAssignedBranch() : "Main Office")
-                    .lastSeenAt(LocalDateTime.now())
-                    .lastSeenFormatted("Now")
-                    .isCurrent(true)
-                    .build());
+            sessions = Collections.emptyList();
         }
 
         DateTimeFormatter joinedFmt = DateTimeFormatter.ofPattern("dd MMM yyyy");
@@ -521,6 +504,7 @@ public class UserManagementService {
                 .joinedDateFormatted(joinedFormatted)
                 .permissionsAllowed(allowed)
                 .permissionsDenied(denied)
+                .allowedModules(modules)
                 .riskLevel(user.getRiskLevel() != null ? user.getRiskLevel() : "LOW")
                 .riskNotes(user.getRiskNotes() != null ? user.getRiskNotes()
                         : "No critical permission conflicts detected.")
@@ -767,22 +751,13 @@ public class UserManagementService {
 
         UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
 
-        String scope = req.getAccessScope();
-        if (scope == null || scope.isBlank()) {
-            if (role == UserRole.OWNER || role == UserRole.ADMIN)
-                scope = "Full System";
-            else if (role == UserRole.BRANCH_ADMIN)
-                scope = "Branch + Production";
-            else
-                scope = "Full System";
-        }
+        String scope = resolveDefaultAccessScope(role, req.getDesignation(), req.getAccessScope());
 
         AppUser user = AppUser.builder()
                 .companyId(companyId)
                 .username(req.getUsername().trim())
                 .fullName(req.getFullName() != null ? req.getFullName().trim() : req.getUsername().trim())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
-                .devPassword(req.getPassword())
                 .role(role)
                 .active(true)
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
@@ -922,7 +897,6 @@ public class UserManagementService {
                 throw new IllegalArgumentException("Password must be at least 6 characters.");
             }
             user.setPasswordHash(passwordEncoder.encode(req.getPassword()));
-            user.setDevPassword(req.getPassword());
         }
 
         if (req.getAccessScope() != null && !req.getAccessScope().isBlank()) {
@@ -935,10 +909,11 @@ public class UserManagementService {
             user.setAvatarUrl(req.getAvatarUrl().trim().isEmpty() ? null : req.getAvatarUrl().trim());
         }
         if (req.getStatus() != null && !req.getStatus().isBlank()) {
-            user.setStatus(req.getStatus().trim());
-            if ("SUSPENDED".equalsIgnoreCase(req.getStatus())) {
+            String st = req.getStatus().trim();
+            user.setStatus(st);
+            if ("SUSPENDED".equalsIgnoreCase(st) || "INACTIVE".equalsIgnoreCase(st)) {
                 user.setActive(false);
-            } else if ("ACTIVE".equalsIgnoreCase(req.getStatus())) {
+            } else if ("ACTIVE".equalsIgnoreCase(st)) {
                 user.setActive(true);
             }
         }
@@ -1005,6 +980,7 @@ public class UserManagementService {
         }
 
         user.setActive(newActive);
+        user.setStatus(newActive ? "ACTIVE" : "SUSPENDED");
         user.setUpdatedAt(LocalDateTime.now());
         AppUser saved = userRepository.save(user);
 
@@ -1112,7 +1088,7 @@ public class UserManagementService {
         if (role == UserRole.OWNER)
             return "COMPANY OWNER (DEFAULT ROOT)";
         if (role == UserRole.ADMIN)
-            return "COMPANY OWNER (DEFAULT ROOT)";
+            return "COMPANY ADMINISTRATOR (SYSTEM ADMIN)";
         if (role == UserRole.BRANCH_ADMIN)
             return "BRANCH ADMINISTRATOR (DEFAULT BRANCH ROOT)";
         if (role == UserRole.CUSTOM)
@@ -1138,56 +1114,80 @@ public class UserManagementService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
     }
 
+    public static String resolveDefaultAccessScope(UserRole role, String designation, String requestedScope) {
+        if (requestedScope != null && !requestedScope.isBlank()) {
+            return requestedScope.trim();
+        }
+        if (role == UserRole.OWNER || role == UserRole.ADMIN) {
+            return "Full System";
+        }
+        if (role == UserRole.BRANCH_ADMIN) {
+            return "Branch + Production";
+        }
+        if (designation != null && !designation.isBlank()) {
+            String d = designation.toLowerCase();
+            if (d.contains("production")) return "Production Only";
+            if (d.contains("sales")) return "Customers + Orders";
+            if (d.contains("account") || d.contains("finance")) return "Finance + Purchases";
+            if (d.contains("inventory") || d.contains("stock")) return "Inventory Only";
+            if (d.contains("qc") || d.contains("quality")) return "QC + Production";
+            if (d.contains("purchase")) return "Purchases Only";
+            if (d.contains("design")) return "Designs + Samples";
+        }
+        return "Full System";
+    }
+
+    private static List<String> parseJsonStringArray(String json) {
+        if (json == null || json.isBlank()) return new java.util.ArrayList<>();
+        String trimmed = json.trim();
+        List<String> result = new java.util.ArrayList<>();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"([^\"]*)\"|'([^']*)'").matcher(trimmed);
+            while (m.find()) {
+                String val = m.group(1) != null ? m.group(1) : m.group(2);
+                if (val != null && !val.isBlank() && !result.contains(val.trim())) {
+                    result.add(val.trim());
+                }
+            }
+            if (!result.isEmpty()) {
+                return result;
+            }
+            trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
+        }
+        if (trimmed.isEmpty()) return result;
+        for (String part : trimmed.split(",")) {
+            String clean = part.replace("\"", "").replace("'", "").replace("[", "").replace("]", "").replace("{", "").replace("}", "").trim();
+            if (!clean.isBlank() && !result.contains(clean)) {
+                result.add(clean);
+            }
+        }
+        return result;
+    }
+
     private String serializeModules(List<String> modules) {
-        if (modules == null || modules.isEmpty())
-            return "[]";
+        if (modules == null || modules.isEmpty()) return "[]";
         return "[" + modules.stream()
                 .filter(m -> m != null && !m.isBlank())
                 .distinct()
-                .map(m -> "\"" + m.trim().replace("\"", "") + "\"")
+                .map(m -> "\"" + m.trim().replace("\\", "\\\\").replace("\"", "\\\"") + "\"")
                 .collect(Collectors.joining(",")) + "]";
     }
 
     private List<String> deserializeModules(String json) {
-        if (json == null || json.isBlank())
-            return null;
-        String trimmed = json.trim();
-        if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
-            trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
-        }
-        if (trimmed.isEmpty())
-            return new java.util.ArrayList<String>();
-        return Arrays.stream(trimmed.split(","))
-                .map(s -> s.trim().replace("\"", "").replace("'", "").replace("{", "").replace("}", ""))
-                .filter(s -> !s.isBlank())
-                .distinct()
-                .collect(Collectors.toList());
+        return parseJsonStringArray(json);
     }
 
     public static String serializeBranches(List<String> branches) {
-        if (branches == null || branches.isEmpty())
-            return "[]";
+        if (branches == null || branches.isEmpty()) return "[]";
         return "[" + branches.stream()
                 .filter(b -> b != null && !b.isBlank())
                 .distinct()
-                .map(b -> "\"" + b.trim().replace("\"", "") + "\"")
+                .map(b -> "\"" + b.trim().replace("\\", "\\\\").replace("\"", "\\\"") + "\"")
                 .collect(Collectors.joining(",")) + "]";
     }
 
     public static List<String> deserializeBranches(String json) {
-        if (json == null || json.isBlank())
-            return new java.util.ArrayList<String>();
-        String trimmed = json.trim();
-        if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
-            trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
-        }
-        if (trimmed.isEmpty())
-            return new java.util.ArrayList<String>();
-        return Arrays.stream(trimmed.split(","))
-                .map(s -> s.trim().replace("\"", "").replace("'", "").replace("{", "").replace("}", ""))
-                .filter(s -> !s.isBlank())
-                .distinct()
-                .collect(Collectors.toList());
+        return parseJsonStringArray(json);
     }
 
     public static List<String> resolveAllowedBranches(AppUser user) {
@@ -1247,7 +1247,7 @@ public class UserManagementService {
         if (amt == null)
             return "0";
         long val = amt.longValue();
-        java.text.NumberFormat nf = java.text.NumberFormat.getInstance(new java.util.Locale("en", "IN"));
+        java.text.NumberFormat nf = java.text.NumberFormat.getInstance(java.util.Locale.forLanguageTag("en-IN"));
         return nf.format(val);
     }
 
@@ -1277,31 +1277,7 @@ public class UserManagementService {
         List<String> modules = resolveAllowedModules(user);
         List<String> branches = resolveAllowedBranches(user);
 
-        String scope = user.getAccessScope();
-        if (scope == null || scope.isBlank()) {
-            if (user.getRole() == UserRole.OWNER || user.getRole() == UserRole.ADMIN) {
-                scope = "Full System";
-            } else if (user.getRole() == UserRole.BRANCH_ADMIN) {
-                scope = "Branch + Production";
-            } else if (user.getDesignation() != null && user.getDesignation().toLowerCase().contains("production")) {
-                scope = "Production Only";
-            } else if (user.getDesignation() != null && user.getDesignation().toLowerCase().contains("sales")) {
-                scope = "Customers + Orders";
-            } else if (user.getDesignation() != null && (user.getDesignation().toLowerCase().contains("account")
-                    || user.getDesignation().toLowerCase().contains("finance"))) {
-                scope = "Finance + Purchases";
-            } else if (user.getDesignation() != null && user.getDesignation().toLowerCase().contains("inventory")) {
-                scope = "Inventory Only";
-            } else if (user.getDesignation() != null && user.getDesignation().toLowerCase().contains("qc")) {
-                scope = "QC + Production";
-            } else if (user.getDesignation() != null && user.getDesignation().toLowerCase().contains("purchase")) {
-                scope = "Purchases Only";
-            } else if (user.getDesignation() != null && user.getDesignation().toLowerCase().contains("design")) {
-                scope = "Designs + Samples";
-            } else {
-                scope = "Full System";
-            }
-        }
+        String scope = resolveDefaultAccessScope(user.getRole(), user.getDesignation(), user.getAccessScope());
 
         int healthScore = (user.getAccessHealthScore() != null)
                 ? user.getAccessHealthScore()
@@ -1313,6 +1289,9 @@ public class UserManagementService {
         String status = (user.getStatus() != null && !user.getStatus().isBlank())
                 ? user.getStatus()
                 : (Boolean.TRUE.equals(user.getActive()) ? "ACTIVE" : "SUSPENDED");
+        if (!Boolean.TRUE.equals(user.getActive()) && "ACTIVE".equalsIgnoreCase(status)) {
+            status = "SUSPENDED";
+        }
 
         LocalDateTime lastActive = (user.getLastActiveAt() != null)
                 ? user.getLastActiveAt()

@@ -14,8 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -97,7 +97,7 @@ public class EmployeeService {
             .salary(req.getSalary() != null ? req.getSalary() : java.math.BigDecimal.ZERO)
             .branch(branch)
             .workload(req.getWorkload() != null ? req.getWorkload() : 0)
-            .efficiency(req.getEfficiency() != null ? req.getEfficiency() : 95)
+            .efficiency(req.getEfficiency() != null ? req.getEfficiency() : 100)
             .completedMonth(req.getCompletedMonth() != null ? req.getCompletedMonth() : 0)
             .build();
 
@@ -156,7 +156,7 @@ public class EmployeeService {
                 throw new IllegalArgumentException("Invalid file type: " + ext + ". Allowed types: jpg, jpeg, png, webp, gif");
             }
 
-            int fourDigits = 1000 + new Random().nextInt(9000);
+            int fourDigits = ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = empId + "_" + fourDigits + ext;
 
             // Resolve storage directory: <project-root>/front end/assets/employees/

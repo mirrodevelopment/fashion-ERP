@@ -53,10 +53,18 @@
 
         <!-- ── Top Header Row: Title & 6 KPI Metric Cards ── -->
         <header class="ur-top-header">
-          <div class="ur-header-left">
-            <div id="breadcrumbSlot"></div>
-            <h1 class="ur-page-title">Users &amp; Roles</h1>
-            <p class="ur-page-subtitle">Control who can access what, where, and at what authority.</p>
+          <div class="ur-header-bar">
+            <div class="ur-header-left">
+              <div id="breadcrumbSlot"></div>
+              <h1 class="ur-page-title">Users &amp; Roles</h1>
+              <p class="ur-page-subtitle">Control who can access what, where, and at what authority.</p>
+            </div>
+            <div class="ur-header-cta-wrap">
+              <a href="create-user/create-user.html" class="ur-btn-primary-create" id="btnHeaderCreateUser">
+                <i data-lucide="user-plus"></i>
+                <span>Create User</span>
+              </a>
+            </div>
           </div>
 
           <!-- 6 Stat Cards Aligned Across the Top Row -->
@@ -204,9 +212,9 @@
                   <span>Activate All</span>
                 </button>
 
-                <a href="create-user/create-user.html" class="ur-btn-add-user" id="btnAddUser">
-                  <i data-lucide="plus"></i>
-                  <span>Add User</span>
+                <a href="create-user/create-user.html" class="ur-btn-add-user ur-btn-create-user" id="btnAddUser" title="Create a new user account">
+                  <i data-lucide="user-plus"></i>
+                  <span>Create User</span>
                 </a>
 
                 <button class="ur-btn-icon-subtle" id="btnTableMore" title="More options">
@@ -287,6 +295,10 @@
                 <i data-lucide="users" class="ur-empty-icon"></i>
                 <div class="ur-empty-title">No users found</div>
                 <div class="ur-empty-desc">No accounts match the current filter criteria.</div>
+                <a href="create-user/create-user.html" class="ur-btn-primary-create ur-btn-empty-create">
+                  <i data-lucide="user-plus"></i>
+                  <span>Create New User</span>
+                </a>
               </div>
 
               <!-- Loading State -->
@@ -397,7 +409,7 @@
                   </span>
                 </div>
 
-                <!-- 4 Mini KPI Cards Row -->
+                <!-- 4 Mini KPI Cards (2 Cards Per Line) -->
                 <div class="ur-mini-kpi-grid">
                   <div class="ur-mini-card">
                     <div class="ur-mini-icon icon-lime">
@@ -554,6 +566,67 @@
 
     </div>
 
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════
+       FULL MODULE AUTHORIZATIONS & CLEARANCES MODAL
+  ═════════════════════════════════════════════════════════ -->
+  <div class="ur-modal-backdrop" id="modalFullPermissions" aria-hidden="true" role="dialog" aria-labelledby="modalFullPermTitle">
+    <div class="ur-modal-dialog">
+      <!-- Modal Header -->
+      <div class="ur-modal-header">
+        <div class="ur-modal-header-info">
+          <div class="ur-modal-avatar-monogram" id="mfpAvatar">--</div>
+          <div>
+            <div class="ur-modal-title-row">
+              <h3 class="ur-modal-title" id="modalFullPermTitle">Enterprise Access &amp; Clearances</h3>
+              <span class="ur-role-pill-outline" id="mfpRoleBadge">Role</span>
+            </div>
+            <div class="ur-modal-user-subtitle">
+              <span class="ur-modal-username" id="mfpFullName">User Name</span>
+              <span class="ur-modal-dot">•</span>
+              <span class="ur-modal-granted-counter" id="mfpGrantedSummary">0 / 25 Granted</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="ur-modal-close-btn" id="btnModalCloseFullPerm" title="Close permissions matrix" aria-label="Close modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- Modal Filter Bar -->
+      <div class="ur-modal-filter-bar">
+        <div class="ur-modal-filter-tabs" id="mfpFilterTabs">
+          <button type="button" class="ur-modal-filter-btn active" data-filter="ALL">All Capabilities</button>
+          <button type="button" class="ur-modal-filter-btn" data-filter="GRANTED">Granted (✓)</button>
+          <button type="button" class="ur-modal-filter-btn" data-filter="LOCKED">Restricted (✗)</button>
+        </div>
+        <div class="ur-modal-search">
+          <i data-lucide="search"></i>
+          <input type="text" id="mfpSearchInput" placeholder="Filter module or clearance..." spellcheck="false" autocomplete="off" />
+        </div>
+      </div>
+
+      <!-- Modal Body (Categorized Grid) -->
+      <div class="ur-modal-body" id="mfpCapabilitiesContainer">
+        <!-- Rendered dynamically by category -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="ur-modal-footer">
+        <div class="ur-modal-footer-legend">
+          <span class="ur-legend-item"><span class="ur-legend-dot granted"></span> Granted &amp; Authorized</span>
+          <span class="ur-legend-item"><span class="ur-legend-dot locked"></span> Prohibited / Locked</span>
+        </div>
+        <div class="ur-modal-footer-actions">
+          <button type="button" class="ur-btn-secondary" id="btnModalCloseFullPermSecondary">Close</button>
+          <button type="button" class="ur-btn-primary" id="btnModalEditAccess">
+            <i data-lucide="edit-3"></i>
+            <span>Edit Access Rights</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Central toast notifications container -->

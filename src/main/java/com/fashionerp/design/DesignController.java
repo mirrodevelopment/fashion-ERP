@@ -231,9 +231,6 @@ public class DesignController {
         }
 
         long designsToProd = designRepository.countByProductionStatusAndCompanyId("Active", companyId);
-        if (designsToProd == 0) {
-            designsToProd = approved;
-        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("total",               total);

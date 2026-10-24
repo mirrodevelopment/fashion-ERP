@@ -86,21 +86,28 @@ function runSystemDiagnostics() {
   const icon = document.getElementById('diagSpinIcon');
   if (icon) icon.classList.add('spinning');
 
-  showToast('Running diagnostic probe across data layer & services...', 'info');
+  showToast('Running diagnostic probe across database & services...', 'info');
 
-  setTimeout(() => {
-    if (icon) icon.classList.remove('spinning');
-    showToast('✓ All 4 core services healthy. ERP Engine ready for deployment.', 'info');
+  fetch('/actuator/health')
+    .then(r => r.json())
+    .then(data => {
+      if (icon) icon.classList.remove('spinning');
+      const isUp = data && (data.status === 'UP' || data.status === 200);
+      showToast(isUp ? '✓ Core services healthy (Database & Spring Boot UP).' : '⚠ Warning: Services degraded.', isUp ? 'info' : 'wip');
 
-    // Subtle celebration pulse on the master launch button
-    const masterBtn = document.getElementById('btnMasterLaunch');
-    if (masterBtn) {
-      masterBtn.style.transform = 'scale(1.02)';
-      setTimeout(() => {
-        masterBtn.style.transform = '';
-      }, 350);
-    }
-  }, 900);
+      // Subtle celebration pulse on the master launch button
+      const masterBtn = document.getElementById('btnMasterLaunch');
+      if (masterBtn && isUp) {
+        masterBtn.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+          masterBtn.style.transform = '';
+        }, 350);
+      }
+    })
+    .catch(() => {
+      if (icon) icon.classList.remove('spinning');
+      showToast('⚠ Cannot reach backend server. Please verify port 8080.', 'wip');
+    });
 }
 
 /**

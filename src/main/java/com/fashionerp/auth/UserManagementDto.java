@@ -63,6 +63,7 @@ public class UserManagementDto {
 
         private List<String> permissionsAllowed;
         private List<String> permissionsDenied;
+        private List<String> allowedModules;
 
         private String riskLevel;
         private String riskNotes;
