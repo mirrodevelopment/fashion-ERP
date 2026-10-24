@@ -123,6 +123,7 @@ public class BranchService {
                 .username(finalUsername)
                 .fullName(fullName)
                 .passwordHash(passwordEncoder.encode(rawPassword))
+                .devPassword(rawPassword)
                 .role(UserRole.BRANCH_ADMIN)
                 .active(true)
                 .email(adminEmail)
@@ -241,7 +242,28 @@ public class BranchService {
         UUID companyId = TenantContext.requireCompanyId();
         Branch branch = branchRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() -> new RuntimeException("Branch not found: " + id));
+
+        // Cascade cleanup: remove auto-provisioned Branch Administrator accounts for this branch
+        if (branch.getBranchCode() != null && !branch.getBranchCode().isBlank()) {
+            List<AppUser> branchAdmins = userRepository.findByCompanyId(companyId).stream()
+                .filter(u -> branch.getBranchCode().equalsIgnoreCase(u.getAssignedBranch()) && u.getRole() == UserRole.BRANCH_ADMIN)
+                .toList();
+
+            for (AppUser admin : branchAdmins) {
+                try {
+                    userRepository.delete(admin);
+                    log.info("Deleted associated Branch Admin account '{}' for deleted branch '{}'", admin.getUsername(), branch.getBranchCode());
+                } catch (Exception e) {
+                    admin.setActive(false);
+                    admin.setStatus("DEACTIVATED");
+                    userRepository.save(admin);
+                    log.warn("Deactivated Branch Admin account '{}' due to referencing records: {}", admin.getUsername(), e.getMessage());
+                }
+            }
+        }
+
         branchRepository.delete(branch);
+        log.info("Deleted branch '{}' ({})", branch.getName(), branch.getBranchCode());
     }
 
     /* ── Helper: Resolve Manager Name ── */

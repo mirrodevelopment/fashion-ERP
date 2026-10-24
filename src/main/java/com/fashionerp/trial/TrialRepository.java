@@ -62,6 +62,27 @@ public interface TrialRepository extends JpaRepository<Trial, UUID> {
     long countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCase(UUID companyId, LocalDate date, String status);
     long countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCase(UUID companyId, Integer attempt, String status);
 
+    @Query("SELECT COUNT(t) FROM Trial t WHERE (:companyId IS NULL OR t.companyId = :companyId) AND (:branch IS NULL OR t.branch = :branch OR (:branch = 'Main Branch' AND (t.branch IS NULL OR t.branch = '')))")
+    long countByCompanyIdAndBranch(@Param("companyId") UUID companyId, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(t) FROM Trial t WHERE (:companyId IS NULL OR t.companyId = :companyId) AND (:branch IS NULL OR t.branch = :branch OR (:branch = 'Main Branch' AND (t.branch IS NULL OR t.branch = ''))) AND UPPER(t.status) = UPPER(:status)")
+    long countByCompanyIdAndStatusIgnoreCaseAndBranch(@Param("companyId") UUID companyId, @Param("status") String status, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(t) FROM Trial t WHERE (:companyId IS NULL OR t.companyId = :companyId) AND (:branch IS NULL OR t.branch = :branch OR (:branch = 'Main Branch' AND (t.branch IS NULL OR t.branch = ''))) AND UPPER(t.fitStatus) = UPPER(:fitStatus)")
+    long countByCompanyIdAndFitStatusIgnoreCaseAndBranch(@Param("companyId") UUID companyId, @Param("fitStatus") String fitStatus, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(t) FROM Trial t WHERE (:companyId IS NULL OR t.companyId = :companyId) AND (:branch IS NULL OR t.branch = :branch OR (:branch = 'Main Branch' AND (t.branch IS NULL OR t.branch = ''))) AND t.trialDate > :date AND UPPER(t.status) <> UPPER(:status)")
+    long countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCaseAndBranch(@Param("companyId") UUID companyId, @Param("date") LocalDate date, @Param("status") String status, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(t) FROM Trial t WHERE (:companyId IS NULL OR t.companyId = :companyId) AND (:branch IS NULL OR t.branch = :branch OR (:branch = 'Main Branch' AND (t.branch IS NULL OR t.branch = ''))) AND t.trialDate = :date AND UPPER(t.status) <> UPPER(:status)")
+    long countByCompanyIdAndTrialDateAndStatusNotIgnoreCaseAndBranch(@Param("companyId") UUID companyId, @Param("date") LocalDate date, @Param("status") String status, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(t) FROM Trial t WHERE (:companyId IS NULL OR t.companyId = :companyId) AND (:branch IS NULL OR t.branch = :branch OR (:branch = 'Main Branch' AND (t.branch IS NULL OR t.branch = ''))) AND t.trialDate < :date AND UPPER(t.status) <> UPPER(:status)")
+    long countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCaseAndBranch(@Param("companyId") UUID companyId, @Param("date") LocalDate date, @Param("status") String status, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(t) FROM Trial t WHERE (:companyId IS NULL OR t.companyId = :companyId) AND (:branch IS NULL OR t.branch = :branch OR (:branch = 'Main Branch' AND (t.branch IS NULL OR t.branch = ''))) AND t.trialAttempt > :attempt AND UPPER(t.status) <> UPPER(:status)")
+    long countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCaseAndBranch(@Param("companyId") UUID companyId, @Param("attempt") Integer attempt, @Param("status") String status, @Param("branch") String branch);
+
     long countByOrderCode(String orderCode);
     java.util.List<Trial> findByOrderCodeOrderByCreatedAtAsc(String orderCode);
     Optional<Trial> findFirstByOrderIdOrderByCreatedAtDesc(UUID orderId);

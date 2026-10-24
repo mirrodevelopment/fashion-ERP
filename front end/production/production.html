@@ -2,6 +2,15 @@
 <html lang="en">
 
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) { }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Production Command Centre">Production Command Centre</title>
@@ -319,14 +328,12 @@
 
             <!-- LEFT: Section collapse toggle (‹) + Title -->
             <div class="wf-title-area">
-              <button class="wf-section-collapse-btn" id="wfSectionCollapseBtn"
-                      onclick="toggleWorkflowSection(event)"
-                      title="Collapse board section" aria-label="Toggle workflow section">
+              <button class="wf-section-collapse-btn" id="wfSectionCollapseBtn" onclick="toggleWorkflowSection(event)"
+                title="Collapse board section" aria-label="Toggle workflow section">
                 <!-- ‹ left chevron — rotates to › when collapsed -->
-                <svg class="wf-section-chevron" viewBox="0 0 24 24" width="14" height="14"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6"/>
+                <svg class="wf-section-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
               <div>
@@ -401,13 +408,11 @@
               </button>
 
               <!-- Collapse-All button (goes AFTER the +New Order button) -->
-              <button class="btn-collapse-all" id="btnCollapseAll"
-                      onclick="toggleCollapseAll(event)"
-                      title="Collapse all columns" aria-label="Collapse all columns">
-                <svg class="collapse-all-chevron" viewBox="0 0 24 24" width="12" height="12"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6"/><!-- ‹ left chevron, rotates to › -->
+              <button class="btn-collapse-all" id="btnCollapseAll" onclick="toggleCollapseAll(event)"
+                title="Collapse all columns" aria-label="Collapse all columns">
+                <svg class="collapse-all-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none"
+                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6" /><!-- ‹ left chevron, rotates to › -->
                 </svg>
                 <span class="collapse-all-label">All</span>
               </button>
@@ -422,9 +427,9 @@
             <!-- KANBAN BOARD COLUMNS CONTAINER -->
             <div class="kanban-board" id="kanbanBoard">
 
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
         <!-- =====================================================
              4. BOTTOM SUMMARY PANELS (4 CARDS)
@@ -604,15 +609,7 @@
           <div class="form-group">
             <label>Initial Stage *</label>
             <select id="moStage" required>
-              <option value="ordertaken" selected>Order Taken</option>
-              <option value="designing">Designing</option>
-              <option value="lining">Lining</option>
-              <option value="cutting">Cutting</option>
-              <option value="handwork">Hand Work</option>
-              <option value="stitching">Stitching</option>
-              <option value="trial">Trial</option>
-              <option value="qc">QC</option>
-              <option value="readytodeliver">Ready to Deliver</option>
+              <option value="" disabled selected>Loading Stages...</option>
             </select>
           </div>
           <div class="form-group">
@@ -678,17 +675,10 @@
         <div class="form-group">
           <label>Select Production Stage</label>
           <div style="display:flex;align-items:center;gap:10px;">
-            <img id="assignStageThumb" src="" style="width:34px;height:34px;border-radius:8px;object-fit:cover;display:none;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;" />
+            <img id="assignStageThumb" src=""
+              style="width:34px;height:34px;border-radius:8px;object-fit:cover;display:none;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;" />
             <select id="assignStageSelect" onchange="handleAssignStageChange()" style="flex:1;">
-              <option value="ordertaken">Order Taken</option>
-              <option value="designing">Designing</option>
-              <option value="lining">Lining</option>
-              <option value="cutting">Cutting</option>
-              <option value="handwork">Hand Work</option>
-              <option value="stitching">Stitching</option>
-              <option value="trial">Trial</option>
-              <option value="qc">Quality Control</option>
-              <option value="readytodeliver">Ready to Deliver</option>
+              <option value="" disabled selected>Loading Stages...</option>
             </select>
           </div>
         </div>
@@ -720,7 +710,8 @@
           </div>
           <div>
             <h3 class="modal-title" style="font-size: 15px; margin: 0;">Stage Transition & Assignment</h3>
-            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">Optionally assign a specialist and advance the garment</span>
+            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">Optionally assign a specialist and advance the
+              garment</span>
           </div>
         </div>
         <button class="modal-close-btn" onclick="cancelStageTransition()">✕</button>
@@ -752,7 +743,8 @@
           <div class="form-group" style="margin-bottom: 14px;">
             <label
               style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; margin-bottom: 6px;">
-              <span>Assign Specialist on this Stage <span style="font-size: 10.5px; color: rgba(255, 255, 255, 0.4); font-weight: normal;">(Optional)</span></span>
+              <span>Assign Specialist on this Stage <span
+                  style="font-size: 10.5px; color: rgba(255, 255, 255, 0.4); font-weight: normal;">(Optional)</span></span>
               <span id="transDeptHint" style="font-size: 10.5px; color: #a3e635; font-weight: 500;"></span>
             </label>
             <select id="transEmployeeSelect"
@@ -790,7 +782,6 @@
 
   <!-- Global Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
-
 
   <!-- Scripts -->
   <script src="../fragments/company-bridge.js"></script>

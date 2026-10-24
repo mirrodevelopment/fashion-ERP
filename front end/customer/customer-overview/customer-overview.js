@@ -714,7 +714,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Enrich customer records with live order counts
     try {
-      const ordRes = await api.orders.list({ page: 0, size: 500 }).catch(() => []);
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const ordParams = { page: 0, size: 500 };
+      if (activeBranch && activeBranch !== 'ALL') ordParams.branch = activeBranch;
+      const ordRes = await api.orders.list(ordParams).catch(() => []);
       const orders = Array.isArray(ordRes) ? ordRes : (ordRes && ordRes.content ? ordRes.content : []);
       if (orders.length > 0) {
         const orderCountsByMobile = {};

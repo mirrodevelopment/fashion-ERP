@@ -18,14 +18,16 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
     private final EmployeeRepository employeeRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     @GetMapping
     public ResponseEntity<Page<EmployeeDto.Response>> list(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String branch,
             Pageable pageable) {
-        return ResponseEntity.ok(employeeService.list(search, role, status, pageable));
+        return ResponseEntity.ok(employeeService.list(search, role, status, branch, pageable));
     }
 
     @GetMapping("/{id}")
@@ -69,13 +71,26 @@ public class EmployeeController {
     }
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
-        long activeCount    = employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE");
-        long onLeaveCount   = employeeRepository.countByCompanyIdAndStatus(companyId, "ON_LEAVE");
-        long totalCount     = employeeRepository.countByCompanyId(companyId);
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.EMPLOYEES);
 
-        List<Map<String, Object>> deptBreakdown = employeeRepository.countByDepartment(companyId);
+        long activeCount;
+        long onLeaveCount;
+        long totalCount;
+        List<Map<String, Object>> deptBreakdown;
+
+        if (branchFilter != null) {
+            activeCount = employeeRepository.countByCompanyIdAndStatusAndBranch(companyId, "ACTIVE", branchFilter);
+            onLeaveCount = employeeRepository.countByCompanyIdAndStatusAndBranch(companyId, "ON_LEAVE", branchFilter);
+            totalCount = employeeRepository.countByCompanyIdAndBranch(companyId, branchFilter);
+            deptBreakdown = employeeRepository.countByDepartmentAndBranch(companyId, branchFilter);
+        } else {
+            activeCount = employeeRepository.countByCompanyIdAndStatus(companyId, "ACTIVE");
+            onLeaveCount = employeeRepository.countByCompanyIdAndStatus(companyId, "ON_LEAVE");
+            totalCount = employeeRepository.countByCompanyId(companyId);
+            deptBreakdown = employeeRepository.countByDepartment(companyId);
+        }
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("activeCount",          activeCount);

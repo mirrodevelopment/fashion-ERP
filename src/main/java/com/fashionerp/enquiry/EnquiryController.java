@@ -123,24 +123,45 @@ public class EnquiryController {
     }
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = TenantContext.getCompanyId();
-        long total = companyId != null ? enquiryRepository.countByCompanyId(companyId) : enquiryRepository.count();
-        long newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW")
-                + enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "PENDING");
-        long inDiscussion = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_DISCUSSION");
-        long quotationSent = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "QUOTATION_SENT");
-        long converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED");
-        long followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP");
-        long closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") + followUp;
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.ENQUIRIES);
 
-        // Dynamic KPI queries directly from database
-        long newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7));
-        if (newThisWeek == 0) newThisWeek = newCount;
+        long total;
+        long newCount;
+        long inDiscussion;
+        long quotationSent;
+        long converted;
+        long followUp;
+        long closed;
+        long newThisWeek;
+
+        if (branchFilter != null) {
+            total = enquiryRepository.countByCompanyIdAndBranch(companyId, branchFilter);
+            newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "NEW", branchFilter)
+                    + enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "PENDING", branchFilter);
+            inDiscussion = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "IN_DISCUSSION", branchFilter);
+            quotationSent = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "QUOTATION_SENT", branchFilter);
+            converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "CONVERTED", branchFilter);
+            followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "FOLLOW_UP", branchFilter);
+            closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "CLOSED", branchFilter) + followUp;
+            newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfterAndBranch(companyId, LocalDateTime.now().minusDays(7), branchFilter);
+            if (newThisWeek == 0) newThisWeek = newCount;
+        } else {
+            total = companyId != null ? enquiryRepository.countByCompanyId(companyId) : enquiryRepository.count();
+            newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW")
+                    + enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "PENDING");
+            inDiscussion = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_DISCUSSION");
+            quotationSent = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "QUOTATION_SENT");
+            converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED");
+            followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP");
+            closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") + followUp;
+            newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7));
+            if (newThisWeek == 0) newThisWeek = newCount;
+        }
 
         long pendingFollowUp = followUp;
         long appointmentsCount = companyId != null ? appointmentRepository.countByCompanyId(companyId) : appointmentRepository.count();
-
 
         BigDecimal conversionRate = total > 0
                 ? BigDecimal.valueOf(converted * 100.0 / total).setScale(1, RoundingMode.HALF_UP)

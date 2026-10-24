@@ -17,22 +17,22 @@ var _ALL_KEY = 'haulo_prod_all_collapsed';
 var _allCollapsed = false;
 
 function isFinalStage(stageId) {
-  return stageId === 'readytodeliver' || stageId === 'ready';
+  if (!STAGES || STAGES.length === 0) return stageId === 'readytodeliver' || stageId === 'ready';
+  const last = STAGES[STAGES.length - 1];
+  return stageId === last.id || stageId === (last.stageKey || '').toLowerCase();
 }
 
 function isInitialStage(stageId) {
-  return stageId === 'ordertaken' || stageId === 'order';
+  if (!STAGES || STAGES.length === 0) return stageId === 'ordertaken' || stageId === 'order';
+  const first = STAGES[0];
+  return stageId === first.id || stageId === (first.stageKey || '').toLowerCase();
 }
 
 function mapCurrentStageToKanban(st, status) {
   const s = String(st || '').toUpperCase().trim();
+  if (!STAGES || STAGES.length === 0) return 'ordertaken';
 
-  // System-recognized first stage
-  if (s === 'ORDER_TAKEN' || s === 'ORDER' || s === 'NEW') return 'ordertaken';
-  // System-recognized final stages
-  if (s === 'READY_TO_DELIVER' || s === 'READY' || s === 'DELIVERED' || s === 'DELIVERY') return 'readytodeliver';
-
-  // Dynamic match against live STAGES from the database (covers all user-defined intermediate stages)
+  // Dynamic match against live STAGES from the database (covers all user-defined and standard stages)
   const normalized = s.toLowerCase().replace(/[^a-z0-9]/g, '');
   const match = STAGES.find(stage =>
     stage.id === normalized ||
@@ -41,30 +41,23 @@ function mapCurrentStageToKanban(st, status) {
   );
   if (match) return match.id;
 
-  // Status-based fallback
-  if (status === 'READY' || status === 'DELIVERED') return 'readytodeliver';
-  if (status === 'PENDING') return 'ordertaken';
-  return 'ordertaken';
+  // Status-based fallback using live stage boundaries
+  if (status === 'READY' || status === 'DELIVERED') return STAGES[STAGES.length - 1].id;
+  return STAGES[0].id;
 }
 
 function mapKanbanToBackendStage(kanbanStageId) {
-  // Always try live STAGES first — covers all user-defined intermediate stages dynamically
+  // Always query live STAGES first — covers all user-defined & standard stages dynamically
   const stageObj = STAGES.find(s => s.id === kanbanStageId);
   if (stageObj && stageObj.stageKey) return stageObj.stageKey;
-  // Fallback aliases for system-mandatory stages only
-  const lookup = {
-    'ordertaken': 'ORDER_TAKEN',
-    'readytodeliver': 'READY_TO_DELIVER',
-    'ready': 'READY_TO_DELIVER'
-  };
-  return lookup[kanbanStageId] || kanbanStageId.toUpperCase();
+  return (kanbanStageId || '').toUpperCase();
 }
 
 function getStageHeaderIconSvg(stageId) {
-  if (stageId === 'ordertaken' || stageId === 'order') {
+  if (isInitialStage(stageId)) {
     return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
   }
-  if (stageId === 'readytodeliver' || stageId === 'ready') {
+  if (isFinalStage(stageId)) {
     return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>`;
   }
   // Dynamic workflow icon for all user-defined intermediate stages
@@ -84,8 +77,8 @@ async function loadStageDefinitions(api) {
       return;
     }
 
-    // Client-side boundary invariant enforcement:
-    // 1. Enforce ORDER_TAKEN is strictly at index 0 (Stage 1)
+    // Client-side boundary invariant enforcement for the 3 Default Stages:
+    // 1. Default Stage 1: ORDER_TAKEN strictly at index 0
     const otIdx = defs.findIndex(d => (d.stageKey || '').toUpperCase().trim() === 'ORDER_TAKEN');
     if (otIdx > 0) {
       const [ot] = defs.splice(otIdx, 1);
@@ -96,12 +89,13 @@ async function loadStageDefinitions(api) {
         displayName: 'Order Taken',
         colorClass: 'stage-emerald',
         deptLabel: 'Order Intake & Reception',
+        requiredRole: 'STAFF',
         imageUrl: '/front end/assets/stages/Order_Taken_1010.jpg',
         sortOrder: 1
       });
     }
 
-    // 2. Enforce READY_TO_DELIVER is strictly at the last index (Final Stage)
+    // 2. Default Final Stage: READY_TO_DELIVER strictly at last index
     const rdIdx = defs.findIndex(d => (d.stageKey || '').toUpperCase().trim() === 'READY_TO_DELIVER');
     if (rdIdx >= 0 && rdIdx < defs.length - 1) {
       const [rd] = defs.splice(rdIdx, 1);
@@ -112,8 +106,26 @@ async function loadStageDefinitions(api) {
         displayName: 'Ready to Deliver',
         colorClass: 'stage-silver',
         deptLabel: 'Delivery & Handover',
+        requiredRole: 'SUPERVISOR',
         imageUrl: '/front end/assets/stages/Ready_8043.jpg',
         sortOrder: defs.length + 1
+      });
+    }
+
+    // 3. Default Pre-Delivery Gate: QC strictly immediately before READY_TO_DELIVER
+    const qcIdx = defs.findIndex(d => (d.stageKey || '').toUpperCase().trim() === 'QC' || (d.displayName || '').toUpperCase().includes('QUALITY CONTROL'));
+    if (qcIdx >= 0) {
+      const [qc] = defs.splice(qcIdx, 1);
+      defs.splice(defs.length - 1, 0, qc);
+    } else {
+      defs.splice(defs.length - 1, 0, {
+        stageKey: 'QC',
+        displayName: 'Quality Control',
+        colorClass: 'stage-gold',
+        deptLabel: 'Quality Control & Inspection',
+        requiredRole: 'SUPERVISOR',
+        imageUrl: '/front end/assets/stages/QC_7019.jpg',
+        sortOrder: defs.length
       });
     }
 
@@ -299,7 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadStageDefinitions(api);
 
       // 1. Fetch Orders from Database (include cancelled orders to display as frozen at their current stage)
-      const res = await api.orders.list({ page: 0, size: 100 });
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const ordParams = { page: 0, size: 100 };
+      if (activeBranch && activeBranch !== 'ALL') ordParams.branch = activeBranch;
+      const res = await api.orders.list(ordParams);
       const items = (Array.isArray(res) ? res : (res?.content || []));
       if (items.length > 0) {
         const todayIso = new Date().toISOString().split('T')[0];
@@ -319,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stage: stage,
             status: o.status || 'IN_PROGRESS',
             isCancelled: isCancelled,
-            priority: o.priority || (stage === 'handwork' || stage === 'stitching' ? 'High' : 'Normal'),
+            priority: o.priority || (isDelayed ? 'High' : 'Normal'),
             team: STAGE_LEADS[stage] || 'Unassigned',
             fabric: o.collection || 'Pure Silk',
             notes: o.productionNotes || o.notes || 'Custom specifications applied.',
@@ -346,7 +361,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 2. Load Specialists from Database
       try {
-        const employees = await api.employees.list({ status: 'ACTIVE' }).catch(() => []);
+        const empParams = { status: 'ACTIVE' };
+        if (activeBranch && activeBranch !== 'ALL') empParams.branch = activeBranch;
+        const employees = await api.employees.list(empParams).catch(() => []);
         cachedEmployees = Array.isArray(employees) ? employees : (employees?.content || []);
         if (cachedEmployees.length > 0) {
           updateStageLeadsFromEmployees(cachedEmployees);
@@ -607,39 +624,20 @@ function handleDrop(e, targetStage) {
 }
 
 /**
- * Mapping of boutique production stages to department specializations & roles.
- * NOTE: This static map is a fallback only — the primary source is the live STAGES
- * array populated from the database (each stage has deptLabel + requiredRole).
- */
-const STAGE_DEPARTMENT_MAP = {
-  'ordertaken':    { roles: ['STYLIST', 'DESIGNER', 'MANAGER'], label: 'Order Intake & Reception' },
-  'designing':     { roles: ['DESIGNER'], label: 'Design Studio' },
-  'lining':        { roles: ['FINISHER'], label: 'Finishing & Lining' },
-  'handwork':      { roles: ['EMBROIDERER'], label: 'Embroidery & Maggam' },
-  'cutting':       { roles: ['CUTTER'], label: 'Master Cutting' },
-  'stitching':     { roles: ['TAILOR'], label: 'Tailoring & Stitching' },
-  'trial':         { roles: ['SUPERVISOR', 'TAILOR'], label: 'Fitting & Trial' },
-  'qc':            { roles: ['MANAGER', 'SUPERVISOR'], label: 'Quality Control' },
-  'readytodeliver':{ roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' },
-  'ready':         { roles: ['DISPATCHER', 'MANAGER', 'SUPERVISOR'], label: 'Delivery & Handover' }
-};
-
-/**
- * Get stage department info, preferring the live STAGES array's deptLabel/requiredRole
- * over the static STAGE_DEPARTMENT_MAP. Works for all user-defined custom stages.
+ * Get stage department info, dynamically deriving deptLabel and requiredRole
+ * from the live STAGES array populated from the database.
  */
 function getStageDeptInfo(stageId) {
-  // Primary: lookup from live STAGES (populated from DB — includes user-created stages)
-  const liveStage = STAGES.find(s => s.id === stageId);
+  // Primary: lookup from live STAGES (populated from DB — includes all custom & standard stages)
+  const liveStage = STAGES.find(s => s.id === stageId || s.stageKey === stageId);
   if (liveStage) {
-    const label = liveStage.deptLabel || liveStage.name || 'Production Team';
+    const label = liveStage.deptLabel || liveStage.name || 'Production Specialists';
     const roles = liveStage.requiredRole
       ? [String(liveStage.requiredRole).toUpperCase()]
       : [];
     return { label, roles };
   }
-  // Fallback: static map for recognized system stages
-  return STAGE_DEPARTMENT_MAP[stageId] || { roles: [], label: 'Production Specialists' };
+  return { roles: [], label: 'Production Specialists' };
 }
 
 /**
@@ -1072,12 +1070,26 @@ function updateAvgTimeChart() {
   const container = document.getElementById('avgTimeChart');
   if (!container) return;
 
-  const stageGroups = [
-    { label: 'Intake & Design', stages: ['ordertaken', 'designing'], bar: 'bar-emerald' },
-    { label: 'Prep & Cutting', stages: ['lining', 'cutting'], bar: 'bar-yellow' },
-    { label: 'Embroidery & Stitching', stages: ['handwork', 'stitching', 'embroidery'], bar: 'bar-green' },
-    { label: 'QC & Delivery', stages: ['trial', 'qc', 'finishing', 'readytodeliver', 'ready'], bar: 'bar-silver' }
-  ];
+  if (!STAGES || STAGES.length === 0) {
+    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:12px;">No active stages</div>';
+    return;
+  }
+
+  // Dynamically divide active workflow stages into up to 4 sequential segments
+  const barColors = ['bar-emerald', 'bar-yellow', 'bar-green', 'bar-silver', 'bar-purple', 'bar-blue'];
+  const maxGroups = Math.min(4, STAGES.length);
+  const chunkSize = Math.ceil(STAGES.length / maxGroups);
+  const stageGroups = [];
+
+  for (let i = 0; i < STAGES.length; i += chunkSize) {
+    const chunk = STAGES.slice(i, i + chunkSize);
+    const label = chunk.map(s => s.name || s.deptLabel).join(' & ');
+    stageGroups.push({
+      label: label.length > 24 ? chunk[0].name + ' & more' : label,
+      stages: chunk.map(s => s.id),
+      bar: barColors[stageGroups.length % barColors.length]
+    });
+  }
 
   const times = stageGroups.map(grp => {
     const matchedOrders = productionOrders.filter(o => grp.stages.includes(o.stage));
@@ -1519,7 +1531,7 @@ function focusBottlenecks() {
     })
     .sort((a, b) => b.score - a.score)[0];
 
-  const targetId = worstStage ? worstStage.stageId : 'stitching';
+  const targetId = worstStage ? worstStage.stageId : (STAGES[0]?.id || '');
   filterByStage(targetId);
 }
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * =======================================================================
  * HAULO BOUTIQUE ERP — DESIGN STUDIO / DESIGN LIBRARY
  * Complete Frontend Controller, State Machine, Gallery & Interactions
@@ -2162,7 +2162,7 @@
                 orderId: realOrderCode,
                 customer: cust,
                 price: `₹${Number(price).toLocaleString('en-IN')}`,
-                status: "Stitching"
+                status: createdOrder?.status || createdOrder?.currentStage || "In Production"
               });
               renderSelectedDesign();
             }

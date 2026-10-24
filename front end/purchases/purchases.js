@@ -1350,7 +1350,9 @@
     const elLowStockTxt = document.getElementById('lowStockAction');
     try {
       const { default: api } = await import('../api.js');
-      const invKpis = await api.inventory.kpis().catch(() => null);
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+      const invKpis = await api.inventory.kpis(kpiParams).catch(() => null);
       if (invKpis && invKpis.lowStockCount != null) {
         if (elLowStock) elLowStock.textContent = invKpis.lowStockCount;
         if (elLowStockTxt) elLowStockTxt.textContent = invKpis.lowStockCount > 0 ? 'View suggestions' : 'Stock levels healthy';

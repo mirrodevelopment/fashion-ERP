@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Branches">Branch Network Command Centre</title>
@@ -15,7 +24,7 @@
   </script>
   <script src="../fragments/company-bridge.js"></script>
   <script src="../fragments/fragments-inline.js"></script>
-  <script src="../fragments/fragments.js"></script>
+  <script src="../fragments/nav.js"></script>
 </head>
 <body data-module="branches">
 
@@ -73,7 +82,8 @@
             <div class="stat-bar-icon stat-icon--gold"><i data-lucide="indian-rupee"></i></div>
             <div class="stat-body">
               <span class="stat-value" id="statRevenue">—</span>
-              <span class="stat-label">Revenue MTD</span>
+              <span class="stat-label">Total Value</span>
+              <span class="stat-sub" id="statRevenueSub" style="font-size:9.5px;color:rgba(255,255,255,0.55);margin-top:2px;display:block;">Main: —</span>
             </div>
           </div>
           <div class="stat-bar-card">
@@ -121,11 +131,9 @@
 
               <!-- Tab Navigation -->
               <div class="branch-tab-nav" id="branchTypeTabNav">
-                <button class="branch-tab active" data-tab="ALL"        onclick="Branches.setTab('ALL', this)">All Branches</button>
-                <button class="branch-tab"         data-tab="SHOWROOMS"  onclick="Branches.setTab('SHOWROOMS', this)">Showrooms</button>
-                <button class="branch-tab"         data-tab="PRODUCTION" onclick="Branches.setTab('PRODUCTION', this)">Production Units</button>
-                <button class="branch-tab"         data-tab="WAREHOUSES" onclick="Branches.setTab('WAREHOUSES', this)">Warehouses</button>
-                <button class="branch-tab"         data-tab="EXPERIENCE" onclick="Branches.setTab('EXPERIENCE', this)">Experience Studios</button>
+                <button class="branch-tab active" data-tab="ALL"      onclick="Branches.setTab('ALL', this)">All Locations</button>
+                <button class="branch-tab"        data-tab="FLAGSHIP" onclick="Branches.setTab('FLAGSHIP', this)">Flagship / HQ</button>
+                <button class="branch-tab"        data-tab="ACTIVE"   onclick="Branches.setTab('ACTIVE', this)">Active Outlets</button>
               </div>
 
               <!-- Filter Pill Row -->
@@ -137,9 +145,6 @@
                 </div>
                 <select class="filter-pill" id="filterCity" onchange="Branches.filterBranches()">
                   <option value="">All Cities</option>
-                </select>
-                <select class="filter-pill" id="filterType" onchange="Branches.filterBranches()">
-                  <option value="">All Types</option>
                 </select>
                 <select class="filter-pill" id="filterStatus" onchange="Branches.filterBranches()">
                   <option value="">All Status</option>
@@ -244,19 +249,6 @@
                 <label class="form-label" for="bCode">Branch Code</label>
                 <input type="text" class="form-input" id="bCode" placeholder="Auto-generated" maxlength="20" />
               </div>
-              <div class="form-group">
-                <label class="form-label" for="bType">Branch Type <span class="required">*</span></label>
-                <select class="form-select" id="bType" required>
-                  <!-- Populated by buildTypeSelects() -->
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="bStatus">Status</label>
-                <select class="form-select" id="bStatus">
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
-                </select>
-              </div>
             </div>
           </div>
 
@@ -319,11 +311,6 @@
             </div>
           </div>
 
-          <div class="form-section">
-            <h3 class="form-section-title">Working Hours</h3>
-            <div class="hours-grid" id="workingHoursGrid"></div>
-          </div>
-
           <div class="form-section" id="adminProvisioningSection">
             <h3 class="form-section-title">
               <span style="display:flex;align-items:center;gap:6px;">
@@ -365,37 +352,24 @@
                 </div>
               </div>
             </div>
+            <div id="currentAdminCard" style="display:none;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:12px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">Current Branch Administrator</div>
+                  <div style="font-size:14px;font-weight:600;color:#fff;margin-top:2px;" id="currentAdminName">—</div>
+                  <div style="font-size:12px;color:#d4af37;margin-top:2px;" id="currentAdminUsername">—</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;background:rgba(212,175,55,0.12);padding:4px 10px;border-radius:20px;font-size:11px;color:#d4af37;font-weight:600;">
+                  <i data-lucide="shield" style="width:12px;height:12px;"></i>
+                  <span>Branch Authority</span>
+                </div>
+              </div>
+            </div>
             <div class="form-group" id="existingManagerGroup" style="display:none;">
-              <label class="form-label" for="bManager">Assign Existing Employee / Manager</label>
+              <label class="form-label" for="bManager">Reassign Employee / Manager</label>
               <select class="form-select" id="bManager">
                 <option value="">— Not assigned —</option>
               </select>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <h3 class="form-section-title">Branch Features</h3>
-            <div class="features-grid">
-              <label class="feature-toggle">
-                <input type="checkbox" id="fAppointments" />
-                <span class="toggle-switch"></span>
-                <span class="toggle-label">Accepts Online Appointments</span>
-              </label>
-              <label class="feature-toggle">
-                <input type="checkbox" id="fFittingRoom" />
-                <span class="toggle-switch"></span>
-                <span class="toggle-label">Has Fitting Room</span>
-              </label>
-              <label class="feature-toggle">
-                <input type="checkbox" id="fFabricDisplay" />
-                <span class="toggle-switch"></span>
-                <span class="toggle-label">Has Fabric Display</span>
-              </label>
-              <label class="feature-toggle">
-                <input type="checkbox" id="fWarehouseOnly" />
-                <span class="toggle-switch"></span>
-                <span class="toggle-label">Warehouse / Stock-only</span>
-              </label>
             </div>
           </div>
 
@@ -428,7 +402,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <p class="delete-warning">You are about to delete <strong id="deleteBranchName"></strong>. This action cannot be undone.</p>
+        <p class="delete-warning">You are about to delete <strong id="deleteBranchName"></strong> (<code id="deleteBranchCode" style="color:#d4af37;"></code>). All associated branch administrator privileges will be revoked. This action cannot be undone.</p>
         <div class="form-group form-group--spaced">
           <label class="form-label">Type <code>DELETE</code> to confirm</label>
           <input type="text" class="form-input" id="deleteConfirmInput" placeholder="DELETE" oninput="Branches.checkDeleteConfirm()" />

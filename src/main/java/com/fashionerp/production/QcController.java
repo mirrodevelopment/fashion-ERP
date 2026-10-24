@@ -20,19 +20,38 @@ public class QcController {
     private final QcChecklistRepository qcRepository;
     private final OrderRepository orderRepository;
     private final ProductionService productionService;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
-        long passed = qcRepository.countByCompanyIdAndResult(companyId, "PASS");
-        long rework = qcRepository.countByCompanyIdAndResult(companyId, "REWORK");
-        long fail = qcRepository.countByCompanyIdAndResult(companyId, "FAIL");
-        long pending = qcRepository.countByCompanyIdAndResult(companyId, "PENDING");
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.PRODUCTION);
 
-        long awaitingQc = orderRepository.countOrdersAwaitingQc(companyId);
+        long passed;
+        long rework;
+        long fail;
+        long pending;
+        long awaitingQc;
+        long readyDelivery;
+
+        if (branchFilter != null) {
+            passed = qcRepository.countByCompanyIdAndResultAndBranch(companyId, "PASS", branchFilter);
+            rework = qcRepository.countByCompanyIdAndResultAndBranch(companyId, "REWORK", branchFilter);
+            fail = qcRepository.countByCompanyIdAndResultAndBranch(companyId, "FAIL", branchFilter);
+            pending = qcRepository.countByCompanyIdAndResultAndBranch(companyId, "PENDING", branchFilter);
+            awaitingQc = orderRepository.countOrdersAwaitingQcByBranch(companyId, branchFilter);
+            var probe = org.springframework.data.domain.PageRequest.of(0, 1);
+            readyDelivery = orderRepository.search(companyId, branchFilter, null, OrderStatus.READY, probe).getTotalElements();
+        } else {
+            passed = qcRepository.countByCompanyIdAndResult(companyId, "PASS");
+            rework = qcRepository.countByCompanyIdAndResult(companyId, "REWORK");
+            fail = qcRepository.countByCompanyIdAndResult(companyId, "FAIL");
+            pending = qcRepository.countByCompanyIdAndResult(companyId, "PENDING");
+            awaitingQc = orderRepository.countOrdersAwaitingQc(companyId);
+            readyDelivery = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY);
+        }
+
         long inInspection = awaitingQc;
-        long readyDelivery = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY);
-
         long totalAudited = passed + rework + fail;
         BigDecimal passRate = totalAudited > 0
                 ? BigDecimal.valueOf(passed * 100.0 / totalAudited).setScale(1, RoundingMode.HALF_UP)

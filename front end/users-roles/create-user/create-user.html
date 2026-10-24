@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Create New User">Create New User</title>
@@ -56,22 +65,22 @@
               <div class="cu-step-circle">1</div>
               <div class="cu-step-label">Account</div>
             </div>
-            <div class="cu-step-line"></div>
+            <div class="cu-step-line" data-line="1"></div>
             <div class="cu-step-node" data-step="2" onclick="scrollToCard('cardRole')" title="System Privileges &amp; Role">
               <div class="cu-step-circle">2</div>
               <div class="cu-step-label">Role</div>
             </div>
-            <div class="cu-step-line"></div>
+            <div class="cu-step-line" data-line="2"></div>
             <div class="cu-step-node" data-step="3" onclick="scrollToCard('cardOrg')" title="Department &amp; Branch Assignment">
               <div class="cu-step-circle">3</div>
               <div class="cu-step-label">Organization</div>
             </div>
-            <div class="cu-step-line"></div>
+            <div class="cu-step-line" data-line="3"></div>
             <div class="cu-step-node" data-step="4" onclick="scrollToCard('cardContact')" title="Contact Details">
               <div class="cu-step-circle">4</div>
               <div class="cu-step-label">Contact</div>
             </div>
-            <div class="cu-step-line"></div>
+            <div class="cu-step-line" data-line="4"></div>
             <div class="cu-step-node" data-step="5" onclick="scrollToCard('cardAccess')" title="Page Access &amp; Permissions">
               <div class="cu-step-circle">5</div>
               <div class="cu-step-label">Access</div>
@@ -86,24 +95,33 @@
             <!-- LEFT FORM COLUMN (~65%) -->
             <div class="cu-col-form">
 
+              <!-- EDIT MODE ACTIVE WARNING & CREATION SWITCHER BANNER -->
+              <div class="cu-edit-mode-banner" id="cuEditModeBanner" style="display: none;">
+                <div class="cu-emb-left">
+                  <div class="cu-emb-badge">
+                    <i data-lucide="shield-alert" class="cu-emb-icon"></i>
+                    <span>EDITING EXISTING ACCOUNT</span>
+                  </div>
+                  <div class="cu-emb-message">
+                    You are currently modifying <strong id="cuEditBannerUser">@username</strong> (<span id="cuEditBannerName">Full Name</span>). Saving changes will update this account.
+                  </div>
+                </div>
+                <div class="cu-emb-actions">
+                  <button type="button" class="cu-btn-switch-create" id="btnSwitchToCreate" onclick="switchToCreateMode()" title="Leave edit mode and create a brand-new user instead">
+                    <i data-lucide="user-plus"></i>
+                    <span>+ Create New User Instead</span>
+                  </button>
+                </div>
+              </div>
+
               <!-- CARD 1: ACCOUNT CREDENTIALS & SECURITY -->
               <section class="cu-card" id="cardAccount">
                 <div class="cu-card-header">
                   <div class="cu-card-header-left">
-                    <div class="cu-step-badge">1</div>
+                    <div class="cu-step-badge" data-step-badge="1">1</div>
                     <div>
                       <h2 class="cu-card-title">Account Credentials &amp; Security</h2>
-                      <p class="cu-card-subtitle">Login username, full legal name, password, and account activation status</p>
-                    </div>
-                  </div>
-                  <div class="cu-card-header-right">
-                    <!-- Status Toggle -->
-                    <div class="cu-status-toggle-wrap">
-                      <span class="cu-status-toggle-label" id="statusToggleText">Account Active</span>
-                      <label class="cu-switch">
-                        <input type="checkbox" id="userActiveToggle" checked onchange="handleStatusToggle(this.checked)" />
-                        <span class="cu-slider round"></span>
-                      </label>
+                      <p class="cu-card-subtitle">Login username, full legal name, and password credentials</p>
                     </div>
                   </div>
                 </div>
@@ -147,6 +165,42 @@
                       />
                     </div>
                     <span class="cu-field-hint">Employee full legal name as shown on official records.</span>
+                  </div>
+                </div>
+
+                <!-- Avatar Monogram (Double-Letter Selection) -->
+                <div class="cu-monogram-section" style="margin-top:14px;margin-bottom:18px;padding:14px 16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                    <label class="cu-label" style="margin-bottom:0;display:flex;align-items:center;gap:7px;">
+                      <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--nav-lime,#a3e635);"></i>
+                      <span>Avatar Monogram (Double-Letter)</span>
+                      <span class="cu-req">*</span>
+                    </label>
+                    <span style="font-size:11px;color:rgba(255,255,255,0.4);">Displayed across topbar, tables &amp; activity logs</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                    <!-- Live Selected Monogram Circle -->
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <div class="cu-monogram-circle" id="cuMonogramPreview">--</div>
+                      <span style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;">ACTIVE</span>
+                    </div>
+                    <!-- Dynamic Suggested Pills -->
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;" id="cuMonogramSuggestions">
+                      <span style="font-size:11.5px;color:rgba(255,255,255,0.35);">Type name to see suggestions...</span>
+                    </div>
+                    <!-- Custom 2-letter input -->
+                    <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+                      <span style="font-size:11px;color:rgba(255,255,255,0.5);">Custom:</span>
+                      <input
+                        type="text"
+                        id="cuCustomMonogramInput"
+                        class="cu-input"
+                        style="width:58px;height:34px;text-align:center;font-weight:800;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;padding:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;"
+                        maxlength="2"
+                        placeholder="--"
+                        oninput="handleCustomMonogramInput(this.value)"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -210,7 +264,7 @@
               <section class="cu-card" id="cardRole">
                 <div class="cu-card-header">
                   <div class="cu-card-header-left">
-                    <div class="cu-step-badge">2</div>
+                    <div class="cu-step-badge" data-step-badge="2">2</div>
                     <div>
                       <h2 class="cu-card-title">Role &amp; System Privileges</h2>
                       <p class="cu-card-subtitle">Assign security clearance tier, module access, and administrative capabilities</p>
@@ -267,7 +321,7 @@
               <section class="cu-card" id="cardOrg">
                 <div class="cu-card-header">
                   <div class="cu-card-header-left">
-                    <div class="cu-step-badge">3</div>
+                    <div class="cu-step-badge" data-step-badge="3">3</div>
                     <div>
                       <h2 class="cu-card-title">Organization &amp; Branch Assignment</h2>
                       <p class="cu-card-subtitle">Workforce designation, departmental allocation, and physical boutique location</p>
@@ -372,7 +426,7 @@
               <section class="cu-card" id="cardContact">
                 <div class="cu-card-header">
                   <div class="cu-card-header-left">
-                    <div class="cu-step-badge">4</div>
+                    <div class="cu-step-badge" data-step-badge="4">4</div>
                     <div>
                       <h2 class="cu-card-title">Contact &amp; Identification</h2>
                       <p class="cu-card-subtitle">Work email and mobile phone number for verification and security notices</p>
@@ -424,7 +478,7 @@
               <section class="cu-card" id="cardAccess">
                 <div class="cu-card-header">
                   <div class="cu-card-header-left">
-                    <div class="cu-step-badge">5</div>
+                    <div class="cu-step-badge" data-step-badge="5">5</div>
                     <div>
                       <h2 class="cu-card-title">Page Access &amp; Permissions</h2>
                       <p class="cu-card-subtitle">Select which ERP modules this user is permitted to access. Defaults are pre-set based on their assigned role.</p>
@@ -436,6 +490,68 @@
                     <button type="button" class="cu-btn-access-action" id="btnClearAllModules" onclick="clearAllModules()">Clear All</button>
                     <button type="button" class="cu-btn-access-action cu-btn-reset-role" id="btnResetRoleDefaults" onclick="resetToRoleDefaults()">Reset Defaults</button>
                   </div>
+                </div>
+
+                <!-- Operational & Financial Clearances -->
+                <div class="cu-clearance-section">
+                  <div class="cu-clearance-section-header">
+                    <div class="cu-clearance-title-wrap">
+                      <i data-lucide="shield-check" class="cu-clearance-title-icon"></i>
+                      <div>
+                        <h3 class="cu-clearance-heading">Operational &amp; Financial Clearances</h3>
+                        <p class="cu-clearance-sub">Granular security authorizations for critical business actions and sensitive financial figures.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="cu-clearance-grid">
+                    <!-- Clearance 1: Create Orders -->
+                    <div class="cu-clearance-card" id="clearanceCard-orders.create" onclick="toggleClearance('orders.create')">
+                      <div class="cu-clearance-top">
+                        <div class="cu-clearance-icon-box create-icon">
+                          <i data-lucide="shopping-bag" style="width:16px;height:16px;"></i>
+                        </div>
+                        <span class="cu-clearance-badge standard">STANDARD ACTION</span>
+                        <div class="cu-clearance-toggle-dot"></div>
+                      </div>
+                      <div class="cu-clearance-title">Create Orders</div>
+                      <p class="cu-clearance-desc">Permits drafting, booking, and registering new customer orders, bespoke tailoring requests, and invoices.</p>
+                    </div>
+
+                    <!-- Clearance 2: Delete Orders -->
+                    <div class="cu-clearance-card" id="clearanceCard-orders.delete" onclick="toggleClearance('orders.delete')">
+                      <div class="cu-clearance-top">
+                        <div class="cu-clearance-icon-box delete-icon">
+                          <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+                        </div>
+                        <span class="cu-clearance-badge elevated">ELEVATED PRIVILEGE</span>
+                        <div class="cu-clearance-toggle-dot"></div>
+                      </div>
+                      <div class="cu-clearance-title">Delete / Cancel Orders</div>
+                      <p class="cu-clearance-desc">High-security authority to void, cancel, or permanently delete customer orders from the database.</p>
+                    </div>
+
+                    <!-- Clearance 3: View Financial Data -->
+                    <div class="cu-clearance-card" id="clearanceCard-finance.view" onclick="toggleClearance('finance.view')">
+                      <div class="cu-clearance-top">
+                        <div class="cu-clearance-icon-box finance-icon">
+                          <i data-lucide="dollar-sign" style="width:16px;height:16px;"></i>
+                        </div>
+                        <span class="cu-clearance-badge confidential">CONFIDENTIAL</span>
+                        <div class="cu-clearance-toggle-dot"></div>
+                      </div>
+                      <div class="cu-clearance-title">View Financial Data</div>
+                      <p class="cu-clearance-desc">Grants visibility to revenue KPIs, order pricing breakdowns, payment receipts, expenses, and profit margins.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section Divider before ERP Module Tiles -->
+                <div class="cu-module-grid-divider">
+                  <span class="cu-divider-label">
+                    <i data-lucide="layout-grid" style="width:13px;height:13px;"></i>
+                    <span>ERP Navigation Modules</span>
+                  </span>
                 </div>
 
                 <!-- Module Section Groups — rendered by JS from GET /api/v1/users/modules -->
@@ -542,6 +658,16 @@
                         <span>Page Access</span>
                       </div>
                       <span class="cu-pr-value cu-access-pill" id="sumAccessCount">0 modules</span>
+                    </div>
+
+                    <div class="cu-preview-row" style="align-items:flex-start;">
+                      <div class="cu-pr-label" style="padding-top:2px;">
+                        <i data-lucide="shield-check"></i>
+                        <span>Clearances</span>
+                      </div>
+                      <div class="cu-pr-clearances" id="sumClearances">
+                        <!-- Populated dynamically by JS -->
+                      </div>
                     </div>
                   </div>
 

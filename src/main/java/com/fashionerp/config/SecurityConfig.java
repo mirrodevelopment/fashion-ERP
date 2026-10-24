@@ -49,9 +49,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/branches", "/api/v1/branches/**").permitAll()
                 // =========================================================================
                 // DEVELOPER TOOLING ENDPOINTS - START
-                // Permitted read-only endpoint for live database-driven persona switching
+                // Permitted developer endpoints for live database personas and auto-login
                 // =========================================================================
-                .requestMatchers(HttpMethod.GET, "/api/v1/dev/**").permitAll()
+                .requestMatchers("/api/v1/dev/**").permitAll()
                 // =========================================================================
                 // DEVELOPER TOOLING ENDPOINTS - END
                 // =========================================================================

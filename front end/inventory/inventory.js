@@ -89,7 +89,10 @@ async function loadInventoryFromApi() {
       window.location.href = '../login/login.html';
       return;
     }
-    const res = (api && api.inventory) ? await api.inventory.list({ page: 0, size: 200 }).catch(() => []) : [];
+    const activeBranch = localStorage.getItem('haulo_active_branch');
+    const invParams = { page: 0, size: 200 };
+    if (activeBranch && activeBranch !== 'ALL') invParams.branch = activeBranch;
+    const res = (api && api.inventory) ? await api.inventory.list(invParams).catch(() => []) : [];
     const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
     inventoryItems = items.map(apiToInventoryItem);
 
@@ -113,7 +116,8 @@ async function loadInventoryFromApi() {
     let kpiData = null;
     if (api && api.inventory && typeof api.inventory.kpis === 'function') {
       try {
-        kpiData = await api.inventory.kpis();
+        const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+        kpiData = await api.inventory.kpis(kpiParams);
       } catch (kpiErr) {
         console.warn('[Inventory] /inventory/kpis failed:', kpiErr);
       }

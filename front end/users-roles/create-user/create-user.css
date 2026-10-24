@@ -129,15 +129,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  padding: 6px 4px;
+  gap: 16px;
+  flex-wrap: nowrap !important;
+  padding: 4px 4px 6px;
+  min-width: 0;
 }
 
 .cu-page-title-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .cu-breadcrumb-nav {
@@ -168,85 +171,146 @@ body {
 .cu-page-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
   font-family: var(--font-serif);
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 .cu-title-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   color: var(--lime);
+  flex-shrink: 0;
 }
 
 .cu-page-subtitle {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 4-Step Stepper */
+/* 5-Step Workflow Stepper */
 .cu-workflow-stepper {
   display: flex;
   align-items: center;
   background: rgba(18, 18, 16, 0.45);
   border: 1px solid var(--border-card);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 40px;
-  padding: 6px 14px;
-  gap: 6px;
+  padding: 5px 12px;
+  gap: 5px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .cu-step-node {
   display: flex;
   align-items: center;
-  gap: 6px;
-  cursor: default;
-  opacity: 0.55;
-  transition: opacity 0.2s ease;
+  gap: 5px;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+.cu-step-node:hover {
+  opacity: 0.9;
 }
 .cu-step-node.active {
   opacity: 1;
 }
+.cu-step-node.completed {
+  opacity: 0.95;
+}
+.cu-step-node.completed:hover {
+  opacity: 1;
+}
 
 .cu-step-circle {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.12);
   color: var(--text-secondary);
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
+
+/* Active node (current section in view) */
 .cu-step-node.active .cu-step-circle {
   background: var(--lime);
   color: #0F1404;
   box-shadow: 0 0 10px var(--lime-glow);
+}
+.cu-step-node.active .cu-step-label {
+  color: #FFFFFF;
+}
+
+/* Completed node (filled section) */
+.cu-step-node.completed .cu-step-circle {
+  background: var(--lime);
+  color: #0F1404;
+  box-shadow: 0 0 10px var(--lime-glow);
+}
+.cu-step-node.completed .cu-step-label {
+  color: #FFFFFF;
+}
+.cu-step-node.completed.active .cu-step-circle {
+  box-shadow: 0 0 12px var(--lime-glow), 0 0 0 2px rgba(184, 255, 61, 0.35);
+}
+
+.cu-step-check {
+  display: block;
+  animation: cuCheckPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cuCheckPop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .cu-step-label {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: 0.02em;
-}
-.cu-step-node.active .cu-step-label {
-  color: #FFFFFF;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .cu-step-line {
-  width: 18px;
-  height: 1px;
+  width: 14px;
+  height: 2px;
   background: rgba(255, 255, 255, 0.15);
-  margin: 0 2px;
+  margin: 0 1px;
+  border-radius: 2px;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
+}
+.cu-step-line.completed {
+  background: var(--lime);
+  box-shadow: 0 0 6px var(--lime-glow);
 }
 
 /* ============================================================
@@ -266,6 +330,90 @@ body {
   .cu-sticky-card {
     position: static !important;
   }
+}
+
+/* ============================================================
+   EDIT MODE WARNING BANNER & CREATION SWITCHER
+   ============================================================ */
+.cu-edit-mode-banner {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.08) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: var(--radius-card);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 4px 24px rgba(245, 158, 11, 0.12);
+  animation: cuSlideDown 0.25s ease-out;
+}
+
+@keyframes cuSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cu-emb-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cu-emb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fbbf24;
+}
+
+.cu-emb-icon {
+  width: 14px;
+  height: 14px;
+  color: #fbbf24;
+}
+
+.cu-emb-message {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.4;
+}
+
+.cu-emb-message strong {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.cu-btn-switch-create {
+  background: var(--lime);
+  color: var(--lime-dark);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 10px var(--lime-glow);
+  transition: all 0.16s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cu-btn-switch-create:hover {
+  background: var(--lime-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--lime-glow);
+}
+
+.cu-btn-switch-create svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* ============================================================
@@ -320,6 +468,17 @@ body {
   font-size: 12px;
   font-weight: 700;
   flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+.cu-step-badge.completed {
+  background: var(--lime);
+  color: #0F1404;
+  border-color: var(--lime);
+  box-shadow: 0 0 12px var(--lime-glow);
+}
+.cu-step-badge.completed .cu-badge-check {
+  display: block;
+  animation: cuCheckPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .cu-step-badge.cu-icon-badge {
   background: rgba(255, 255, 255, 0.08);
@@ -1386,4 +1545,315 @@ body {
   border-radius: 4px;
   text-transform: uppercase;
 }
+
+/* ─── Avatar Monogram (Double-Letter) Picker ─── */
+.cu-monogram-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--nav-lime, #a3e635) 0%, #15803d 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0d1f05;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(163, 230, 53, 0.25);
+  transition: all 0.2s ease;
+}
+
+.cu-monogram-pill {
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.cu-monogram-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.cu-monogram-pill.selected {
+  background: rgba(184, 255, 61, 0.15);
+  border-color: var(--lime, #a3e635);
+  color: var(--lime, #a3e635);
+  box-shadow: 0 0 8px rgba(184, 255, 61, 0.25);
+}
+
+/* ============================================================
+   OPERATIONAL & FINANCIAL CLEARANCES
+   ============================================================ */
+.cu-clearance-section {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.cu-clearance-section-header {
+  margin-bottom: 14px;
+}
+
+.cu-clearance-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cu-clearance-title-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--lime);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.cu-clearance-heading {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+}
+
+.cu-clearance-sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.cu-clearance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 860px) {
+  .cu-clearance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cu-clearance-card {
+  background: rgba(18, 18, 16, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.cu-clearance-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.cu-clearance-card.active {
+  background: rgba(184, 255, 61, 0.07);
+  border-color: rgba(184, 255, 61, 0.4);
+  box-shadow: 0 0 16px rgba(184, 255, 61, 0.12);
+}
+
+.cu-clearance-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cu-clearance-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cu-clearance-icon-box.create-icon {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+.cu-clearance-card.active .cu-clearance-icon-box.create-icon {
+  background: rgba(34, 197, 94, 0.25);
+  color: #86efac;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+}
+
+.cu-clearance-icon-box.delete-icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+.cu-clearance-card.active .cu-clearance-icon-box.delete-icon {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.cu-clearance-icon-box.finance-icon {
+  background: rgba(212, 175, 55, 0.15);
+  color: #ffd700;
+}
+.cu-clearance-card.active .cu-clearance-icon-box.finance-icon {
+  background: rgba(212, 175, 55, 0.25);
+  color: #fde047;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.cu-clearance-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.cu-clearance-badge.standard {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.cu-clearance-badge.elevated {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+}
+.cu-clearance-badge.confidential {
+  background: rgba(212, 175, 55, 0.12);
+  color: #fde047;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.cu-clearance-toggle-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  margin-left: auto;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.cu-clearance-card.active .cu-clearance-toggle-dot {
+  border-color: var(--lime);
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime-glow);
+}
+.cu-clearance-card.active .cu-clearance-toggle-dot::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0F1404;
+}
+
+.cu-clearance-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.cu-clearance-desc {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Module Grid Section Divider */
+.cu-module-grid-divider {
+  display: flex;
+  align-items: center;
+  margin: 22px 0 16px;
+  position: relative;
+}
+.cu-module-grid-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.cu-divider-label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #14170E;
+  padding: 0 10px 0 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Clearances Badges in Live User Preview Card */
+.cu-pr-clearances {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+  max-width: 170px;
+}
+
+.cu-pr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+.cu-pr-badge.active-create {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+.cu-pr-badge.active-delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.cu-pr-badge.active-finance {
+  background: rgba(212, 175, 55, 0.15);
+  color: #ffd700;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+.cu-pr-badge.disabled {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: line-through;
+}
+
 

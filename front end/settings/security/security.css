@@ -30,7 +30,7 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* ── Password Strength Bar ── */
+/* ── Password Strength Bar & Checklist ── */
 .password-strength-bar {
   height: 4px;
   background: rgba(255, 255, 255, 0.08);
@@ -50,6 +50,57 @@
   margin-bottom: 0;
 }
 
+.pw-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+@media (max-width: 600px) {
+  .pw-checklist {
+    grid-template-columns: 1fr;
+  }
+}
+.pw-check-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.18s ease;
+}
+.pw-check-item.valid {
+  color: #4ade80;
+}
+.pw-check-item.valid svg {
+  color: #4ade80;
+}
+.pw-check-item svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.pw-match-badge {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.pw-match-badge.matched {
+  color: #4ade80;
+}
+.pw-match-badge.mismatched {
+  color: #f87171;
+}
+
 /* ── Active Sessions ── */
 .active-sessions-list {
   display: flex;
@@ -62,6 +113,7 @@
   gap: 14px;
   padding: 14px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color 0.15s ease;
 }
 .session-item:last-child {
   border-bottom: none;
@@ -88,6 +140,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .session-meta {
   font-size: 11.5px;
@@ -106,4 +159,79 @@
 .session-item.current .session-icon {
   background: rgba(184, 255, 61, 0.12);
   color: var(--lime, #b8ff3d);
+}
+
+
+/* ── Security & Login Audit Table ── */
+.audit-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.audit-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+  white-space: nowrap;
+}
+.audit-table th {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.audit-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.75);
+}
+.audit-table tr:last-child td {
+  border-bottom: none;
+}
+.audit-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+.audit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.audit-badge.success {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+.audit-badge.warning {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+.audit-badge.blocked {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+.audit-badge.notice {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.25);
 }

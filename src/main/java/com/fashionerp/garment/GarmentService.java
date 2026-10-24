@@ -11,15 +11,41 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class GarmentService {
 
     private final GarmentRepository garmentRepository;
+    private final com.fashionerp.collection.CollectionRepository collectionRepository;
+    private final com.fashionerp.branch.BranchRepository branchRepository;
+    private final com.fashionerp.workforce.EmployeeRepository employeeRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
+
+    @Transactional(readOnly = true)
+    public Page<GarmentDto.SummaryResponse> search(
+            String search,
+            String stage,
+            String status,
+            String garmentType,
+            String collectionName,
+            String priority,
+            String materialStatus,
+            String fabric,
+            String designer,
+            String branch,
+            Boolean catalogOnly,
+            Pageable pageable) {
+        UUID companyId = TenantContext.getCompanyId();
+        boolean catOnly = catalogOnly == null || catalogOnly;
+        Page<Garment> page = garmentRepository.searchGarments(
+                companyId,
+                catOnly,
+                search, stage, status, garmentType, collectionName,
+                priority, materialStatus, fabric, designer, branch, pageable);
+        return page.map(this::toSummaryResponse);
+    }
 
     @Transactional(readOnly = true)
     public Page<GarmentDto.SummaryResponse> search(
@@ -34,40 +60,38 @@ public class GarmentService {
             String designer,
             String branch,
             Pageable pageable) {
-        UUID companyId = TenantContext.getCompanyId();
-        Page<Garment> page = garmentRepository.searchGarments(
-                companyId,
-                search, stage, status, garmentType, collectionName,
-                priority, materialStatus, fabric, designer, branch, pageable);
-        return page.map(this::toSummaryResponse);
+        return search(search, stage, status, garmentType, collectionName,
+                priority, materialStatus, fabric, designer, branch, true, pageable);
     }
 
     @Transactional(readOnly = true)
-    public GarmentDto.KpiResponse getKpis() {
+    public GarmentDto.KpiResponse getKpis(Boolean catalogOnly, String branch) {
         UUID companyId = TenantContext.getCompanyId();
-        long total = companyId != null ? garmentRepository.countByCompanyId(companyId) : garmentRepository.count();
-        long inProd = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_PRODUCTION");
-        long inTrial = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "TRIAL");
-        long awaitingQc = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC");
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.GARMENTS);
+        boolean catOnly = catalogOnly == null || catalogOnly;
+        long total = garmentRepository.countCatalogGarments(companyId, catOnly, branchFilter);
+        long inProd = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "IN_PRODUCTION", catOnly, branchFilter);
+        long inTrial = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "TRIAL", catOnly, branchFilter);
+        long awaitingQc = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "QC", catOnly, branchFilter);
         if (awaitingQc == 0) {
-            awaitingQc = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC");
+            awaitingQc = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "Awaiting QC", catOnly, branchFilter);
         }
-        long ready = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "READY");
+        long ready = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "READY", catOnly, branchFilter);
         if (ready == 0) {
-            ready = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "READY");
+            ready = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "READY", catOnly, branchFilter);
         }
-        long delivered = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "DELIVERED");
+        long delivered = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "DELIVERED", catOnly, branchFilter);
         if (delivered == 0) {
-            delivered = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "DELIVERED");
+            delivered = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "DELIVERED", catOnly, branchFilter);
         }
-        long designing = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "DESIGNING");
-        long onHold = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "ON_HOLD");
+        long designing = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "DESIGNING", catOnly, branchFilter);
+        long onHold = garmentRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "ON_HOLD", catOnly, branchFilter);
         if (onHold == 0) {
-            onHold = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "ON_HOLD");
+            onHold = garmentRepository.countByCompanyIdAndProductionStageIgnoreCase(companyId, "ON_HOLD", catOnly, branchFilter);
         }
 
-        long bridalCount = garmentRepository.countBridalGarments(companyId);
-        Double avgHours = garmentRepository.avgCraftingHours(companyId);
+        long bridalCount = garmentRepository.countBridalGarments(companyId, catOnly, branchFilter);
+        Double avgHours = garmentRepository.avgCraftingHours(companyId, catOnly, branchFilter);
 
         return GarmentDto.KpiResponse.builder()
                 .totalGarments(total)
@@ -83,7 +107,7 @@ public class GarmentService {
                 .delivered(delivered)
                 .deliveredDelta(null)
                 .bridalCount(bridalCount)
-                .avgCraftingHours(avgHours != null ? Math.round(avgHours * 10.0) / 10.0 : 28.0)
+                .avgCraftingHours(avgHours != null ? Math.round(avgHours * 10.0) / 10.0 : 0.0)
                 .allCount(total)
                 .designingCount(designing)
                 .inProductionCount(inProd)
@@ -93,6 +117,16 @@ public class GarmentService {
                 .deliveredCount(delivered)
                 .onHoldCount(onHold)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public GarmentDto.KpiResponse getKpis(Boolean catalogOnly) {
+        return getKpis(catalogOnly, null);
+    }
+
+    @Transactional(readOnly = true)
+    public GarmentDto.KpiResponse getKpis() {
+        return getKpis(true, null);
     }
 
     @Transactional(readOnly = true)
@@ -114,14 +148,18 @@ public class GarmentService {
         }
 
         UUID companyId = TenantContext.getCompanyId();
+        String branch = (req.getBranch() != null && !req.getBranch().isBlank())
+                ? req.getBranch().trim()
+                : branchAccessService.getDefaultBranchForCreation();
+
         Garment g = Garment.builder()
                 .companyId(companyId)
                 .garmentCode(code)
                 .orderCode(req.getOrderCode())
-                .customerName(req.getCustomerName() != null ? req.getCustomerName() : "Atelier Specimen")
+                .customerName(req.getCustomerName())
                 .customerMobile(req.getCustomerMobile())
-                .title(req.getTitle() != null ? req.getTitle() : "Bespoke Garment")
-                .garmentType(req.getGarmentType() != null ? req.getGarmentType() : "Custom")
+                .title(req.getTitle() != null && !req.getTitle().isBlank() ? req.getTitle().trim() : (req.getGarmentType() != null ? req.getGarmentType().trim() : "Bespoke Garment"))
+                .garmentType(req.getGarmentType() != null && !req.getGarmentType().isBlank() ? req.getGarmentType().trim() : "Custom")
                 .specs(req.getSpecs())
                 .designCode(req.getDesignCode())
                 .collectionName(req.getCollectionName())
@@ -137,7 +175,7 @@ public class GarmentService {
                 .status(req.getStatus() != null ? req.getStatus() : "IN_PRODUCTION")
                 .assignedTo(req.getAssignedTo())
                 .designer(req.getDesigner())
-                .branch(req.getBranch() != null ? req.getBranch() : "Main Branch")
+                .branch(branch)
                 .imageUrl(req.getImageUrl())
                 .primaryFabric(req.getPrimaryFabric())
                 .embroideryType(req.getEmbroideryType())
@@ -145,9 +183,9 @@ public class GarmentService {
                 .colorHex(req.getColorHex())
                 .estimatedCost(req.getEstimatedCost() != null ? req.getEstimatedCost() : BigDecimal.ZERO)
                 .suggestedPrice(req.getSuggestedPrice() != null ? req.getSuggestedPrice() : (req.getTotalAmount() != null ? req.getTotalAmount() : BigDecimal.ZERO))
-                .craftingHours(req.getCraftingHours() != null ? req.getCraftingHours() : 24)
+                .craftingHours(req.getCraftingHours() != null ? req.getCraftingHours() : 0)
                 .silhouette(req.getSilhouette() != null ? req.getSilhouette() : req.getSpecs())
-                .isSample(req.getIsSample() != null ? req.getIsSample() : true)
+                .isSample(req.getIsSample() != null ? req.getIsSample() : false)
                 .notes(req.getNotes())
                 .build();
 
@@ -194,6 +232,17 @@ public class GarmentService {
 
         Garment saved = garmentRepository.save(g);
         return toSummaryResponse(saved);
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        Garment g = garmentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Garment not found with id: " + id));
+        UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null && !companyId.equals(g.getCompanyId())) {
+            throw new IllegalArgumentException("Garment not found with id: " + id);
+        }
+        garmentRepository.delete(g);
     }
 
     // ─── Image Upload & Storage ─────────────────────────────────────────────
@@ -304,84 +353,55 @@ public class GarmentService {
             materials.add(GarmentDto.MaterialItem.builder()
                     .name(g.getPrimaryFabric())
                     .variant("Primary Body Fabric")
-                    .meters("3.50 m")
-                    .status("READY")
-                    .imageUrl("../assets/swatch_raw_silk.jpg")
+                    .meters(g.getMaterialStatus() != null ? g.getMaterialStatus() : "Allocated")
+                    .status(g.getMaterialStatus() != null ? g.getMaterialStatus() : "READY")
+                    .imageUrl(g.getImageUrl())
                     .build());
         }
         if (g.getEmbroideryType() != null && !g.getEmbroideryType().isBlank()) {
             materials.add(GarmentDto.MaterialItem.builder()
                     .name(g.getEmbroideryType())
-                    .variant("Hand Embroidery & Zari Work")
-                    .meters("Crafting Embellishment")
-                    .status("IN_WORK")
-                    .imageUrl("../assets/swatch_embroidery.jpg")
+                    .variant("Artisanal Craftsmanship / Ornamentation")
+                    .meters("Specified")
+                    .status(g.getProductionStage() != null ? g.getProductionStage() : "IN_WORK")
+                    .imageUrl(null)
                     .build());
         }
-        materials.add(GarmentDto.MaterialItem.builder()
-                .name("Pure Cotton Silk Lining 80g")
-                .variant("Internal Structured Lining")
-                .meters("2.25 m")
-                .status("READY")
-                .imageUrl("../assets/pink_silk.jpg")
-                .build());
 
         List<GarmentDto.MeasurementItem> measurements = new ArrayList<>();
-        String gType = (g.getGarmentType() != null ? g.getGarmentType().toUpperCase() : "");
-        if (gType.contains("LEHENGA") || gType.contains("SKIRT")) {
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Waistband Circumference").value("32.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Hip (Full)").value("40.5\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Skirt Length").value("42.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Hemline Flare").value("180.0\"").build());
-        } else if (gType.contains("BLOUSE") || gType.contains("CHOLI")) {
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Bust Circumference").value("36.5\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Underbust").value("31.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Shoulder Width").value("14.5\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Blouse Length").value("15.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Front Neck Depth").value("7.5\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Back Neck Depth").value("10.0\"").build());
-        } else if (gType.contains("SHERWANI") || gType.contains("KURTA")) {
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Chest Circumference").value("41.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Waist (Natural)").value("35.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Across Shoulder").value("18.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Garment Length").value("45.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Sleeve Length").value("25.5\"").build());
-        } else {
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Bust / Chest").value("38.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Waist Circumference").value("32.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Hip Circumference").value("41.0\"").build());
-            measurements.add(GarmentDto.MeasurementItem.builder().label("Total Garment Length").value("52.0\"").build());
+        if (g.getSpecs() != null && !g.getSpecs().isBlank()) {
+            String[] parts = g.getSpecs().split("[,;]");
+            for (String part : parts) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) {
+                    measurements.add(GarmentDto.MeasurementItem.builder()
+                            .label("Specification")
+                            .value(trimmed)
+                            .build());
+                }
+            }
         }
 
         List<GarmentDto.TimelineItem> timeline = new ArrayList<>();
-        timeline.add(GarmentDto.TimelineItem.builder()
-                .date("Stage 1")
-                .stage("Design & Blueprint Approval")
-                .description("Silhouette sketched, fabric swatches finalized and specs entered.")
-                .actor(g.getDesigner() != null ? g.getDesigner() : "Lead Designer")
-                .color("green")
-                .build());
-        timeline.add(GarmentDto.TimelineItem.builder()
-                .date("Stage 2")
-                .stage("Pattern Drafting & Cutting")
-                .description("Master paper pattern drafted; fabric cut with ease allowances.")
-                .actor(g.getAssignedTo() != null ? g.getAssignedTo() : "Master Tailor")
-                .color("blue")
-                .build());
-        timeline.add(GarmentDto.TimelineItem.builder()
-                .date("Stage 3")
-                .stage("Handwork & Assembly")
-                .description("Artisanal handwork, zardozi embroidery and garment structured assembly.")
-                .actor("Atelier Workshop")
-                .color("amber")
-                .build());
-        timeline.add(GarmentDto.TimelineItem.builder()
-                .date("Stage 4")
-                .stage("Master Quality Check")
-                .description("Measurement verification, seam finishing, and packaging.")
-                .actor("QC Inspector")
-                .color("purple")
-                .build());
+        if (g.getCreatedAt() != null) {
+            timeline.add(GarmentDto.TimelineItem.builder()
+                    .date(g.getCreatedAt().toLocalDate().toString())
+                    .stage("Garment Registered")
+                    .description("Garment identity & specifications recorded.")
+                    .actor(g.getDesigner() != null ? g.getDesigner() : "Atelier Staff")
+                    .color("green")
+                    .build());
+        }
+        if (g.getProductionStage() != null) {
+            String dateStr = g.getUpdatedAt() != null ? g.getUpdatedAt().toLocalDate().toString() : "Current";
+            timeline.add(GarmentDto.TimelineItem.builder()
+                    .date(dateStr)
+                    .stage(g.getProductionStage())
+                    .description("Active stage: " + g.getProductionStage())
+                    .actor(g.getAssignedTo() != null ? g.getAssignedTo() : "Atelier Team")
+                    .color("blue")
+                    .build());
+        }
 
         return GarmentDto.DetailResponse.builder()
                 .id(sum.getId())
@@ -434,5 +454,63 @@ public class GarmentService {
         String pStr = paid != null ? "₹" + df.format(paid) : "₹0";
         String tStr = total != null ? "₹" + df.format(total) : "₹0";
         return pStr + " / " + tStr;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getFilterOptions(Boolean catalogOnly) {
+        UUID companyId = TenantContext.getCompanyId();
+        boolean catOnly = catalogOnly == null || catalogOnly;
+
+        List<String> garmentTypes = garmentRepository.findDistinctGarmentTypes(companyId, catOnly);
+        List<String> fabrics = garmentRepository.findDistinctFabrics(companyId, catOnly);
+
+        Set<String> collections = new LinkedHashSet<>();
+        if (collectionRepository != null) {
+            try {
+                collectionRepository.findByCompanyIdAndIsFeaturedTrueOrderByCreatedAtDesc(companyId)
+                        .forEach(c -> {
+                            if (c.getName() != null && !c.getName().isBlank()) collections.add(c.getName().trim());
+                        });
+            } catch (Exception ignored) {}
+        }
+        collections.addAll(garmentRepository.findDistinctCollections(companyId, catOnly));
+
+        Set<String> branches = new LinkedHashSet<>();
+        if (branchRepository != null) {
+            try {
+                branchRepository.findByCompanyId(companyId)
+                        .forEach(b -> {
+                            if (b.getName() != null && !b.getName().isBlank()) branches.add(b.getName().trim());
+                        });
+            } catch (Exception ignored) {}
+        }
+        branches.addAll(garmentRepository.findDistinctBranches(companyId, catOnly));
+
+        Set<String> designers = new LinkedHashSet<>();
+        designers.addAll(garmentRepository.findDistinctDesigners(companyId, catOnly));
+        if (employeeRepository != null) {
+            try {
+                employeeRepository.findAll().stream()
+                        .filter(e -> companyId == null || companyId.equals(e.getCompanyId()))
+                        .forEach(e -> {
+                            if (e.getName() != null && !e.getName().isBlank()) designers.add(e.getName().trim());
+                        });
+            } catch (Exception ignored) {}
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("garmentTypes", garmentTypes);
+        result.put("collections", new ArrayList<>(collections));
+        result.put("fabrics", fabrics);
+        result.put("branches", new ArrayList<>(branches));
+        result.put("designers", new ArrayList<>(designers));
+        result.put("statuses", List.of("In Production", "Ready", "Awaiting QC", "Designing", "Archived"));
+        result.put("materialStatuses", List.of("READY", "ALLOCATING", "PENDING"));
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getFilterOptions() {
+        return getFilterOptions(true);
     }
 }

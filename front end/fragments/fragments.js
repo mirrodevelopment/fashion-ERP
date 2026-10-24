@@ -149,12 +149,34 @@
     return s;
   }
 
-  /* ── Module Access Permissions Enforcement ── */
+  /* ── Module Access Permissions Enforcement & AuthZ ── */
+  window.AuthZ = {
+    isUnrestricted: function() {
+      try {
+        const u = JSON.parse(sessionStorage.getItem('erp_user') || '{}');
+        if (u.role === 'OWNER' || u.role === 'ADMIN') return true;
+        const raw = sessionStorage.getItem('erp_allowed_modules');
+        if (!raw) return true;
+        return false;
+      } catch (e) { return true; }
+    },
+    hasPermission: function(perm) {
+      if (this.isUnrestricted()) return true;
+      try {
+        const list = JSON.parse(sessionStorage.getItem('erp_allowed_modules') || '[]');
+        if (!Array.isArray(list)) return true;
+        return list.some(m => String(m).toLowerCase().trim() === String(perm).toLowerCase().trim());
+      } catch (e) { return true; }
+    },
+    canCreateOrder: function() { return this.hasPermission('orders.create'); },
+    canDeleteOrder: function() { return this.hasPermission('orders.delete'); },
+    canViewFinance: function() { return this.hasPermission('finance.view'); }
+  };
+
   async function applyModuleAccessPolicy() {
     const isLogin = window.location.pathname.includes('/login/');
     const isSetup = window.location.pathname.includes('/setup/');
     if (isLogin || isSetup) return;
-
 
     let allowedModules = null;
     try {
@@ -687,15 +709,38 @@
     restoreSidebarState();
     await applyModuleAccessPolicy();
 
-    // Auto-resolve avatar image path based on page depth and custom avatar
-    const prefix = window.FRAGMENT_BASE ? window.FRAGMENT_BASE.replace('fragments/', '') : '../';
+    // Auto-resolve user avatar double-letter monogram or custom uploaded avatar
     const customAvatar = localStorage.getItem('erp_user_avatar');
-    document.querySelectorAll('.u-avatar-img').forEach(img => {
-      if (customAvatar && customAvatar.trim() !== '') {
-        img.src = customAvatar;
-        img.style.display = 'block';
+    let storedUserForAvatar = null;
+    try {
+      storedUserForAvatar = JSON.parse(sessionStorage.getItem('erp_user') || localStorage.getItem('erp_user') || 'null');
+    } catch (_) {}
+    const userNameForAvatar = storedUserForAvatar ? (storedUserForAvatar.fullName || storedUserForAvatar.username || '') : '';
+    function _fragTwoLetterInitials(n) {
+      if (!n || typeof n !== 'string') return '--';
+      const clean = n.trim().replace(/^(mr|mrs|ms|dr|shri|smt)\.?\s+/i, '');
+      const parts = clean.split(/[\s._-]+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return clean.substring(0, 2).toUpperCase() || '--';
+    }
+    const avatarInitials = _fragTwoLetterInitials(userNameForAvatar);
+
+    // Remove any legacy default avatar images inside userBtn
+    document.querySelectorAll('.user-btn > .u-avatar-img').forEach(img => img.remove());
+
+    document.querySelectorAll('.u-avatar, #navUserAvatar').forEach(el => {
+      if (customAvatar && customAvatar.trim() !== '' && !customAvatar.includes('user_avatar.jpg')) {
+        el.innerHTML = `<img src="${customAvatar}" class="u-avatar-img" alt="${userNameForAvatar}" onerror="this.parentElement.textContent='${avatarInitials}'"/>`;
       } else {
-        img.src = `${prefix}assets/user_avatar.jpg`;
+        el.textContent = avatarInitials;
+        el.style.display = 'flex';
+      }
+    });
+    document.querySelectorAll('.u-avatar-lg, #navUserAvatarLg').forEach(el => {
+      if (customAvatar && customAvatar.trim() !== '' && !customAvatar.includes('user_avatar.jpg')) {
+        el.innerHTML = `<img src="${customAvatar}" class="u-avatar-img" style="width:38px;height:38px;" alt="${userNameForAvatar}" onerror="this.parentElement.textContent='${avatarInitials}'"/>`;
+      } else {
+        el.textContent = avatarInitials;
       }
     });
 
@@ -706,15 +751,18 @@
         document.querySelectorAll('.u-name').forEach(el => el.textContent = storedUser.fullName);
       }
       if (storedUser && storedUser.role) {
-        let displayRole = storedUser.role;
-        const norm = (storedUser.role || '').toUpperCase();
-        if (norm === 'OWNER') displayRole = '👑 Boutique Owner';
-        else if (norm === 'BRANCH_ADMIN') displayRole = `🏢 Branch Admin${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-        else if (norm === 'ADMIN') displayRole = 'Super Administrator';
-        else if (norm === 'DESIGNER') displayRole = `✂️ Designer${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-        else if (norm === 'TAILOR') displayRole = `🪡 Master Tailor${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-        else if (norm === 'RECEPTIONIST') displayRole = `🛎️ Receptionist${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-        else if (norm === 'STAFF') displayRole = `Staff Member${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
+        let displayRole = 'Custom Role';
+        const norm = (storedUser.role || '').replace('ROLE_', '').toUpperCase();
+        if (norm === 'OWNER' || norm === 'ADMIN') {
+          displayRole = '👑 Boutique Owner';
+        } else if (norm === 'BRANCH_ADMIN') {
+          const branchTag = storedUser.assignedBranch ? ` (${storedUser.assignedBranch})` : '';
+          displayRole = `🏢 Branch Admin${branchTag}`;
+        } else if (storedUser.designation) {
+          displayRole = storedUser.designation;
+        } else {
+          displayRole = storedUser.role ? storedUser.role.replace(/_/g, ' ') : 'Staff';
+        }
         document.querySelectorAll('.u-role').forEach(el => el.textContent = displayRole);
       }
     } catch (_) {}
@@ -1491,3 +1539,80 @@ window.applyPatronAvatarElement = function (containerEl, name, avatarUrl, sizeCl
   if (!containerEl) return;
   containerEl.innerHTML = window.renderPatronAvatarHtml(name, avatarUrl, sizeClass, extraStyles);
 };
+
+/* ────────────────────────────────────────────────────────────
+   GLOBAL CLEARANCE & PERMISSION HELPER (AuthZ)
+   Supports: orders.create, orders.delete, finance.view
+   ──────────────────────────────────────────────────────────── */
+if (!window.AuthZ) {
+  window.AuthZ = {
+    getUser() {
+      try {
+        if (typeof Auth !== 'undefined' && typeof Auth.getUser === 'function') {
+          const u = Auth.getUser();
+          if (u) return u;
+        }
+        const stored = localStorage.getItem('haulo_user') || localStorage.getItem('fashion_erp_user') || localStorage.getItem('user');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+      return null;
+    },
+    getRole() {
+      const u = this.getUser();
+      return (u?.role || '').replace('ROLE_', '').toUpperCase();
+    },
+    isUnrestricted() {
+      const r = this.getRole();
+      return r === 'OWNER' || r === 'ADMIN' || r === 'SUPER_ADMIN';
+    },
+    hasPermission(key) {
+      if (this.isUnrestricted()) return true;
+      const u = this.getUser();
+      if (!u) return false;
+      let mods = u.allowedModules;
+      if (typeof mods === 'string') {
+        try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+      }
+      if (!Array.isArray(mods)) return false;
+      return mods.includes(key);
+    },
+    canCreateOrder() {
+      if (this.isUnrestricted()) return true;
+      const u = this.getUser();
+      if (!u) return false;
+      let mods = u.allowedModules;
+      if (typeof mods === 'string') {
+        try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+      }
+      if (!Array.isArray(mods)) return false;
+      if (mods.includes('orders.create')) return true;
+      if (mods.includes('orders.delete') || mods.includes('finance.view')) return false;
+      const r = this.getRole();
+      if (r === 'BRANCH_ADMIN') return true;
+      return mods.includes('orders');
+    },
+    canDeleteOrder() {
+      if (this.isUnrestricted()) return true;
+      const u = this.getUser();
+      if (!u) return false;
+      let mods = u.allowedModules;
+      if (typeof mods === 'string') {
+        try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+      }
+      if (!Array.isArray(mods)) return false;
+      return mods.includes('orders.delete');
+    },
+    canViewFinance() {
+      if (this.isUnrestricted()) return true;
+      const u = this.getUser();
+      if (!u) return false;
+      let mods = u.allowedModules;
+      if (typeof mods === 'string') {
+        try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+      }
+      if (!Array.isArray(mods)) return false;
+      return mods.includes('finance.view');
+    }
+  };
+}
+

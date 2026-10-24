@@ -127,6 +127,75 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Developer Mode Auto-Login:
+     * Directly authenticates any active user persona from the database
+     * without requiring knowledge of their password.
+     */
+    public AuthDto.LoginResponse devLogin(String username, UUID preferredCompanyId, String clientIp) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username is required for developer auto-login.");
+        }
+        AppUser user = userRepository.findByUsernameAndActiveTrue(username.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Active user not found in database: " + username));
+
+        UUID companyId = user.getCompanyId() != null ? user.getCompanyId() : preferredCompanyId;
+        String companyName = null;
+        if (companyId != null) {
+            CompanySettings comp = companySettingsRepository.findById(companyId).orElse(null);
+            if (comp != null) {
+                companyName = comp.getCompanyName();
+            }
+        }
+        if (companyId == null || companyName == null) {
+            CompanySettings defaultComp = companySettingsService.getOrCreateDefault(companyId);
+            companyId = defaultComp.getId();
+            companyName = defaultComp.getCompanyName();
+            user.setCompanyId(companyId);
+            userRepository.save(user);
+        }
+
+        java.util.List<String> userAllowedBranches = UserManagementService.resolveAllowedBranches(user);
+        String token = jwtUtil.generateToken(
+                user.getId(),
+                user.getUsername(),
+                user.getRole().name(),
+                companyId,
+                companyName,
+                user.getAssignedBranch(),
+                userAllowedBranches
+        );
+        updateLastLogin(user);
+
+        if (companyId != null && accessLogRepository != null) {
+            try {
+                accessLogRepository.save(UserAccessLog.builder()
+                        .companyId(companyId)
+                        .userId(user.getId())
+                        .actionType("DEV_QUICK_LOGIN")
+                        .description("Developer auto-login (" + (user.getRole() != null ? user.getRole().name() : "USER") + ")")
+                        .location(user.getAssignedBranch() != null ? user.getAssignedBranch() : (clientIp != null ? clientIp : "Primary Terminal"))
+                        .clientInfo(clientIp != null ? "IP: " + clientIp : "Developer Quick-Login")
+                        .createdAt(LocalDateTime.now())
+                        .build());
+            } catch (Exception ignored) {}
+        }
+
+        return AuthDto.LoginResponse.builder()
+                .token(token)
+                .userId(user.getId())
+                .username(user.getUsername())
+                .fullName(user.getFullName())
+                .role(user.getRole().name())
+                .assignedBranch(user.getAssignedBranch())
+                .allowedBranches(userAllowedBranches)
+                .companyId(companyId)
+                .companyName(companyName)
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .needsCompanySetup(false)
+                .build();
+    }
+
     // ── Register ───────────────────────────────────────────────────────────
 
     /**
@@ -162,6 +231,7 @@ public class AuthService {
         AppUser user = AppUser.builder()
                 .username(req.getUsername().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
+                .devPassword(req.getPassword())
                 .fullName(req.getFullName().trim())
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
                 .phone(req.getPhone() != null ? req.getPhone().trim() : null)
@@ -244,6 +314,7 @@ public class AuthService {
         AppUser user = AppUser.builder()
                 .username(req.getUsername().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
+                .devPassword(req.getPassword())
                 .fullName(req.getFullName().trim())
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
                 .phone(req.getUserPhone() != null ? req.getUserPhone().trim() : req.getPrimaryPhone())

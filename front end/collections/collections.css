@@ -43,7 +43,7 @@ body[data-module="collections"] {
   overflow: hidden;
   position: relative;
   -webkit-font-smoothing: antialiased;
-  background-color: var(--bg-main, #121312);
+  background-color: var(--bg-body, var(--bg-main, #121312));
 }
 
 body[data-module="collections"] .app-bg {
@@ -54,7 +54,7 @@ body[data-module="collections"] .app-bg {
   overflow: hidden;
   background:
     radial-gradient(circle at 82% 20%, rgba(251, 191, 36, 0.04) 0%, transparent 30%),
-    linear-gradient(135deg, #141514 0%, #1a1b18 28%, #161715 52%, #121311 72%, #0e0f0d 100%);
+    var(--bg-body-gradient);
 }
 
 body[data-module="collections"] .app-shell {

@@ -195,6 +195,7 @@ public class UserManagementDto {
         private List<String> allowedModules;
         private String accessScope;
         private BigDecimal approvalLimit;
+        private String avatarUrl;
         private String status;
         private String riskLevel;
     }
@@ -216,6 +217,7 @@ public class UserManagementDto {
         private List<String> allowedModules;
         private String accessScope;
         private BigDecimal approvalLimit;
+        private String avatarUrl;
         private String status;
         private String riskLevel;
     }

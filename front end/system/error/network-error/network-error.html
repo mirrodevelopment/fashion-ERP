@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Network Error">Network Error</title>
   <meta name="description" content="We're unable to connect to the server. Please check your internet connection and try again." />
   <link rel="icon" type="image/x-icon" href="../../../favicon.ico" />
-  <link rel="stylesheet" href="network-error.css" />
+    <link rel="stylesheet" href="../../../fragments/font/font.css" />
+  <link rel="stylesheet" href="../../../fragments/theme/haulo-tokens.css" />
+  <script src="../../../fragments/theme/theme-switch.js"></script>
+<link rel="stylesheet" href="network-error.css" />
 </head>
 <body>
 
@@ -77,6 +89,9 @@
 
         <!-- Action Buttons: [Try Again] & [Go Back] -->
         <div class="action-buttons-group">
+        <button class="icon-btn haulo-theme-btn" id="hauloThemeToggleBtn" data-haulo-theme-btn aria-label="Switch Theme" title="Switch Theme" onclick="if(window.HauloTheme)window.HauloTheme.toggle();" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;border:1px solid var(--border-card, rgba(255,255,255,0.18));background:var(--bg-card, rgba(255,255,255,0.08));backdrop-filter:blur(16px);cursor:pointer;color:var(--text-secondary, #fff);transition:all 0.18s ease;box-shadow:0 4px 16px rgba(0,0,0,0.3);flex-shrink:0;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
           <!-- 1. Try Again Pill Button (Solid Golden Bronze) -->
           <button type="button" class="btn-try-again" id="btnTryAgain" title="Retry network connection">
             <!-- Refresh Counter-Clockwise Double Arrows SVG -->

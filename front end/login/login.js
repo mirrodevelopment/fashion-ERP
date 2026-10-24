@@ -53,47 +53,47 @@ if (urlParams.has('auto_redirect') && Auth.isLoggedIn() && !urlParams.has('force
 }
 
 // ── DOM Elements ───────────────────────────────────────────────────────────
-const form             = document.getElementById('login-form');
-const usernameInput    = document.getElementById('username');
-const passwordInput    = document.getElementById('password');
-const rememberChk      = document.getElementById('remember');
-const btnLogin         = document.getElementById('btn-login');
-const btnText          = document.getElementById('btn-text');
-const btnSpinner       = document.getElementById('btn-spinner');
-const arrowIcon        = document.getElementById('signin-arrow-icon');
-const errorBanner      = document.getElementById('error-banner');
-const errorMsg         = document.getElementById('error-msg');
-const togglePw         = document.getElementById('toggle-pw');
-const eyeIconSvg       = document.getElementById('eye-icon-svg');
-const btnAutoLogin     = document.getElementById('btn-auto-login');
-const btnAutoText      = document.getElementById('btn-auto-text');
-const btnContact       = document.getElementById('btn-contact');
-const forgotPwLink     = document.getElementById('link-forgot-pw');
-const btnGoogle        = document.getElementById('btn-google-login');
-const btnMicrosoft     = document.getElementById('btn-ms-login');
+const form = document.getElementById('login-form');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const rememberChk = document.getElementById('remember');
+const btnLogin = document.getElementById('btn-login');
+const btnText = document.getElementById('btn-text');
+const btnSpinner = document.getElementById('btn-spinner');
+const arrowIcon = document.getElementById('signin-arrow-icon');
+const errorBanner = document.getElementById('error-banner');
+const errorMsg = document.getElementById('error-msg');
+const togglePw = document.getElementById('toggle-pw');
+const eyeIconSvg = document.getElementById('eye-icon-svg');
+const btnAutoLogin = document.getElementById('btn-auto-login');
+const btnAutoText = document.getElementById('btn-auto-text');
+const btnContact = document.getElementById('btn-contact');
+const forgotPwLink = document.getElementById('link-forgot-pw');
+const btnGoogle = document.getElementById('btn-google-login');
+const btnMicrosoft = document.getElementById('btn-ms-login');
 
 // Step elements
-const loginStep1       = document.getElementById('login-step-1');
-const loginStep2       = document.getElementById('login-step-2');
+const loginStep1 = document.getElementById('login-step-1');
+const loginStep2 = document.getElementById('login-step-2');
 const companyNameInput = document.getElementById('company-name');
-const btnContinue      = document.getElementById('btn-company-continue');
-const btnContinueText  = document.getElementById('btn-continue-text');
-const btnContinueSpin  = document.getElementById('btn-continue-spinner');
-const continueArrow    = document.getElementById('continue-arrow-icon');
-const companyBadge     = document.getElementById('company-badge');
+const btnContinue = document.getElementById('btn-company-continue');
+const btnContinueText = document.getElementById('btn-continue-text');
+const btnContinueSpin = document.getElementById('btn-continue-spinner');
+const continueArrow = document.getElementById('continue-arrow-icon');
+const companyBadge = document.getElementById('company-badge');
 const companyBadgeName = document.getElementById('company-badge-name');
 const btnBackToCompany = document.getElementById('btn-back-to-company');
 
 // Tab / heading elements
-const cardTitle        = document.getElementById('card-title');
-const cardSubtitle     = document.getElementById('card-subtitle');
-const tabLogin         = document.getElementById('tab-login');
-const tabRegister      = document.getElementById('tab-register');
-const sectionLogin     = document.getElementById('section-login');
-const sectionRegister  = document.getElementById('section-register');
+const cardTitle = document.getElementById('card-title');
+const cardSubtitle = document.getElementById('card-subtitle');
+const tabLogin = document.getElementById('tab-login');
+const tabRegister = document.getElementById('tab-register');
+const sectionLogin = document.getElementById('section-login');
+const sectionRegister = document.getElementById('section-register');
 
 // ── Step State ─────────────────────────────────────────────────────────────
-let resolvedCompanyId   = null;   // UUID string from lookup response
+let resolvedCompanyId = null;   // UUID string from lookup response
 let resolvedCompanyName = null;   // Exact name from server
 
 // ── 1. Step Transition ─────────────────────────────────────────────────────
@@ -104,12 +104,12 @@ function showStep(stepNumber) {
   if (stepNumber === 1) {
     companyNameInput?.focus();
     // Update heading back to "Welcome Back"
-    if (cardTitle)    cardTitle.textContent    = 'Welcome Back';
+    if (cardTitle) cardTitle.textContent = 'Welcome Back';
     if (cardSubtitle) cardSubtitle.textContent = 'Sign in to your account and continue building something beautiful.';
   } else {
     usernameInput?.focus();
     // Update heading to show which company they're signing into
-    if (cardTitle)    cardTitle.textContent    = 'Sign In';
+    if (cardTitle) cardTitle.textContent = 'Sign In';
     if (cardSubtitle) cardSubtitle.textContent = resolvedCompanyName
       ? `Signing in to ${resolvedCompanyName}`
       : 'Enter your credentials to continue.';
@@ -119,33 +119,33 @@ function showStep(stepNumber) {
 // ── 2. Tab Mode Switcher ───────────────────────────────────────────────────
 let currentMode = 'login';
 
-window.switchAuthMode = function(mode) {
+window.switchAuthMode = function (mode) {
   currentMode = mode;
   const isLogin = (mode === 'login');
 
   // Tabs
-  if (tabLogin)    { tabLogin.classList.toggle('active', isLogin);    tabLogin.setAttribute('aria-selected', String(isLogin)); }
+  if (tabLogin) { tabLogin.classList.toggle('active', isLogin); tabLogin.setAttribute('aria-selected', String(isLogin)); }
   if (tabRegister) { tabRegister.classList.toggle('active', !isLogin); tabRegister.setAttribute('aria-selected', String(!isLogin)); }
 
   // Sections
-  if (sectionLogin)    sectionLogin.style.display    = isLogin ? '' : 'none';
+  if (sectionLogin) sectionLogin.style.display = isLogin ? '' : 'none';
   if (sectionRegister) sectionRegister.style.display = isLogin ? 'none' : '';
 
   // Heading
   if (isLogin) {
     // Reset to Step 1 whenever switching back to login tab
-    resolvedCompanyId   = null;
+    resolvedCompanyId = null;
     resolvedCompanyName = null;
     showStep(1);
   } else {
-    if (cardTitle)    cardTitle.textContent    = 'Register Your Boutique';
+    if (cardTitle) cardTitle.textContent = 'Register Your Boutique';
     if (cardSubtitle) cardSubtitle.textContent = 'Configure your boutique details first. You will create your admin login at the end.';
   }
 
   hideError();
 };
 
-if (tabLogin)    tabLogin.addEventListener('click', () => switchAuthMode('login'));
+if (tabLogin) tabLogin.addEventListener('click', () => switchAuthMode('login'));
 if (tabRegister) tabRegister.addEventListener('click', () => switchAuthMode('register'));
 
 // Check URL param for auto-switch
@@ -179,15 +179,15 @@ function setContinueLoading(loading) {
   if (!btnContinue) return;
   btnContinue.disabled = loading;
   if (btnContinueText) btnContinueText.textContent = loading ? 'Checking...' : 'Continue';
-  if (continueArrow)  continueArrow.style.display  = loading ? 'none' : 'inline-block';
+  if (continueArrow) continueArrow.style.display = loading ? 'none' : 'inline-block';
   if (btnContinueSpin) btnContinueSpin.style.display = loading ? 'inline-block' : 'none';
 }
 
 function setLoading(loading) {
   if (!btnLogin) return;
   btnLogin.disabled = loading;
-  if (btnText)    btnText.textContent = loading ? 'Signing in...' : 'Sign In';
-  if (arrowIcon)  arrowIcon.style.display  = loading ? 'none' : 'inline-block';
+  if (btnText) btnText.textContent = loading ? 'Signing in...' : 'Sign In';
+  if (arrowIcon) arrowIcon.style.display = loading ? 'none' : 'inline-block';
   if (btnSpinner) btnSpinner.style.display = loading ? 'inline-block' : 'none';
   if (btnAutoLogin) btnAutoLogin.style.pointerEvents = loading ? 'none' : 'auto';
 }
@@ -214,7 +214,7 @@ async function handleCompanyContinue() {
     }
 
     // Store resolved company context
-    resolvedCompanyId   = data.companyId;
+    resolvedCompanyId = data.companyId;
     resolvedCompanyName = data.companyName;
 
     // Update the confirmed badge
@@ -245,7 +245,7 @@ if (companyNameInput) {
 if (btnBackToCompany) {
   btnBackToCompany.addEventListener('click', (e) => {
     e.preventDefault();
-    resolvedCompanyId   = null;
+    resolvedCompanyId = null;
     resolvedCompanyName = null;
     // Clear credentials for security
     if (usernameInput) usernameInput.value = '';
@@ -265,8 +265,8 @@ async function _redirectPostAuth(needsCompanySetup) {
 
 function _goToDashboard() {
   const redirectUrl = urlParams.get('redirect') ||
-                      sessionStorage.getItem('haulo_redirect_after_login') ||
-                      localStorage.getItem('haulo_redirect_after_login');
+    sessionStorage.getItem('haulo_redirect_after_login') ||
+    localStorage.getItem('haulo_redirect_after_login');
   sessionStorage.removeItem('haulo_redirect_after_login');
   localStorage.removeItem('haulo_redirect_after_login');
   const destination = (redirectUrl && !redirectUrl.includes('login') && !redirectUrl.includes('session-expired') && !redirectUrl.includes('setup'))
@@ -285,10 +285,10 @@ async function performLogin(username, password, remember, companyName) {
     Auth.setToken(resp.token, remember);
     const allowedBranches = Array.isArray(resp.allowedBranches) ? resp.allowedBranches : (resp.assignedBranch ? [resp.assignedBranch] : []);
     Auth.setUser({
-      userId:   resp.userId,
+      userId: resp.userId,
       username: resp.username,
       fullName: resp.fullName,
-      role:     resp.role,
+      role: resp.role,
       assignedBranch: resp.assignedBranch,
       allowedBranches: allowedBranches
     });
@@ -321,7 +321,7 @@ async function performLogin(username, password, remember, companyName) {
         : (err.message || 'Unable to connect to the server. Please check your network.')
     );
     if (passwordInput) { passwordInput.value = ''; passwordInput.focus(); }
-    if (btnAutoText)   btnAutoText.textContent = 'Auto-Fill Admin Credentials';
+    if (btnAutoText) btnAutoText.textContent = 'Auto-Fill Admin Credentials';
     return false;
   } finally {
     setLoading(false);
@@ -333,7 +333,7 @@ if (typeof window !== 'undefined') {
   window.performLogin = performLogin;
   window.handleCompanyContinue = handleCompanyContinue;
   window.showStep = showStep;
-  window.setResolvedCompany = function(id, name) {
+  window.setResolvedCompany = function (id, name) {
     resolvedCompanyId = id;
     resolvedCompanyName = name;
     if (companyBadgeName) companyBadgeName.textContent = name;
@@ -362,12 +362,12 @@ if (form) {
 // ── 11. Start Setup Flow (Register Tab) ────────────────────────────────────
 function startSetupFlow() {
   const compInput = document.getElementById('reg-company-name');
-  const compName  = (compInput?.value || '').trim();
+  const compName = (compInput?.value || '').trim();
 
   // Clear any existing session so the new company setup creates fresh admin credentials
   ['erp_token', 'haulo_token', 'fashion_erp_token', 'erp_user', 'haulo_session_start', 'haulo_last_activity'].forEach(k => {
-    try { localStorage.removeItem(k); } catch (_) {}
-    try { sessionStorage.removeItem(k); } catch (_) {}
+    try { localStorage.removeItem(k); } catch (_) { }
+    try { sessionStorage.removeItem(k); } catch (_) { }
   });
 
   if (compName) {
@@ -398,68 +398,107 @@ if (regCompInput) {
 if (btnAutoLogin) {
   btnAutoLogin.addEventListener('click', async () => {
     hideError();
-    if (btnAutoText) btnAutoText.textContent = 'Fetching company...';
+    const originalText = '⚡ 1-Click Owner Quick Login';
+    if (btnAutoText) btnAutoText.textContent = '⚡ Connecting to live database...';
+    btnAutoLogin.style.pointerEvents = 'none';
 
-    let autoUser = 'admin';
-    let autoPass = 'Admin@123';
     try {
-      // 1. Try to fetch personas from /api/v1/dev/personas for live company and owner credentials
+      // 1. Fetch live companies and staff personas directly from database (zero hardcoded credentials)
       const pRes = await fetch(`${getApiBase()}/dev/personas`);
-      if (pRes.ok) {
-        const personas = await pRes.json();
-        const pList = Array.isArray(personas) ? personas : [personas];
-        const matchComp = pList[0];
-        if (matchComp) {
-          const cName = matchComp.companyName || matchComp.shortName || '';
-          if (cName && companyNameInput) {
-            companyNameInput.value = cName;
-            companyNameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
-            setTimeout(() => companyNameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
-          }
-          const ownerUser = (matchComp.users || []).find(u => (u.role || '').toUpperCase() === 'OWNER') || (matchComp.users || [])[0];
-          if (ownerUser) {
-            autoUser = ownerUser.username || autoUser;
-            autoPass = ownerUser.devPassword || autoPass;
-          }
-        }
-      } else {
-        const res = await fetch(`${getApiBase()}/company`);
-        if (res.ok) {
-          const compData = await res.json();
-          const cName = compData.companyName || compData.shortName || '';
-          if (cName && companyNameInput) {
-            companyNameInput.value = cName;
-            companyNameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
-            setTimeout(() => companyNameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
-          }
-        }
+      if (!pRes.ok) {
+        throw new Error(`Database connection failed (${pRes.status} ${pRes.statusText}). Is backend running?`);
       }
-    } catch (_) {
-      // If company fetch fails, leave field empty — user can still type it
+
+      const personas = await pRes.json();
+      const pList = Array.isArray(personas) ? personas : [personas];
+      if (pList.length === 0) {
+        throw new Error('No company records found in the database. Please register a boutique first.');
+      }
+
+      const matchComp = pList[0];
+      const targetCompany = matchComp.companyName || matchComp.shortName || '';
+      const targetCompanyId = matchComp.companyId;
+
+      if (!targetCompany) {
+        throw new Error('Database company record has no company name.');
+      }
+
+      // Find live OWNER persona or primary user from this company's DB records
+      const ownerUser = (matchComp.users || []).find(u => (u.role || '').toUpperCase() === 'OWNER') || (matchComp.users || [])[0];
+      if (!ownerUser || !ownerUser.username) {
+        throw new Error(`No active user accounts found in database for "${targetCompany}".`);
+      }
+
+      const autoUser = ownerUser.username;
+      const autoPass = ownerUser.devPassword;
+
+      // 2. Set company context and transition to Step 2
+      if (companyNameInput) {
+        companyNameInput.value = targetCompany;
+        companyNameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+        setTimeout(() => companyNameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+      }
+      resolvedCompanyId = targetCompanyId;
+      resolvedCompanyName = targetCompany;
+      if (companyBadgeName) companyBadgeName.textContent = targetCompany;
+      showStep(2);
+
+      // 3. Fill live credentials retrieved from DB
+      if (usernameInput) {
+        usernameInput.value = autoUser;
+        usernameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+        setTimeout(() => usernameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+      }
+
+      if (passwordInput && autoPass) {
+        passwordInput.value = autoPass;
+        passwordInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
+        setTimeout(() => passwordInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
+      }
+      if (rememberChk) rememberChk.checked = true;
+
+      const firstName = (ownerUser.fullName || '').split(' ')[0] || autoUser;
+      if (btnAutoText) btnAutoText.textContent = `⚡ Signing in as ${firstName}...`;
+
+      // 4. Perform login with live credentials or direct dev login fallback
+      if (autoPass) {
+        await performLogin(autoUser, autoPass, true, resolvedCompanyName);
+      } else {
+        const dRes = await fetch(`${getApiBase()}/dev/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: autoUser, companyId: targetCompanyId })
+        });
+        if (!dRes.ok) {
+          throw new Error('Sign-in rejected. Check database credentials or network.');
+        }
+        const resp = await dRes.json();
+        Auth.setToken(resp.token, true);
+        const allowedBranches = Array.isArray(resp.allowedBranches) ? resp.allowedBranches : (resp.assignedBranch ? [resp.assignedBranch] : []);
+        Auth.setUser({
+          userId: resp.userId,
+          username: resp.username,
+          fullName: resp.fullName,
+          role: resp.role,
+          assignedBranch: resp.assignedBranch,
+          allowedBranches: allowedBranches
+        });
+        _goToDashboard();
+      }
+
+    } catch (err) {
+      console.error('[QuickLogin] Live DB auto-login error:', err);
+      showError(err.message || 'Quick login failed. Unable to read live credentials from database.');
+    } finally {
+      if (btnAutoText) btnAutoText.textContent = originalText;
+      btnAutoLogin.style.pointerEvents = 'auto';
     }
+  });
 
-    if (btnAutoText) btnAutoText.textContent = 'Checking company...';
-
-    // Advance to Step 2 and pre-fill credentials
-    await handleCompanyContinue();
-
-    // Fill credentials on Step 2 after transition
-    if (usernameInput) {
-      usernameInput.value = autoUser;
-      usernameInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
-      setTimeout(() => usernameInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
-    }
-    if (passwordInput) {
-      passwordInput.value = autoPass;
-      passwordInput.closest('.input-glass-wrap')?.classList.add('highlight-lime');
-      setTimeout(() => passwordInput.closest('.input-glass-wrap')?.classList.remove('highlight-lime'), 500);
-    }
-    if (rememberChk) rememberChk.checked = true;
-    if (btnAutoText) btnAutoText.textContent = 'Auto-Fill Admin Credentials';
-
-    // Auto-submit
-    if (resolvedCompanyName) {
-      await performLogin(autoUser, autoPass, true, resolvedCompanyName);
+  btnAutoLogin.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      btnAutoLogin.click();
     }
   });
 }
@@ -468,9 +507,9 @@ if (btnAutoLogin) {
 if (btnContact) {
   btnContact.addEventListener('click', () => {
     const sysName = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('systemName')) || 'Haulo Boutique ERP';
-    const email   = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('emails.support')) || 'support@haulo.luxury';
-    const phone   = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('telephony.primaryMobile')) || '+91 98765 43210';
-    const city    = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('headquarters.city')) || 'Coimbatore';
+    const email = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('emails.support')) || 'support@haulo.luxury';
+    const phone = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('telephony.primaryMobile')) || '+91 98765 43210';
+    const city = (typeof BrandIdentity !== 'undefined' && BrandIdentity.get('headquarters.city')) || 'Coimbatore';
     alert(`${sysName} Concierge\n\n• Support & Inquiries: ${email}\n• Dedicated Helpline: ${phone}\n• Global Headquarters: ${city}, India`);
   });
 }

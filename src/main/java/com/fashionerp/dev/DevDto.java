@@ -38,8 +38,16 @@ public class DevDto {
         private String username;
         private String fullName;
         private String role;
+        private String designation;
         private String assignedBranch;
         private String branchName;
+        private List<String> allowedBranches;
         private String devPassword; // Standard development password "Admin@123"
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class DevLoginRequest {
+        private String username;
+        private UUID companyId;
     }
 }

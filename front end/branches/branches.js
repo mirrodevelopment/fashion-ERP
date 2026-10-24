@@ -53,19 +53,6 @@ const BRANCH_BADGE_CLASS = {
   BOUTIQUE: 'badge--boutique',
 };
 
-/* Tab → type mapping (null = all) */
-const TAB_TYPE_MAP = {
-  ALL: null,
-  SHOWROOMS: ['FLAGSHIP', 'SHOWROOM', 'BOUTIQUE'],
-  PRODUCTION: ['PRODUCTION_UNIT'],
-  WAREHOUSES: ['WAREHOUSE'],
-  EXPERIENCE: ['EXPERIENCE_STUDIO', 'POPUP'],
-};
-
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const DEFAULT_OPEN = '10:00';
-const DEFAULT_CLOSE = '20:00';
-
 /* ── State ── */
 let _allBranches = [];
 let _allOrders = [];
@@ -90,27 +77,6 @@ function _getBranchInitials(name) {
   const parts = name.trim().split(/[\s-]+/).filter(Boolean);
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
-function _formatWorkingHours(val) {
-  if (!val) return '10:00 AM – 8:00 PM';
-  try {
-    const obj = JSON.parse(val);
-    if (typeof obj === 'object' && obj !== null) {
-      const days = Object.keys(obj);
-      if (days.length > 0) {
-        const first = obj[days[0]];
-        if (first && first.open && first.close) {
-          return `${first.open} – ${first.close}`;
-        }
-      }
-    }
-  } catch (_) {}
-  const str = String(val);
-  if (str.includes('|')) {
-    return str.split('|')[0].trim();
-  }
-  return str;
 }
 
 function _deriveBranchMetrics(b) {
@@ -157,7 +123,8 @@ function _deriveBranchMetrics(b) {
   // In production orders
   const inProduction = orders.filter(o => {
     const s = (o.status || '').toUpperCase();
-    return s.includes('PRODUCTION') || s.includes('STITCHING') || s.includes('CUTTING');
+    return s === 'IN_PROGRESS' || s === 'PRODUCTION' ||
+      (s !== 'CANCELLED' && s !== 'COMPLETED' && s !== 'DELIVERED' && s !== 'READY' && s !== 'DRAFT');
   });
 
   // Ready to deliver orders
@@ -184,7 +151,7 @@ function _deriveBranchMetrics(b) {
     const tb = (m.toBranch || '').toLowerCase();
     const itemMatch = items.some(it => it.id === m.itemId);
     return itemMatch || (notes && notes.includes(branchName)) || (ref && ref.includes(branchCode)) ||
-           (fb && fb.includes(branchName)) || (tb && tb.includes(branchName));
+      (fb && fb.includes(branchName)) || (tb && tb.includes(branchName));
   });
 
   // Low stock items
@@ -220,11 +187,11 @@ function _deriveBranchMetrics(b) {
     const code = (e.employeeCode || '').toUpperCase();
     const notes = (e.notes || '').toLowerCase();
     const isEmpMatch = (branchCode && code.includes(branchCode)) ||
-                       (code.includes('LKO') && (isHQ || branchCode.includes('LKO'))) ||
-                       (code.includes('AGR') && (branchCode.includes('AGRA') || branchCode.includes('AGR'))) ||
-                       (code.includes('KNP') && (branchCode.includes('KNPR') || branchCode.includes('KNP'))) ||
-                       (notes && notes.includes(branchName)) ||
-                       (e.id && e.id === b.managerId);
+      (code.includes('LKO') && (isHQ || branchCode.includes('LKO'))) ||
+      (code.includes('AGR') && (branchCode.includes('AGRA') || branchCode.includes('AGR'))) ||
+      (code.includes('KNP') && (branchCode.includes('KNPR') || branchCode.includes('KNP'))) ||
+      (notes && notes.includes(branchName)) ||
+      (e.id && e.id === b.managerId);
     return isEmpMatch;
   });
   const teamSize = b.teamSize || (employees.length > 0 ? employees.length : (b.employeeCount || 0));
@@ -240,8 +207,8 @@ function _deriveBranchMetrics(b) {
   // 1. Sales Performance: actual payments collected vs billed total from branch orders
   const totalBilled = orders.reduce((s, o) => s + (parseFloat(o.totalAmount || o.amount) || 0), 0);
   const totalPaid = orders.reduce((s, o) => s + (parseFloat(o.advancePaid || o.paidAmount) || 0), 0);
-  const salesScore = totalBilled > 0 
-    ? Math.min(100, Math.round((totalPaid / totalBilled) * 100)) 
+  const salesScore = totalBilled > 0
+    ? Math.min(100, Math.round((totalPaid / totalBilled) * 100))
     : (orders.length > 0 ? 100 : 0);
 
   // 2. Order Fulfilment: (fulfilled + on-track) / valid orders
@@ -321,8 +288,6 @@ const Branches = {
 
   /* ── Init ── */
   async init() {
-    this.buildTypeSelects();
-    this.buildWorkingHoursGrid();
     this._bindGlobalEvents();
     await this.loadBranches();
     await this.populateManagerDropdown();
@@ -344,21 +309,6 @@ const Branches = {
     document.querySelectorAll('.branch-tab').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
     this.filterBranches();
-  },
-
-  /* ── Build Type Selects ── */
-  buildTypeSelects() {
-    const filterSel = document.getElementById('filterType');
-    if (filterSel) {
-      filterSel.innerHTML = '<option value="">All Types</option>' +
-        BRANCH_TYPES.map(t => `<option value="${t}">${BRANCH_TYPE_LABELS[t] || t}</option>`).join('');
-    }
-    const formSel = document.getElementById('bType');
-    if (formSel) {
-      formSel.innerHTML = BRANCH_TYPES.map(t =>
-        `<option value="${t}" ${t === 'SHOWROOM' ? 'selected' : ''}>${BRANCH_TYPE_LABELS[t] || t}</option>`
-      ).join('');
-    }
   },
 
   /* ── Fetch Real Telemetry Data (Orders, Inventory, Movements, Garments, Trials) ── */
@@ -484,18 +434,16 @@ const Branches = {
   /* ── Filter ── */
   filterBranches() {
     const q = (document.getElementById('branchSearch')?.value || '').toLowerCase();
-    const type = document.getElementById('filterType')?.value || '';
     const status = document.getElementById('filterStatus')?.value || '';
     const city = document.getElementById('filterCity')?.value || '';
     const perf = document.getElementById('filterPerf')?.value || '';
     const capacity = document.getElementById('filterCapacity')?.value || '';
     const inventory = document.getElementById('filterInventory')?.value || '';
-    const tabTypes = TAB_TYPE_MAP[_activeTab] || null;
 
     _filtered = _allBranches.filter(b => {
-      if (tabTypes && !tabTypes.includes(b.type)) return false;
+      if (_activeTab === 'FLAGSHIP' && !(b.isHeadquarters || b.headquarters)) return false;
+      if (_activeTab === 'ACTIVE' && !b.active) return false;
       if (q && !(b.name?.toLowerCase().includes(q) || b.city?.toLowerCase().includes(q) || b.branchCode?.toLowerCase().includes(q))) return false;
-      if (type && b.type !== type) return false;
       if (status === 'active' && !b.active) return false;
       if (status === 'inactive' && b.active) return false;
       if (city && b.city !== city) return false;
@@ -553,7 +501,7 @@ const Branches = {
         <thead>
           <tr>
             <th onclick="Branches.sortBy('name')" style="cursor:pointer;">BRANCH ${_sortKey === 'name' ? (_sortDir === 'asc' ? '↑' : '↓') : ''}</th>
-            <th>TYPE</th>
+            <th onclick="Branches.sortBy('branchCode')" style="cursor:pointer;">CODE ${_sortKey === 'branchCode' ? (_sortDir === 'asc' ? '↑' : '↓') : ''}</th>
             <th onclick="Branches.sortBy('city')" style="cursor:pointer;">CITY ${_sortKey === 'city' ? (_sortDir === 'asc' ? '↑' : '↓') : ''}</th>
             <th>MANAGER</th>
             <th>REVENUE MTD</th>
@@ -575,10 +523,8 @@ const Branches = {
 
   _buildTableRow(b) {
     const m = _deriveBranchMetrics(b);
-    const typeLabel = b.displayType || BRANCH_TYPE_LABELS[b.type] || b.type || 'Branch';
     const avatarInitials = _getBranchInitials(b.name);
     const avatarClass = BRANCH_AVATAR_CLASS[b.type] || 'tbl-avatar--showroom';
-    const typeIcon = BRANCH_TYPE_ICONS[b.type] || 'building-2';
     const isHQ = b.isHeadquarters || b.headquarters;
 
     // Capacity bar
@@ -626,13 +572,19 @@ const Branches = {
           </div>
         </td>
         <td>
-          <span class="tbl-type-badge">
-            <i data-lucide="${typeIcon}"></i>
-            ${typeLabel}
+          <span class="badge" style="font-family:monospace;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:rgba(212,175,55,0.12);color:#d4af37;border:1px solid rgba(212,175,55,0.25);">
+            ${this._esc(b.branchCode || '—')}
           </span>
         </td>
         <td>${this._esc(b.city || '—')}</td>
-        <td><span style="font-size:12px;color:rgba(255,255,255,.75);">${this._esc(b.managerName || '—')}</span></td>
+        <td>
+          ${b.managerName ? `
+            <div style="display:flex;align-items:center;gap:7px;">
+              <div class="tbl-avatar tbl-avatar--manager" title="Branch Manager: ${this._esc(b.managerName)}">${_getBranchInitials(b.managerName)}</div>
+              <span style="font-size:12px;color:rgba(255,255,255,.85);font-weight:500;">${this._esc(b.managerName)}</span>
+            </div>
+          ` : `<span style="font-size:12px;color:rgba(255,255,255,.4);">Unassigned</span>`}
+        </td>
         <td>
           <span style="font-size:13px;font-weight:700;color:#fff;">${revLabel}</span>
         </td>
@@ -726,6 +678,16 @@ const Branches = {
     const hLabel = b.statusText || (m.health >= 85 ? 'HEALTHY' : (m.health >= 70 ? 'ATTENTION' : 'ACTIVE'));
     const storefrontImg = b.imageUrl || '../assets/haulo_storefront.jpg';
 
+    const allRevenue = _allBranches.reduce((s, x) => s + _deriveBranchMetrics(x).revenue, 0);
+    const mainBranch = _allBranches.find(x => x.isHeadquarters || x.headquarters) ||
+      _allBranches.find(x => x.name && (x.name.toLowerCase().includes('main') || x.name.toLowerCase().includes('flagship'))) ||
+      _allBranches[0];
+    const mainRevenue = mainBranch ? _deriveBranchMetrics(mainBranch).revenue : 0;
+    const allRevLabel = allRevenue >= 10000000 ? `₹${(allRevenue / 10000000).toFixed(1)}Cr`
+      : allRevenue >= 100000 ? `₹${(allRevenue / 100000).toFixed(1)}L` : (allRevenue > 0 ? `₹${(allRevenue / 1000).toFixed(0)}K` : '₹0');
+    const mainRevLabel = mainRevenue >= 10000000 ? `₹${(mainRevenue / 10000000).toFixed(1)}Cr`
+      : mainRevenue >= 100000 ? `₹${(mainRevenue / 100000).toFixed(1)}L` : (mainRevenue > 0 ? `₹${(mainRevenue / 1000).toFixed(0)}K` : '₹0');
+
     return `
       <!-- Hero Storefront Card -->
       <div class="panel-hero-card">
@@ -734,12 +696,13 @@ const Branches = {
           <div class="panel-hero-header">
             <div>
               <div class="panel-branch-name">${this._esc(b.name)}${isHQ ? ' <span class="hq-star" style="color:#FACC15;">★</span>' : ''}</div>
-              <div class="panel-branch-sub">${this._esc(typeLabel)}</div>
+              <div class="panel-branch-sub">${this._esc(b.branchCode ? b.branchCode + ' • ' : '')}${this._esc(cityState)}</div>
             </div>
             <div class="panel-hero-actions">
-              <button class="panel-mini-btn" onclick="Branches.callBranch('${b.id}')"><i data-lucide="phone"></i> Call</button>
-              <button class="panel-mini-btn" onclick="Branches.openDirections('${b.id}')"><i data-lucide="compass"></i> Directions</button>
-              <button class="panel-mini-btn-icon" onclick="Branches.showMoreMenu(event)" title="Options"><i data-lucide="more-horizontal"></i></button>
+              <button class="panel-mini-btn" onclick="Branches.openEditModal('${b.id}')" title="Edit Branch"><i data-lucide="pencil"></i> Edit</button>
+              ${!isHQ && b.active ? `<button class="panel-mini-btn" onclick="Branches.setAsHeadquarters('${b.id}')" title="Set as Flagship / HQ"><i data-lucide="star"></i> Set HQ</button>` : ''}
+              <button class="panel-mini-btn" onclick="Branches.callBranch('${b.id}')" title="Call"><i data-lucide="phone"></i> Call</button>
+              <button class="panel-mini-btn panel-mini-btn--danger" onclick="Branches.openDeleteModal('${b.id}')" title="Delete Branch" style="color:#f87171;"><i data-lucide="trash-2"></i> Delete</button>
             </div>
           </div>
           <div class="panel-hero-body">
@@ -754,10 +717,13 @@ const Branches = {
               </div>
             </div>
             <div class="panel-contacts-list">
-              <div class="panel-contact-item" title="${this._esc(b.managerName || 'Unassigned')}"><i data-lucide="user"></i><span>${this._esc(b.managerName || 'Unassigned')}</span></div>
+              <div class="panel-contact-item" title="${this._esc(b.managerName || 'Unassigned')}">
+                ${b.managerName ? `<div class="tbl-avatar tbl-avatar--manager" style="width:18px;height:18px;font-size:8px;">${_getBranchInitials(b.managerName)}</div>` : `<i data-lucide="user"></i>`}
+                <span>${this._esc(b.managerName || 'Unassigned')}</span>
+              </div>
               <div class="panel-contact-item" title="${this._esc(b.phone || '—')}"><i data-lucide="phone"></i><span>${this._esc(b.phone || '—')}</span></div>
               <div class="panel-contact-item" title="${this._esc(b.email || '—')}"><i data-lucide="mail"></i><span>${this._esc(b.email || '—')}</span></div>
-              <div class="panel-contact-item" title="${this._esc(b.workingHours || '10:00 AM – 8:00 PM')}"><i data-lucide="clock"></i><span>${this._esc(_formatWorkingHours(b.workingHours))}</span></div>
+              ${b.website ? `<div class="panel-contact-item" title="${this._esc(b.website)}"><i data-lucide="globe"></i><span>${this._esc(b.website.replace(/^https?:\/\//i, ''))}</span></div>` : ''}
             </div>
           </div>
         </div>
@@ -769,7 +735,12 @@ const Branches = {
           <div class="panel-kpi-icon panel-kpi-icon--green"><i data-lucide="indian-rupee"></i></div>
           <div>
             <div class="panel-kpi-val" style="color:var(--lime,#B8FF3D);">${revLabel}</div>
-            <div class="panel-kpi-lbl">Revenue MTD</div>
+            <div class="panel-kpi-lbl">Total Value</div>
+            <div style="font-size:9.5px;color:rgba(255,255,255,0.65);margin-top:2px;display:flex;align-items:center;gap:4px;">
+              <span>All: <b style="color:var(--lime,#b8ff3d);">${allRevLabel}</b></span>
+              <span style="opacity:0.4;">•</span>
+              <span>Main: <b style="color:#ffffff;">${mainRevLabel}</b></span>
+            </div>
           </div>
         </div>
         <div class="panel-kpi-card">
@@ -1103,7 +1074,7 @@ const Branches = {
 
     return recs.slice(0, 3).map((r, i) => `
       <div class="rec-item">
-        <div class="rec-num rec-num--${r.color || (i+1)}">${r.num || (i + 1)}</div>
+        <div class="rec-num rec-num--${r.color || (i + 1)}">${r.num || (i + 1)}</div>
         <div class="rec-text">${this._esc(r.text)}</div>
       </div>`).join('');
   },
@@ -1208,9 +1179,17 @@ const Branches = {
     const revLabel = revenue >= 10000000 ? `₹${(revenue / 10000000).toFixed(1)}Cr`
       : revenue >= 100000 ? `₹${(revenue / 100000).toFixed(1)}L` : (revenue > 0 ? `₹${(revenue / 1000).toFixed(0)}K` : '₹0');
 
+    const mainBranch = _allBranches.find(b => b.isHeadquarters || b.headquarters) ||
+      _allBranches.find(b => b.name && (b.name.toLowerCase().includes('main') || b.name.toLowerCase().includes('flagship'))) ||
+      _allBranches[0];
+    const mainRevenue = mainBranch ? _deriveBranchMetrics(mainBranch).revenue : 0;
+    const mainRevLabel = mainRevenue >= 10000000 ? `₹${(mainRevenue / 10000000).toFixed(1)}Cr`
+      : mainRevenue >= 100000 ? `₹${(mainRevenue / 100000).toFixed(1)}L` : (mainRevenue > 0 ? `₹${(mainRevenue / 1000).toFixed(0)}K` : '₹0');
+
     this._setText('statTotal', total);
     this._setText('statActive', active);
     this._setText('statRevenue', revLabel);
+    this._setText('statRevenueSub', `Main: ${mainRevLabel}`);
     this._setText('statOrders', orders);
     this._setText('statTransfers', transfers);
     this._setText('statNetworkLoad', `${avgLoad}%`);
@@ -1292,56 +1271,20 @@ const Branches = {
       });
     }
 
-    if (cards.length === 0 && _allBranches && _allBranches.length >= 2) {
-      const b1 = _allBranches[0]?.name.replace(/^Riwayat Couture\s*-\s*/i, '') || 'Lucknow HQ';
-      const b2 = _allBranches[1]?.name.replace(/^Riwayat Couture\s*-\s*/i, '') || 'Agra Showroom';
-      const b3 = _allBranches[2]?.name.replace(/^Riwayat Couture\s*-\s*/i, '') || 'Kanpur Studio';
-
-      cards = [
-        {
-          code: 'TR-2026-0101',
-          from: b1,
-          to: b2,
-          items: '45m Pure Chanderi Silk Handloom',
-          status: 'In Transit',
-          statusType: 'transit',
-          img: '../assets/pink_silk.jpg'
-        },
-        {
-          code: 'TR-2026-0102',
-          from: b2,
-          to: b3,
-          items: '30m Royal Silk Velvet 9000',
-          status: 'In Transit',
-          statusType: 'transit',
-          img: '../assets/swatch_champagne.jpg'
-        },
-        {
-          code: 'TR-2026-0103',
-          from: b3,
-          to: b1,
-          items: '50m Pure Banarasi Katan Silk',
-          status: 'Dispatched',
-          statusType: 'delayed',
-          img: '../assets/swatch_raw_silk.jpg'
-        },
-        {
-          code: 'TR-2026-0104',
-          from: b1,
-          to: b3,
-          items: '25m Heritage Zardozi Border',
-          status: 'Received',
-          statusType: 'received',
-          img: '../assets/swatch_embroidery.jpg'
-        }
-      ];
-    }
-
     if (cards.length === 0) {
       strip.innerHTML = `
-        <div class="transfers-empty-card" style="padding:16px 20px;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;width:100%;border:1px dashed rgba(255,255,255,0.1);border-radius:10px;">
-          No active cross-branch material transfers found in database.
+        <div class="transfers-empty-card" style="grid-column: 1 / -1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:22px 20px; text-align:center; color:rgba(255,255,255,0.5); font-size:12px; border:1px dashed rgba(255,255,255,0.12); border-radius:12px; background:rgba(255,255,255,0.015);">
+          <div style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4);">
+            <i data-lucide="arrow-left-right" style="width:16px; height:16px;"></i>
+          </div>
+          <span style="font-weight:600; color:rgba(255,255,255,0.7); font-size:13px;">No Cross-Branch Transfers in Transit</span>
+          <span style="font-size:11.5px; color:rgba(255,255,255,0.4); max-width:340px; line-height:1.4;">Active material requisitions and fabric transfers between branches will appear here live.</span>
+          <button type="button" onclick="Branches.viewAllTransfers()" style="margin-top:4px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#C084FC; font-size:11px; font-weight:600; padding:5px 14px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .15s ease;">
+            <span>Open Inventory Movements</span>
+            <i data-lucide="arrow-right" style="width:12px; height:12px;"></i>
+          </button>
         </div>`;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
       return;
     }
 
@@ -1521,56 +1464,7 @@ const Branches = {
     this.showToast('CSV exported.', 'success');
   },
 
-  /* ── Working Hours ── */
-  buildWorkingHoursGrid() {
-    const grid = document.getElementById('workingHoursGrid');
-    if (!grid) return;
-    grid.innerHTML = DAYS_OF_WEEK.map(day => `
-      <div class="hours-row">
-        <span class="hours-day">${day}</span>
-        <input type="time" class="hours-time-input" id="h_${day}_open"  value="${DEFAULT_OPEN}" />
-        <input type="time" class="hours-time-input" id="h_${day}_close" value="${DEFAULT_CLOSE}" />
-        <label class="hours-closed-wrap">
-          <input type="checkbox" id="h_${day}_closed" onchange="Branches._toggleDayClosed('${day}',this.checked)" />
-          Closed
-        </label>
-      </div>`).join('');
-  },
 
-  _toggleDayClosed(day, closed) {
-    const o = document.getElementById(`h_${day}_open`);
-    const c = document.getElementById(`h_${day}_close`);
-    if (o) o.disabled = closed;
-    if (c) c.disabled = closed;
-  },
-
-  _getWorkingHours() {
-    const result = {};
-    DAYS_OF_WEEK.forEach(day => {
-      result[day] = {
-        open: document.getElementById(`h_${day}_open`)?.value || DEFAULT_OPEN,
-        close: document.getElementById(`h_${day}_close`)?.value || DEFAULT_CLOSE,
-        closed: document.getElementById(`h_${day}_closed`)?.checked || false,
-      };
-    });
-    return result;
-  },
-
-  _setWorkingHours(jsonStr) {
-    try {
-      const hours = JSON.parse(jsonStr || '{}');
-      DAYS_OF_WEEK.forEach(day => {
-        const d = hours[day] || {};
-        const o = document.getElementById(`h_${day}_open`);
-        const c = document.getElementById(`h_${day}_close`);
-        const cl = document.getElementById(`h_${day}_closed`);
-        if (o) o.value = d.open || DEFAULT_OPEN;
-        if (c) c.value = d.close || DEFAULT_CLOSE;
-        if (cl) cl.checked = d.closed || false;
-        if (d.closed) this._toggleDayClosed(day, true);
-      });
-    } catch (_) { }
-  },
 
   /* ── Manager Dropdown ── */
   async populateManagerDropdown() {
@@ -1602,12 +1496,12 @@ const Branches = {
     document.getElementById('saveBranchBtnText').textContent = 'Create Branch';
     document.getElementById('branchForm')?.reset();
     document.getElementById('branchId').value = '';
-    this.buildWorkingHoursGrid();
-    document.querySelectorAll('.feature-toggle input[type=checkbox]').forEach(c => c.checked = false);
     const cw = document.getElementById('createAdminToggleWrapper');
     const tg = document.getElementById('bCreateAdminToggle');
     if (cw) cw.style.display = 'block';
     if (tg) tg.checked = true;
+    const adminCard = document.getElementById('currentAdminCard');
+    if (adminCard) adminCard.style.display = 'none';
     this.toggleAdminFields();
     if (document.getElementById('bAdminPassword')) document.getElementById('bAdminPassword').value = 'Branch@123';
     const nameInput = document.getElementById('bName');
@@ -1640,8 +1534,6 @@ const Branches = {
     document.getElementById('branchId').value = b.id;
     document.getElementById('bName').value = b.name || '';
     document.getElementById('bCode').value = b.branchCode || '';
-    document.getElementById('bType').value = b.type || 'SHOWROOM';
-    document.getElementById('bStatus').value = String(b.active);
     document.getElementById('bStreet').value = b.streetAddress || '';
     document.getElementById('bCity').value = b.city || '';
     document.getElementById('bState').value = b.state || '';
@@ -1654,20 +1546,26 @@ const Branches = {
     document.getElementById('bWebsite').value = b.website || '';
     document.getElementById('bNotes').value = b.notes || '';
     if (b.managerId) document.getElementById('bManager').value = b.managerId;
-    this._setWorkingHours(b.workingHours);
-    try {
-      const f = JSON.parse(b.features || '{}');
-      document.getElementById('fAppointments').checked = !!f.appointments;
-      document.getElementById('fFittingRoom').checked = !!f.fittingRoom;
-      document.getElementById('fFabricDisplay').checked = !!f.fabricDisplay;
-      document.getElementById('fWarehouseOnly').checked = !!f.warehouseOnly;
-    } catch (_) { }
     const cw = document.getElementById('createAdminToggleWrapper');
     const tg = document.getElementById('bCreateAdminToggle');
     if (cw) cw.style.display = 'none';
     if (tg) tg.checked = false;
     this.toggleAdminFields();
+
+    const adminCard = document.getElementById('currentAdminCard');
+    const adminNameEl = document.getElementById('currentAdminName');
+    const adminUserEl = document.getElementById('currentAdminUsername');
+    if (adminCard && adminNameEl && adminUserEl) {
+      const adminName = b.managerName || (b.name ? `${b.name} Manager` : 'Branch Administrator');
+      const branchSlug = (b.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_');
+      const adminUsername = b.adminUsername || (b.branchCode ? `brn_${branchSlug}_admin` : 'brn_admin');
+      adminNameEl.textContent = adminName;
+      adminUserEl.textContent = `@${adminUsername}`;
+      adminCard.style.display = 'block';
+    }
+
     this._openModal('branchModal');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   },
 
   closeBranchModal(e) {
@@ -1685,10 +1583,11 @@ const Branches = {
     if (!name || !phone || !street || !city || !state) {
       this.showToast('Please fill all required fields.', 'error'); return;
     }
+    const existing = _editingId ? _allBranches.find(x => x.id === _editingId) : null;
     const payload = {
       name, phone, streetAddress: street, city, state,
-      type: document.getElementById('bType')?.value,
-      active: document.getElementById('bStatus')?.value === 'true',
+      type: existing?.type || 'SHOWROOM',
+      active: existing ? existing.active : true,
       pinCode: document.getElementById('bPin')?.value?.trim(),
       country: document.getElementById('bCountry')?.value,
       googleMapsUrl: document.getElementById('bMaps')?.value?.trim(),
@@ -1696,13 +1595,8 @@ const Branches = {
       email: document.getElementById('bEmail')?.value?.trim(),
       website: document.getElementById('bWebsite')?.value?.trim(),
       managerId: document.getElementById('bManager')?.value || null,
-      workingHours: JSON.stringify(this._getWorkingHours()),
-      features: JSON.stringify({
-        appointments: document.getElementById('fAppointments')?.checked,
-        fittingRoom: document.getElementById('fFittingRoom')?.checked,
-        fabricDisplay: document.getElementById('fFabricDisplay')?.checked,
-        warehouseOnly: document.getElementById('fWarehouseOnly')?.checked,
-      }),
+      workingHours: existing?.workingHours || '{}',
+      features: '{}',
       notes: document.getElementById('bNotes')?.value?.trim(),
     };
     if (!_editingId) {
@@ -1769,9 +1663,12 @@ const Branches = {
     _deleteTarget = id;
     const b = _allBranches.find(x => x.id === id);
     document.getElementById('deleteBranchName').textContent = b?.name || 'this branch';
+    const codeEl = document.getElementById('deleteBranchCode');
+    if (codeEl) codeEl.textContent = b?.branchCode || '—';
     document.getElementById('deleteConfirmInput').value = '';
     document.getElementById('confirmDeleteBtn').disabled = true;
     this._openModal('deleteModal');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   },
 
   checkDeleteConfirm() {
@@ -1787,16 +1684,16 @@ const Branches = {
 
   async confirmDelete() {
     if (!_deleteTarget) return;
+    const targetId = _deleteTarget;
     try {
-      const res = await this._fetchWithAuth(`${BRANCHES_API}/${_deleteTarget}`, { method: 'DELETE' });
+      const res = await this._fetchWithAuth(`${BRANCHES_API}/${targetId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       this.showToast('Branch deleted.', 'success');
       this._closeModal('deleteModal');
       _deleteTarget = null;
-      if (_selectedBranchId === _deleteTarget) {
+      if (_selectedBranchId === targetId) {
         _selectedBranchId = null;
-        document.getElementById('panelPlaceholder')?.classList.remove('hidden');
-        document.getElementById('panelContent')?.classList.add('hidden');
+        this.renderEmptyDetailPanel();
       }
       await this.loadBranches();
     } catch (err) { this.showToast('Delete failed: ' + err.message, 'error'); }

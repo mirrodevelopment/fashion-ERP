@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Coming Soon">Coming Soon</title>
   <meta name="description" content="Something beautiful is on the way. We're working on something amazing for you. Stay tuned!" />
   <link rel="icon" type="image/x-icon" href="../../favicon.ico" />
-  <link rel="stylesheet" href="coming-soon.css" />
+    <link rel="stylesheet" href="../../fragments/font/font.css" />
+  <link rel="stylesheet" href="../../fragments/theme/haulo-tokens.css" />
+  <script src="../../fragments/theme/theme-switch.js"></script>
+<link rel="stylesheet" href="coming-soon.css" />
 </head>
 <body>
 
@@ -85,7 +97,10 @@
         </div>
 
         <!-- Action Button: [Go Back] (Dark Charcoal Pill Button) -->
-        <button type="button" class="btn-go-back" id="btnGoBack" title="Return to previous ERP page">
+                <button class="icon-btn haulo-theme-btn" id="hauloThemeToggleBtn" data-haulo-theme-btn aria-label="Switch Theme" title="Switch Theme" onclick="if(window.HauloTheme)window.HauloTheme.toggle();" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;border:1px solid var(--border-card, rgba(255,255,255,0.18));background:var(--bg-card, rgba(255,255,255,0.08));backdrop-filter:blur(16px);cursor:pointer;color:var(--text-secondary, #fff);transition:all 0.18s ease;box-shadow:0 4px 16px rgba(0,0,0,0.3);flex-shrink:0;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+<button type="button" class="btn-go-back" id="btnGoBack" title="Return to previous ERP page">
           <!-- Left Arrow Icon SVG -->
           <svg viewBox="0 0 24 24" fill="none" class="arrow-icon-svg" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>

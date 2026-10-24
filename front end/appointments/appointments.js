@@ -86,9 +86,11 @@
   async function renderKpiSummary() {
     try {
       const { default: api } = await import('../api.js');
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
       const [apptKpis, enqKpis] = await Promise.all([
-        api.appointments.kpis().catch(() => null),
-        api.enquiries.kpis().catch(() => null)
+        api.appointments.kpis(kpiParams).catch(() => null),
+        api.enquiries.kpis(kpiParams).catch(() => null)
       ]);
 
       const elToday = document.getElementById('kpiTodayCount');

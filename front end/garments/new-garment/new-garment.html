@@ -2,6 +2,15 @@
 <html lang="en">
 
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="New Garment">New Garment</title>
@@ -43,15 +52,15 @@
       <!-- New Garment Scrollable Workspace -->
       <div class="new-garment-scroll" id="newGarmentScroll">
 
-        <!-- Page Operations Header with 5-Step Workflow Progress -->
+        <!-- Page Operations Header with 4-Step Workflow Progress -->
         <div class="page-header-row">
           <div class="page-title-group">
             <div id="breadcrumbSlot"></div>
             <h1 class="page-title">New Garment</h1>
-            <p class="page-subtitle">Register a bespoke garment silhouette, link customer &amp; order, route atelier stages, and schedule milestones</p>
+            <p class="page-subtitle">Register a bespoke garment silhouette, link customer &amp; order, and route atelier stages</p>
           </div>
 
-          <!-- 5-Step Horizontal Workflow Stepper -->
+          <!-- 4-Step Horizontal Workflow Stepper -->
           <div class="workflow-stepper" id="workflowStepper">
             <div class="step-node active" data-step="1" title="Garment Identity &amp; Silhouette" onclick="jumpToStep(1)">
               <div class="step-circle">1</div>
@@ -71,11 +80,6 @@
             <div class="step-node" data-step="4" title="Atelier Routing &amp; Artisan" onclick="jumpToStep(4)">
               <div class="step-circle">4</div>
               <div class="step-label">Routing</div>
-            </div>
-            <div class="step-line"></div>
-            <div class="step-node" data-step="5" title="Schedule &amp; Costing" onclick="jumpToStep(5)">
-              <div class="step-circle">5</div>
-              <div class="step-label">Schedule</div>
             </div>
           </div>
         </div>
@@ -168,21 +172,21 @@
                 </div>
               </section>
 
-              <!-- STEP 2: CUSTOMER & ORDER LINKAGE CARD -->
+              <!-- STEP 2: CUSTOMER & ORDER LINKAGE CARD (OPTIONAL) -->
               <section class="section-card" id="cardCustomer">
                 <div class="card-header">
                   <div class="card-header-left">
                     <div class="step-badge">2</div>
                     <div>
-                      <h2 class="card-title">Customer &amp; Order Linkage</h2>
-                      <p class="card-subtitle">Connect this garment to a client ledger and active sales order</p>
+                      <h2 class="card-title">Client Commission &amp; Order Linkage (Optional)</h2>
+                      <p class="card-subtitle">Connect this garment to a client order or leave blank for atelier specimen catalog</p>
                     </div>
                   </div>
                 </div>
 
                 <!-- Customer Search with Autocomplete Dropdown -->
                 <div class="form-group relative-pos">
-                  <label for="txtCustomerSearch" class="form-label required">Customer Search (Name or Mobile)</label>
+                  <label for="txtCustomerSearch" class="form-label">Customer Search (Optional - Name or Mobile)</label>
                   <div class="input-icon-wrap">
                     <i data-lucide="search" class="input-icon"></i>
                     <input type="text" id="txtCustomerSearch" class="form-input" placeholder="Type customer name or mobile e.g. Radhika, Pragya, or 98111..." autocomplete="off" oninput="handleCustomerSearch(this.value)" />
@@ -202,19 +206,19 @@
                       <i data-lucide="x" style="width:14px;height:14px;"></i>
                     </button>
                   </div>
-                  <input type="hidden" id="hiddenCustomerName" required />
+                  <input type="hidden" id="hiddenCustomerName" />
                   <input type="hidden" id="hiddenCustomerMobile" />
                 </div>
 
                 <!-- Row 2: Order Code & Branch -->
                 <div class="field-row-2col">
                   <div class="form-group">
-                    <label for="txtOrderCode" class="form-label required">Order Code</label>
+                    <label for="txtOrderCode" class="form-label">Order Code (Optional)</label>
                     <div class="input-icon-wrap">
                       <i data-lucide="package" class="input-icon"></i>
-                      <input type="text" id="txtOrderCode" class="form-input" placeholder="e.g. ORD-2841" required oninput="updateLivePreview()" />
+                      <input type="text" id="txtOrderCode" class="form-input" placeholder="e.g. ORD-2841 (Optional)" oninput="updateLivePreview()" />
                     </div>
-                    <span class="field-hint">Links to master production order</span>
+                    <span class="field-hint">Leave empty if creating an atelier catalog specimen</span>
                   </div>
 
                   <div class="form-group">
@@ -236,7 +240,7 @@
                 </div>
                 <div class="guide-text">
                   <strong>Atelier Production Protocol</strong>
-                  <span>Auto-generates Garment 360° record with live QR barcode and routes directly to master cutting ledger upon creation.</span>
+                  <span>Auto-generates garment record with live QR barcode and routes directly to master cutting ledger upon creation.</span>
                 </div>
               </div>
 
@@ -314,27 +318,16 @@
                     </div>
                   </div>
 
-                  <!-- Direct URL Input Toggle & Presets -->
+                  <!-- Direct URL Input Toggle -->
                   <div class="url-input-toggle-row">
                     <button type="button" class="btn-text-action" onclick="toggleUrlInput()">
                       <i data-lucide="link" style="width:11px;height:11px;"></i> Or enter image URL
                     </button>
-                    <div class="image-preset-row" style="flex-wrap:wrap;gap:4px;">
-                      <span style="font-size:10px;color:var(--text-muted);align-self:center;">Presets:</span>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/bridal_blouse_zardozi.jpg')">Blouse</button>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/heritage_lehenga_pink.jpg')">Lehenga</button>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/anarkali_chikankari.jpg')">Anarkali</button>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/raw_silk_sherwani.jpg')">Sherwani</button>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/banarasi_organza_saree.jpg')">Saree</button>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/champagne_evening_gown.jpg')">Gown</button>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/zardozi_handwork.jpg')">Gharara</button>
-                      <button type="button" class="preset-img-btn" onclick="setImagePreset('../../assets/garments/blouse_back_cut.jpg')">Back Cut</button>
-                    </div>
                   </div>
 
                   <div class="input-icon-wrap" id="urlInputContainer" style="display:none;margin-top:6px;">
                     <i data-lucide="image" class="input-icon"></i>
-                    <input type="text" id="txtImageUrl" class="form-input" value="../../assets/garments/bridal_blouse_zardozi.jpg" placeholder="../../assets/garments/bridal_blouse_zardozi.jpg" oninput="handleUrlInputChange()" />
+                    <input type="text" id="txtImageUrl" class="form-input" placeholder="e.g. https://... or uploaded image URL" oninput="handleUrlInputChange()" />
                   </div>
                 </div>
 
@@ -364,14 +357,7 @@
                     <div class="input-icon-wrap">
                       <i data-lucide="milestone" class="input-icon"></i>
                       <select id="selProductionStage" class="form-select" required onchange="updateLivePreview()">
-                        <option value="Designing">Designing</option>
-                        <option value="Pattern">Pattern</option>
-                        <option value="Cutting">Cutting</option>
-                        <option value="Embroidery">Embroidery</option>
-                        <option value="Stitching" selected>Stitching</option>
-                        <option value="Trial">Trial</option>
-                        <option value="QC">Quality Control</option>
-                        <option value="Ready">Ready for Delivery</option>
+                        <option value="" disabled selected>Loading Stages...</option>
                       </select>
                     </div>
                   </div>
@@ -424,65 +410,6 @@
             <!-- ================= RIGHT COLUMN (SUMMARY & ACTIONS) ================= -->
             <div class="col-right">
 
-              <!-- STEP 5: SCHEDULE, MATERIAL & COSTING CARD -->
-              <section class="section-card" id="cardSchedule">
-                <div class="card-header">
-                  <div class="card-header-left">
-                    <div class="step-badge">5</div>
-                    <div>
-                      <h2 class="card-title">Schedule &amp; Costing</h2>
-                      <p class="card-subtitle">Commitment dates, material readiness &amp; financial tracking</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Due Date & Trial Date -->
-                <div class="field-row-2col">
-                  <div class="form-group">
-                    <label for="txtDueDate" class="form-label required">Due Date (Delivery)</label>
-                    <input type="date" id="txtDueDate" class="form-input" required onchange="updateLivePreview()" />
-                  </div>
-                  <div class="form-group">
-                    <label for="txtTrialDate" class="form-label">Trial Fitting Date</label>
-                    <input type="date" id="txtTrialDate" class="form-input" onchange="updateLivePreview()" />
-                  </div>
-                </div>
-
-                <!-- Material Status -->
-                <div class="form-group">
-                  <label for="selMaterialStatus" class="form-label required">Material Status</label>
-                  <select id="selMaterialStatus" class="form-select" required onchange="updateLivePreview()">
-                    <option value="READY" selected>Materials Ready in Atelier</option>
-                    <option value="ALLOCATING">Allocating from Inventory</option>
-                    <option value="PENDING">Procurement Pending</option>
-                  </select>
-                </div>
-
-                <!-- Total Amount & Paid Amount -->
-                <div class="field-row-2col">
-                  <div class="form-group">
-                    <label for="numTotalAmount" class="form-label required">Total Price (₹)</label>
-                    <input type="number" id="numTotalAmount" class="form-input" value="18400" placeholder="18400" min="0" step="100" required oninput="calculateBalance()" />
-                  </div>
-                  <div class="form-group">
-                    <label for="numPaidAmount" class="form-label">Advance Paid (₹)</label>
-                    <input type="number" id="numPaidAmount" class="form-input" value="10000" placeholder="12000" min="0" step="100" oninput="calculateBalance()" />
-                  </div>
-                </div>
-
-                <!-- Payment Status & Balance Display -->
-                <div class="balance-calc-row">
-                  <div>
-                    <span style="font-size:11px;color:var(--text-muted);">Balance Due:</span>
-                    <strong style="color:var(--lime);font-size:15px;display:block;" id="lblBalanceDue">₹0</strong>
-                  </div>
-                  <div style="text-align:right;">
-                    <span style="font-size:11px;color:var(--text-muted);">Payment Status:</span>
-                    <span class="badge-payment-status" id="badgePaymentStatus">PENDING</span>
-                  </div>
-                </div>
-              </section>
-
               <!-- LIVE DOSSIER PREVIEW CARD (Interactive Image Upload) -->
               <section class="section-card preview-card" aria-label="Garment Live Preview">
                 <div class="preview-hero-wrap" id="previewHeroWrap" onclick="triggerImageUpload()" ondragover="handleDragOverPreview(event)" ondragleave="handleDragLeavePreview(event)" ondrop="handleDropPreview(event)" title="Click or drop photo here to upload garment image">
@@ -511,23 +438,21 @@
 
                   <!-- Header Tag Overlay -->
                   <div class="preview-hero-overlay">
-                    <span class="preview-code-tag" id="previewCode">GAR-2026-0001</span>
-                    <span class="preview-stage-tag" id="previewStage">STITCHING</span>
+                    <span class="preview-code-tag" id="previewCode">—</span>
+                    <span class="preview-stage-tag" id="previewStage">DESIGNING</span>
                   </div>
                 </div>
 
                 <div class="preview-body">
-                  <h3 class="preview-title" id="previewTitle">Royal Zardozi Bridal Blouse</h3>
+                  <h3 class="preview-title" id="previewTitle">Garment Title Preview</h3>
                   <div class="preview-meta-row">
                     <span id="previewCustomer"><i data-lucide="user" style="width:12px;height:12px;"></i> Client: —</span>
                     <span id="previewOrder"><i data-lucide="package" style="width:12px;height:12px;"></i> Order: —</span>
                   </div>
                   <div class="preview-meta-row">
-                    <span id="previewTailor"><i data-lucide="user-check" style="width:12px;height:12px;"></i> Tailor: Ravi M</span>
-                    <span id="previewDelivery"><i data-lucide="calendar" style="width:12px;height:12px;"></i> Due: —</span>
+                    <span id="previewTailor"><i data-lucide="user-check" style="width:12px;height:12px;"></i> Tailor: —</span>
                   </div>
                   <div class="preview-footer-row">
-                    <span class="preview-price" id="previewPrice">₹18,400</span>
                     <span class="preview-priority-badge" id="previewPriority">NORMAL PRIORITY</span>
                   </div>
                 </div>

@@ -27,6 +27,16 @@
     return 'http://localhost:8080/api/v1';
   }
 
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // In-memory cache of database records
   let dbCompanies = [];
   let selectedCompany = null;
@@ -43,7 +53,8 @@
           <span>Developer Quick-Login</span>
           <span class="dev-badge-pulse">DEV MODE</span>
         </div>
-        <div class="dev-header-right">
+        <div class="dev-header-right" style="display:flex;align-items:center;gap:6px;">
+          <button type="button" id="btn-dev-refresh" title="Refresh live users from database" style="background:transparent;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:2px 6px;border-radius:4px;font-size:13px;line-height:1;transition:all 0.2s;">↻</button>
           <span class="dev-chevron" id="dev-chevron">▾</span>
         </div>
       </div>
@@ -136,6 +147,19 @@
     chkInstant.checked = localStorage.getItem('haulo_dev_instant_login') === 'true';
     chkInstant.addEventListener('change', () => {
       localStorage.setItem('haulo_dev_instant_login', String(chkInstant.checked));
+    });
+
+    // ── Refresh Button & Tab Focus Sync ──
+    const btnRefresh = document.getElementById('btn-dev-refresh');
+    if (btnRefresh) {
+      btnRefresh.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fetchDeveloperPersonas();
+      });
+    }
+
+    window.addEventListener('focus', () => {
+      fetchDeveloperPersonas();
     });
 
     // ── Event Handlers ──
@@ -267,17 +291,25 @@
 
     userSelect.innerHTML = '';
 
-    // Group users by assigned branch
+    // Group users by assigned branch - HQ / Executive Suite first
     const branchesMap = new Map();
     selectedCompany.users.forEach(u => {
-      const bKey = u.branchName ? `${u.branchName} (${u.assignedBranch || 'HQ'})` : 'Main Branch';
+      const isHq = !u.assignedBranch || u.assignedBranch.toUpperCase() === 'HQ' || (u.role && u.role.toUpperCase() === 'OWNER');
+      const bKey = isHq ? '🏢 Headquarters / Executive Suite' : (u.branchName ? `${u.branchName} (${u.assignedBranch})` : 'All Branches');
       if (!branchesMap.has(bKey)) {
         branchesMap.set(bKey, []);
       }
       branchesMap.get(bKey).push(u);
     });
 
-    branchesMap.forEach((users, branchTitle) => {
+    // Ensure Headquarters group is rendered first
+    const sortedGroups = Array.from(branchesMap.entries()).sort(([k1], [k2]) => {
+      if (k1.includes('Headquarters')) return -1;
+      if (k2.includes('Headquarters')) return 1;
+      return k1.localeCompare(k2);
+    });
+
+    sortedGroups.forEach(([branchTitle, users]) => {
       const group = document.createElement('optgroup');
       group.label = `📍 ${branchTitle}`;
 
@@ -285,7 +317,8 @@
         const opt = document.createElement('option');
         opt.value = u.username;
         const roleIcon = getRoleIcon(u.role);
-        opt.textContent = `${roleIcon} ${u.fullName} (${u.role})`;
+        const roleDisplay = u.designation ? `${u.role} (${u.designation})` : u.role;
+        opt.textContent = `${roleIcon} ${u.fullName} — ${roleDisplay}`;
         group.appendChild(opt);
       });
 
@@ -293,8 +326,14 @@
     });
 
     userSelect.disabled = false;
-    userSelect.selectedIndex = 0;
-    selectedUser = selectedCompany.users[0] || null;
+    const firstOption = userSelect.querySelector('option');
+    if (firstOption) {
+      firstOption.selected = true;
+      selectedUser = selectedCompany.users.find(u => u.username === firstOption.value) || selectedCompany.users[0] || null;
+    } else {
+      userSelect.selectedIndex = 0;
+      selectedUser = selectedCompany.users[0] || null;
+    }
 
     if (btnAutoLogin) btnAutoLogin.disabled = false;
     if (btnFillOnly)  btnFillOnly.disabled = false;
@@ -305,11 +344,8 @@
   function getRoleIcon(role) {
     if (!role) return '👤';
     const r = role.toUpperCase();
-    if (r.includes('ADMIN')) return '👑';
-    if (r.includes('TAILOR') || r.includes('CUTTER')) return '✂️';
-    if (r.includes('DESIGNER') || r.includes('STYLIST')) return '🎨';
-    if (r.includes('SALES') || r.includes('MANAGER')) return '💼';
-    if (r.includes('QC') || r.includes('INSPECTOR')) return '🔍';
+    if (r.includes('OWNER')) return '👑';
+    if (r.includes('BRANCH') || r.includes('ADMIN')) return '🛡️';
     return '👤';
   }
 
@@ -329,17 +365,31 @@
 
     if (previewEl)  previewEl.style.display = 'grid';
     if (prevComp)   prevComp.textContent   = selectedCompany.companyName;
-    if (prevBranch) prevBranch.textContent = selectedUser.branchName 
-      ? `${selectedUser.branchName} (${selectedUser.assignedBranch || ''})` 
-      : 'All Branches';
+
+    if (prevBranch) {
+      const allowed = Array.isArray(selectedUser.allowedBranches) ? selectedUser.allowedBranches : [];
+      if (allowed.length > 1) {
+        prevBranch.innerHTML = `<span title="Multi-branch clearance">${selectedUser.branchName || 'Multi-Branch'} <span style="font-size:10px;padding:2px 6px;background:rgba(99,102,241,0.2);color:#818cf8;border-radius:4px;margin-left:4px;font-weight:600;">${allowed.length} Branches</span></span>`;
+      } else {
+        prevBranch.textContent = selectedUser.branchName 
+          ? `${selectedUser.branchName} (${selectedUser.assignedBranch || ''})` 
+          : 'All Branches';
+      }
+    }
 
     if (prevRole) {
-      const roleClass = `role-${(selectedUser.role || 'staff').toLowerCase()}`;
-      prevRole.innerHTML = `<span class="dev-role-badge ${roleClass}">${selectedUser.role || 'STAFF'}</span>`;
+      const roleName = selectedUser.role || 'STAFF';
+      const roleClass = `role-${roleName.toLowerCase().replace('_', '-')}`;
+      const badgeText = selectedUser.designation ? `${roleName} • ${selectedUser.designation}` : roleName;
+      prevRole.innerHTML = `<span class="dev-role-badge ${roleClass}">${badgeText}</span>`;
     }
 
     if (prevUser) {
-      prevUser.textContent = `${selectedUser.username} (${selectedUser.devPassword || 'Admin@123'})`;
+      if (selectedUser.devPassword) {
+        prevUser.textContent = `${selectedUser.username} (${selectedUser.devPassword})`;
+      } else {
+        prevUser.innerHTML = `${escapeHtml(selectedUser.username)} <span style="font-size:10px;padding:2px 6px;background:rgba(212,175,55,0.18);color:#d4af37;border-radius:4px;margin-left:4px;font-weight:600;">⚡ 1-Click Auto-Login Ready</span>`;
+      }
     }
 
     if (btnText) {
@@ -367,9 +417,17 @@
       window.showStep(2);
     }
 
-    // 3. Fill user credentials
+    // 3. Fill user credentials directly from database persona
     if (usernameInput) usernameInput.value = selectedUser.username;
-    if (passwordInput) passwordInput.value = selectedUser.devPassword || 'Admin@123';
+    if (passwordInput) {
+      if (selectedUser.devPassword) {
+        passwordInput.value = selectedUser.devPassword;
+      } else {
+        passwordInput.value = '';
+        passwordInput.placeholder = 'Enter password chosen during user creation';
+        passwordInput.focus();
+      }
+    }
     if (rememberChk)   rememberChk.checked = true;
 
     // Visual feedback glow
@@ -388,31 +446,76 @@
       if (btnAutoLogin) btnAutoLogin.disabled = true;
       if (btnText) btnText.textContent = '⚡ Signing in...';
 
-      fillFieldsOnly();
-
+      // 1. If devPassword matches and window.performLogin is available, try standard login
       let success = false;
-      if (typeof window.performLogin === 'function') {
-        success = await window.performLogin(
-          selectedUser.username,
-          selectedUser.devPassword || 'Admin@123',
-          true,
-          selectedCompany.companyName
-        );
-      } else {
-        const form = document.getElementById('login-form');
-        const btnLogin = document.getElementById('btn-login');
-
-        if (form && typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
-          success = true;
-        } else if (btnLogin) {
-          btnLogin.click();
-          success = true;
+      if (selectedUser.devPassword && typeof window.performLogin === 'function') {
+        fillFieldsOnly();
+        try {
+          success = await window.performLogin(
+            selectedUser.username,
+            selectedUser.devPassword,
+            true,
+            selectedCompany.companyName
+          );
+        } catch (e) {
+          console.warn('[DevAutoLogin] Standard login attempt failed, falling back to direct dev login:', e);
         }
       }
 
+      // 2. Direct developer login bypass via /api/v1/dev/login
+      // Allows ANY newly created persona to log in instantly without password barrier
       if (!success) {
-        throw new Error('Sign-in rejected. Check database credentials or network.');
+        const res = await fetch(`${getApiBase()}/dev/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: selectedUser.username,
+            companyId: selectedCompany.companyId
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || `Server returned HTTP ${res.status}`);
+        }
+
+        const resp = await res.json();
+        const allowedBranches = Array.isArray(resp.allowedBranches) ? resp.allowedBranches : (resp.assignedBranch ? [resp.assignedBranch] : []);
+
+        if (window.Auth && typeof window.Auth.setToken === 'function') {
+          window.Auth.setToken(resp.token, true);
+          window.Auth.setUser({
+            userId:   resp.userId,
+            username: resp.username,
+            fullName: resp.fullName,
+            role:     resp.role,
+            assignedBranch: resp.assignedBranch,
+            allowedBranches: allowedBranches
+          });
+        } else {
+          localStorage.setItem('haulo_token', resp.token);
+          localStorage.setItem('haulo_user', JSON.stringify({
+            userId:   resp.userId,
+            username: resp.username,
+            fullName: resp.fullName,
+            role:     resp.role,
+            assignedBranch: resp.assignedBranch,
+            allowedBranches: allowedBranches
+          }));
+        }
+
+        sessionStorage.removeItem('erp_allowed_modules');
+        const roleNorm = (resp.role || '').replace('ROLE_', '').toUpperCase();
+        const isOwner = (roleNorm === 'OWNER' || roleNorm === 'ADMIN');
+        if (!isOwner) {
+          const initBranch = resp.assignedBranch || (allowedBranches.length > 0 ? allowedBranches[0] : 'Main Branch');
+          localStorage.setItem('haulo_selected_branch', initBranch);
+        } else {
+          localStorage.removeItem('haulo_selected_branch');
+        }
+
+        window.location.href = '../dashboard/dashboard.html';
+        return;
       }
     } catch (err) {
       console.error('[DevAutoLogin] executeAutoLogin error:', err);

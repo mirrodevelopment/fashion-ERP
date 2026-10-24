@@ -135,6 +135,20 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('haulo_registered_customers');
   } catch (_) {}
 
+  // Clearance check for orders.create
+  if (typeof window.AuthZ !== 'undefined' && !window.AuthZ.canCreateOrder()) {
+    const mainEl = document.getElementById('mainContent') || document.body;
+    mainEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;padding:40px;color:#f87171;">
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px;opacity:0.85;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <h2 style="font-size:24px;font-weight:700;color:#fff;margin-bottom:8px;">Access Restricted</h2>
+        <p style="font-size:14px;color:rgba(255,255,255,0.7);max-width:440px;margin-bottom:24px;">Your user account does not have the <strong>Create Orders (orders.create)</strong> operational clearance. Please contact your system administrator.</p>
+        <a href="../order-overview/order-over.html" style="padding:10px 20px;background:var(--lime,#84cc16);color:#0a0e05;font-weight:700;border-radius:10px;text-decoration:none;">Return to Orders</a>
+      </div>
+    `;
+    return;
+  }
+
   initCustomerSection();
   initGarmentSelection();
   initDesignSection();
@@ -1481,6 +1495,12 @@ function restoreDraftIfExists() {
 // 14. CREATE ORDER & VALIDATION
 // ─────────────────────────────────────────────────────────────
 async function submitCreateOrder() {
+  if (typeof window.AuthZ !== 'undefined' && !window.AuthZ.canCreateOrder()) {
+    showToast('Permission Denied: You do not have clearance to create orders.', 'error');
+    alert('Access Denied: You do not have clearance to create new orders.');
+    return;
+  }
+
   // Full Validation
   if (!orderState.customer || !orderState.customer.name) {
     showToast('Customer name is required', 'error');

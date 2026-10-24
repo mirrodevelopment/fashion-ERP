@@ -345,20 +345,19 @@
     <!-- User -->
     <div class="user-wrap" id="userWrap">
       <button class="user-btn" id="userBtn" aria-label="User profile menu" aria-haspopup="true">
-        <img src="../assets/user_avatar.jpg" alt="Pranesh B" class="u-avatar-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
-        <div class="u-avatar" style="display:none;">PB</div>
+        <div class="u-avatar" id="navUserAvatar">--</div>
         <div class="u-info">
-          <div class="u-name">Pranesh B</div>
-          <div class="u-role">Administrator</div>
+          <div class="u-name">User</div>
+          <div class="u-role">Account</div>
         </div>
         <i data-lucide="chevron-down" style="width:12px;height:12px;opacity:0.5;"></i>
       </button>
       <div class="user-dd dd-panel" id="userDd">
         <div class="dd-panel-header" style="display:flex;gap:10px;align-items:center;">
-          <div class="u-avatar-lg">PB</div>
+          <div class="u-avatar-lg" id="navUserAvatarLg">--</div>
           <div>
-            <div class="u-name" style="font-size:12px;font-weight:700;color:#fff;">Pranesh B</div>
-            <div class="u-role" style="font-size:9.5px;color:rgba(255,255,255,0.5);">Administrator</div>
+            <div class="u-name" style="font-size:12px;font-weight:700;color:#fff;">User</div>
+            <div class="u-role" style="font-size:9.5px;color:rgba(255,255,255,0.5);">Account</div>
           </div>
         </div>
         <div class="dd-divider"></div>
@@ -916,11 +915,9 @@
         };
       }
 
-      // Dynamic Avatar resolution
-      const avatarImg = navbar.querySelector('.u-avatar-img');
-      if (avatarImg) {
-        avatarImg.src = `${rootPrefix}assets/user_avatar.jpg`;
-      }
+      // Setup double-letter avatar monogram
+      const avatarDiv = navbar.querySelector('#navUserAvatar, .u-avatar');
+      const avatarLgDiv = navbar.querySelector('#navUserAvatarLg, .u-avatar-lg');
 
       // Search bar trigger & overlay management
       const searchBar = navbar.querySelector('#searchBarBtn');
@@ -1079,27 +1076,79 @@
           } catch { return null; }
         })();
 
-        if (storedUser) {
-          const displayName = storedUser.fullName || storedUser.username || 'User';
-          let displayRole = 'Staff';
-          if (storedUser.role) {
-            const norm = storedUser.role.replace('ROLE_', '').toUpperCase();
-            if (norm === 'OWNER') displayRole = '👑 Boutique Owner';
-            else if (norm === 'BRANCH_ADMIN') displayRole = `🏢 Branch Admin${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-            else if (norm === 'ADMIN') displayRole = 'Super Administrator';
-            else if (norm === 'DESIGNER') displayRole = `Designer${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-            else if (norm === 'TAILOR') displayRole = `Master Tailor${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-            else if (norm === 'RECEPTIONIST') displayRole = `Receptionist${storedUser.assignedBranch ? ' (' + storedUser.assignedBranch + ')' : ''}`;
-            else displayRole = storedUser.role.replace('ROLE_', '').replace(/_/g, ' ');
+        // Double-Letter Monogram Initials Generator
+        function resolveDoubleLetterInitials(name) {
+          if (!name || typeof name !== 'string') return '--';
+          const clean = name.trim().replace(/^(mr|mrs|ms|dr|shri|smt)\.?\s+/i, '');
+          const parts = clean.split(/[\s._-]+/).filter(Boolean);
+          if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
           }
+          if (clean.length >= 2) {
+            return clean.substring(0, 2).toUpperCase();
+          }
+          return (clean[0] || '--').toUpperCase();
+        }
 
-          // Update avatar initials
-          const avatarDiv = userBtn.querySelector('.u-avatar');
-          if (avatarDiv) {
-            const parts = displayName.trim().split(' ');
-            avatarDiv.textContent = parts.length >= 2
-              ? parts[0][0].toUpperCase() + parts[parts.length - 1][0].toUpperCase()
-              : displayName.substring(0, 2).toUpperCase();
+        try {
+          const cachedAv = localStorage.getItem('erp_user_avatar');
+          if (cachedAv && (cachedAv.includes('user_avatar.jpg') || cachedAv.includes('default'))) {
+            localStorage.removeItem('erp_user_avatar');
+          }
+        } catch (_) {}
+
+        const displayName = storedUser ? (storedUser.fullName || storedUser.username || '') : '';
+        const initials = displayName ? resolveDoubleLetterInitials(displayName) : '--';
+        const customAvatarUrl = storedUser && (storedUser.avatarUrl || storedUser.profileImage || storedUser.profilePicture || storedUser.avatar);
+
+        // Remove any legacy default/stale avatar img tags directly inside userBtn
+        userBtn.querySelectorAll(':scope > .u-avatar-img, .u-avatar-img').forEach(img => {
+          if (!customAvatarUrl || (typeof customAvatarUrl === 'string' && !customAvatarUrl.includes(img.getAttribute('src')))) {
+            img.remove();
+          }
+        });
+
+        let navAvatar = userBtn.querySelector('.u-avatar, #navUserAvatar');
+        if (!navAvatar) {
+          navAvatar = document.createElement('div');
+          navAvatar.className = 'u-avatar';
+          navAvatar.id = 'navUserAvatar';
+          userBtn.insertBefore(navAvatar, userBtn.firstChild);
+        }
+        navAvatar.style.display = 'flex';
+
+        const navAvatarLg = userDd.querySelector('.u-avatar-lg, #navUserAvatarLg');
+
+        if (customAvatarUrl && typeof customAvatarUrl === 'string' && customAvatarUrl.startsWith('monogram:')) {
+          const mono = customAvatarUrl.substring(9).trim().slice(0, 2).toUpperCase() || initials;
+          navAvatar.textContent = mono;
+          if (navAvatarLg) {
+            navAvatarLg.textContent = mono;
+          }
+        } else if (customAvatarUrl && typeof customAvatarUrl === 'string' && !customAvatarUrl.includes('user_avatar.jpg') && !customAvatarUrl.includes('default')) {
+          navAvatar.innerHTML = `<img src="${customAvatarUrl}" class="u-avatar-img" alt="${displayName}" onerror="this.parentElement.textContent='${initials}'"/>`;
+          if (navAvatarLg) {
+            navAvatarLg.innerHTML = `<img src="${customAvatarUrl}" class="u-avatar-img" style="width:38px;height:38px;" alt="${displayName}" onerror="this.parentElement.textContent='${initials}'"/>`;
+          }
+        } else {
+          navAvatar.textContent = initials;
+          if (navAvatarLg) {
+            navAvatarLg.textContent = initials;
+          }
+        }
+
+        if (storedUser) {
+          let displayRole = 'Custom Role';
+          const norm = (storedUser.role || '').replace('ROLE_', '').toUpperCase();
+          if (norm === 'OWNER' || norm === 'ADMIN') {
+            displayRole = '👑 Boutique Owner';
+          } else if (norm === 'BRANCH_ADMIN') {
+            const branchTag = storedUser.assignedBranch ? ` (${storedUser.assignedBranch})` : '';
+            displayRole = `🏢 Branch Admin${branchTag}`;
+          } else if (storedUser.designation) {
+            displayRole = storedUser.designation;
+          } else {
+            displayRole = storedUser.role ? storedUser.role.replace(/_/g, ' ') : 'Staff';
           }
 
           // Update name and role in button
@@ -1883,4 +1932,81 @@
       containerEl.innerHTML = window.renderPatronAvatarHtml(name, avatarUrl, sizeClass, extraStyles);
     };
   }
+
+  /* ────────────────────────────────────────────────────────────
+     GLOBAL CLEARANCE & PERMISSION HELPER (AuthZ)
+     Supports: orders.create, orders.delete, finance.view
+     ──────────────────────────────────────────────────────────── */
+  if (!window.AuthZ) {
+    window.AuthZ = {
+      getUser() {
+        try {
+          if (typeof Auth !== 'undefined' && typeof Auth.getUser === 'function') {
+            const u = Auth.getUser();
+            if (u) return u;
+          }
+          const stored = localStorage.getItem('haulo_user') || localStorage.getItem('fashion_erp_user') || localStorage.getItem('user');
+          if (stored) return JSON.parse(stored);
+        } catch (_) {}
+        return null;
+      },
+      getRole() {
+        const u = this.getUser();
+        return (u?.role || '').replace('ROLE_', '').toUpperCase();
+      },
+      isUnrestricted() {
+        const r = this.getRole();
+        return r === 'OWNER' || r === 'ADMIN' || r === 'SUPER_ADMIN';
+      },
+      hasPermission(key) {
+        if (this.isUnrestricted()) return true;
+        const u = this.getUser();
+        if (!u) return false;
+        let mods = u.allowedModules;
+        if (typeof mods === 'string') {
+          try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+        }
+        if (!Array.isArray(mods)) return false;
+        return mods.includes(key);
+      },
+      canCreateOrder() {
+        if (this.isUnrestricted()) return true;
+        const u = this.getUser();
+        if (!u) return false;
+        let mods = u.allowedModules;
+        if (typeof mods === 'string') {
+          try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+        }
+        if (!Array.isArray(mods)) return false;
+        if (mods.includes('orders.create')) return true;
+        if (mods.includes('orders.delete') || mods.includes('finance.view')) return false;
+        const r = this.getRole();
+        if (r === 'BRANCH_ADMIN') return true;
+        return mods.includes('orders');
+      },
+      canDeleteOrder() {
+        if (this.isUnrestricted()) return true;
+        const u = this.getUser();
+        if (!u) return false;
+        let mods = u.allowedModules;
+        if (typeof mods === 'string') {
+          try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+        }
+        if (!Array.isArray(mods)) return false;
+        return mods.includes('orders.delete');
+      },
+      canViewFinance() {
+        if (this.isUnrestricted()) return true;
+        const u = this.getUser();
+        if (!u) return false;
+        let mods = u.allowedModules;
+        if (typeof mods === 'string') {
+          try { mods = JSON.parse(mods); } catch (_) { mods = []; }
+        }
+        if (!Array.isArray(mods)) return false;
+        return mods.includes('finance.view');
+      }
+    };
+  }
 })();
+

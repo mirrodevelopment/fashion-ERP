@@ -2,6 +2,9 @@ package com.fashionerp.dev;
 
 import com.fashionerp.auth.AppUser;
 import com.fashionerp.auth.AppUserRepository;
+import com.fashionerp.auth.AuthDto;
+import com.fashionerp.auth.AuthService;
+import com.fashionerp.auth.UserManagementService;
 import com.fashionerp.branch.Branch;
 import com.fashionerp.branch.BranchRepository;
 import com.fashionerp.company.CompanySettings;
@@ -26,8 +29,7 @@ public class DevService {
     private final CompanySettingsRepository companySettingsRepository;
     private final BranchRepository branchRepository;
     private final AppUserRepository userRepository;
-
-    public static final String DEFAULT_DEV_PASSWORD = "Admin@123";
+    private final AuthService authService;
 
     public List<DevDto.CompanyPersonaResponse> getDeveloperPersonas() {
         List<CompanySettings> companies = companySettingsRepository.findAll();
@@ -82,17 +84,23 @@ public class DevService {
                         String bName = (bCode != null && !bCode.isBlank()) 
                                 ? branchNameByCode.getOrDefault(bCode, bCode) 
                                 : "All Branches";
+                        List<String> allowedBranches = UserManagementService.resolveAllowedBranches(u);
                         return DevDto.UserPersona.builder()
                                 .id(u.getId())
                                 .username(u.getUsername())
                                 .fullName(u.getFullName())
                                 .role(u.getRole() != null ? u.getRole().name() : "STAFF")
+                                .designation(u.getDesignation())
                                 .assignedBranch(bCode)
                                 .branchName(bName)
-                                .devPassword(DEFAULT_DEV_PASSWORD)
+                                .allowedBranches(allowedBranches)
+                                .devPassword(u.getDevPassword())
                                 .build();
                     })
                     .sorted((u1, u2) -> {
+                        int r1 = roleOrder(u1.getRole());
+                        int r2 = roleOrder(u2.getRole());
+                        if (r1 != r2) return Integer.compare(r1, r2);
                         String un1 = u1.getUsername() != null ? u1.getUsername() : "";
                         String un2 = u2.getUsername() != null ? u2.getUsername() : "";
                         return un1.compareToIgnoreCase(un2);
@@ -117,5 +125,20 @@ public class DevService {
             return name1.compareToIgnoreCase(name2);
         });
         return result;
+    }
+
+    public AuthDto.LoginResponse devLogin(DevDto.DevLoginRequest req, String clientIp) {
+        if (req == null || req.getUsername() == null || req.getUsername().isBlank()) {
+            throw new IllegalArgumentException("Username is required for developer auto-login.");
+        }
+        return authService.devLogin(req.getUsername().trim(), req.getCompanyId(), clientIp);
+    }
+
+    private int roleOrder(String role) {
+        if (role == null) return 99;
+        String r = role.toUpperCase();
+        if (r.contains("OWNER") || r.equals("ADMIN")) return 1;
+        if (r.contains("BRANCH")) return 2;
+        return 3;
     }
 }

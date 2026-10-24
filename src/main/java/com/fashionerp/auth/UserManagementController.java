@@ -183,6 +183,21 @@ public class UserManagementController {
         return ResponseEntity.ok(userManagementService.toggleActive(id));
     }
 
+    /**
+     * POST /api/v1/users/activate-all
+     * Activates all users within the company/system.
+     */
+    @PostMapping("/activate-all")
+    public ResponseEntity<java.util.Map<String, Object>> activateAll() {
+        requireManagementAccess();
+        int count = userManagementService.activateAllUsers();
+        return ResponseEntity.ok(java.util.Map.of(
+            "success", true,
+            "activatedCount", count,
+            "message", "All users are now active."
+        ));
+    }
+
     // ─── Private Helpers ───────────────────────────────────────────────────
 
     /**

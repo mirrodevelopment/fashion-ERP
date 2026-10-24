@@ -43,8 +43,7 @@
     // Finance & Production
     'payments': { label: 'Finance & Payments', path: 'payments/payments.html', parent: 'dashboard' },
     'garments': { label: 'Garments', path: 'garments/garments.html', parent: 'dashboard' },
-    'garaments 360': { label: 'Garment 360°', path: 'garments/garaments 360/garament360.html', parent: 'garments' },
-    'garament360': { label: 'Garment 360°', path: 'garments/garaments 360/garament360.html', parent: 'garments' },
+    'garment360': { label: 'Garment 360°', path: 'garments/garment360/garment360.html', parent: 'garments' },
     'new-garment': { label: 'New Garment', path: 'garments/new-garment/new-garment.html', parent: 'garments' },
     'designs': { label: 'Design Studio', path: 'DesignStudio/design-studio.html', parent: 'dashboard' },
     'designstudio': { label: 'Design Studio', path: 'DesignStudio/design-studio.html', parent: 'dashboard' },
@@ -163,7 +162,8 @@
       }
       if (rawPath.includes('/users-roles/create-user/')) {
         items.push({ label: 'Users & Roles', href: `${prefix}users-roles/users-roles.html` });
-        items.push({ label: 'Add User', isCurrent: true });
+        const isEdit = (typeof window !== 'undefined' && window.location.search && window.location.search.includes('edit='));
+        items.push({ label: isEdit ? 'Edit User' : 'Add User', isCurrent: true });
         return items;
       }
       if (rawPath.includes('/users-roles/')) {
@@ -204,9 +204,9 @@
       }
 
       // Garments
-      if (rawPath.includes('/garments/garaments 360/') || rawPath.includes('/garments/garments-360/') || rawPath.includes('/garaments%20360/')) {
+      if (rawPath.includes('/garments/garment360/') || rawPath.includes('/garment360/')) {
         items.push({ label: 'Garments', href: `${prefix}garments/garments.html` });
-        items.push({ label: 'Garment 360°', isCurrent: true, id: 'bcGarmentCode' });
+        items.push({ label: 'Garment Detail', isCurrent: true, id: 'bcGarmentCode' });
         return items;
       }
       if (rawPath.includes('/garments/new-garment/') || rawPath.includes('/new-garment/')) {

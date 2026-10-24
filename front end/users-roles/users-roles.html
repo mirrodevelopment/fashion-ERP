@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Users &amp; Roles">Users &amp; Roles — Haulo Boutique ERP</title>
@@ -190,6 +199,11 @@
                   <i data-lucide="filter"></i>
                 </button>
 
+                <button type="button" class="ur-btn-activate-all" id="btnActivateAll" title="Set all users active across the company">
+                  <i data-lucide="user-check"></i>
+                  <span>Activate All</span>
+                </button>
+
                 <a href="create-user/create-user.html" class="ur-btn-add-user" id="btnAddUser">
                   <i data-lucide="plus"></i>
                   <span>Add User</span>
@@ -300,6 +314,8 @@
                     <option value="10">10 / page</option>
                     <option value="25">25 / page</option>
                     <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                    <option value="ALL">All (Unlimited)</option>
                   </select>
                   <i data-lucide="chevron-down" class="ur-select-arrow"></i>
                 </div>
@@ -448,35 +464,19 @@
                 </div>
               </div>
 
-              <!-- ── 3. Paired Row: Access Risk & Conflict + Authority Limits ── -->
-              <div class="ur-paired-cards-grid grid-risk-auth">
-
-                <!-- Access Risk & Conflict -->
-                <div class="ur-detail-card card-risk">
-                  <div class="ur-card-header">
-                    <div class="ur-card-title">Access Risk &amp; Conflict</div>
-                    <button class="ur-card-close-btn" title="Dismiss notice">✕</button>
-                  </div>
-                  <div class="ur-risk-body">
-                    <div class="ur-risk-badge badge-low" id="dRiskBadge">
-                      <i data-lucide="shield-check"></i>
-                      <span>LOW RISK</span>
-                    </div>
-                    <p class="ur-risk-notes" id="dRiskNotes">No critical permission conflicts detected.</p>
-                  </div>
+              <!-- ── 3. Access Risk & Conflict ── -->
+              <div class="ur-detail-card card-risk">
+                <div class="ur-card-header">
+                  <div class="ur-card-title">Access Risk &amp; Conflict</div>
+                  <button class="ur-card-close-btn" title="Dismiss notice">✕</button>
                 </div>
-
-                <!-- Authority & Approval Limits -->
-                <div class="ur-detail-card card-auth-limits">
-                  <div class="ur-card-header">
-                    <div class="ur-card-title">Authority &amp; Approval Limits</div>
-                    <button class="ur-card-link-btn" id="btnEditLimits">Edit Limits</button>
+                <div class="ur-risk-body">
+                  <div class="ur-risk-badge badge-low" id="dRiskBadge">
+                    <i data-lucide="shield-check"></i>
+                    <span>LOW RISK</span>
                   </div>
-                  <div class="ur-limits-list" id="authorityLimitsList">
-                    <!-- Progress bars populated dynamically -->
-                  </div>
+                  <p class="ur-risk-notes" id="dRiskNotes">No critical permission conflicts detected.</p>
                 </div>
-
               </div>
 
               <!-- ── 4. Paired Row: Branch Access Scope + Temporary Delegations ── -->

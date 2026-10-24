@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Production Stages">Production Stages</title>
@@ -46,6 +55,15 @@
 
         <!-- ─── Page Header ─────────────────────────────────────── -->
         <header class="page-header-row">
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
           <div class="header-left">
             <div id="breadcrumbSlot"></div>
             <h1 class="page-title">Production Stages</h1>
@@ -67,9 +85,7 @@
         <div class="info-banner">
           <i data-lucide="info" style="width:17px;height:17px;"></i>
           <div>
-            <strong>How it works:</strong> These stage definitions act as the blueprint for every new order's production journey.
-            Drag cards to reorder, toggle to hide stages without losing history, and assign employees as stage specialists.
-            Changes are immediately reflected in the Production Kanban board.
+            <strong>Core Workflow Architecture:</strong> <b>Order Taken</b> (Intake), <b>Quality Control</b> (Inspection Gate), and <b>Ready to Deliver</b> (Dispatch) are the 3 permanent default stages. You can add, customize, and drag-and-drop any intermediate stages in between (e.g. Designing, Cutting, Stitching, Embroidery, Fitting &amp; Trial).
           </div>
         </div>
 

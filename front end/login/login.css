@@ -1579,3 +1579,61 @@ body {
   0%   { box-shadow: 0 0 0 3px rgba(183, 255, 60, 0.7); }
   100% { box-shadow: 0 0 0 0px rgba(183, 255, 60, 0); }
 }
+
+/* ── Theme Adaptations for Login ─────────────────────────────────────────── */
+[data-theme="haulo-light"] html,
+[data-theme="haulo-light"] body {
+  background: var(--bg-body-gradient) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="haulo-light"] .glass-login-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-card) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+[data-theme="haulo-light"] .brand-title,
+[data-theme="haulo-light"] .hero-headline,
+[data-theme="haulo-light"] .card-welcome-title,
+[data-theme="haulo-light"] .stat-num {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="haulo-light"] .hero-subtext,
+[data-theme="haulo-light"] .card-welcome-subtitle,
+[data-theme="haulo-light"] .stat-desc,
+[data-theme="haulo-light"] .nav-hint-text,
+[data-theme="haulo-light"] .quote-text {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="haulo-light"] .input-glass-wrap {
+  background: var(--bg-input) !important;
+  border-color: var(--border-input) !important;
+}
+
+[data-theme="haulo-light"] .glass-input {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="haulo-light"] .auth-tab {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="haulo-light"] .auth-tab.active {
+  background: var(--bg-card-strong) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="haulo-light"] .curve-circle-main {
+  background: radial-gradient(circle at 75% 45%, rgba(240, 235, 225, 0.7) 0%, rgba(230, 225, 215, 0.3) 75%) !important;
+  border-color: rgba(101, 163, 13, 0.25) !important;
+}
+
+[data-theme="haulo-light"] .btn-contact-pill {
+  background: var(--bg-card) !important;
+  border-color: var(--border-card) !important;
+  color: var(--text-primary) !important;
+}
+

@@ -225,16 +225,11 @@ async function loadCustomerFromApi() {
               : (o.designImageUrl || o.thumbnailUrl || o.imageUrl || NEUTRAL_GARMENT_SVG);
 
             const stageKey = String(o.currentStage || '').toUpperCase().trim();
-            const dynArt = liveStageArtMap[stageKey] ||
-              (stageKey === 'DESIGN' ? liveStageArtMap['DESIGNING'] : '') ||
-              (stageKey === 'FABRIC_PREP' ? liveStageArtMap['LINING'] : '') ||
-              (stageKey === 'HANDWORK' ? liveStageArtMap['HAND_WORK'] : '') ||
-              (stageKey === 'EMBROIDERY' ? liveStageArtMap['HAND_WORK'] : '') ||
-              (stageKey === 'SEWING' ? liveStageArtMap['STITCHING'] : '') ||
-              (stageKey === 'FITTING' ? liveStageArtMap['TRIAL'] : '') ||
-              (stageKey === 'QC_AUDIT' ? liveStageArtMap['QC'] : '') ||
-              (stageKey === 'DELIVERED' ? liveStageArtMap['READY'] : '') ||
-              '';
+            let dynArt = liveStageArtMap[stageKey] || '';
+            if (!dynArt && stageKey) {
+              const matchedKey = Object.keys(liveStageArtMap).find(k => k.includes(stageKey) || stageKey.includes(k));
+              if (matchedKey) dynArt = liveStageArtMap[matchedKey];
+            }
 
             return {
               id: o.orderCode || ('ORD-' + o.id),
@@ -711,29 +706,16 @@ function renderActiveOrders() {
   container.innerHTML = activeOrdersData.map(order => {
     const rawSt = String(order.status || '').toUpperCase();
     const rawStage = String(order.stage || '').toUpperCase();
-    let pillCls = 'stitching';
-    let pillLabel = 'Stitching';
-
-    if (rawStage.includes('TRIAL') || rawStage.includes('FIT') || rawSt.includes('TRIAL') || rawSt.includes('FIT')) {
-      pillCls = 'trial';
-      pillLabel = 'Trial';
-    } else if (rawStage.includes('DESIGN') || rawSt.includes('DESIGN')) {
-      pillCls = 'designing';
-      pillLabel = 'Designing';
-    } else if (rawStage.includes('QC') || rawSt.includes('QC')) {
-      pillCls = 'qc';
-      pillLabel = 'QC';
-    } else if (rawStage.includes('SEW') || rawStage.includes('STITCH') || rawStage.includes('ASSEMBLY')) {
-      pillCls = 'stitching';
-      pillLabel = 'Stitching';
-    } else if (rawSt.includes('PROGRESS')) {
-      pillCls = 'stitching';
-      pillLabel = 'Progress';
-    } else {
-      const words = (order.status || 'Active').replace(/_/g, ' ').toLowerCase().split(' ');
-      pillLabel = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      if (pillLabel.length > 9) pillLabel = pillLabel.slice(0, 9);
-    }
+    const displayRaw = order.stage || order.currentStage || order.status || 'Active';
+    const words = String(displayRaw).replace(/[_]+/g, ' ').trim().toLowerCase().split(' ');
+    let pillLabel = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    if (pillLabel.length > 12) pillLabel = pillLabel.slice(0, 12);
+    let pillCls = 'stage-pill';
+    if (rawSt.includes('READY') || rawSt.includes('DELIVER') || rawStage.includes('READY')) pillCls = 'delivered';
+    else if (rawStage.includes('QC') || rawSt.includes('QC')) pillCls = 'qc';
+    else if (rawStage.includes('TRIAL') || rawStage.includes('FIT')) pillCls = 'trial';
+    else if (rawStage.includes('DESIGN')) pillCls = 'designing';
+    else pillCls = 'stitching';
 
     // Format due date to compact e.g. "20 Sep" or "22 Sep"
     let dueDisplay = order.due;
@@ -1089,15 +1071,17 @@ function renderRecentOrdersTable(orders) {
   tbody.innerHTML = orders.slice(0, 5).map(o => {
     const date = o.orderDate ? String(o.orderDate).slice(0, 10) : (o.createdAt ? String(o.createdAt).slice(0, 10) : '—');
     const amt = '₹' + (Number(o.totalAmount !== undefined ? o.totalAmount : o.amount) || 0).toLocaleString('en-IN');
-    const st = (o.status || 'DELIVERED').toUpperCase();
+    const rawSt = (o.status || o.currentStage || 'DELIVERED').toUpperCase();
     let statusCls = 'delivered';
     let statusLabel = 'Delivered';
-    if (st.includes('STITCH') || st.includes('IN_PROGRESS')) {
+    if (rawSt.includes('READY') || rawSt.includes('DELIVER')) {
+      statusCls = 'delivered';
+      statusLabel = 'Delivered';
+    } else {
       statusCls = 'stitching';
-      statusLabel = 'Stitching';
-    } else if (st.includes('QC')) {
-      statusCls = 'stitching';
-      statusLabel = 'QC';
+      const cleanWords = String(o.currentStage || o.status || 'In Progress').replace(/[_]+/g, ' ').toLowerCase().split(' ');
+      statusLabel = cleanWords.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      if (statusLabel.length > 14) statusLabel = statusLabel.slice(0, 14);
     }
     return `
       <tr tabindex="0">

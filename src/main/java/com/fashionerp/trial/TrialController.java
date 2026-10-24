@@ -85,8 +85,8 @@ public class TrialController {
     }
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
-        return trialService.getKpis();
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
+        return trialService.getKpis(branch);
     }
 
     @PostMapping("/from-order/{orderId}")

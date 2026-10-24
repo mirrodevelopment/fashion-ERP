@@ -25,6 +25,7 @@ public class ProductionController {
     private final StageDefinitionService stageDefinitionService;
     private final ProductionService productionService;
     private final EmployeeRepository employeeRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EXISTING — Per-order production stages
@@ -113,25 +114,49 @@ public class ProductionController {
     }
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
-        long totalOrders = orderRepository.countByCompanyId(companyId);
-        long inProduction = stageRepository.countOrdersInProduction(companyId);
-        if (inProduction == 0) {
-            inProduction = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS);
-        }
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.PRODUCTION);
 
-        long completedStages = stageRepository.countByCompanyIdAndStatus(companyId, "COMPLETED");
-        long inProgressStages = stageRepository.countByCompanyIdAndStatus(companyId, "IN_PROGRESS");
-        long notStartedStages = stageRepository.countByCompanyIdAndStatus(companyId, "NOT_STARTED");
-        long blockedStages = stageRepository.countByCompanyIdAndStatus(companyId, "BLOCKED");
+        long totalOrders;
+        long inProduction;
+        long completedStages;
+        long inProgressStages;
+        long notStartedStages;
+        long blockedStages;
+        List<Object[]> activeStages;
+
+        if (branchFilter != null) {
+            totalOrders = orderRepository.countByCompanyIdAndBranch(companyId, branchFilter);
+            inProduction = stageRepository.countOrdersInProductionAndBranch(companyId, branchFilter);
+            if (inProduction == 0) {
+                var probe = org.springframework.data.domain.PageRequest.of(0, 1);
+                inProduction = orderRepository.search(companyId, branchFilter, null, OrderStatus.IN_PROGRESS, probe).getTotalElements();
+            }
+            completedStages = stageRepository.countByCompanyIdAndStatusAndBranch(companyId, "COMPLETED", branchFilter);
+            inProgressStages = stageRepository.countByCompanyIdAndStatusAndBranch(companyId, "IN_PROGRESS", branchFilter);
+            notStartedStages = stageRepository.countByCompanyIdAndStatusAndBranch(companyId, "NOT_STARTED", branchFilter);
+            blockedStages = stageRepository.countByCompanyIdAndStatusAndBranch(companyId, "BLOCKED", branchFilter);
+            activeStages = stageRepository.countActiveByStageNameAndBranch(companyId, branchFilter);
+        } else {
+            totalOrders = orderRepository.countByCompanyId(companyId);
+            inProduction = stageRepository.countOrdersInProduction(companyId);
+            if (inProduction == 0) {
+                inProduction = orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS);
+            }
+            completedStages = stageRepository.countByCompanyIdAndStatus(companyId, "COMPLETED");
+            inProgressStages = stageRepository.countByCompanyIdAndStatus(companyId, "IN_PROGRESS");
+            notStartedStages = stageRepository.countByCompanyIdAndStatus(companyId, "NOT_STARTED");
+            blockedStages = stageRepository.countByCompanyIdAndStatus(companyId, "BLOCKED");
+            activeStages = stageRepository.countActiveByStageName(companyId);
+        }
 
         long onTrack = Math.max(0, inProduction - blockedStages);
         long delayed = blockedStages;
 
-        List<Object[]> activeStages = stageRepository.countActiveByStageName(companyId);
+        List<Object[]> activeStagesList = activeStages != null ? activeStages : Collections.emptyList();
         List<Map<String, Object>> stageBreakdown = new ArrayList<>();
-        for (Object[] row : activeStages) {
+        for (Object[] row : activeStagesList) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("stage", row[0]);
             m.put("count", ((Number) row[1]).longValue());

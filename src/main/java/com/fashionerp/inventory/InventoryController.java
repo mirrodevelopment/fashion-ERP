@@ -19,6 +19,7 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
     private final InventoryRepository inventoryRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     @PersistenceContext
     private EntityManager em;
@@ -75,22 +76,41 @@ public class InventoryController {
 
     @GetMapping("/kpis")
     @SuppressWarnings("unchecked")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
-        long totalItems      = inventoryRepository.countByCompanyId(companyId);
-        long lowStockCount   = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK);
-        long outOfStockCount = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK);
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.INVENTORY);
 
-        var valQuery = em.createQuery(
-            "SELECT COALESCE(SUM(i.stockQty * i.purchasePrice), 0) FROM InventoryItem i WHERE (:companyId IS NULL OR i.companyId = :companyId)"
-        );
-        valQuery.setParameter("companyId", companyId);
-        BigDecimal totalValue = (BigDecimal) valQuery.getSingleResult();
+        long totalItems;
+        long lowStockCount;
+        long outOfStockCount;
+        BigDecimal totalValue;
+
+        if (branchFilter != null) {
+            totalItems = inventoryRepository.countByCompanyIdAndBranch(companyId, branchFilter);
+            lowStockCount = inventoryRepository.countByCompanyIdAndStatusAndBranch(companyId, InventoryStatus.LOW_STOCK, branchFilter);
+            outOfStockCount = inventoryRepository.countByCompanyIdAndStatusAndBranch(companyId, InventoryStatus.OUT_OF_STOCK, branchFilter);
+            totalValue = inventoryRepository.sumTotalValueByBranch(companyId, branchFilter);
+        } else {
+            totalItems = inventoryRepository.countByCompanyId(companyId);
+            lowStockCount = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.LOW_STOCK);
+            outOfStockCount = inventoryRepository.countByCompanyIdAndStatus(companyId, InventoryStatus.OUT_OF_STOCK);
+            var valQuery = em.createQuery(
+                "SELECT COALESCE(SUM(i.stockQty * i.purchasePrice), 0) FROM InventoryItem i WHERE (:companyId IS NULL OR i.companyId = :companyId)"
+            );
+            valQuery.setParameter("companyId", companyId);
+            totalValue = (BigDecimal) valQuery.getSingleResult();
+        }
 
         var catQuery = em.createQuery(
-            "SELECT i.category, COUNT(i), SUM(i.stockQty * i.purchasePrice) FROM InventoryItem i WHERE (:companyId IS NULL OR i.companyId = :companyId) GROUP BY i.category ORDER BY i.category"
+            "SELECT i.category, COUNT(i), SUM(i.stockQty * i.purchasePrice) FROM InventoryItem i " +
+            "WHERE (:companyId IS NULL OR i.companyId = :companyId) " +
+            (branchFilter != null ? "AND (i.branch = :branch OR (:branch = 'Main Branch' AND (i.branch IS NULL OR i.branch = ''))) " : "") +
+            "GROUP BY i.category ORDER BY i.category"
         );
         catQuery.setParameter("companyId", companyId);
+        if (branchFilter != null) {
+            catQuery.setParameter("branch", branchFilter);
+        }
         List<Object[]> catRows = catQuery.getResultList();
 
         List<Map<String, Object>> categoryBreakdown = new ArrayList<>();
@@ -104,7 +124,7 @@ public class InventoryController {
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("totalItems",         totalItems);
-        m.put("totalValue",         totalValue);
+        m.put("totalValue",         totalValue != null ? totalValue : BigDecimal.ZERO);
         m.put("lowStockCount",      lowStockCount);
         m.put("outOfStockCount",    outOfStockCount);
         m.put("categoryBreakdown",  categoryBreakdown);

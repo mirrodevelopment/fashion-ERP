@@ -19,6 +19,14 @@ public class MeasurementService {
     private final CustomerRepository customerRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
 
+    /** Returns ALL measurement profiles for the current tenant — used by the library overview. */
+    public List<MeasurementDto.Response> getAll() {
+        UUID companyId = TenantContext.getCompanyId();
+        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.MEASUREMENTS);
+        return profileRepository.searchProfiles(companyId, null, branchFilter)
+                .stream().map(MeasurementDto.Response::from).toList();
+    }
+
     public List<MeasurementDto.Response> getByCustomer(String customerMobile) {
         UUID companyId = TenantContext.getCompanyId();
         String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.MEASUREMENTS);

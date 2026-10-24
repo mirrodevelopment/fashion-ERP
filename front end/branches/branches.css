@@ -385,6 +385,22 @@ input.cmd-search-input {
 .tbl-avatar--experience        { background: rgba(20,184,166,.18); color: #2DD4BF; border: 1px solid rgba(20,184,166,.3); }
 .tbl-avatar--boutique          { background: rgba(184,255,61,.18); color: #B8FF3D; border: 1px solid rgba(184,255,61,.3); }
 .tbl-avatar--default           { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.12); }
+.tbl-avatar--manager           {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(192, 132, 252, 0.25), rgba(168, 85, 247, 0.12));
+  color: #C084FC;
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
 
 .tbl-name  { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2; }
 .tbl-sub   { font-size: 10px; color: rgba(255,255,255,.4); margin-top: 1px; }

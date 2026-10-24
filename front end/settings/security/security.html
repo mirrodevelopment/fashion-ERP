@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Security & Access — Settings">Security &amp; Access — Settings</title>
-  <meta name="description" content="Manage boutique password policies, session timeouts, and authentication security." />
+  <meta name="description" content="Manage boutique password policies, session timeouts, and login security." />
 
   <!-- Typography & Design Tokens -->
   <link rel="stylesheet" href="../../fragments/font/font.css" />
@@ -24,7 +33,7 @@
   <script src="../../fragments/company-bridge.js"></script>
   <script src="../../fragments/system-bridge.js"></script>
   <script src="../../fragments/fragments-inline.js"></script>
-  <script src="../../fragments/fragments.js"></script>
+  <script src="../../fragments/nav.js"></script>
 </head>
 <body data-module="settings">
 
@@ -133,28 +142,33 @@
                   <div class="panel-icon-wrap"><i data-lucide="shield" style="width:20px;height:20px;"></i></div>
                   <div>
                     <h2 class="panel-title">Security &amp; Access</h2>
-                    <p class="panel-desc">Change password, configure session timeouts, and manage login security.</p>
+                    <p class="panel-desc">Change password, configure session timeouts, and monitor login activity.</p>
                   </div>
                 </div>
               </div>
 
               <!-- Change Password -->
               <div class="settings-card">
-                <h3 class="card-section-title">Change Password</h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                  <h3 class="card-section-title" style="margin-bottom:0;">Change Password</h3>
+                  <span id="currentUserBadge" style="font-size:11.5px;color:rgba(255,255,255,0.45);display:flex;align-items:center;gap:6px;">
+                    <i data-lucide="user-check" style="width:14px;height:14px;color:var(--lime,#b8ff3d);"></i> Current Account
+                  </span>
+                </div>
                 <div class="form-grid-1">
-                  <div class="form-group" style="max-width:420px;">
-                    <label class="form-label">Current Password</label>
+                  <div class="form-group" style="max-width:440px;">
+                    <label class="form-label">Current Password <span class="req">*</span></label>
                     <div class="input-eye-wrap">
-                      <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password" />
+                      <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password" autocomplete="current-password" />
                       <button class="eye-btn" onclick="SecuritySettings.togglePasswordVisibility('currentPassword', this)" tabindex="-1" type="button" aria-label="Toggle password visibility">
                         <i data-lucide="eye" style="width:15px;height:15px;"></i>
                       </button>
                     </div>
                   </div>
-                  <div class="form-group" style="max-width:420px;">
-                    <label class="form-label">New Password</label>
+                  <div class="form-group" style="max-width:440px;">
+                    <label class="form-label">New Password <span class="req">*</span></label>
                     <div class="input-eye-wrap">
-                      <input type="password" class="form-input" id="newPassword" placeholder="Min 8 characters" />
+                      <input type="password" class="form-input" id="newPassword" placeholder="Minimum 8 characters" autocomplete="new-password" />
                       <button class="eye-btn" onclick="SecuritySettings.togglePasswordVisibility('newPassword', this)" tabindex="-1" type="button" aria-label="Toggle password visibility">
                         <i data-lucide="eye" style="width:15px;height:15px;"></i>
                       </button>
@@ -163,27 +177,38 @@
                       <div class="strength-fill" id="strengthFill"></div>
                     </div>
                     <p class="strength-label" id="strengthLabel"></p>
+
+                    <!-- Policy Checklist -->
+                    <div class="pw-checklist" id="pwChecklist">
+                      <div class="pw-check-item" id="chkLength"><i data-lucide="circle" style="width:12px;height:12px;"></i> Min 8 characters</div>
+                      <div class="pw-check-item" id="chkCase"><i data-lucide="circle" style="width:12px;height:12px;"></i> Upper &amp; lower case</div>
+                      <div class="pw-check-item" id="chkNumber"><i data-lucide="circle" style="width:12px;height:12px;"></i> At least 1 number</div>
+                      <div class="pw-check-item" id="chkSpecial"><i data-lucide="circle" style="width:12px;height:12px;"></i> Special symbol (!@#$)</div>
+                    </div>
                   </div>
-                  <div class="form-group" style="max-width:420px;">
-                    <label class="form-label">Confirm New Password</label>
+                  <div class="form-group" style="max-width:440px;">
+                    <label class="form-label">Confirm New Password <span class="req">*</span></label>
                     <div class="input-eye-wrap">
-                      <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat new password" />
+                      <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat new password" autocomplete="new-password" />
                       <button class="eye-btn" onclick="SecuritySettings.togglePasswordVisibility('confirmPassword', this)" tabindex="-1" type="button" aria-label="Toggle password visibility">
                         <i data-lucide="eye" style="width:15px;height:15px;"></i>
                       </button>
                     </div>
+                    <div id="pwMatchNotice" class="pw-match-badge" style="display:none;"></div>
                   </div>
-                  <button class="btn-lime-sm" style="width:fit-content;" onclick="SecuritySettings.changePassword()" type="button">Update Password</button>
+                  <button class="btn-lime-sm" id="btnChangePassword" style="width:fit-content;margin-top:4px;" onclick="SecuritySettings.changePassword()" type="button">
+                    <i data-lucide="key-round" style="width:14px;height:14px;"></i> Update Password
+                  </button>
                 </div>
               </div>
 
               <!-- Session & Login -->
               <div class="settings-card">
-                <h3 class="card-section-title">Session &amp; Login Security</h3>
+                <h3 class="card-section-title">Session &amp; Inactivity Policy</h3>
                 <div class="form-grid-2">
                   <div class="form-group">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                      <label class="form-label" style="margin-bottom:0;">Auto Logout &amp; Session Expiry</label>
+                      <label class="form-label" style="margin-bottom:0;">Auto Logout &amp; Workstation Lock</label>
                       <span id="sessionTimeoutActiveBadge" class="badge-status-pill" style="font-size:11px;padding:2px 8px;border-radius:100px;background:rgba(212,175,55,0.12);color:#dfb76c;border:1px solid rgba(212,175,55,0.25);">Active: 20 min</span>
                     </div>
                     <select class="form-select" id="sessionTimeout" onchange="SecuritySettings.onTimeoutOptionChange(this.value)">
@@ -209,35 +234,40 @@
                       </div>
                     </div>
                     <p class="form-help" style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.4;">
-                      Locks the workstation and terminates session after this many minutes of inactivity to safeguard client measurements and order data.
+                      Locks workstation and initiates session expiry warning after inactivity to safeguard bespoke measurements, customer data, and sales ledgers.
                     </p>
                   </div>
                   <div class="form-group">
-                    <label class="form-label">Max Login Attempts</label>
-                    <select class="form-select" id="maxLoginAttempts">
-                      <option value="3">3 attempts</option>
-                      <option value="5" selected>5 attempts</option>
-                      <option value="10">10 attempts</option>
+                    <label class="form-label">Max Login Attempts (Account Lockout)</label>
+                    <select class="form-select" id="maxLoginAttempts" onchange="SecuritySettings.onMaxAttemptsChange(this.value)">
+                      <option value="3">3 attempts (Strict Cashier Policy)</option>
+                      <option value="5" selected>5 attempts (Recommended Standard)</option>
+                      <option value="10">10 attempts (Relaxed)</option>
                     </select>
+                    <p class="form-help" style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.4;">
+                      After exceeding this threshold, login attempts from the IP will be blocked for 15 minutes.
+                    </p>
                   </div>
                 </div>
+
                 <div class="toggle-row">
                   <div class="toggle-info">
                     <p class="toggle-label">Login Activity Log</p>
-                    <p class="toggle-desc">Record every login attempt with IP address and timestamp.</p>
+                    <p class="toggle-desc">Record every login attempt, IP address, device footprint, and timestamp into the security audit ledger.</p>
                   </div>
                   <label class="toggle-switch">
-                    <input type="checkbox" id="loginActivityLog" checked />
+                    <input type="checkbox" id="loginActivityLog" checked onchange="SecuritySettings.onActivityLogToggle(this.checked)" />
                     <span class="toggle-thumb"></span>
                   </label>
                 </div>
+
                 <div class="toggle-row">
                   <div class="toggle-info">
                     <p class="toggle-label">Lock Account After Failed Attempts</p>
-                    <p class="toggle-desc">Temporarily lock user after exceeding max failed login attempts.</p>
+                    <p class="toggle-desc">Temporarily freeze authentication for the specific username if brute force behavior is detected.</p>
                   </div>
                   <label class="toggle-switch">
-                    <input type="checkbox" id="lockOnFailedAttempts" checked />
+                    <input type="checkbox" id="lockOnFailedAttempts" checked onchange="SecuritySettings.onLockFailedToggle(this.checked)" />
                     <span class="toggle-thumb"></span>
                   </label>
                 </div>
@@ -247,30 +277,71 @@
                     <button class="btn-lime-sm" type="button" onclick="SecuritySettings.saveSessionSecurity()" style="display:inline-flex;align-items:center;gap:6px;">
                       <i data-lucide="check" style="width:14px;height:14px;"></i> Save Session Policy
                     </button>
-                    <button class="btn-ghost-sm" type="button" onclick="SecuritySettings.testSessionLock()" style="display:inline-flex;align-items:center;gap:6px;color:#dfb76c;border-color:rgba(223,183,108,0.3);">
+                    <button class="btn-ghost-sm" type="button" onclick="SecuritySettings.testSessionLock()" style="display:inline-flex;align-items:center;gap:6px;color:#dfb76c;border:1px solid rgba(223,183,108,0.3);">
                       <i data-lucide="shield-alert" style="width:14px;height:14px;"></i> Test Lock Screen Warning
                     </button>
+                    <button class="btn-danger-sm" type="button" onclick="SecuritySettings.lockWorkstationNow()" style="display:inline-flex;align-items:center;gap:6px;">
+                      <i data-lucide="lock" style="width:14px;height:14px;"></i> Lock Workstation Now
+                    </button>
                   </div>
-                  <span id="sessionSaveStatusNotice" style="font-size:12px;color:rgba(255,255,255,0.5);">Auto-saves when changed</span>
+                  <span id="sessionSaveStatusNotice" style="font-size:12px;color:rgba(255,255,255,0.5);">Auto-saves on change</span>
                 </div>
               </div>
 
+
               <!-- Active Sessions -->
               <div class="settings-card">
-                <h3 class="card-section-title">Active Sessions</h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                  <h3 class="card-section-title" style="margin-bottom:0;">Active Sessions &amp; Authorized Devices</h3>
+                  <span id="sessionDeviceCount" style="font-size:12px;color:rgba(255,255,255,0.4);">1 active device</span>
+                </div>
                 <div class="active-sessions-list" id="activeSessionsList">
-                  <div class="session-item current">
-                    <div class="session-icon"><i data-lucide="monitor" style="width:18px;height:18px;"></i></div>
-                    <div class="session-info">
-                      <p class="session-device">Windows — Chrome 128 <span class="session-current-badge">Current</span></p>
-                      <p class="session-meta">127.0.0.1 · Logged in just now</p>
-                    </div>
-                    <button class="btn-danger-sm" disabled style="opacity:0.6;cursor:not-allowed;">This Device</button>
+                  <!-- Dynamically populated by security.js -->
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                  <button class="btn-danger-sm" onclick="SecuritySettings.revokeAllSessions()" type="button">
+                    <i data-lucide="log-out" style="width:13px;height:13px;"></i> Revoke All Other Sessions
+                  </button>
+                  <button class="btn-outline-sm" onclick="SecuritySettings.refreshActiveSessions()" type="button">
+                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh Devices
+                  </button>
+                </div>
+              </div>
+
+              <!-- Security & Login Activity Audit Log -->
+              <div class="settings-card">
+                <div class="audit-toolbar">
+                  <div>
+                    <h3 class="card-section-title" style="margin-bottom:4px;">Security &amp; Login Audit Trail</h3>
+                    <p style="font-size:12px;color:rgba(255,255,255,0.45);margin:0;">Recent authentication events, privilege changes, and security updates.</p>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <button class="btn-outline-sm" type="button" onclick="SecuritySettings.exportAuditLog()" title="Export JSON audit trail">
+                      <i data-lucide="download" style="width:13px;height:13px;"></i> Export Log
+                    </button>
+                    <button class="btn-ghost-sm" type="button" onclick="SecuritySettings.clearAuditLog()" title="Clear old audit records">
+                      <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Clear History
+                    </button>
                   </div>
                 </div>
-                <button class="btn-danger-sm" style="margin-top:12px;" onclick="SecuritySettings.revokeAllSessions()" type="button">
-                  <i data-lucide="log-out" style="width:13px;height:13px;"></i> Revoke All Other Sessions
-                </button>
+
+                <div class="audit-table-wrap">
+                  <table class="audit-table" id="auditTable">
+                    <thead>
+                      <tr>
+                        <th>Event</th>
+                        <th>User Account</th>
+                        <th>Device / Client</th>
+                        <th>IP Address</th>
+                        <th>Timestamp</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                      <!-- Rendered by security.js -->
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
             </section>
@@ -280,10 +351,12 @@
     </div>
   </div>
 
+
   <!-- Toast Notification -->
   <div class="settings-toast" id="settingsToast" role="alert" aria-live="polite"></div>
 
-  <!-- Page Controller -->
+  <!-- Shared API Client & Page Controller -->
+  <script src="../../api.js"></script>
   <script src="security.js"></script>
 </body>
 </html>

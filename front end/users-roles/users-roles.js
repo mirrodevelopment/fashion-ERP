@@ -121,7 +121,8 @@ function wireEventListeners() {
 
   // Page size select
   document.getElementById('pageSizeSelect')?.addEventListener('change', (e) => {
-    state.pageSize = parseInt(e.target.value, 10) || 10;
+    const val = e.target.value;
+    state.pageSize = (val === 'ALL') ? 999999 : (parseInt(val, 10) || 10);
     state.currentPage = 1;
     renderTable();
   });
@@ -174,6 +175,36 @@ function wireEventListeners() {
   // View All Activity -> Navigate to Recent Access module
   document.getElementById('btnViewAllActivity')?.addEventListener('click', () => {
     window.location.href = 'recent-access/recent-access.html';
+  });
+
+  // Activate All users across the company
+  document.getElementById('btnActivateAll')?.addEventListener('click', async () => {
+    const confirmed = confirm('Activate all user accounts across the company? This ensures every user is marked active with ACTIVE status.');
+    if (!confirmed) return;
+
+    try {
+      showLoading(true);
+      let res = null;
+      try {
+        res = await api.users.activateAll();
+      } catch (apiErr) {
+        console.warn('[UsersRoles] Backend activate-all call returned:', apiErr);
+      }
+
+      // Ensure local state and UI reflect active status immediately
+      state.users.forEach(u => {
+        u.active = true;
+        u.status = 'ACTIVE';
+      });
+
+      showToast(res?.message || 'All user accounts are now active!', 'success');
+      await Promise.all([loadKpiStats(), loadUsers()]);
+    } catch (err) {
+      console.error('[UsersRoles] Error during activate all:', err);
+      showToast(err.message || 'Failed to activate all users', 'error');
+    } finally {
+      showLoading(false);
+    }
   });
 }
 
@@ -381,7 +412,9 @@ function renderTable() {
  */
 function buildTableRowHtml(u) {
   const isSelected = u.id === state.selectedUserId;
-  const initials = getInitials(u.fullName || u.username);
+  const initials = (u.avatarUrl && u.avatarUrl.startsWith('monogram:'))
+    ? u.avatarUrl.substring(9).trim().slice(0, 2).toUpperCase()
+    : getInitials(u.fullName || u.username);
   const roleClass = getRoleClass(u.role, u.designation);
   const roleDisplay = u.designation || formatRoleName(u.role);
   const branchDisplay = u.assignedBranch || 'All Branches';
@@ -398,7 +431,7 @@ function buildTableRowHtml(u) {
       <td>
         <div class="ur-user-cell">
           <div class="ur-user-avatar">
-            ${u.avatarUrl ? `<img src="${escapeHtml(u.avatarUrl)}" alt="${escapeHtml(u.fullName)}" />` : initials}
+            ${u.avatarUrl && !u.avatarUrl.startsWith('monogram:') ? `<img src="${escapeHtml(u.avatarUrl)}" alt="${escapeHtml(u.fullName)}" />` : initials}
           </div>
           <div class="ur-user-info">
             <span class="ur-user-name">${escapeHtml(u.fullName || u.username)}</span>
@@ -469,12 +502,14 @@ function renderUserDetail(detail) {
   if (empty) empty.style.display = 'none';
 
   const u = detail.summary;
-  const initials = getInitials(u.fullName || u.username);
+  const initials = (u.avatarUrl && u.avatarUrl.startsWith('monogram:'))
+    ? u.avatarUrl.substring(9).trim().slice(0, 2).toUpperCase()
+    : getInitials(u.fullName || u.username);
 
   // Profile Header
   const dAvatar = document.getElementById('dAvatar');
   if (dAvatar) {
-    if (u.avatarUrl) {
+    if (u.avatarUrl && !u.avatarUrl.startsWith('monogram:')) {
       dAvatar.innerHTML = `<img src="${escapeHtml(u.avatarUrl)}" alt="${escapeHtml(u.fullName)}" />`;
     } else {
       dAvatar.textContent = initials;
@@ -536,9 +571,6 @@ function renderUserDetail(detail) {
   }
   setText('dRiskNotes', detail.riskNotes || 'No critical permission conflicts detected.');
 
-  // Authority & Approval Limits
-  renderAuthorityLimits(detail.authorityLimits);
-
   // Branch Access Scopes
   renderBranchScopes(detail.branchAccessScopes);
 
@@ -564,70 +596,6 @@ function renderEmptyDetail() {
   if (empty) empty.style.display = 'flex';
 }
 
-function renderAuthorityLimits(limits) {
-  const container = document.getElementById('authorityLimitsList');
-  if (!container) return;
-
-  if (!limits) {
-    container.innerHTML = '<div style="font-size:11.5px;color:var(--ur-text-muted);">Standard Role Clearances Apply</div>';
-    return;
-  }
-
-  const discountPct = limits.discountApprovalPercent ?? 10;
-  const refundText = limits.refundApprovalFormatted || '₹10,000';
-  const poText = limits.purchaseOrderApprovalFormatted || 'Unlimited';
-  const stockText = limits.stockAdjustmentFormatted || '₹50,000';
-  const cancelText = limits.orderCancellation || 'Manager Approval';
-
-  container.innerHTML = `
-    <div class="ur-limit-metric">
-      <div class="ur-limit-meta">
-        <span class="ur-limit-name">Discount Approval</span>
-        <span class="ur-limit-value">${discountPct}%</span>
-      </div>
-      <div class="ur-limit-bar-bg">
-        <div class="ur-limit-bar-fill fill-lime" style="width: ${Math.min(100, discountPct * 4)}%;"></div>
-      </div>
-    </div>
-
-    <div class="ur-limit-metric">
-      <div class="ur-limit-meta">
-        <span class="ur-limit-name">Refund Approval</span>
-        <span class="ur-limit-value">${escapeHtml(refundText)}</span>
-      </div>
-      <div class="ur-limit-bar-bg">
-        <div class="ur-limit-bar-fill fill-blue" style="width: 50%;"></div>
-      </div>
-    </div>
-
-    <div class="ur-limit-metric">
-      <div class="ur-limit-meta">
-        <span class="ur-limit-name">Purchase Order Approval</span>
-        <span class="ur-limit-value">${escapeHtml(poText)}</span>
-      </div>
-      <div class="ur-limit-bar-bg">
-        <div class="ur-limit-bar-fill fill-purple" style="width: ${poText.toLowerCase().includes('unlimited') ? '100' : '75'}%;"></div>
-      </div>
-    </div>
-
-    <div class="ur-limit-metric">
-      <div class="ur-limit-meta">
-        <span class="ur-limit-name">Stock Adjustment</span>
-        <span class="ur-limit-value">${escapeHtml(stockText)}</span>
-      </div>
-      <div class="ur-limit-bar-bg">
-        <div class="ur-limit-bar-fill fill-amber" style="width: 60%;"></div>
-      </div>
-    </div>
-
-    <div class="ur-limit-metric">
-      <div class="ur-limit-meta">
-        <span class="ur-limit-name">Order Cancellation</span>
-        <span class="ur-limit-value">${escapeHtml(cancelText)}</span>
-      </div>
-    </div>
-  `;
-}
 
 function renderBranchScopes(scopes) {
   const container = document.getElementById('branchScopesList');
@@ -727,19 +695,32 @@ function renderActiveSessions(sessions) {
 
 function updatePagination(total, start, end) {
   const footerText = document.getElementById('footerCountText');
+  const isUnlimited = state.pageSize >= 999999;
+
   if (footerText) {
-    footerText.textContent = total > 0
-      ? `Showing ${start}-${end} of ${total} users`
-      : 'Showing 0 users';
+    if (isUnlimited) {
+      footerText.textContent = total > 0
+        ? `Showing all ${total} users (Unlimited)`
+        : 'Showing 0 users';
+    } else {
+      footerText.textContent = total > 0
+        ? `Showing ${start}-${end} of ${total} users`
+        : 'Showing 0 users';
+    }
   }
 
   const btnPrev = document.getElementById('btnPrevPage');
   const btnNext = document.getElementById('btnNextPage');
-  if (btnPrev) btnPrev.disabled = state.currentPage <= 1;
-  if (btnNext) btnNext.disabled = state.currentPage >= state.totalPages;
+  if (btnPrev) btnPrev.disabled = isUnlimited || state.currentPage <= 1;
+  if (btnNext) btnNext.disabled = isUnlimited || state.currentPage >= state.totalPages;
 
   const pagesContainer = document.getElementById('pageNumbers');
   if (!pagesContainer) return;
+
+  if (isUnlimited) {
+    pagesContainer.innerHTML = '<button class="ur-page-num-btn active">All</button>';
+    return;
+  }
 
   pagesContainer.innerHTML = '';
   for (let p = 1; p <= state.totalPages; p++) {

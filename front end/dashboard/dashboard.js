@@ -15,13 +15,13 @@ import api, { Auth } from '../api.js';
 // ─────────────────────────────────────────────
 const dashboardData = {
   user: {
-    name: 'Administrator',
-    role: 'Administrator',
-    initials: 'AD',
+    name: '',
+    role: '👑 Boutique Owner',
+    initials: '--',
     avatar: ''
   },
   kpi: [
-    { label: 'Total Revenue',        value: '—', sub: '—', subClass: 'kpi-growth', iconClass: 'kpi-lime',     icon: 'rupee'    },
+    { label: 'Total Value',          value: '—', sub: '—', subClass: 'kpi-growth', iconClass: 'kpi-lime',     icon: 'rupee'    },
     { label: 'Total Orders',         value: '—', sub: '—', subClass: 'kpi-growth', iconClass: 'kpi-lavender', icon: 'orders'   },
     { label: 'Active Customers',     value: '—', sub: '—', subClass: 'kpi-growth', iconClass: 'kpi-pink',     icon: 'users'    },
     { label: 'Orders in Production', value: '—', sub: '—', subClass: 'kpi-note',   iconClass: 'kpi-gold',     icon: 'scissors' },
@@ -150,7 +150,7 @@ function renderKPI() {
   const container = document.getElementById('kpiRow');
   if (!container) return;
   container.innerHTML = dashboardData.kpi.map(k => `
-    <div class="card kpi-card">
+    <div class="card kpi-card" ${k.title ? `title="${k.title.replace(/"/g, '&quot;')}"` : ''}>
       <div class="kpi-icon-wrap ${k.iconClass}">${icon(k.icon, 18, 'currentColor', 2)}</div>
       <div class="kpi-body">
         <div class="kpi-label">${k.label}</div>
@@ -299,14 +299,14 @@ async function initProductionBranchFilter() {
         branches.forEach(b => {
           const bCode = b.branchCode || b.code || b;
           const bName = b.name || bCode;
-          optionsHtml += `<option value="${bCode}">${bName}</option>`;
+          optionsHtml += `<option value="${bName}">${bName}</option>`;
         });
       }
     } else if (isMultiBranch) {
       allowedBranches.forEach(b => {
         const bCode = typeof b === 'object' ? (b.branchCode || b.code || b.name) : b;
         const bName = typeof b === 'object' ? (b.name || b.branchCode) : b;
-        optionsHtml += `<option value="${bCode}">${bName}</option>`;
+        optionsHtml += `<option value="${bName}">${bName}</option>`;
       });
     }
 
@@ -465,24 +465,22 @@ function renderSchedule() {
 // RENDER RECENT ORDERS TABLE
 // ─────────────────────────────────────────────
 function getStatusBadge(status) {
-  const map = {
-    'In Production':     'status-in-prod',
-    'Cutting':           'status-cutting',
-    'Ready for Delivery':'status-ready',
-    'Trial':             'status-trial',
-  };
   const stLower = (status || '').toLowerCase().trim();
-  // Dynamically resolve image from live production stages data (zero hardcoded URLs)
+  // Dynamically resolve image from live production stages data (zero hardcoded URLs or stages)
   const matched = (dashboardData.production || []).find(p => {
     const nameMatch = p.name && p.name.toLowerCase() === stLower;
     const stageMatch = p.stage && p.stage.toLowerCase() === stLower.replace(/[\s-]+/g, '_');
-    const inProdMatch = (stLower === 'in production' || stLower === 'in-progress') && (p.stage === 'STITCHING' || p.stage === 'CUTTING');
-    const readyMatch = (stLower.includes('ready') || stLower.includes('delivery')) && (p.stage === 'READY');
-    return nameMatch || stageMatch || inProdMatch || readyMatch;
+    return nameMatch || stageMatch;
   });
   const art = matched?.imageUrl ? formatStageImg(matched.imageUrl) : '';
   const imgHtml = art ? `<img src="${art}" style="width:14px;height:14px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:5px;border:1px solid rgba(212,175,55,0.7);" alt="" onerror="this.remove()" />` : '';
-  return `<span class="status-badge ${map[status] || 'status-in-prod'}" style="display:inline-flex;align-items:center;">${imgHtml}<span>${status}</span></span>`;
+
+  let badgeCls = 'status-in-prod';
+  if (stLower.includes('ready') || stLower.includes('deliver')) badgeCls = 'status-ready';
+  else if (stLower.includes('trial') || stLower.includes('fit')) badgeCls = 'status-trial';
+  else if (stLower.includes('cut')) badgeCls = 'status-cutting';
+
+  return `<span class="status-badge ${badgeCls}" style="display:inline-flex;align-items:center;">${imgHtml}<span>${status}</span></span>`;
 }
 function getPaymentBadge(pay) {
   const map = {
@@ -817,8 +815,12 @@ function showToast(msg, variant = 'lime') {
 }
 
 // ─────────────────────────────────────────────
-// DROPDOWNS & BUTTONS
+// DROPDOWNS & FILTER TIMEFRAMES
 // ─────────────────────────────────────────────
+let currentRevenuePeriod = 'monthly';
+let currentOrderPeriod = 'month';
+let rawKpiData = null;
+
 function setupDropdowns() {
   const notifBtn  = document.getElementById('notifBtn');
   const notifDrop = document.getElementById('notifDropdown');
@@ -826,6 +828,7 @@ function setupDropdowns() {
     notifBtn.addEventListener('click', e => {
       e.stopPropagation();
       notifDrop.classList.toggle('open');
+      closeAllFilterDropdowns();
       document.getElementById('profileDropdown')?.classList.remove('open');
     });
   }
@@ -836,26 +839,238 @@ function setupDropdowns() {
     profBtn.addEventListener('click', e => {
       e.stopPropagation();
       profDrop.classList.toggle('open');
+      closeAllFilterDropdowns();
       notifDrop?.classList.remove('open');
     });
   }
 
+  const revBtn  = document.getElementById('revFilterBtn');
+  const revWrap = document.getElementById('revDropdownWrap');
+  const ordBtn  = document.getElementById('ordFilterBtn');
+  const ordWrap = document.getElementById('ordDropdownWrap');
+
+  function closeAllFilterDropdowns() {
+    revWrap?.classList.remove('open');
+    revBtn?.setAttribute('aria-expanded', 'false');
+    ordWrap?.classList.remove('open');
+    ordBtn?.setAttribute('aria-expanded', 'false');
+    document.querySelector('.revenue-card')?.classList.remove('dropdown-active');
+    document.querySelector('.orders-card')?.classList.remove('dropdown-active');
+  }
+
+  // Toggle Revenue Trend dropdown
+  if (revBtn && revWrap) {
+    revBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !revWrap.classList.contains('open');
+      closeAllFilterDropdowns();
+      notifDrop?.classList.remove('open');
+      profDrop?.classList.remove('open');
+      if (willOpen) {
+        revWrap.classList.add('open');
+        revBtn.setAttribute('aria-expanded', 'true');
+        document.querySelector('.revenue-card')?.classList.add('dropdown-active');
+      }
+    });
+  }
+
+  // Toggle Order Completion dropdown
+  if (ordBtn && ordWrap) {
+    ordBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !ordWrap.classList.contains('open');
+      closeAllFilterDropdowns();
+      notifDrop?.classList.remove('open');
+      profDrop?.classList.remove('open');
+      if (willOpen) {
+        ordWrap.classList.add('open');
+        ordBtn.setAttribute('aria-expanded', 'true');
+        document.querySelector('.orders-card')?.classList.add('dropdown-active');
+      }
+    });
+  }
+
+  // Revenue Trend item click handlers
+  document.querySelectorAll('#revDropdownMenu .filter-dropdown-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const period = item.dataset.period;
+      closeAllFilterDropdowns();
+      if (period) {
+        applyRevenuePeriod(period, true);
+      }
+    });
+  });
+
+  // Order Completion item click handlers
+  document.querySelectorAll('#ordDropdownMenu .filter-dropdown-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const period = item.dataset.period;
+      closeAllFilterDropdowns();
+      if (period) {
+        applyOrderPeriod(period, true);
+      }
+    });
+  });
+
+  // Click outside to dismiss all dropdowns
   document.addEventListener('click', () => {
     notifDrop?.classList.remove('open');
     profDrop?.classList.remove('open');
+    closeAllFilterDropdowns();
+  });
+
+  // Escape key closes open dropdowns
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAllFilterDropdowns();
+      notifDrop?.classList.remove('open');
+      profDrop?.classList.remove('open');
+    }
   });
 
   document.getElementById('branchBtn')?.addEventListener('click', () => {
     const branchName = typeof CompanyBridge !== 'undefined' ? CompanyBridge.formatBranch() : 'Main Branch';
     showToast('Branch: ' + branchName, 'blue');
   });
+}
 
-  document.getElementById('revFilterBtn')?.addEventListener('click', () => {
-    showToast('Revenue Trend period set to: Monthly', 'lime');
+// ─────────────────────────────────────────────
+// PERIOD FILTER LOGIC & DATA UPDATES
+// ─────────────────────────────────────────────
+async function applyRevenuePeriod(period, showFeedback = true) {
+  currentRevenuePeriod = period;
+  const labelsMap = {
+    monthly: 'Monthly',
+    weekly: 'Weekly',
+    quarterly: 'Quarterly',
+    yearly: 'Yearly'
+  };
+  const labelText = labelsMap[period] || 'Monthly';
+  const labelEl = document.getElementById('revFilterLabel');
+  if (labelEl) labelEl.textContent = labelText;
+
+  document.querySelectorAll('#revDropdownMenu .filter-dropdown-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period);
   });
-  document.getElementById('ordFilterBtn')?.addEventListener('click', () => {
-    showToast('Order Completion filter set to: This Month', 'lavender');
+
+  const vsEl = document.getElementById('revenueVs');
+  if (vsEl) {
+    if (period === 'weekly') vsEl.textContent = 'vs last week';
+    else if (period === 'monthly') vsEl.textContent = 'vs last month';
+    else if (period === 'quarterly') vsEl.textContent = 'vs last quarter';
+    else if (period === 'yearly') vsEl.textContent = 'vs last year';
+  }
+
+  // Fast client-side immediate update so user sees instant chart animation
+  if (rawKpiData?.monthlyRevenue && rawKpiData.monthlyRevenue.length > 0) {
+    const rawList = rawKpiData.monthlyRevenue;
+    if (period === 'monthly') {
+      dashboardData.revenue.labels = rawList.map(m => m.month ? m.month.split(' ')[0] : '—');
+      dashboardData.revenue.revenue = rawList.map(m => Number(m.revenue) || 0);
+      dashboardData.revenue.cost = rawList.map(m => Number(m.cost) || 0);
+    } else if (period === 'weekly') {
+      const curMonthRev = Number(rawList[rawList.length - 1]?.revenue || 0);
+      dashboardData.revenue.labels = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6'];
+      dashboardData.revenue.revenue = [0, 0, 0, 0, 0, curMonthRev];
+      dashboardData.revenue.cost = [0, 0, 0, 0, 0, 0];
+    } else if (period === 'quarterly') {
+      dashboardData.revenue.labels = ['Q1', 'Q2', 'Q3', 'Q4'];
+      let qRev = [0, 0, 0, 0];
+      let qCost = [0, 0, 0, 0];
+      rawList.forEach(m => {
+        const mName = (m.month || '').toLowerCase();
+        let qIdx = 3;
+        if (mName.startsWith('jan') || mName.startsWith('feb') || mName.startsWith('mar')) qIdx = 0;
+        else if (mName.startsWith('apr') || mName.startsWith('may') || mName.startsWith('jun')) qIdx = 1;
+        else if (mName.startsWith('jul') || mName.startsWith('aug') || mName.startsWith('sep')) qIdx = 2;
+        qRev[qIdx] += Number(m.revenue) || 0;
+        qCost[qIdx] += Number(m.cost) || 0;
+      });
+      dashboardData.revenue.revenue = qRev;
+      dashboardData.revenue.cost = qCost;
+    } else if (period === 'yearly') {
+      const curYear = new Date().getFullYear();
+      dashboardData.revenue.labels = [String(curYear - 2), String(curYear - 1), String(curYear)];
+      const totalYearRev = rawList.reduce((acc, m) => acc + (Number(m.revenue) || 0), 0);
+      dashboardData.revenue.revenue = [0, 0, totalYearRev];
+      dashboardData.revenue.cost = [0, 0, 0];
+    }
+    initRevenueChart();
+  }
+
+  // Fetch live aggregated data from API endpoint
+  try {
+    const activeBranch = (typeof localStorage !== 'undefined') ? localStorage.getItem('haulo_active_branch') : null;
+    const branchParam = (activeBranch && activeBranch !== 'ALL' && activeBranch !== 'All Company Data') ? { branch: activeBranch } : {};
+    const res = await api.dashboard.kpis({ ...branchParam, revenuePeriod: period, orderPeriod: currentOrderPeriod });
+    if (res && res.monthlyRevenue && res.monthlyRevenue.length > 0) {
+      dashboardData.revenue.labels = res.monthlyRevenue.map(m => m.month ? m.month.split(' ')[0] : '—');
+      dashboardData.revenue.revenue = res.monthlyRevenue.map(m => Number(m.revenue) || 0);
+      dashboardData.revenue.cost = res.monthlyRevenue.map(m => Number(m.cost) || 0);
+      initRevenueChart();
+    }
+  } catch (err) {
+    console.debug('[Dashboard] live revenue fetch fallback:', err.message);
+  }
+
+  if (showFeedback) {
+    showToast(`Revenue Trend timeframe: ${labelText}`, 'lime');
+  }
+}
+
+async function applyOrderPeriod(period, showFeedback = true) {
+  currentOrderPeriod = period;
+  const labelsMap = {
+    month: 'This Month',
+    today: 'Today',
+    week: 'This Week',
+    quarter: 'This Quarter',
+    year: 'This Year',
+    all: 'All Time'
+  };
+  const labelText = labelsMap[period] || 'This Month';
+  const labelEl = document.getElementById('ordFilterLabel');
+  if (labelEl) labelEl.textContent = labelText;
+
+  document.querySelectorAll('#ordDropdownMenu .filter-dropdown-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period);
   });
+
+  // Fetch breakdown for selected period
+  try {
+    const activeBranch = (typeof localStorage !== 'undefined') ? localStorage.getItem('haulo_active_branch') : null;
+    const branchParam = (activeBranch && activeBranch !== 'ALL' && activeBranch !== 'All Company Data') ? { branch: activeBranch } : {};
+    const res = await api.dashboard.kpis({ ...branchParam, revenuePeriod: currentRevenuePeriod, orderPeriod: period });
+    if (res && res.orderStatusBreakdown) {
+      const colorMap = {
+        'PENDING': '#fbbf24',
+        'IN_PROGRESS': '#c084fc',
+        'READY': '#a3e635',
+        'DELIVERED': '#38bdf8',
+        'CANCELLED': '#f87171'
+      };
+      dashboardData.orders = res.orderStatusBreakdown.map(s => ({
+        label: s.status ? s.status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown',
+        count: Number(s.count) || 0,
+        pct: (s.pct != null ? s.pct : 0) + '%',
+        color: colorMap[s.status] || '#94a3b8'
+      }));
+      const donutTotalEl = document.getElementById('donutTotal');
+      if (donutTotalEl) {
+        donutTotalEl.textContent = res.orderCompletionTotal != null ? res.orderCompletionTotal : (res.totalOrders ?? 0);
+      }
+      renderOrdersLegend();
+      initDonutChart();
+    }
+  } catch (err) {
+    console.debug('[Dashboard] live order period fetch fallback:', err.message);
+  }
+
+  if (showFeedback) {
+    showToast(`Order Completion timeframe: ${labelText}`, 'lavender');
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -884,9 +1099,9 @@ function setupSearch() {
 // ─────────────────────────────────────────────
 function setupUser() {
   const sessionUser = Auth.getUser();
-  const name = sessionUser?.fullName || sessionUser?.username || dashboardData.user.name || 'Administrator';
-  const role = sessionUser?.role || dashboardData.user.role || 'Administrator';
-  const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'AD';
+  const name = sessionUser?.fullName || sessionUser?.username || '';
+  const role = sessionUser?.role === 'BRANCH_ADMIN' ? '🏢 Branch Admin' : '👑 Boutique Owner';
+  const initials = name ? name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) : '--';
 
   dashboardData.user.name = name;
   dashboardData.user.role = role;
@@ -897,7 +1112,7 @@ function setupUser() {
   const greetEl= document.getElementById('greetName');
   if (nameEl)  nameEl.textContent  = name;
   if (roleEl)  roleEl.textContent  = role;
-  if (greetEl) greetEl.textContent = name.split(' ')[0] || 'Admin';
+  if (greetEl) greetEl.textContent = name ? name.split(' ')[0] : 'there';
 }
 
 // ─────────────────────────────────────────────
@@ -923,15 +1138,70 @@ async function init() {
 
   // Fetch live KPIs from API and patch dashboardData
   try {
-    let kpis = await api.dashboard.kpis().catch(() => null);
+    const activeBranch = (typeof localStorage !== 'undefined') ? localStorage.getItem('haulo_active_branch') : null;
+    const branchParam = (activeBranch && activeBranch !== 'ALL' && activeBranch !== 'All Company Data') ? { branch: activeBranch } : {};
+    let kpis = await api.dashboard.kpis(branchParam).catch(() => null);
     if (!kpis) {
-      kpis = await api.dashboard.kpis().catch(() => null);
+      kpis = await api.dashboard.kpis(branchParam).catch(() => null);
     }
     if (kpis) {
+      rawKpiData = kpis;
       const kpiMap = dashboardData.kpi;
-      if (kpis.totalRevenue != null) {
-        kpiMap[0].value = '₹' + Number(kpis.totalRevenue).toLocaleString('en-IN');
-        kpiMap[0].sub = kpis.deliveredOrders != null ? `${kpis.deliveredOrders} delivered` : 'Realised';
+      let curRev = 0;
+      let allRev = 0;
+      let mainRev = 0;
+      let isBranchScoped = false;
+      let isMainBranch = false;
+
+      if (kpis.totalRevenue != null || kpis.branchRevenue != null || kpis.allBranchesRevenue != null) {
+        allRev = Number(kpis.allBranchesRevenue ?? kpis.totalRevenue ?? 0);
+        const mainName = kpis.mainBranchName || 'Main Branch';
+        isBranchScoped = !!(activeBranch && activeBranch !== 'ALL' && activeBranch !== 'All Company Data');
+        isMainBranch = isBranchScoped && (
+          activeBranch.toLowerCase() === 'main branch' ||
+          (mainName && activeBranch.toLowerCase() === mainName.toLowerCase() && (mainName.toLowerCase().includes('main') || mainName.toLowerCase().includes('flagship') || mainName.toLowerCase().includes('headquarter'))) ||
+          activeBranch.toLowerCase().includes('main') ||
+          activeBranch.toLowerCase().includes('flagship')
+        );
+
+        if (isBranchScoped && !isMainBranch) {
+          // Sub-branch (e.g. siva 2): if 0 orders, must strictly be 0
+          if (Number(kpis.totalOrders || 0) === 0) {
+            curRev = 0;
+          } else {
+            curRev = Number(kpis.branchRevenue ?? 0);
+          }
+        } else if (isMainBranch) {
+          curRev = Number(kpis.branchRevenue ?? kpis.mainBranchRevenue ?? allRev);
+        } else {
+          curRev = allRev;
+        }
+
+        mainRev = Number(kpis.mainBranchRevenue ?? 0);
+        if (mainRev === 0 && allRev > 0) {
+          mainRev = (isBranchScoped && !isMainBranch) ? Math.max(0, allRev - curRev) : allRev;
+        }
+
+        kpiMap[0].label = 'Total Value';
+        kpiMap[0].value = '₹' + curRev.toLocaleString('en-IN');
+
+        if (isBranchScoped && !isMainBranch) {
+          // Viewing a specific branch: show both all branch and main branch values
+          kpiMap[0].sub = `<span class="kpi-breakdown" title="All Branches: ₹${allRev.toLocaleString('en-IN')} | ${mainName}: ₹${mainRev.toLocaleString('en-IN')}"><span class="kpi-chip-label">All:</span> <b class="kpi-chip-val">₹${allRev.toLocaleString('en-IN')}</b><span class="kpi-sep">•</span><span class="kpi-chip-label">Main:</span> <b class="kpi-chip-val">₹${mainRev.toLocaleString('en-IN')}</b></span>`;
+          kpiMap[0].subClass = 'kpi-growth';
+          kpiMap[0].title = `${activeBranch}: ₹${curRev.toLocaleString('en-IN')} | All Branches Total: ₹${allRev.toLocaleString('en-IN')} | ${mainName}: ₹${mainRev.toLocaleString('en-IN')}`;
+        } else if (isMainBranch) {
+          // Viewing Main Branch
+          kpiMap[0].sub = `<span class="kpi-breakdown" title="All Branches: ₹${allRev.toLocaleString('en-IN')}"><span class="kpi-chip-label">All Branches:</span> <b class="kpi-chip-val">₹${allRev.toLocaleString('en-IN')}</b>${kpis.deliveredOrders != null ? `<span class="kpi-sep">•</span><span>${kpis.deliveredOrders} delivered</span>` : ''}</span>`;
+          kpiMap[0].subClass = 'kpi-growth';
+          kpiMap[0].title = `Main Branch: ₹${curRev.toLocaleString('en-IN')} | All Branches Total: ₹${allRev.toLocaleString('en-IN')}`;
+        } else {
+          // Viewing All Branches
+          kpiMap[0].value = '₹' + allRev.toLocaleString('en-IN');
+          kpiMap[0].sub = `<span class="kpi-breakdown" title="${mainName}: ₹${mainRev.toLocaleString('en-IN')}"><span class="kpi-chip-label">Main:</span> <b class="kpi-chip-val">₹${mainRev.toLocaleString('en-IN')}</b>${kpis.deliveredOrders != null ? `<span class="kpi-sep">•</span><span>${kpis.deliveredOrders} delivered</span>` : ''}</span>`;
+          kpiMap[0].subClass = 'kpi-growth';
+          kpiMap[0].title = `All Branches Total: ₹${allRev.toLocaleString('en-IN')} | ${mainName}: ₹${mainRev.toLocaleString('en-IN')}`;
+        }
       }
       if (kpis.totalOrders != null) {
         kpiMap[1].value = Number(kpis.totalOrders).toLocaleString('en-IN');
@@ -1011,13 +1281,19 @@ async function init() {
 
       // Update Big Stat Numbers
       const revBigEl = document.getElementById('revenueBig');
-      if (revBigEl && kpis.totalRevenue != null) {
-        revBigEl.textContent = '₹' + Number(kpis.totalRevenue).toLocaleString('en-IN');
+      if (revBigEl) {
+        revBigEl.textContent = '₹' + curRev.toLocaleString('en-IN');
       }
 
       const revGrowthEl = document.getElementById('revenueGrowth');
       if (revGrowthEl) {
-        revGrowthEl.textContent = kpis.deliveredOrders != null ? `↑ ${kpis.deliveredOrders} delivered` : '↑ Active';
+        if (isBranchScoped && !isMainBranch) {
+          revGrowthEl.innerHTML = `<span style="color:var(--lime,#b8ff3d);font-weight:700;">↑ All: ₹${allRev.toLocaleString('en-IN')}</span> <span style="opacity:0.4;">•</span> Main: ₹${mainRev.toLocaleString('en-IN')}`;
+        } else if (isMainBranch) {
+          revGrowthEl.innerHTML = `<span style="color:var(--lime,#b8ff3d);font-weight:700;">↑ All: ₹${allRev.toLocaleString('en-IN')}</span> <span style="opacity:0.4;">•</span> ${kpis.deliveredOrders != null ? `${kpis.deliveredOrders} delivered` : 'Active'}`;
+        } else {
+          revGrowthEl.innerHTML = `<span style="color:var(--lime,#b8ff3d);font-weight:700;">↑ Main: ₹${mainRev.toLocaleString('en-IN')}</span> <span style="opacity:0.4;">•</span> ${kpis.deliveredOrders != null ? `${kpis.deliveredOrders} delivered` : 'Active'}`;
+        }
       }
 
       const donutTotalEl = document.getElementById('donutTotal');

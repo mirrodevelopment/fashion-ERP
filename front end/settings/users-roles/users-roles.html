@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Users & Roles — Settings">Users &amp; Roles — Settings</title>
@@ -23,7 +32,7 @@
   </script>
   <script src="../../fragments/company-bridge.js"></script>
   <script src="../../fragments/fragments-inline.js"></script>
-  <script src="../../fragments/fragments.js"></script>
+  <script src="../../fragments/nav.js"></script>
 </head>
 <body data-module="settings">
 
@@ -53,9 +62,9 @@
             <h1 class="settings-title">Settings</h1>
             <p class="settings-subtitle">Configure boutique brand profile, team access, workflow automation and system preferences.</p>
           </div>
-          <button class="btn-lime-sm" onclick="UsersSettings.openUserModal()" style="display:inline-flex;align-items:center;gap:6px;">
+          <a href="../../users-roles/create-user/create-user.html" class="btn-lime-sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
             <i data-lucide="user-plus" style="width:14px;height:14px;"></i> Add User
-          </button>
+          </a>
         </div>
 
         <!-- Settings Layout -->
@@ -139,9 +148,9 @@
                   <a href="../../users-roles/users-roles.html" class="btn-ghost-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
                     <i data-lucide="shield-alert" style="width:14px;height:14px;"></i> RBAC Governance
                   </a>
-                  <button class="btn-lime-sm" onclick="UsersSettings.openUserModal()" style="display:inline-flex;align-items:center;gap:6px;">
+                  <a href="../../users-roles/create-user/create-user.html" class="btn-lime-sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
                     <i data-lucide="user-plus" style="width:14px;height:14px;"></i> Add User
-                  </button>
+                  </a>
                 </div>
               </div>
 
@@ -154,11 +163,9 @@
                   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     <select class="form-select" id="userRoleFilter" style="width:auto;min-width:130px;padding:6px 12px;font-size:12.5px;" onchange="UsersSettings.filterUsers()">
                       <option value="ALL">All Roles</option>
-                      <option value="ADMIN">Admin</option>
-                      <option value="MANAGER">Manager</option>
-                      <option value="STAFF">Staff / Production</option>
-                      <option value="RECEPTIONIST">Receptionist</option>
-                      <option value="TAILOR">Master Tailor</option>
+                      <option value="OWNER">Boutique Owner</option>
+                      <option value="BRANCH_ADMIN">Branch Admin</option>
+                      <option value="CUSTOM">Custom Role</option>
                     </select>
                     <select class="form-select" id="userStatusFilter" style="width:auto;min-width:120px;padding:6px 12px;font-size:12.5px;" onchange="UsersSettings.filterUsers()">
                       <option value="ALL">All Status</option>
@@ -208,11 +215,31 @@
               <div class="form-grid-2">
                 <div class="form-group">
                   <label class="form-label">Full Name <span class="req">*</span></label>
-                  <input type="text" class="form-input" id="modalUserFullName" placeholder="e.g. Priya Sharma" />
+                  <input type="text" class="form-input" id="modalUserFullName" placeholder="e.g. Priya Sharma" oninput="UsersSettings.updateMonogramOptions()" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Username <span class="req">*</span></label>
-                  <input type="text" class="form-input" id="modalUserUsername" placeholder="e.g. psharma" />
+                  <input type="text" class="form-input" id="modalUserUsername" placeholder="e.g. psharma" oninput="UsersSettings.updateMonogramOptions()" />
+                </div>
+                <!-- Avatar Monogram (Double-Letter System) -->
+                <div class="form-group form-group-full" style="padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:6px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <label class="form-label" style="margin-bottom:0;display:flex;align-items:center;gap:6px;font-size:12px;">
+                      <i data-lucide="sparkles" style="width:13px;height:13px;color:var(--nav-lime,#b8ff3d);"></i>
+                      <span>Avatar Monogram</span>
+                    </label>
+                    <span style="font-size:11px;color:rgba(255,255,255,0.4);">Double-letter avatar initials</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#a3e635 0%,#15803d 100%);color:#000;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px;letter-spacing:0.04em;" id="modalMonogramPreview">--</div>
+                    <div id="modalMonogramSuggestions" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <span style="font-size:11.5px;color:rgba(255,255,255,0.35);">Type name to see options...</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+                      <span style="font-size:11px;color:rgba(255,255,255,0.5);">Custom:</span>
+                      <input type="text" id="modalCustomMonogram" maxlength="2" placeholder="--" style="width:52px;height:30px;text-align:center;font-weight:800;font-size:12.5px;letter-spacing:0.06em;text-transform:uppercase;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;" oninput="UsersSettings.handleCustomMonogram(this.value)" />
+                    </div>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Email Address <span class="req">*</span></label>
@@ -225,11 +252,9 @@
                 <div class="form-group">
                   <label class="form-label">Role <span class="req">*</span></label>
                   <select class="form-select" id="modalUserRole">
-                    <option value="ADMIN">ADMIN — Full System Access</option>
-                    <option value="MANAGER">MANAGER — Branch & Operations</option>
-                    <option value="STAFF" selected>STAFF — Production & Atelier</option>
-                    <option value="RECEPTIONIST">RECEPTIONIST — Concierge</option>
-                    <option value="TAILOR">TAILOR — Master Tailor</option>
+                    <option value="OWNER">OWNER — Full Enterprise Ownership</option>
+                    <option value="BRANCH_ADMIN" selected>BRANCH_ADMIN — Branch Authority</option>
+                    <option value="CUSTOM">CUSTOM — Custom Atelier Role</option>
                   </select>
                 </div>
                 <div class="form-group">

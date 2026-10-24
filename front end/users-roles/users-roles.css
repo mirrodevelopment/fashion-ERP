@@ -379,6 +379,37 @@
   flex-shrink: 0;
 }
 
+.ur-btn-activate-all {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 9999px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ur-btn-activate-all:hover {
+  background: rgba(34, 197, 94, 0.22);
+  border-color: rgba(34, 197, 94, 0.6);
+  color: #86efac;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.25);
+  transform: translateY(-1px);
+}
+
+.ur-btn-activate-all svg {
+  width: 13px;
+  height: 13px;
+}
+
 .ur-btn-add-user:hover {
   background: var(--ur-lime-hover);
   transform: translateY(-1px);
@@ -1161,10 +1192,6 @@
   gap: 12px;
 }
 
-.ur-paired-cards-grid.grid-risk-auth {
-  grid-template-columns: 0.9fr 1.1fr;
-}
-
 /* Card: Access Risk & Conflict */
 .ur-risk-body {
   display: flex;
@@ -1212,47 +1239,6 @@
   margin: 0;
   line-height: 1.4;
 }
-
-/* Card: Authority & Approval Limits */
-.ur-limits-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ur-limit-metric {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.ur-limit-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-}
-
-.ur-limit-name { color: var(--ur-text-muted); }
-.ur-limit-value { color: #ffffff; font-weight: 600; }
-
-.ur-limit-bar-bg {
-  width: 100%;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.ur-limit-bar-fill {
-  height: 100%;
-  border-radius: 9999px;
-}
-
-.fill-lime { background: #4ade80; }
-.fill-blue { background: #60a5fa; }
-.fill-purple { background: #c084fc; }
-.fill-amber { background: #fb923c; }
 
 /* Card: Branch Access Scope */
 .ur-branch-scopes-list {
@@ -1452,8 +1438,7 @@
   .ur-split-grid {
     grid-template-columns: 1fr;
   }
-  .ur-paired-cards-grid,
-  .ur-paired-cards-grid.grid-risk-auth {
+  .ur-paired-cards-grid {
     grid-template-columns: 1fr;
   }
 }

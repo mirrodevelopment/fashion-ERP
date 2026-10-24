@@ -40,6 +40,28 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, UUID> 
 
     long countByCompanyIdAndStatus(UUID companyId, InventoryStatus status);
 
+    @Query("""
+        SELECT COUNT(i) FROM InventoryItem i
+        WHERE (:companyId IS NULL OR i.companyId = :companyId)
+          AND (:branch IS NULL OR i.branch = :branch OR (:branch = 'Main Branch' AND (i.branch IS NULL OR i.branch = '')))
+        """)
+    long countByCompanyIdAndBranch(@Param("companyId") UUID companyId, @Param("branch") String branch);
+
+    @Query("""
+        SELECT COUNT(i) FROM InventoryItem i
+        WHERE (:companyId IS NULL OR i.companyId = :companyId)
+          AND (:status IS NULL OR i.status = :status)
+          AND (:branch IS NULL OR i.branch = :branch OR (:branch = 'Main Branch' AND (i.branch IS NULL OR i.branch = '')))
+        """)
+    long countByCompanyIdAndStatusAndBranch(@Param("companyId") UUID companyId, @Param("status") InventoryStatus status, @Param("branch") String branch);
+
+    @Query("""
+        SELECT COALESCE(SUM(i.stockQty * i.purchasePrice), 0) FROM InventoryItem i
+        WHERE (:companyId IS NULL OR i.companyId = :companyId)
+          AND (:branch IS NULL OR i.branch = :branch OR (:branch = 'Main Branch' AND (i.branch IS NULL OR i.branch = '')))
+        """)
+    java.math.BigDecimal sumTotalValueByBranch(@Param("companyId") UUID companyId, @Param("branch") String branch);
+
     @Query("SELECT i FROM InventoryItem i WHERE (:companyId IS NULL OR i.companyId = :companyId) AND LOWER(i.category) = 'fabric'")
     java.util.List<InventoryItem> findFabrics(@Param("companyId") UUID companyId);
 

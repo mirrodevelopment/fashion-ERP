@@ -565,12 +565,27 @@ body:not([data-module="dashboard"]) #sidebarSlot {
 .u-avatar-img {
   width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
+  display: block;
 }
 .u-avatar {
   width: 26px; height: 26px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--nav-lime) 0%, var(--green-dark) 100%);
+  background: linear-gradient(135deg, var(--nav-lime, #a3e635) 0%, #15803d 100%);
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 800; color: var(--lime-dark);
+  font-size: 10px; font-weight: 800; color: #0d1f05;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.u-avatar-lg {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--nav-lime, #a3e635) 0%, #15803d 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: #0d1f05;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .u-info { line-height: 1.15; text-align: left; }
 .u-name { font-size: 11px; font-weight: 700; color: #ffffff; display: block; }

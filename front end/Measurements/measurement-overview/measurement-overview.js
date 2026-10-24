@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ==========================================================================
  * HAULO BOUTIQUE ERP — MEASUREMENT LIBRARY CONTROLLER
  * File: front end/Measurements/measurement-overview/measurement-overview.js
@@ -86,20 +86,26 @@
       }
 
       if (api && api.measurements) {
-        // Fetch live customers
-        if (api.customers) {
+        // ── Edit A: Single bulk fetch — replaces N+1 customer→bodyMeasurements loop ──
+        if (api.measurements.list) {
           try {
-            const custRes = await api.customers.list({ size: 100 });
-            const custList = Array.isArray(custRes) ? custRes : (custRes?.content || []);
-            if (custList && custList.length > 0) {
-              await integrateLiveCustomers(custList, api);
+            const activeBranch = localStorage.getItem('haulo_active_branch');
+            const measParams = { size: 200 };
+            if (activeBranch && activeBranch !== 'ALL') measParams.branch = activeBranch;
+            const profiles = await api.measurements.list(measParams);
+            if (Array.isArray(profiles) && profiles.length > 0) {
+              integrateProfilesFromApi(profiles);
             }
-          } catch (_) {}
+          } catch (e) {
+            console.warn('[MeasurementLibrary] Profiles fetch error:', e);
+          }
         }
 
         // Fetch KPI aggregates
         try {
-          const kpi = await api.measurements.kpis();
+          const activeBranch = localStorage.getItem('haulo_active_branch');
+          const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+          const kpi = await api.measurements.kpis(kpiParams);
           if (kpi) {
             updateKpiDisplay(kpi);
           } else {
@@ -130,18 +136,126 @@
     const elUpdated = document.getElementById('valLibUpdatedMonth');
     const elMemories = document.getElementById('valLibMemories');
 
+    // ── Edit C: Corrected field names to match backend KPI response ──
     if (elProfiles) {
-      elProfiles.textContent = kpi.measurementProfiles || kpi.totalMeasurements || PROFILES.length;
+      elProfiles.textContent = kpi.totalMeasurements ?? PROFILES.length;
     }
     if (elCustomers) {
-      elCustomers.textContent = kpi.activeCustomers || kpi.totalCustomers || PROFILES.length;
+      elCustomers.textContent = kpi.totalCustomers ?? PROFILES.length;
     }
     if (elUpdated) {
-      elUpdated.textContent = kpi.updatedThisMonth || 0;
+      elUpdated.textContent = kpi.updatedThisMonth ?? 0;
     }
     if (elMemories) {
-      elMemories.textContent = kpi.fitMemoriesLearned || 0;
+      elMemories.textContent = kpi.fitMemoriesLearned ?? kpi.dueRemeasurement ?? 0;
     }
+  }
+
+  // ── Edit B: integrateProfilesFromApi — maps MeasurementDto.Response[] ────────
+  // Replaces the old integrateLiveCustomers N+1 loop. Receives an array of
+  // MeasurementProfile responses from GET /api/v1/measurements and maps each
+  // one to the rich frontend profile object expected by renderProfileList().
+  function integrateProfilesFromApi(apiProfiles) {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    PROFILES = apiProfiles.map((p, idx) => {
+      // Extract a named measurement point value from the points[] array
+      const pointVal = (name) => {
+        const pt = (p.points || []).find(
+          x => x.pointName && x.pointName.toLowerCase() === name.toLowerCase()
+        );
+        return pt ? Number(pt.value) : null;
+      };
+
+      const bust        = pointVal('bust')          ?? 36.0;
+      const waist       = pointVal('waist')         ?? 30.0;
+      const hip         = pointVal('hip')           ?? 39.0;
+      const shoulder    = pointVal('shoulder')      ?? 14.25;
+      const armhole     = pointVal('armhole')       ?? 16.5;
+      const sleeveLen   = pointVal('sleeveLength')  ?? 11.0;
+      const bicep       = pointVal('bicep')         ?? 12.5;
+      const sleeveOpen  = pointVal('sleeveOpening') ?? 10.5;
+      const blouseLen   = pointVal('blouseLength')  ?? 14.5;
+      const frontNeck   = pointVal('frontNeck')     ?? 7.5;
+      const backNeck    = pointVal('backNeck')      ?? 10.0;
+
+      const code = `MP-${String(idx + 101).padStart(4, '0')}`;
+      const garmentRaw = p.garmentType || 'custom';
+      const cat = garmentRaw.charAt(0).toUpperCase() +
+                  garmentRaw.slice(1).replace(/_/g, ' ');
+
+      // Determine if this profile was updated within the last 30 days
+      const updatedDate  = p.recordedAt ? new Date(p.recordedAt) : null;
+      const isRecent     = updatedDate ? updatedDate > thirtyDaysAgo : false;
+      const updatedAtStr = updatedDate ? formatDate(updatedDate.toISOString()) : 'Recently';
+
+      // Derive gender from garment type
+      let gender = 'women';
+      if (/shirt|kurta|sherwani/i.test(garmentRaw)) gender = 'men';
+
+      return {
+        id:            p.id,
+        name:          p.customerName || 'Valued Patron',
+        mobile:        p.customerMobile || p.customerId || '',
+        code:          code,
+        apiId:         p.id,          // UUID for update / delete calls
+        version:       'V1',
+        versionNumber: 1,
+        gender:        gender,
+        status:        'Active',
+        branch:        'Main Branch', // branch not returned in current DTO
+        category:      cat,
+        rawCategory:   gender,
+        updatedAt:     updatedAtStr,
+        isRecent:      isRecent,
+        since:         `Customer since ${updatedDate ? updatedDate.getFullYear() : 2026}`,
+        fitConfidence: 90,
+        avatar:        '../../assets/user_avatar.jpg',
+        recordedBy:    p.recordedBy || 'Atelier',
+        notes:         p.notes || '',
+        measurements:  {
+          bust, waist, hip, shoulder, armhole,
+          sleeveLength:  sleeveLen,
+          bicep,
+          sleeveOpening: sleeveOpen,
+          blouseLength:  blouseLen,
+          frontNeck,
+          backNeck
+        },
+        evolution:     [{ version: 'V1', date: updatedAtStr, active: true }],
+        deltas: [
+          { label: 'Waist',   val: '0.0"', ref: '(Verified)', type: 'lime' },
+          { label: 'Armhole', val: '0.0"', ref: '(Verified)', type: 'lime' },
+          { label: 'Sleeve',  val: '0.0"', ref: '(Verified)', type: 'lime' }
+        ],
+        impactMessage:   p.notes || 'Verified bespoke fitting measurements archived.',
+        fitMemories: {
+          subtitle:  `Recorded by ${p.recordedBy || 'Atelier'}`,
+          tiles: [
+            'Precision fit profile on file',
+            'Comfort ease preference stored',
+            'Pattern draft initiated',
+            'Fit verified at intake'
+          ]
+        },
+        garmentSpecific: {
+          finishedBust:  bust + 0.5,
+          blouseLength:  blouseLen,
+          frontNeck,
+          backNeck,
+          sleeveOpening: sleeveOpen,
+          referencedSet: 'Body Set V1'
+        },
+        garmentsUsing:  [],
+        recentActivity: [{
+          date:    updatedAtStr,
+          text:    'Measurement profile recorded',
+          isGreen: true
+        }]
+      };
+    });
+
+    renderProfileList();
   }
 
   // Integrate live customer body measurements if available
@@ -263,7 +377,8 @@
       if (CURRENT_TAB === 'women' && p.gender !== 'women') return false;
       if (CURRENT_TAB === 'men' && p.gender !== 'men') return false;
       if (CURRENT_TAB === 'bridal' && !p.category.toLowerCase().includes('bridal')) return false;
-      if (CURRENT_TAB === 'recently-updated' && !p.updatedAt.includes('Oct 2026')) return false;
+      // ── Edit D: relative 30-day window instead of hardcoded month string ──
+      if (CURRENT_TAB === 'recently-updated' && !p.isRecent) return false;
 
       // Search filter
       if (SEARCH_QUERY) {
@@ -1463,7 +1578,7 @@
 
   window.openGarment360 = function (garmentCode) {
     if (garmentCode) {
-      window.location.href = `../../garments/garaments 360/garament360.html?code=${encodeURIComponent(garmentCode)}`;
+      window.location.href = `../../garments/garment360/garment360.html?code=${encodeURIComponent(garmentCode)}`;
     }
   };
 
@@ -1535,22 +1650,47 @@
     const length = Number(document.getElementById('addLength')?.value) || 14.5;
     const armhole = Number(document.getElementById('addArmhole')?.value) || 16.5;
 
-    // Send payload to backend API if live
+    // ── Edit E: Save via measurements.create with named measurement points ──
+    let savedApiId = null;
     try {
-      if (window.api && window.api.customers?.bodyMeasurements?.save) {
-        await window.api.customers.bodyMeasurements.save(phone, {
-          customerName: name,
-          garmentType: garment.toUpperCase(),
-          bust: bust,
-          waist: waist,
-          shoulder: shoulder,
-          blouseLength: length,
-          armhole: armhole,
-          unit: 'in'
+      if (window.api?.measurements?.create) {
+        // Resolve logged-in user's name for recordedBy
+        let recordedBy = 'Staff';
+        try {
+          const me = await window.api.auth.me();
+          if (me?.username) recordedBy = me.username;
+        } catch (_) {}
+
+        const STANDARD_POINTS = [
+          { pointName: 'bust',          value: bust     },
+          { pointName: 'waist',         value: waist    },
+          { pointName: 'hip',           value: 39.0     },
+          { pointName: 'shoulder',      value: shoulder },
+          { pointName: 'armhole',       value: armhole  },
+          { pointName: 'blouseLength',  value: length   },
+          { pointName: 'sleeveLength',  value: 11.0     },
+          { pointName: 'bicep',         value: 12.5     },
+          { pointName: 'sleeveOpening', value: 10.5     },
+          { pointName: 'frontNeck',     value: 7.5      },
+          { pointName: 'backNeck',      value: 10.0     }
+        ];
+
+        const created = await window.api.measurements.create({
+          customerMobile: phone,
+          garmentType:    garment,
+          recordedBy:     recordedBy,
+          notes:          '',
+          points: STANDARD_POINTS.map((pt, i) => ({
+            pointName:  pt.pointName,
+            value:      pt.value,
+            unit:       '"',
+            sortOrder:  i
+          }))
         });
+        if (created?.id) savedApiId = created.id;
       }
     } catch (e) {
-      console.warn('[AddMeasurement] API fallback:', e);
+      console.warn('[AddMeasurement] API save error:', e);
     }
 
     // Update local profile list immediately

@@ -191,7 +191,7 @@ function buildStageCard(stage, idx) {
         <span class="stage-dot ${dotClass}"></span>
         <span class="stage-key-badge">${escHtml(stage.stageKey)}</span>
         <span class="stage-display-name">${escHtml(stage.displayName)}</span>
-        ${isFixed ? '<span class="system-fixed-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);letter-spacing:0.03em;"><i data-lucide="lock" style="width:10px;height:10px;"></i> Fixed Stage</span>' : ''}
+        ${isFixed ? '<span class="system-fixed-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);letter-spacing:0.03em;"><i data-lucide="lock" style="width:10px;height:10px;"></i> Default Stage</span>' : ''}
         ${!stage.active ? '<span class="inactive-tag">Inactive</span>' : ''}
       </div>
       <div class="stage-card-meta">

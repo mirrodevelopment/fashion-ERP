@@ -81,6 +81,12 @@ public class OrderController {
         String branchFilter = (branch != null && !branch.isBlank() && !"ALL".equalsIgnoreCase(branch.trim()))
                 ? branch.trim()
                 : null;
+        if (branchFilter == null) {
+            String active = com.fashionerp.common.TenantContext.getActiveBranchFilter();
+            if (active != null && !active.isBlank() && !"ALL".equalsIgnoreCase(active.trim())) {
+                branchFilter = active.trim();
+            }
+        }
         Map<String, Object> m = new LinkedHashMap<>();
         if (branchFilter != null) {
             var probe = org.springframework.data.domain.PageRequest.of(0, 1);
@@ -90,6 +96,11 @@ public class OrderController {
             m.put("readyCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.READY, probe).getTotalElements());
             m.put("deliveredCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.DELIVERED, probe).getTotalElements());
             m.put("cancelledCount", orderRepository.search(companyId, branchFilter, null, OrderStatus.CANCELLED, probe).getTotalElements());
+
+            BigDecimal totalRev = paymentRepository.sumPaidAmountByBranch(companyId, branchFilter);
+            BigDecimal thisMonthRev = paymentRepository.sumThisMonthPaidAmountByBranch(companyId, branchFilter);
+            m.put("totalRevenue", totalRev != null ? totalRev : BigDecimal.ZERO);
+            m.put("thisMonthRevenue", thisMonthRev != null ? thisMonthRev : BigDecimal.ZERO);
         } else {
             m.put("pendingCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.PENDING));
             m.put("inProgressCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.IN_PROGRESS)
@@ -97,12 +108,12 @@ public class OrderController {
             m.put("readyCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.READY));
             m.put("deliveredCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.DELIVERED));
             m.put("cancelledCount", orderRepository.countByCompanyIdAndStatus(companyId, OrderStatus.CANCELLED));
-        }
 
-        BigDecimal totalRev = paymentRepository.sumPaidAmount(companyId);
-        BigDecimal thisMonthRev = paymentRepository.sumThisMonthPaidAmount(companyId);
-        m.put("totalRevenue", totalRev != null ? totalRev : BigDecimal.ZERO);
-        m.put("thisMonthRevenue", thisMonthRev != null ? thisMonthRev : BigDecimal.ZERO);
+            BigDecimal totalRev = paymentRepository.sumPaidAmount(companyId);
+            BigDecimal thisMonthRev = paymentRepository.sumThisMonthPaidAmount(companyId);
+            m.put("totalRevenue", totalRev != null ? totalRev : BigDecimal.ZERO);
+            m.put("thisMonthRevenue", thisMonthRev != null ? thisMonthRev : BigDecimal.ZERO);
+        }
         return m;
     }
 }

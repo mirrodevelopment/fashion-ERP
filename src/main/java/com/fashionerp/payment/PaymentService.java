@@ -25,12 +25,18 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
     private final com.fashionerp.garment.GarmentRepository garmentRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     public Page<PaymentDto.Response> list(String search, String status, Pageable pageable) {
+        return list(search, status, null, pageable);
+    }
+
+    public Page<PaymentDto.Response> list(String search, String status, String branch, Pageable pageable) {
         PaymentStatus statusEnum = (status != null && !status.isBlank())
                 ? PaymentStatus.valueOf(status.toUpperCase().replace('-', '_')) : null;
         UUID companyId = TenantContext.getCompanyId();
-        return paymentRepository.search(companyId, search, statusEnum, pageable).map(PaymentDto.Response::from);
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.PAYMENTS);
+        return paymentRepository.search(companyId, search, statusEnum, branchFilter, pageable).map(PaymentDto.Response::from);
     }
 
     @Transactional(readOnly = true)

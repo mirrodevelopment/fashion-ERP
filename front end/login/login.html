@@ -6,9 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Sign In">Sign In</title>
   <meta name="description" content="Sign in to your luxury fashion operating system." />
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <!-- Central Boutique Typography Design System -->
   <link rel="stylesheet" href="../fragments/font/font.css" />
-  <link rel="stylesheet" href="login.css" />
+    <link rel="stylesheet" href="../fragments/theme/haulo-tokens.css" />
+<link rel="stylesheet" href="login.css" />
+  <script src="../fragments/theme/theme-switch.js"></script>
   <!-- ========================================================================= -->
   <!-- DEVELOPER MODE: Developer Auto-Login Stylesheet (see /front end/dev/)     -->
   <!-- ========================================================================= -->
@@ -54,6 +65,10 @@
       </a>
 
       <div class="top-nav-right">
+        <!-- Theme Toggle (Classic Warm Glass, Haulo Obsidian Dark, Haulo Atelier Light) -->
+        <button class="icon-btn haulo-theme-btn" id="hauloThemeToggleBtn" data-haulo-theme-btn aria-label="Switch Theme" title="Switch Theme" onclick="if(window.HauloTheme)window.HauloTheme.toggle();" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--border-card, rgba(255,255,255,0.14));background:var(--bg-card, rgba(255,255,255,0.07));cursor:pointer;color:var(--text-secondary, rgba(255,255,255,0.7));transition:all 0.18s ease;flex-shrink:0;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
         <span class="nav-hint-text">Need assistance?</span>
         <button type="button" class="btn-contact-pill" id="btn-contact">Contact Us</button>
       </div>

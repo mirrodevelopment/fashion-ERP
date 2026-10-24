@@ -20,6 +20,12 @@ public class AppUser {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    /**
+     * Stored password in database for developer quick-login and persona testing.
+     */
+    @Column(name = "dev_password", length = 255)
+    private String devPassword;
+
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 

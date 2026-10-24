@@ -5,18 +5,8 @@
 
 import api, { Auth } from '../api.js';
 
-// ─── Existing Haute Couture Image Assets Pool ──────────────────────────────
-export const EXISTING_GARMENT_ASSETS = {
-  blouse: '../assets/garments/bridal_blouse_zardozi.jpg',
-  lehenga: '../assets/garments/heritage_lehenga_pink.jpg',
-  anarkali: '../assets/garments/anarkali_chikankari.jpg',
-  sherwani: '../assets/garments/raw_silk_sherwani.jpg',
-  saree: '../assets/garments/banarasi_organza_saree.jpg',
-  gown: '../assets/garments/champagne_evening_gown.jpg',
-  kurti: '../assets/garments/zardozi_handwork.jpg',
-  chudi: '../assets/garments/bridal_blouse_zardozi.jpg',
-  default: '../assets/garments/bridal_blouse_zardozi.jpg'
-};
+// ─── Inline Clean Silhouette Placeholder (Zero Synthetic Photo Mocks) ─────
+export const EMPTY_GARMENT_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z'/%3E%3C/svg%3E";
 
 export function resolveGarmentImage(g) {
   if (g && g.imageUrl && typeof g.imageUrl === 'string' && g.imageUrl.trim() !== '' && !g.imageUrl.startsWith('data:image/svg')) {
@@ -32,17 +22,7 @@ export function resolveGarmentImage(g) {
     }
     return url;
   }
-
-  const text = ((g?.garmentType || '') + ' ' + (g?.title || '') + ' ' + (g?.silhouette || '')).toLowerCase();
-  if (text.includes('blouse') || text.includes('choli')) return EXISTING_GARMENT_ASSETS.blouse;
-  if (text.includes('lehenga') || text.includes('skirt') || text.includes('bridal')) return EXISTING_GARMENT_ASSETS.lehenga;
-  if (text.includes('anarkali') || text.includes('chikankari')) return EXISTING_GARMENT_ASSETS.anarkali;
-  if (text.includes('sherwani') || text.includes('kurta') || text.includes('jacket')) return EXISTING_GARMENT_ASSETS.sherwani;
-  if (text.includes('saree') || text.includes('organza') || text.includes('banarasi')) return EXISTING_GARMENT_ASSETS.saree;
-  if (text.includes('gown') || text.includes('evening') || text.includes('corset')) return EXISTING_GARMENT_ASSETS.gown;
-  if (text.includes('kurti') || text.includes('sharara') || text.includes('peplum') || text.includes('chudi')) return EXISTING_GARMENT_ASSETS.kurti;
-
-  return EXISTING_GARMENT_ASSETS.default;
+  return EMPTY_GARMENT_PLACEHOLDER;
 }
 window.resolveGarmentImage = resolveGarmentImage;
 
@@ -59,7 +39,6 @@ const state = {
     collection: 'all',
     fabric: 'all',
     status: 'all',
-    materialStatus: 'all',
     designer: 'all',
     branch: 'all',
   },
@@ -101,7 +80,6 @@ function cacheDOM() {
     filterCollection: document.getElementById('filterCollection'),
     filterFabric: document.getElementById('filterFabric'),
     filterStatus: document.getElementById('filterStatus'),
-    filterMaterialStatus: document.getElementById('filterMaterialStatus'),
     filterDesigner: document.getElementById('filterDesigner'),
     filterBranch: document.getElementById('filterBranch'),
 
@@ -131,12 +109,9 @@ function cacheDOM() {
     detColorDot: document.getElementById('detColorDot'),
     detColorName: document.getElementById('detColorName'),
     detSilhouette: document.getElementById('detSilhouette'),
-    detSuggestedPrice: document.getElementById('detSuggestedPrice'),
-    detEstimatedCost: document.getElementById('detEstimatedCost'),
     detCraftingHours: document.getElementById('detCraftingHours'),
     detAssigned: document.getElementById('detAssigned'),
     detBranch: document.getElementById('detBranch'),
-    detMaterialStatus: document.getElementById('detMaterialStatus'),
     inspectorNotesBox: document.getElementById('inspectorNotesBox'),
     detNotes: document.getElementById('detNotes'),
 
@@ -197,39 +172,64 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (window.lucide) window.lucide.createIcons();
 });
 
-// ─── Load Dynamic Filter Dropdowns (Branches, Designers, Collections) ──────
+// ─── Load Dynamic Filter Dropdowns (Silhouettes, Collections, Fabrics, Branches, Artisans) ──────
 async function loadDynamicFilterDropdowns() {
   try {
-    // 1. Populate Branches from DB
-    if (api?.branches?.list) {
-      const branches = await api.branches.list();
-      const select = document.getElementById('filterBranch');
-      if (select && Array.isArray(branches) && branches.length > 0) {
-        select.innerHTML = '<option value="all">Branch</option>' +
-          branches.map(b => `<option value="${escapeHTML(b.name)}">${escapeHTML(b.name)}</option>`).join('');
-      }
+    const opts = api?.garments?.filterOptions ? await api.garments.filterOptions() : null;
+    if (!opts) return;
+
+    // 1. Silhouettes / Garment Types
+    const selType = document.getElementById('filterGarmentType');
+    if (selType && Array.isArray(opts.garmentTypes) && opts.garmentTypes.length > 0) {
+      selType.innerHTML = '<option value="all">Silhouette</option>' +
+        opts.garmentTypes.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');
     }
 
-    // 2. Populate Designers & Artisans from DB
-    if (api?.employees?.list) {
-      const empRes = await api.employees.list({ size: 100 });
-      const emps = empRes?.content || (Array.isArray(empRes) ? empRes : []);
-      const select = document.getElementById('filterDesigner');
-      if (select && Array.isArray(emps) && emps.length > 0) {
-        select.innerHTML = '<option value="all">Artisan</option>' +
-          emps.map(e => `<option value="${escapeHTML(e.name)}">${escapeHTML(e.name)}</option>`).join('');
-      }
+    // 2. Collections from DB
+    const selCol = document.getElementById('filterCollection');
+    if (selCol && Array.isArray(opts.collections) && opts.collections.length > 0) {
+      selCol.innerHTML = '<option value="all">Collection</option>' +
+        opts.collections.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
     }
 
-    // 3. Populate Collections from DB if available
-    if (api?.collections?.list) {
-      const colRes = await api.collections.list();
-      const cols = Array.isArray(colRes) ? colRes : (colRes?.content || []);
-      const select = document.getElementById('filterCollection');
-      if (select && cols.length > 0) {
-        select.innerHTML = '<option value="all">Collection</option>' +
-          cols.map(c => `<option value="${escapeHTML(c.name || c.title)}">${escapeHTML(c.name || c.title)}</option>`).join('');
-      }
+    // 3. Fabrics from DB
+    const selFab = document.getElementById('filterFabric');
+    if (selFab && Array.isArray(opts.fabrics) && opts.fabrics.length > 0) {
+      selFab.innerHTML = '<option value="all">Fabric</option>' +
+        opts.fabrics.map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+    }
+
+    // 4. Branches from DB
+    const selBranch = document.getElementById('filterBranch');
+    if (selBranch && Array.isArray(opts.branches) && opts.branches.length > 0) {
+      selBranch.innerHTML = '<option value="all">Branch</option>' +
+        opts.branches.map(b => `<option value="${escapeHTML(b)}">${escapeHTML(b)}</option>`).join('');
+    }
+
+    // 5. Designers & Artisans from DB
+    const selDesigner = document.getElementById('filterDesigner');
+    if (selDesigner && Array.isArray(opts.designers) && opts.designers.length > 0) {
+      selDesigner.innerHTML = '<option value="all">Artisan</option>' +
+        opts.designers.map(d => `<option value="${escapeHTML(d)}">${escapeHTML(d)}</option>`).join('');
+    }
+
+    // 6. Atelier Status & Production Stages from DB
+    const selStatus = document.getElementById('filterStatus');
+    if (selStatus) {
+      let stageDefs = [];
+      try {
+        if (api?.production?.stageDefinitions?.list) {
+          stageDefs = await api.production.stageDefinitions.list({ activeOnly: true });
+        }
+      } catch (_) {}
+      const stageOpts = (Array.isArray(stageDefs) && stageDefs.length > 0)
+        ? stageDefs.map(s => `<option value="${escapeHTML(s.displayName || s.stageKey)}">${escapeHTML(s.displayName || s.stageKey)}</option>`).join('')
+        : '<option value="In Production">In Production</option><option value="Ready">Ready</option>';
+
+      selStatus.innerHTML = '<option value="all">Status</option>' +
+        '<option value="In Production">In Production</option>' +
+        stageOpts +
+        '<option value="Archived">Archived</option>';
     }
   } catch (err) {
     console.warn('[Garments] Filter dropdown loading error:', err);
@@ -239,7 +239,9 @@ async function loadDynamicFilterDropdowns() {
 // ─── Load Atelier KPI Metrics ─────────────────────────────────────────────
 async function loadKpiMetrics() {
   try {
-    const kpis = await api.garments.kpis();
+    const activeBranch = localStorage.getItem('haulo_active_branch');
+    const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch, catalogOnly: true } : { catalogOnly: true };
+    const kpis = await api.garments.kpis(kpiParams);
     if (!kpis) return;
 
     if (DOM.valTotalGarments) DOM.valTotalGarments.textContent = kpis.totalGarments ?? 0;
@@ -247,7 +249,10 @@ async function loadKpiMetrics() {
     if (DOM.valReady) DOM.valReady.textContent = kpis.ready ?? 0;
     if (DOM.valAwaitingQc) DOM.valAwaitingQc.textContent = kpis.awaitingQc ?? 0;
     if (DOM.valBridalCount) DOM.valBridalCount.textContent = kpis.bridalCount ?? 0;
-    if (DOM.valAvgCrafting) DOM.valAvgCrafting.textContent = (kpis.avgCraftingHours ? Math.round(kpis.avgCraftingHours) + 'h' : '28h');
+    if (DOM.valAvgCrafting) {
+      const hrs = kpis.avgCraftingHours ? Math.round(kpis.avgCraftingHours) : 0;
+      DOM.valAvgCrafting.textContent = hrs > 0 ? `${hrs}h` : '0h';
+    }
   } catch (err) {
     console.warn('Could not load garment atelier KPIs:', err);
   }
@@ -260,6 +265,7 @@ async function loadGarmentsData() {
     const params = {
       page: state.pagination.page,
       size: state.pagination.size,
+      catalogOnly: true,
     };
 
     if (state.searchQuery) params.search = state.searchQuery.trim();
@@ -267,9 +273,13 @@ async function loadGarmentsData() {
     if (state.filters.collection && state.filters.collection !== 'all') params.collection = state.filters.collection;
     if (state.filters.fabric && state.filters.fabric !== 'all') params.fabric = state.filters.fabric;
     if (state.filters.status && state.filters.status !== 'all') params.status = state.filters.status;
-    if (state.filters.materialStatus && state.filters.materialStatus !== 'all') params.materialStatus = state.filters.materialStatus;
     if (state.filters.designer && state.filters.designer !== 'all') params.designer = state.filters.designer;
-    if (state.filters.branch && state.filters.branch !== 'all') params.branch = state.filters.branch;
+    const activeBranch = localStorage.getItem('haulo_active_branch');
+    if (state.filters.branch && state.filters.branch !== 'all') {
+      params.branch = state.filters.branch;
+    } else if (activeBranch && activeBranch !== 'ALL') {
+      params.branch = activeBranch;
+    }
 
     const res = await api.garments.list(params);
     const list = res.content || [];
@@ -316,41 +326,38 @@ function renderTable() {
     const isSelected = state.selectedGarment && state.selectedGarment.id === g.id;
     const isChecked = state.selectedIds.has(g.id);
 
-    const matClass = (g.materialStatus || 'READY').toLowerCase();
     const imgThumb = resolveGarmentImage(g);
 
-    const colorHex = g.colorHex || '#9B111E';
-    const colorName = g.colorName || 'Royal Tone';
-    const priceFormatted = g.suggestedPrice ? '₹' + Number(g.suggestedPrice).toLocaleString('en-IN') : '₹—';
-    const costFormatted = g.estimatedCost ? 'Cost: ₹' + Number(g.estimatedCost).toLocaleString('en-IN') : 'Cost: —';
+    const colorHex = g.colorHex || 'transparent';
+    const colorName = g.colorName || '—';
 
     return `
       <tr class="${isSelected ? 'selected' : ''}" onclick="window.selectGarment('${g.id}')" ondblclick="window.viewGarmentDetails()" title="Click to inspect garment, double-click to launch 360° Dossier" style="cursor:pointer;">
         <td>
           <div class="cell-garment-info">
-            <img class="garment-thumb-img" src="${imgThumb}" alt="${escapeHTML(g.title)}" onerror="this.src='${EXISTING_GARMENT_ASSETS.default}'" />
+            <img class="garment-thumb-img" src="${imgThumb}" alt="${escapeHTML(g.title || '')}" onerror="this.src=EMPTY_GARMENT_PLACEHOLDER" />
             <div class="garment-texts">
               <span class="garment-code-title">
-                <span class="garment-code-chip">${escapeHTML(g.garmentCode)}</span>
-                <span class="garment-title-text">${escapeHTML(g.title)}</span>
+                <span class="garment-code-chip">${escapeHTML(g.garmentCode || '—')}</span>
+                <span class="garment-title-text">${escapeHTML(g.title || 'Untitled Garment')}</span>
               </span>
-              <span class="garment-spec-sub">${escapeHTML(g.silhouette || g.specs || 'Custom Atelier Cut')}</span>
+              <span class="garment-spec-sub">${escapeHTML(g.silhouette || g.specs || '—')}</span>
             </div>
           </div>
         </td>
         <td>
-          <span class="badge-silhouette-type">${escapeHTML(g.garmentType)}</span>
+          <span class="badge-silhouette-type">${escapeHTML(g.garmentType || 'Bespoke')}</span>
         </td>
         <td>
           <div class="cell-design-col">
-            <span class="collection-name-bold">${escapeHTML(g.collectionName || 'Main Haute Edit')}</span>
-            <span class="design-code-sub">${escapeHTML(g.designCode || 'Custom Blueprint')}</span>
+            <span class="collection-name-bold">${escapeHTML(g.collectionName || '—')}</span>
+            <span class="design-code-sub">${escapeHTML(g.designCode || '—')}</span>
           </div>
         </td>
         <td>
           <div class="cell-fabric-craft">
-            <span class="fabric-title">${escapeHTML(g.primaryFabric || 'Pure Silk / Brocade')}</span>
-            <span class="craft-sub">${escapeHTML(g.embroideryType || 'Artisanal Embroidery')}</span>
+            <span class="fabric-title">${escapeHTML(g.primaryFabric || '—')}</span>
+            <span class="craft-sub">${escapeHTML(g.embroideryType || '—')}</span>
           </div>
         </td>
         <td>
@@ -360,23 +367,9 @@ function renderTable() {
           </div>
         </td>
         <td>
-          <div class="cell-material-readiness">
-            <span class="material-status-badge ${matClass}">
-              <span class="dot-status ${matClass}"></span>
-              <span>${capitalize(g.materialStatus || 'Ready')}</span>
-            </span>
-          </div>
-        </td>
-        <td>
           <div class="cell-artisan-branch">
-            <span class="branch-name-bold">${escapeHTML(g.branch || 'Main Atelier')}</span>
-            <span class="artisan-sub">${escapeHTML(g.assignedTo || g.designer || 'Master Artisan')}</span>
-          </div>
-        </td>
-        <td>
-          <div class="cell-pricing">
-            <span class="suggested-price-val">${priceFormatted}</span>
-            <span class="cost-estimate-sub">${costFormatted}</span>
+            <span class="branch-name-bold">${escapeHTML(g.branch || '—')}</span>
+            <span class="artisan-sub">${escapeHTML(g.assignedTo || g.designer || '—')}</span>
           </div>
         </td>
         <td class="td-actions" onclick="event.stopPropagation()">
@@ -442,37 +435,25 @@ function populateInspector(g) {
 
   // Pane 1: Overview
   if (DOM.detType) DOM.detType.textContent = g.garmentType || '—';
-  if (DOM.detCollection) DOM.detCollection.textContent = g.collectionName || 'Main Collection';
-  if (DOM.detDesign) DOM.detDesign.textContent = g.designCode || 'Atelier Blueprint';
-  if (DOM.detFabric) DOM.detFabric.textContent = g.primaryFabric || 'Pure Raw Silk';
-  if (DOM.detEmbroidery) DOM.detEmbroidery.textContent = g.embroideryType || 'Artisanal Handwork';
+  if (DOM.detCollection) DOM.detCollection.textContent = g.collectionName || '—';
+  if (DOM.detDesign) DOM.detDesign.textContent = g.designCode || '—';
+  if (DOM.detFabric) DOM.detFabric.textContent = g.primaryFabric || '—';
+  if (DOM.detEmbroidery) DOM.detEmbroidery.textContent = g.embroideryType || '—';
 
   if (DOM.detColorDot) {
-    DOM.detColorDot.style.backgroundColor = g.colorHex || '#9B111E';
+    DOM.detColorDot.style.backgroundColor = g.colorHex || 'transparent';
   }
   if (DOM.detColorName) {
-    DOM.detColorName.textContent = g.colorName || 'Royal Crimson';
+    DOM.detColorName.textContent = g.colorName || '—';
   }
 
-  if (DOM.detSilhouette) DOM.detSilhouette.textContent = g.silhouette || g.specs || 'Custom Cut';
+  if (DOM.detSilhouette) DOM.detSilhouette.textContent = g.silhouette || g.specs || '—';
 
-  if (DOM.detSuggestedPrice) {
-    DOM.detSuggestedPrice.textContent = g.suggestedPrice ? '₹' + Number(g.suggestedPrice).toLocaleString('en-IN') : (g.totalAmount ? '₹' + Number(g.totalAmount).toLocaleString('en-IN') : '₹—');
-  }
-  if (DOM.detEstimatedCost) {
-    DOM.detEstimatedCost.textContent = g.estimatedCost ? '₹' + Number(g.estimatedCost).toLocaleString('en-IN') : '₹—';
-  }
   if (DOM.detCraftingHours) {
-    DOM.detCraftingHours.textContent = g.craftingHours ? `${g.craftingHours} artisan hours` : '32 artisan hours';
+    DOM.detCraftingHours.textContent = g.craftingHours ? `${g.craftingHours} artisan hours` : '—';
   }
-  if (DOM.detAssigned) DOM.detAssigned.textContent = g.assignedTo || g.designer || 'Master Artisan';
-  if (DOM.detBranch) DOM.detBranch.textContent = g.branch || 'Main Atelier';
-
-  if (DOM.detMaterialStatus) {
-    DOM.detMaterialStatus.textContent = capitalize(g.materialStatus || 'Ready');
-    const dot = DOM.detMaterialStatus.previousElementSibling;
-    if (dot) dot.className = `dot-status ${(g.materialStatus || 'READY').toLowerCase()}`;
-  }
+  if (DOM.detAssigned) DOM.detAssigned.textContent = g.assignedTo || g.designer || '—';
+  if (DOM.detBranch) DOM.detBranch.textContent = g.branch || '—';
 
   if (DOM.inspectorNotesBox && DOM.detNotes) {
     if (g.notes && g.notes.trim()) {
@@ -485,41 +466,46 @@ function populateInspector(g) {
 
   // Pane 2: Materials & Fabrics
   if (DOM.inspectorMaterialsList) {
-    const materials = g.materials && g.materials.length > 0 ? g.materials : [
-      { name: g.primaryFabric || 'Pure Micro Velvet 9000', variant: 'Main Body Fabric', meters: '3.50 m', status: 'READY', imageUrl: '../assets/swatch_raw_silk.jpg' },
-      { name: g.embroideryType || 'Zardozi Dabka & Mukaish', variant: 'Artisanal Embellishment', meters: 'Gold Thread & Pearls', status: 'READY', imageUrl: '../assets/swatch_embroidery.jpg' },
-      { name: 'Pure Cotton Silk Lining 80g', variant: 'Internal Structured Canvas', meters: '2.50 m', status: 'READY', imageUrl: '../assets/pink_silk.jpg' }
-    ];
+    const materials = (g.materials && g.materials.length > 0) ? g.materials : [];
 
-    DOM.inspectorMaterialsList.innerHTML = materials.map(m => `
-      <div class="material-item-card">
-        <img class="material-swatch-img" src="${m.imageUrl || '../assets/swatch_raw_silk.jpg'}" alt="${escapeHTML(m.name)}" onerror="this.src='../assets/swatch_raw_silk.jpg'" />
-        <div class="material-meta">
-          <span class="material-name">${escapeHTML(m.name)}</span>
-          <span class="material-sub">${escapeHTML(m.variant || 'Atelier Sourced')} &bull; ${escapeHTML(m.meters || 'Ready')}</span>
+    if (materials.length === 0) {
+      DOM.inspectorMaterialsList.innerHTML = `
+        <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">
+          No materials assigned to this garment.
         </div>
-        <span class="badge-mat-status ${(m.status || 'READY').toLowerCase()}">${capitalize(m.status || 'Ready')}</span>
-      </div>
-    `).join('');
+      `;
+    } else {
+      DOM.inspectorMaterialsList.innerHTML = materials.map(m => `
+        <div class="material-item-card">
+          <img class="material-swatch-img" src="${m.imageUrl || '../assets/swatch_raw_silk.jpg'}" alt="${escapeHTML(m.name)}" onerror="this.src='../assets/swatch_raw_silk.jpg'" />
+          <div class="material-meta">
+            <span class="material-name">${escapeHTML(m.name)}</span>
+            <span class="material-sub">${escapeHTML(m.variant || 'Atelier Sourced')} &bull; ${escapeHTML(m.meters || 'Ready')}</span>
+          </div>
+          <span class="badge-mat-status ${(m.status || 'READY').toLowerCase()}">${capitalize(m.status || 'Ready')}</span>
+        </div>
+      `).join('');
+    }
   }
 
   // Pane 3: Silhouette Specs & Anatomical Measurements
   if (DOM.inspectorMeasurementsList) {
-    const measurements = g.measurements && g.measurements.length > 0 ? g.measurements : [
-      { label: 'Silhouette Flare / Sweep', value: '180.0"' },
-      { label: 'Waistband Circumference', value: '32.0"' },
-      { label: 'Hip Ease Allowance', value: '+3.5"' },
-      { label: 'Garment Length', value: '42.0"' },
-      { label: 'Neckline Anchor Depth', value: '7.5"' },
-      { label: 'Can-Can Stiffener Layers', value: 'Double Layer' }
-    ];
+    const measurements = (g.measurements && g.measurements.length > 0) ? g.measurements : [];
 
-    DOM.inspectorMeasurementsList.innerHTML = measurements.map(item => `
-      <div class="spec-measure-card">
-        <span class="spec-measure-label">${escapeHTML(item.label)}</span>
-        <span class="spec-measure-value">${escapeHTML(item.value)}</span>
-      </div>
-    `).join('');
+    if (measurements.length === 0) {
+      DOM.inspectorMeasurementsList.innerHTML = `
+        <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">
+          No custom specifications or measurements recorded.
+        </div>
+      `;
+    } else {
+      DOM.inspectorMeasurementsList.innerHTML = measurements.map(item => `
+        <div class="spec-measure-card">
+          <span class="spec-measure-label">${escapeHTML(item.label)}</span>
+          <span class="spec-measure-value">${escapeHTML(item.value)}</span>
+        </div>
+      `).join('');
+    }
   }
 
   if (window.lucide) window.lucide.createIcons();
@@ -559,15 +545,19 @@ window.toggleInspectorExpand = function() {
   }
 };
 
-// ─── View 360° Dossier Navigation ─────────────────────────────────────────
+// ─── View Garment 360° Dossier Navigation ─────────────────────────────────
 window.viewGarmentDetails = function() {
   const g = state.selectedGarment || (state.garments && state.garments[0]);
-  if (!g) {
-    showToast('Select a garment to view its 360° Dossier', 'info');
+  if (!g || !g.id) {
+    showToast('Please select a garment from the catalog first', 'info');
     return;
   }
-  const query = g.id ? `id=${encodeURIComponent(g.id)}&code=${encodeURIComponent(g.garmentCode || '')}` : `code=${encodeURIComponent(g.garmentCode || '')}`;
-  window.location.href = `garaments 360/garament360.html?${query}`;
+  const code = g.garmentCode || g.code || '';
+  const id = g.id;
+  const params = new URLSearchParams();
+  if (id) params.set('id', id);
+  if (code) params.set('code', code);
+  window.location.href = `garment360/garment360.html?${params.toString()}`;
 };
 
 window.editGarmentRecord = function() {
@@ -602,7 +592,6 @@ window.handleFilterChange = function() {
   state.filters.collection = DOM.filterCollection?.value || 'all';
   state.filters.fabric = DOM.filterFabric?.value || 'all';
   state.filters.status = DOM.filterStatus?.value || 'all';
-  state.filters.materialStatus = DOM.filterMaterialStatus?.value || 'all';
   state.filters.designer = DOM.filterDesigner?.value || 'all';
   state.filters.branch = DOM.filterBranch?.value || 'all';
 
@@ -616,7 +605,6 @@ window.clearAllFilters = function() {
   if (DOM.filterCollection) DOM.filterCollection.value = 'all';
   if (DOM.filterFabric) DOM.filterFabric.value = 'all';
   if (DOM.filterStatus) DOM.filterStatus.value = 'all';
-  if (DOM.filterMaterialStatus) DOM.filterMaterialStatus.value = 'all';
   if (DOM.filterDesigner) DOM.filterDesigner.value = 'all';
   if (DOM.filterBranch) DOM.filterBranch.value = 'all';
 
@@ -626,7 +614,6 @@ window.clearAllFilters = function() {
     collection: 'all',
     fabric: 'all',
     status: 'all',
-    materialStatus: 'all',
     designer: 'all',
     branch: 'all',
   };
@@ -723,7 +710,7 @@ window.exportGarmentsCsv = function() {
     showToast('No garment records to export', 'info');
     return;
   }
-  const headers = ['Garment Code', 'Title', 'Silhouette Type', 'Collection', 'Design Blueprint', 'Primary Fabric', 'Embroidery Craft', 'Color', 'Material Readiness', 'Crafting Hours', 'Suggested Price', 'Estimated Cost', 'Lead Artisan', 'Branch', 'Status'];
+  const headers = ['Garment Code', 'Title', 'Silhouette Type', 'Collection', 'Design Blueprint', 'Primary Fabric', 'Embroidery Craft', 'Color', 'Crafting Hours', 'Lead Artisan', 'Branch', 'Status'];
   const rows = state.garments.map(g => [
     `"${g.garmentCode || ''}"`,
     `"${g.title || ''}"`,
@@ -733,10 +720,7 @@ window.exportGarmentsCsv = function() {
     `"${g.primaryFabric || ''}"`,
     `"${g.embroideryType || ''}"`,
     `"${g.colorName || ''}"`,
-    `"${g.materialStatus || 'Ready'}"`,
     `"${g.craftingHours || ''}"`,
-    `"${g.suggestedPrice || ''}"`,
-    `"${g.estimatedCost || ''}"`,
     `"${g.assignedTo || g.designer || ''}"`,
     `"${g.branch || ''}"`,
     `"${g.status || ''}"`

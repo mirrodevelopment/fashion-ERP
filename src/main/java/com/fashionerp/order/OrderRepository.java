@@ -76,6 +76,15 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     long countByCompanyIdAndCollectionIgnoreCase(UUID companyId, String collection);
 
     @Query("""
+        SELECT COUNT(o) FROM Order o
+        WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND (:branch IS NULL OR o.branch = :branch
+               OR o.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR o.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch))
+        """)
+    long countByCompanyIdAndBranch(@Param("companyId") UUID companyId, @Param("branch") String branch);
+
+    @Query("""
         SELECT UPPER(TRIM(o.currentStage)), COUNT(o)
         FROM Order o
         WHERE (:companyId IS NULL OR o.companyId = :companyId)
@@ -85,10 +94,33 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     java.util.List<Object[]> countActiveOrdersGroupedByStage(@Param("companyId") UUID companyId);
 
     @Query("""
+        SELECT UPPER(TRIM(o.currentStage)), COUNT(o)
+        FROM Order o
+        WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND (:branch IS NULL OR o.branch = :branch
+               OR o.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR o.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch))
+          AND o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
+        GROUP BY UPPER(TRIM(o.currentStage))
+        """)
+    java.util.List<Object[]> countActiveOrdersGroupedByStageAndBranch(@Param("companyId") UUID companyId, @Param("branch") String branch);
+
+    @Query("""
         SELECT COUNT(o) FROM Order o
         WHERE (:companyId IS NULL OR o.companyId = :companyId)
           AND (UPPER(TRIM(o.currentStage)) LIKE '%QC%' OR UPPER(TRIM(o.currentStage)) LIKE '%QUALITY%')
           AND o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
         """)
     long countOrdersAwaitingQc(@Param("companyId") UUID companyId);
+
+    @Query("""
+        SELECT COUNT(o) FROM Order o
+        WHERE (:companyId IS NULL OR o.companyId = :companyId)
+          AND (:branch IS NULL OR o.branch = :branch
+               OR o.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR o.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch))
+          AND (UPPER(TRIM(o.currentStage)) LIKE '%QC%' OR UPPER(TRIM(o.currentStage)) LIKE '%QUALITY%')
+          AND o.status NOT IN (com.fashionerp.order.OrderStatus.CANCELLED, com.fashionerp.order.OrderStatus.DELIVERED)
+        """)
+    long countOrdersAwaitingQcByBranch(@Param("companyId") UUID companyId, @Param("branch") String branch);
 }

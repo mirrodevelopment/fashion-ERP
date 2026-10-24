@@ -47,6 +47,102 @@ const UsersSettings = (() => {
   let _users = [];
   let _branches = [];
   let _usersLoading = false;
+  let _modalMonogram = '';
+  let _customMonogramTyped = false;
+
+  function _generateCandidateMonograms(fullName, username) {
+    const candidates = new Set();
+    if (fullName && fullName.trim()) {
+      const parts = fullName.trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) {
+        candidates.add((parts[0][0] + parts[parts.length - 1][0]).toUpperCase());
+        if (parts[0].length >= 2) candidates.add(parts[0].substring(0, 2).toUpperCase());
+        if (parts.length >= 3) candidates.add((parts[0][0] + parts[1][0]).toUpperCase());
+        if (parts[parts.length - 1].length >= 2) candidates.add(parts[parts.length - 1].substring(0, 2).toUpperCase());
+      } else if (parts.length === 1) {
+        const name = parts[0];
+        if (name.length >= 2) candidates.add(name.substring(0, 2).toUpperCase());
+        if (name.length >= 3) candidates.add((name[0] + name[2]).toUpperCase());
+        if (name.length >= 4) candidates.add((name[0] + name[name.length - 1]).toUpperCase());
+      }
+    }
+    if (username && username.trim()) {
+      const cleanU = username.trim().replace(/[^a-zA-Z0-9]/g, '');
+      if (cleanU.length >= 2) candidates.add(cleanU.substring(0, 2).toUpperCase());
+    }
+    const filtered = Array.from(candidates).filter(c => c && c.length === 2);
+    return filtered.length > 0 ? filtered : ['NU'];
+  }
+
+  function updateMonogramOptions() {
+    const fullName = (document.getElementById('modalUserFullName')?.value || '').trim();
+    const username = (document.getElementById('modalUserUsername')?.value || '').trim();
+    const suggestions = _generateCandidateMonograms(fullName, username);
+
+    if (!_customMonogramTyped || !_modalMonogram) {
+      _modalMonogram = suggestions[0] || 'NU';
+    }
+
+    const preview = document.getElementById('modalMonogramPreview');
+    const container = document.getElementById('modalMonogramSuggestions');
+    const customInput = document.getElementById('modalCustomMonogram');
+
+    if (container) {
+      if (!fullName && !username) {
+        container.innerHTML = '<span style="font-size:11.5px;color:rgba(255,255,255,0.35);">Type name to see options...</span>';
+      } else {
+        container.innerHTML = suggestions.map(m => {
+          const isSel = (m === _modalMonogram);
+          return `<button type="button" class="modal-monogram-pill ${isSel ? 'selected' : ''}" onclick="UsersSettings.selectMonogram('${m}')">${_escapeHtml(m)}</button>`;
+        }).join('');
+      }
+    }
+
+    if (preview) preview.textContent = _modalMonogram || '--';
+    if (customInput && !_customMonogramTyped) customInput.value = _modalMonogram || '';
+  }
+
+  function selectMonogram(m) {
+    if (!m) return;
+    const clean = m.toUpperCase().slice(0, 2);
+    _modalMonogram = clean;
+    _customMonogramTyped = false;
+
+    const container = document.getElementById('modalMonogramSuggestions');
+    if (container) {
+      container.querySelectorAll('.modal-monogram-pill').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent.trim() === clean);
+      });
+    }
+
+    const preview = document.getElementById('modalMonogramPreview');
+    const customInput = document.getElementById('modalCustomMonogram');
+    if (preview) preview.textContent = clean;
+    if (customInput) customInput.value = clean;
+  }
+
+  function handleCustomMonogram(val) {
+    const clean = (val || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 2);
+    const customInput = document.getElementById('modalCustomMonogram');
+    if (customInput && customInput.value !== clean) customInput.value = clean;
+
+    const preview = document.getElementById('modalMonogramPreview');
+    const container = document.getElementById('modalMonogramSuggestions');
+
+    if (clean.length === 2) {
+      _modalMonogram = clean;
+      _customMonogramTyped = true;
+      if (preview) preview.textContent = clean;
+      if (container) {
+        container.querySelectorAll('.modal-monogram-pill').forEach(btn => {
+          btn.classList.toggle('selected', btn.textContent.trim() === clean);
+        });
+      }
+    } else if (clean.length === 0) {
+      _customMonogramTyped = false;
+      updateMonogramOptions();
+    }
+  }
 
   function init() {
     loadUsers();
@@ -126,9 +222,11 @@ const UsersSettings = (() => {
 
     tbody.innerHTML = list.map(u => {
       const isActive = u.active !== false;
-      const role = u.role || 'STAFF';
+      const role = u.role || 'BRANCH_ADMIN';
       const branch = u.assignedBranch || 'Central HQ / All';
-      const initials = (u.fullName || u.username || 'U').split(/\s+/).map(p => p[0]).join('').substring(0, 2).toUpperCase();
+      const initials = (u.avatarUrl && u.avatarUrl.startsWith('monogram:'))
+        ? u.avatarUrl.substring(9).trim().slice(0, 2).toUpperCase()
+        : (u.fullName || u.username || 'U').split(/\s+/).map(p => p[0]).join('').substring(0, 2).toUpperCase();
 
       let roleColor = 'rgba(255,255,255,0.7)';
       let roleBg = 'rgba(255,255,255,0.06)';
@@ -136,10 +234,10 @@ const UsersSettings = (() => {
 
       if (role === 'ADMIN' || role === 'OWNER') {
         roleColor = '#b8ff3d'; roleBg = 'rgba(184,255,61,0.12)'; roleBorder = 'rgba(184,255,61,0.25)';
-      } else if (role === 'MANAGER') {
+      } else if (role === 'BRANCH_ADMIN') {
         roleColor = '#60a5fa'; roleBg = 'rgba(59,130,246,0.12)'; roleBorder = 'rgba(59,130,246,0.25)';
-      } else if (role === 'RECEPTIONIST') {
-        roleColor = '#f472b6'; roleBg = 'rgba(236,72,153,0.12)'; roleBorder = 'rgba(236,72,153,0.25)';
+      } else {
+        roleColor = '#C084FC'; roleBg = 'rgba(192,132,252,0.12)'; roleBorder = 'rgba(192,132,252,0.25)';
       }
 
       return `
@@ -167,9 +265,9 @@ const UsersSettings = (() => {
           </td>
           <td style="text-align:right;white-space:nowrap;">
             <div style="display:inline-flex;gap:6px;">
-              <button class="btn-ghost-sm" onclick="UsersSettings.openUserModal('${u.id}')" title="Edit user profile">
+              <a href="../../users-roles/create-user/create-user.html?edit=${encodeURIComponent(u.id)}" class="btn-ghost-sm" title="Edit user profile" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                 <i data-lucide="edit-3" style="width:13px;height:13px;"></i> Edit
-              </button>
+              </a>
               <button class="btn-ghost-sm" onclick="UsersSettings.toggleUserStatus('${u.id}', ${isActive})" title="${isActive ? 'Deactivate' : 'Activate'} user" style="${!isActive ? 'color:#4ade80;' : 'color:rgba(255,255,255,0.6);'}">
                 <i data-lucide="${isActive ? 'user-x' : 'user-check'}" style="width:13px;height:13px;"></i> ${isActive ? 'Deactivate' : 'Activate'}
               </button>
@@ -183,45 +281,11 @@ const UsersSettings = (() => {
   }
 
   function openUserModal(userId = null) {
-    const modal = document.getElementById('quickUserModal');
-    if (!modal) return;
-    const title = document.getElementById('userModalTitle');
-    const idInput = document.getElementById('modalUserId');
-    const pwGroup = document.getElementById('modalUserPasswordGroup');
-
     if (userId) {
-      const u = _users.find(x => String(x.id) === String(userId));
-      if (!u) return;
-      if (title) title.textContent = 'Edit User';
-      if (idInput) idInput.value = u.id;
-      _setVal('modalUserFullName', u.fullName || '');
-      _setVal('modalUserUsername', u.username || '');
-      const userField = document.getElementById('modalUserUsername');
-      if (userField) userField.disabled = true;
-      _setVal('modalUserEmail', u.email || '');
-      _setVal('modalUserRole', u.role || 'STAFF');
-      _setVal('modalUserBranch', u.assignedBranch || '');
-      if (pwGroup) pwGroup.style.display = 'none';
-      const activeCheck = document.getElementById('modalUserActive');
-      if (activeCheck) activeCheck.checked = u.active !== false;
+      window.location.href = `../../users-roles/create-user/create-user.html?edit=${encodeURIComponent(userId)}`;
     } else {
-      if (title) title.textContent = 'Add New User';
-      if (idInput) idInput.value = '';
-      _setVal('modalUserFullName', '');
-      _setVal('modalUserUsername', '');
-      const userField = document.getElementById('modalUserUsername');
-      if (userField) userField.disabled = false;
-      _setVal('modalUserEmail', '');
-      _setVal('modalUserPassword', '');
-      _setVal('modalUserRole', 'STAFF');
-      _setVal('modalUserBranch', '');
-      if (pwGroup) pwGroup.style.display = 'block';
-      const activeCheck = document.getElementById('modalUserActive');
-      if (activeCheck) activeCheck.checked = true;
+      window.location.href = `../../users-roles/create-user/create-user.html`;
     }
-
-    modal.style.display = 'flex';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
   function closeUserModal() {
@@ -235,7 +299,7 @@ const UsersSettings = (() => {
     const username = (document.getElementById('modalUserUsername')?.value || '').trim();
     const email = (document.getElementById('modalUserEmail')?.value || '').trim();
     const password = (document.getElementById('modalUserPassword')?.value || '').trim();
-    const role = document.getElementById('modalUserRole')?.value || 'STAFF';
+    const role = document.getElementById('modalUserRole')?.value || 'BRANCH_ADMIN';
     const assignedBranch = document.getElementById('modalUserBranch')?.value || '';
     const active = document.getElementById('modalUserActive')?.checked || false;
 
@@ -252,11 +316,14 @@ const UsersSettings = (() => {
       return;
     }
 
+    const chosenMonogram = (_modalMonogram || (fullName ? fullName.substring(0, 2) : 'NU')).trim().substring(0, 2).toUpperCase();
+
     const payload = {
       fullName,
       email,
       role,
       assignedBranch: assignedBranch || null,
+      avatarUrl: `monogram:${chosenMonogram}`,
       status: active ? 'ACTIVE' : 'SUSPENDED'
     };
     if (!id) {
@@ -325,6 +392,9 @@ const UsersSettings = (() => {
     filterUsers,
     openUserModal,
     closeUserModal,
+    updateMonogramOptions,
+    selectMonogram,
+    handleCustomMonogram,
     saveUser,
     toggleUserStatus,
     showToast

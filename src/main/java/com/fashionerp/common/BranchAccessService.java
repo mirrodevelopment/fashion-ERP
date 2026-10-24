@@ -25,7 +25,11 @@ public class BranchAccessService {
         MEASUREMENTS,
         INVENTORY,
         GARMENTS,
-        TRIALS
+        TRIALS,
+        PAYMENTS,
+        EMPLOYEES,
+        PRODUCTION,
+        APPOINTMENTS
     }
 
     /**
@@ -80,9 +84,24 @@ public class BranchAccessService {
             case INVENTORY -> settings.isShareInventoryAcrossBranches();
             case GARMENTS -> settings.isShareGarmentsAcrossBranches();
             case TRIALS -> settings.isShareTrialsAcrossBranches();
+            case PAYMENTS -> settings.isShareOrdersAcrossBranches();
+            case EMPLOYEES -> false;
+            case PRODUCTION -> settings.isShareOrdersAcrossBranches();
+            case APPOINTMENTS -> settings.isShareEnquiriesAcrossBranches();
         };
 
         return shared ? null : userBranch.trim();
+    }
+
+    /**
+     * Resolves branch filter by prioritizing an explicit request parameter, falling back
+     * to the TenantContext active branch filter or role/module sharing settings.
+     */
+    public String resolveBranch(String requestedBranch, BranchModule module) {
+        if (requestedBranch != null && !requestedBranch.isBlank() && !"ALL".equalsIgnoreCase(requestedBranch.trim())) {
+            return requestedBranch.trim();
+        }
+        return getEffectiveBranchFilter(module);
     }
 
     /**

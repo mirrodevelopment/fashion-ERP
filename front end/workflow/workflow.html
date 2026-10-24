@@ -1,9 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fashion ERP – Complete Workflow</title>
+  <link rel="stylesheet" href="../fragments/font/font.css" />
+  <link rel="stylesheet" href="../fragments/theme/haulo-tokens.css" />
+  <script src="../fragments/theme/theme-switch.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -423,9 +435,44 @@
       .step-title { font-size: 20px; }
       .page-wrapper { padding: 32px 16px 80px; }
     }
-  </style>
+      /* Multi-Theme Adaptations */
+    [data-theme="haulo-light"] body {
+      background: var(--bg-body-gradient, #F8F7F4) !important;
+      color: var(--text-primary, #1C1917) !important;
+    }
+    [data-theme="haulo-light"] .flow-card,
+    [data-theme="haulo-light"] .stat-card,
+    [data-theme="haulo-light"] .step-card,
+    [data-theme="haulo-light"] .tech-pill {
+      background: var(--bg-card, #FFFFFF) !important;
+      border-color: var(--border-card, rgba(40,32,24,0.1)) !important;
+      box-shadow: var(--shadow-card) !important;
+    }
+    [data-theme="haulo-light"] .page-header h1 {
+      background: linear-gradient(135deg, #1C1917 0%, #44403C 50%, #65A30D 100%) !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+    [data-theme="haulo-light"] .step-title,
+    [data-theme="haulo-light"] .flow-title,
+    [data-theme="haulo-light"] .stat-val {
+      color: var(--text-primary, #1C1917) !important;
+    }
+    [data-theme="haulo-light"] .step-desc,
+    [data-theme="haulo-light"] .flow-desc,
+    [data-theme="haulo-light"] .stat-lbl {
+      color: var(--text-secondary, #44403C) !important;
+    }
+</style>
 </head>
 <body>
+  <!-- Floating Haulo Theme Toggle & Quick Launch -->
+  <div style="position:fixed;top:20px;right:24px;z-index:9999;display:flex;align-items:center;gap:12px;">
+    <button class="icon-btn haulo-theme-btn" id="hauloThemeToggleBtn" data-haulo-theme-btn aria-label="Switch Theme" title="Switch Theme" onclick="if(window.HauloTheme)window.HauloTheme.toggle();" style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;border:1px solid var(--border-card, rgba(255,255,255,0.18));background:var(--bg-card, rgba(255,255,255,0.08));backdrop-filter:blur(16px);cursor:pointer;color:var(--text-secondary, #fff);transition:all 0.18s ease;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
 
 <!-- Background orbs -->
 <div class="bg-orbs">
@@ -438,6 +485,15 @@
 
   <!-- ── HEADER ── -->
   <header class="page-header">
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
     <div class="header-badge">
       <span class="dot"></span>
       Fashion ERP &nbsp;·&nbsp; Complete Workflow
@@ -518,7 +574,7 @@
           </div>
           <div class="step-title">User Login</div>
           <div class="step-desc">
-            Every session begins at the login page. Staff enter their credentials (username + password). The system authenticates against the backend and returns a JWT token which is stored in <code>localStorage</code>. Role-based access is resolved here — Admin sees all modules, Tailor sees only production, Cashier sees only payments, etc.
+            Every session begins at the login page. Staff enter their credentials (username + password). The system authenticates against the backend and returns a JWT token which is stored in <code>localStorage</code>. Role-based access is resolved here — Boutique Owner has full company-wide access, Branch Admin manages assigned branch operations, and custom roles have tailored module permissions.
           </div>
           <div class="step-details">
             <div class="detail-box">
@@ -1313,7 +1369,7 @@
         <div class="summary-icon">🔑</div>
         <div class="summary-info">
           <h4>Users & Roles</h4>
-          <p>Create system users with role-based access (Admin, Tailor, Cashier, Supervisor). Login audit log. Role controls sidebar visibility.</p>
+          <p>Create system users with role-based access (Boutique Owner, Branch Admin, Custom). Login audit log. Role controls sidebar visibility.</p>
         </div>
       </div>
 

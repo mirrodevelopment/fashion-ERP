@@ -227,7 +227,10 @@ async function loadQcOrdersFromApi() {
       console.warn('[QC] Could not load dynamic stage artwork:', stgErr.message);
     }
 
-    const res = await api.orders.list({ page: 0, size: 200 }).catch(() => null);
+    const activeBranch = localStorage.getItem('haulo_active_branch');
+    const ordParams = { page: 0, size: 200 };
+    if (activeBranch && activeBranch !== 'ALL') ordParams.branch = activeBranch;
+    const res = await api.orders.list(ordParams).catch(() => null);
     const items = Array.isArray(res) ? res : (res?.content || []);
     qcOrders = items
       .filter(o => {
@@ -1383,11 +1386,13 @@ async function updateKPISummaries() {
   let apiKpis = null;
   try {
     const { default: api } = await import('../api.js');
-    apiKpis = await api.qc.kpis().catch(() => null);
+    const activeBranch = localStorage.getItem('haulo_active_branch');
+    const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+    apiKpis = await api.qc.kpis(kpiParams).catch(() => null);
   } catch (_) {}
 
-  const finalAwaiting = (apiKpis && apiKpis.awaitingQc != null && apiKpis.awaitingQc > 0) ? apiKpis.awaitingQc : awaiting;
-  const finalInspection = (apiKpis && apiKpis.inInspection != null && apiKpis.inInspection > 0) ? apiKpis.inInspection : inInspection;
+  const finalAwaiting = (apiKpis && apiKpis.awaitingQc != null) ? apiKpis.awaitingQc : awaiting;
+  const finalInspection = (apiKpis && apiKpis.inInspection != null) ? apiKpis.inInspection : inInspection;
   const finalPassed = (apiKpis && apiKpis.passedQc != null) ? apiKpis.passedQc : passed;
   const finalRework = (apiKpis && apiKpis.reworkRequired != null) ? apiKpis.reworkRequired : rework;
   const finalReady = (apiKpis && apiKpis.readyDelivery != null) ? apiKpis.readyDelivery : ready;

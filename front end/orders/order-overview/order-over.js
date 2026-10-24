@@ -295,7 +295,8 @@ function animateNum(el, target, prefix = '', suffix = '') {
 
 async function updateKPIs(branch) {
   try {
-    const params = (branch && branch !== 'ALL') ? { branch } : {};
+    const activeB = branch !== undefined ? branch : (typeof localStorage !== 'undefined' ? localStorage.getItem('haulo_active_branch') : null);
+    const params = (activeB && activeB !== 'ALL') ? { branch: activeB } : {};
     const kpis = await api.orders.kpis(params).catch(() => null);
     if (kpis) {
       const total = (Number(kpis.pendingCount) || 0) + (Number(kpis.inProgressCount) || 0) +
@@ -306,7 +307,11 @@ async function updateKPIs(branch) {
       animateNum(els.kpiPending, Number(kpis.pendingCount) || 0);
       animateNum(els.kpiProd, Number(kpis.inProgressCount) || 0);
       animateNum(els.kpiReady, (Number(kpis.readyCount) || 0) + (Number(kpis.deliveredCount) || 0));
-      animateNum(els.kpiRevenue, Number(kpis.totalRevenue) || 0, '₹');
+      if (window.AuthZ && !window.AuthZ.canViewFinance()) {
+        if (els.kpiRevenue) els.kpiRevenue.textContent = '🔒 Restricted';
+      } else {
+        animateNum(els.kpiRevenue, Number(kpis.totalRevenue) || 0, '₹');
+      }
 
       const setChip = (id, label, count) => {
         const btn = $(id);
@@ -333,7 +338,11 @@ async function updateKPIs(branch) {
   animateNum(els.kpiPending, pending);
   animateNum(els.kpiProd, prod);
   animateNum(els.kpiReady, rdydlv);
-  animateNum(els.kpiRevenue, revenue, '₹');
+  if (window.AuthZ && !window.AuthZ.canViewFinance()) {
+    if (els.kpiRevenue) els.kpiRevenue.textContent = '🔒 Restricted';
+  } else {
+    animateNum(els.kpiRevenue, revenue, '₹');
+  }
 
   const setChip = (id, label, count) => {
     const btn = $(id);
@@ -398,6 +407,7 @@ function totalPages() {
 function renderCard(order) {
   const div = document.createElement('article');
   const overdue = isOverdue(order.dueDate, order.status);
+  const canFinance = !window.AuthZ || window.AuthZ.canViewFinance();
   div.className = `order-card ${overdue ? 'overdue' : ''}`;
   div.dataset.id = order.id;
 
@@ -475,12 +485,12 @@ function renderCard(order) {
     <!-- Footer: Amount Breakdown & Overdue Alert -->
     <div class="card-footer" style="display:flex;flex-direction:column;gap:5px;align-items:stretch;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="card-amount" title="Total Amount">${fmtAmt(order.totalAmount || order.amount)}</span>
+        <span class="card-amount" title="Total Amount">${canFinance ? fmtAmt(order.totalAmount || order.amount) : '<span style="font-size:12px;opacity:0.75;font-family:var(--font-sans);color:var(--text-muted,#94a3b8);">🔒 Restricted</span>'}</span>
         ${overdue ? `<span class="card-overdue-chip"><i data-lucide="alert-triangle" style="width:11px;height:11px;"></i> Overdue</span>` : ''}
       </div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;">
-        <span>Adv: <strong style="color:#e2e8f0;">${fmtAmt(order.advancePaid)}</strong></span>
-        <span>Bal: <strong style="color:${order.balanceAmount > 0 ? '#f59e0b' : '#10b981'};">${fmtAmt(order.balanceAmount)}</strong></span>
+        <span>Adv: <strong style="color:#e2e8f0;">${canFinance ? fmtAmt(order.advancePaid) : '—'}</strong></span>
+        <span>Bal: <strong style="color:${order.balanceAmount > 0 ? '#f59e0b' : '#10b981'};">${canFinance ? fmtAmt(order.balanceAmount) : '—'}</strong></span>
       </div>
     </div>
 
@@ -602,7 +612,8 @@ function openDrawer(order) {
 
   // Drawer Cancel Order button
   if (els.btnDrawerCancel) {
-    if (order.status === 'cancelled') {
+    const canDelete = !window.AuthZ || window.AuthZ.canDeleteOrder();
+    if (order.status === 'cancelled' || !canDelete) {
       els.btnDrawerCancel.style.display = 'none';
     } else {
       els.btnDrawerCancel.style.display = 'inline-flex';
@@ -721,15 +732,15 @@ function openDrawer(order) {
         <div class="drawer-section-title">Financial Summary</div>
         <div class="drawer-detail-row">
           <span class="drawer-detail-key">Total Amount</span>
-          <span class="drawer-detail-val" style="font-weight:700;">${fmtAmt(order.totalAmount || order.amount)}</span>
+          <span class="drawer-detail-val" style="font-weight:700;">${canFinance ? fmtAmt(order.totalAmount || order.amount) : '<span style="color:var(--text-muted,#94a3b8);font-size:12px;">🔒 Restricted</span>'}</span>
         </div>
         <div class="drawer-detail-row">
           <span class="drawer-detail-key">Advance Paid</span>
-          <span class="drawer-detail-val" style="color:var(--lime,#d4ff32);font-weight:600;">${fmtAmt(order.advancePaid)}</span>
+          <span class="drawer-detail-val" style="color:${canFinance ? 'var(--lime,#d4ff32)' : 'var(--text-muted,#94a3b8)'};font-weight:600;">${canFinance ? fmtAmt(order.advancePaid) : '<span style="color:var(--text-muted,#94a3b8);font-size:12px;">🔒 Restricted</span>'}</span>
         </div>
         <div class="drawer-detail-row">
           <span class="drawer-detail-key">Balance Due</span>
-          <span class="drawer-detail-val" style="color:${order.balanceAmount > 0 ? '#f59e0b' : '#10b981'};font-weight:700;">${fmtAmt(order.balanceAmount)}</span>
+          <span class="drawer-detail-val" style="color:${canFinance ? (order.balanceAmount > 0 ? '#f59e0b' : '#10b981') : 'var(--text-muted,#94a3b8)'};font-weight:700;">${canFinance ? fmtAmt(order.balanceAmount) : '<span style="color:var(--text-muted,#94a3b8);font-size:12px;">🔒 Restricted</span>'}</span>
         </div>
       </div>
 
@@ -848,6 +859,7 @@ function bindEvents() {
   const btnExport = $('btnExport');
   if (btnExport) {
     btnExport.addEventListener('click', () => {
+      const canFinance = !window.AuthZ || window.AuthZ.canViewFinance();
       const rows = [
         ['Order ID', 'Customer', 'Garment', 'Order Date', 'Due Date', 'Amount (₹)', 'Status', 'Production Stage'],
         ...state.filtered.map(o => [
@@ -856,7 +868,7 @@ function bindEvents() {
           o.garment,
           o.orderDate,
           o.dueDate,
-          o.amount,
+          canFinance ? o.amount : 'RESTRICTED',
           statusLabel(o.status),
           getCurrentStage(o).countText
         ])
@@ -909,16 +921,14 @@ async function initOrderBranchFilter() {
       optionsHtml += `<option value="ALL">🏢 All Branches</option>`;
       if (Array.isArray(branches) && branches.length > 0) {
         branches.forEach(b => {
-          const bCode = b.branchCode || b.code || b;
-          const bName = b.name || bCode;
-          optionsHtml += `<option value="${bCode}">${bName}</option>`;
+          const bName = b.name || b.branchCode || b.code || b;
+          optionsHtml += `<option value="${bName}">${bName}</option>`;
         });
       }
     } else if (isMultiBranch) {
       allowedBranches.forEach(b => {
-        const bCode = typeof b === 'object' ? (b.branchCode || b.code || b.name) : b;
         const bName = typeof b === 'object' ? (b.name || b.branchCode) : b;
-        optionsHtml += `<option value="${bCode}">${bName}</option>`;
+        optionsHtml += `<option value="${bName}">${bName}</option>`;
       });
     }
 
@@ -993,6 +1003,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('[OrderOverview] Failed to load orders from backend:', err.message);
     state.orders = [];
     state.filtered = [];
+  }
+
+  // Enforce orders.create permissions on "New Order" action triggers
+  if (window.AuthZ && !window.AuthZ.canCreateOrder()) {
+    const btnNew = $('btnNewOrder');
+    if (btnNew) btnNew.style.display = 'none';
+    const drawerNew = document.querySelector('.btn-drawer-new');
+    if (drawerNew) drawerNew.style.display = 'none';
   }
 
   // Render cards and KPIs

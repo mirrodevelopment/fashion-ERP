@@ -26,23 +26,20 @@ async function initNewGarmentWorkspace() {
   // 1. Generate fresh sequential Garment Code
   generateNewGarmentCode();
 
-  // 2. Set default commitment dates
-  setDefaultDates();
-
-  // 3. Load dynamic branches & collections from backend
+  // 2. Load dynamic branches & collections from backend
   await loadReferenceOptions();
 
-  // 4. Initial Live Preview sync with default high-res image preset
+  // 3. Initial Live Preview sync
   const txtImgInit = document.getElementById('txtImageUrl');
-  const initialImg = (txtImgInit && txtImgInit.value) ? txtImgInit.value : '../../assets/garments/bridal_blouse_zardozi.jpg';
-  window.setImagePreset(initialImg);
-  calculateBalance();
+  if (txtImgInit && txtImgInit.value && typeof window.setImagePreset === 'function') {
+    window.setImagePreset(txtImgInit.value);
+  }
 
-  // 5. Setup Stepper Scroll Spy & Outside Click Dismissal
+  // 4. Setup Stepper Scroll Spy & Outside Click Dismissal
   setupStepperScrollSpy();
   setupOutsideClickListener();
 
-  // 6. Check for local draft
+  // 5. Check for local draft
   checkAndRestoreDraft();
 
   // 7. Initialize Icons
@@ -69,21 +66,7 @@ window.generateNewGarmentCode = function() {
   updateLivePreview();
 };
 
-function setDefaultDates() {
-  const today = new Date();
-  
-  // Trial date default: +7 days
-  const trialDate = new Date(today);
-  trialDate.setDate(today.getDate() + 7);
-  const txtTrial = document.getElementById('txtTrialDate');
-  if (txtTrial) txtTrial.value = trialDate.toISOString().split('T')[0];
-
-  // Delivery due date default: +12 days
-  const dueDate = new Date(today);
-  dueDate.setDate(today.getDate() + 12);
-  const txtDue = document.getElementById('txtDueDate');
-  if (txtDue) txtDue.value = dueDate.toISOString().split('T')[0];
-}
+// (Commitment dates and costing have been moved exclusively to Orders/Trials modules)
 
 // ── Load Reference Options from Database ────────────────────────────────────
 async function loadReferenceOptions() {
@@ -254,12 +237,6 @@ window.selectCustomer = async function(name, phone) {
     document.getElementById('custSelectedName').textContent = name;
     document.getElementById('custSelectedPhone').textContent = phone || 'Direct Client';
     selectedPill.style.display = 'flex';
-  }
-
-  // Auto-suggest recent order if order field is empty
-  const txtOrder = document.getElementById('txtOrderCode');
-  if (txtOrder && (!txtOrder.value || txtOrder.value.trim() === '')) {
-    txtOrder.value = `ORD-${Math.floor(2000 + Math.random() * 8000)}`;
   }
 
   updateLivePreview();
@@ -471,90 +448,21 @@ window.setImagePreset = function(url) {
 };
 
 window.handleTypeChange = function() {
-  const selType = document.getElementById('selGarmentType')?.value;
-  const txtTitle = document.getElementById('txtTitle');
-
-  // If title is blank or generic, auto-fill standard title
-  if (txtTitle && (!txtTitle.value || txtTitle.value.includes('Bespoke') || txtTitle.value.includes('Royal') || txtTitle.value.includes('Heritage') || txtTitle.value.includes('Pure') || txtTitle.value.includes('Raw Silk') || txtTitle.value.includes('Banarasi') || txtTitle.value.includes('Architectural'))) {
-    const titles = {
-      BRIDAL: 'Royal Zardozi Bridal Blouse',
-      LEHENGA: 'Heritage Embroidered Bridal Lehenga',
-      ANARKALI: 'Pure Georgette Chikankari Anarkali',
-      SHERWANI: 'Raw Silk Embroidered Groom Sherwani',
-      SAREE_BLOUSE: 'Banarasi Organza Pre-Draped Saree',
-      KURTA_SET: 'Pure Handloom Chikankari Kurta Set',
-      GOWN: 'Architectural Sculpted Evening Gown',
-      INDO_WESTERN: 'Heritage Zardozi Gharara Ensemble',
-      BESPOKE: 'Bespoke Custom Silhouette'
-    };
-    txtTitle.value = titles[selType] || 'Custom Bespoke Garment';
-  }
-
-  // Auto-suggest matching existing image if no custom file uploaded
-  const fileInput = document.getElementById('fileGarmentImage');
-  const isUploadedFile = fileInput && fileInput.files && fileInput.files.length > 0;
-  if (!isUploadedFile) {
-    const typeImages = {
-      BRIDAL: '../../assets/garments/bridal_blouse_zardozi.jpg',
-      LEHENGA: '../../assets/garments/heritage_lehenga_pink.jpg',
-      ANARKALI: '../../assets/garments/anarkali_chikankari.jpg',
-      SHERWANI: '../../assets/garments/raw_silk_sherwani.jpg',
-      SAREE_BLOUSE: '../../assets/garments/banarasi_organza_saree.jpg',
-      KURTA_SET: '../../assets/garments/anarkali_chikankari.jpg',
-      GOWN: '../../assets/garments/champagne_evening_gown.jpg',
-      INDO_WESTERN: '../../assets/garments/zardozi_handwork.jpg',
-      BESPOKE: '../../assets/garments/bridal_blouse_zardozi.jpg'
-    };
-    if (typeImages[selType] && typeof window.setImagePreset === 'function') {
-      window.setImagePreset(typeImages[selType]);
-    }
-  }
-
   updateLivePreview();
 };
 
-// ── Live Preview & Financial Calculations ──────────────────────────────────
+// ── Live Preview ────────────────────────────────────────────────────────────
 window.calculateBalance = function() {
-  const total = Number(document.getElementById('numTotalAmount')?.value || 0);
-  const paid = Number(document.getElementById('numPaidAmount')?.value || 0);
-  const balance = Math.max(0, total - paid);
-
-  const lblBalance = document.getElementById('lblBalanceDue');
-  if (lblBalance) {
-    lblBalance.textContent = `₹${balance.toLocaleString('en-IN')}`;
-  }
-
-  const badgePayment = document.getElementById('badgePaymentStatus');
-  if (badgePayment) {
-    if (paid >= total && total > 0) {
-      badgePayment.textContent = 'PAID IN FULL';
-      badgePayment.style.background = 'rgba(16, 185, 129, 0.16)';
-      badgePayment.style.color = '#34d399';
-    } else if (paid > 0) {
-      badgePayment.textContent = 'PARTIAL ADVANCE';
-      badgePayment.style.background = 'rgba(245, 158, 11, 0.16)';
-      badgePayment.style.color = '#fbbf24';
-    } else {
-      badgePayment.textContent = 'PENDING';
-      badgePayment.style.background = 'rgba(239, 68, 68, 0.16)';
-      badgePayment.style.color = '#f87171';
-    }
-  }
-
-  const previewPrice = document.getElementById('previewPrice');
-  if (previewPrice) {
-    previewPrice.textContent = `₹${total.toLocaleString('en-IN')}`;
-  }
+  // Deprecated: Schedule & Costing section removed from atelier garment catalog
 };
 
 window.updateLivePreview = function() {
-  const code = document.getElementById('txtGarmentCode')?.value || 'GAR-2026-0001';
-  const title = document.getElementById('txtTitle')?.value || 'Bespoke Garment';
-  const stage = document.getElementById('selProductionStage')?.value || 'Stitching';
+  const code = document.getElementById('txtGarmentCode')?.value || '—';
+  const title = document.getElementById('txtTitle')?.value || '—';
+  const stage = document.getElementById('selProductionStage')?.value || '—';
   const customer = document.getElementById('hiddenCustomerName')?.value || '—';
   const order = document.getElementById('txtOrderCode')?.value || '—';
-  const tailor = document.getElementById('selAssignedTo')?.value || 'Ravi M';
-  const due = document.getElementById('txtDueDate')?.value || '';
+  const tailor = document.getElementById('selAssignedTo')?.value || '—';
   const imgUrl = document.getElementById('txtImageUrl')?.value?.trim();
   const priority = document.querySelector('input[name="priority"]:checked')?.value || 'NORMAL';
 
@@ -569,16 +477,19 @@ window.updateLivePreview = function() {
   if (previewTitle) previewTitle.textContent = title;
 
   const previewCust = document.getElementById('previewCustomer');
-  if (previewCust) previewCust.innerHTML = `<i data-lucide="user" style="width:12px;height:12px;"></i> Client: ${escapeHTML(customer)}`;
+  if (previewCust) {
+    const custDisplay = (customer && customer !== '—') ? customer : 'Atelier Specimen';
+    previewCust.innerHTML = `<i data-lucide="user" style="width:12px;height:12px;"></i> ${escapeHTML(custDisplay)}`;
+  }
 
   const previewOrd = document.getElementById('previewOrder');
-  if (previewOrd) previewOrd.innerHTML = `<i data-lucide="package" style="width:12px;height:12px;"></i> Order: ${escapeHTML(order)}`;
+  if (previewOrd) {
+    const ordDisplay = (order && order !== '—') ? `Order: ${order}` : 'Atelier Silhouette';
+    previewOrd.innerHTML = `<i data-lucide="package" style="width:12px;height:12px;"></i> ${escapeHTML(ordDisplay)}`;
+  }
 
   const previewTailor = document.getElementById('previewTailor');
   if (previewTailor) previewTailor.innerHTML = `<i data-lucide="user-check" style="width:12px;height:12px;"></i> Tailor: ${escapeHTML(tailor.split(' ')[0])}`;
-
-  const previewDue = document.getElementById('previewDelivery');
-  if (previewDue) previewDue.innerHTML = `<i data-lucide="calendar" style="width:12px;height:12px;"></i> Due: ${due ? formatShortDate(due) : '—'}`;
 
   // Image & Upload Placeholder Toggle in Preview Card
   const previewImg = document.getElementById('previewImg');
@@ -623,59 +534,38 @@ window.handleGarmentSubmit = async function(e) {
   const customerName = document.getElementById('hiddenCustomerName')?.value?.trim();
   const customerMobile = document.getElementById('hiddenCustomerMobile')?.value?.trim();
   const orderCode = document.getElementById('txtOrderCode')?.value?.trim();
-  const totalAmount = Number(document.getElementById('numTotalAmount')?.value || 0);
-  const dueDate = document.getElementById('txtDueDate')?.value;
 
-  if (!customerName) {
-    showToast('Please select or search for a customer to link this garment.', 'error');
-    document.getElementById('txtCustomerSearch')?.focus();
+  if (!title) {
+    showToast('Please enter a garment title or description.', 'error');
+    document.getElementById('txtTitle')?.focus();
     return;
   }
-  if (!orderCode) {
-    showToast('Please enter an Order Code.', 'error');
-    document.getElementById('txtOrderCode')?.focus();
-    return;
-  }
-  if (!totalAmount || totalAmount <= 0) {
-    showToast('Please specify the total price amount.', 'error');
-    document.getElementById('numTotalAmount')?.focus();
-    return;
-  }
-  if (!dueDate) {
-    showToast('Please select a commitment Due Date.', 'error');
-    document.getElementById('txtDueDate')?.focus();
+  const branchVal = document.getElementById('selBranch')?.value;
+  if (!branchVal) {
+    showToast('Please select an Atelier Branch.', 'error');
+    document.getElementById('selBranch')?.focus();
     return;
   }
 
   // 2. Prepare Payload
-  const paidAmount = Number(document.getElementById('numPaidAmount')?.value || 0);
-  let paymentStatus = 'PENDING';
-  if (paidAmount >= totalAmount && totalAmount > 0) paymentStatus = 'PAID';
-  else if (paidAmount > 0) paymentStatus = 'PARTIAL';
-
   const payload = {
-    garmentCode: garmentCode || `GAR-${Date.now() % 100000}`,
-    title: title || 'Bespoke Garment',
-    garmentType: document.getElementById('selGarmentType')?.value || 'BESPOKE',
-    collectionName: document.getElementById('selCollection')?.value || 'Main Edit',
-    designCode: document.getElementById('txtDesignCode')?.value?.trim() || 'Custom Silhouette',
-    customerName: customerName,
-    customerMobile: customerMobile || '+91 98000 00000',
-    orderCode: orderCode,
-    branch: document.getElementById('selBranch')?.value || 'Main Branch',
-    specs: document.getElementById('txtSpecs')?.value?.trim() || 'Standard bespoke tailoring specs',
-    imageUrl: document.getElementById('txtImageUrl')?.value?.trim() || '../../assets/garments/bridal_blouse_zardozi.jpg',
+    garmentCode: garmentCode || null,
+    title: title,
+    garmentType: document.getElementById('selGarmentType')?.value || 'Bespoke',
+    collectionName: document.getElementById('selCollection')?.value || null,
+    designCode: document.getElementById('txtDesignCode')?.value?.trim() || null,
+    customerName: customerName || null,
+    customerMobile: customerMobile || null,
+    orderCode: orderCode || null,
+    branch: branchVal,
+    specs: document.getElementById('txtSpecs')?.value?.trim() || null,
+    imageUrl: document.getElementById('txtImageUrl')?.value?.trim() || null,
     notes: document.getElementById('txtNotes')?.value?.trim() || '',
-    productionStage: document.getElementById('selProductionStage')?.value || 'Stitching',
+    productionStage: document.getElementById('selProductionStage')?.value || 'DESIGNING',
     priority: document.querySelector('input[name="priority"]:checked')?.value || 'NORMAL',
-    assignedTo: document.getElementById('selAssignedTo')?.value || 'Ravi M',
-    designer: document.getElementById('selDesigner')?.value || 'Meera S',
-    materialStatus: document.getElementById('selMaterialStatus')?.value || 'READY',
-    trialDate: document.getElementById('txtTrialDate')?.value || null,
-    dueDate: dueDate,
-    totalAmount: totalAmount,
-    paidAmount: paidAmount,
-    paymentStatus: paymentStatus,
+    assignedTo: document.getElementById('selAssignedTo')?.value || null,
+    designer: document.getElementById('selDesigner')?.value || null,
+    materialStatus: 'READY',
     status: 'IN_PRODUCTION'
   };
 
@@ -734,8 +624,10 @@ function openSuccessModal(g) {
 
   if (btn360) {
     btn360.onclick = () => {
-      const q = g.id ? `id=${g.id}&code=${g.garmentCode}` : `code=${g.garmentCode}`;
-      window.location.href = `../garaments 360/garament360.html?${q}`;
+      const params = new URLSearchParams();
+      if (g.id) params.set('id', g.id);
+      if (g.garmentCode) params.set('code', g.garmentCode);
+      window.location.href = `../garment360/garment360.html?${params.toString()}`;
     };
   }
 
@@ -748,9 +640,7 @@ window.createAnotherGarment = function() {
   document.getElementById('newGarmentForm')?.reset();
   clearSelectedCustomer();
   generateNewGarmentCode();
-  setDefaultDates();
   updateLivePreview();
-  calculateBalance();
 };
 
 window.saveFormDraft = function() {
@@ -771,11 +661,6 @@ window.saveFormDraft = function() {
     priority: document.querySelector('input[name="priority"]:checked')?.value || 'NORMAL',
     assignedTo: document.getElementById('selAssignedTo')?.value,
     designer: document.getElementById('selDesigner')?.value,
-    dueDate: document.getElementById('txtDueDate')?.value,
-    trialDate: document.getElementById('txtTrialDate')?.value,
-    materialStatus: document.getElementById('selMaterialStatus')?.value,
-    totalAmount: document.getElementById('numTotalAmount')?.value,
-    paidAmount: document.getElementById('numPaidAmount')?.value,
     timestamp: new Date().toISOString()
   };
 
@@ -815,14 +700,8 @@ window.checkAndRestoreDraft = function() {
       }
       if (draft.assignedTo && document.getElementById('selAssignedTo')) document.getElementById('selAssignedTo').value = draft.assignedTo;
       if (draft.designer && document.getElementById('selDesigner')) document.getElementById('selDesigner').value = draft.designer;
-      if (draft.dueDate && document.getElementById('txtDueDate')) document.getElementById('txtDueDate').value = draft.dueDate;
-      if (draft.trialDate && document.getElementById('txtTrialDate')) document.getElementById('txtTrialDate').value = draft.trialDate;
-      if (draft.materialStatus && document.getElementById('selMaterialStatus')) document.getElementById('selMaterialStatus').value = draft.materialStatus;
-      if (draft.totalAmount && document.getElementById('numTotalAmount')) document.getElementById('numTotalAmount').value = draft.totalAmount;
-      if (draft.paidAmount && document.getElementById('numPaidAmount')) document.getElementById('numPaidAmount').value = draft.paidAmount;
 
       updateLivePreview();
-      calculateBalance();
       showToast('Draft restored successfully.', 'success');
     }
   } catch (e) {
@@ -878,8 +757,7 @@ window.jumpToStep = function(stepNum) {
     1: 'cardIdentity',
     2: 'cardCustomer',
     3: 'cardBlueprint',
-    4: 'cardRouting',
-    5: 'cardSchedule'
+    4: 'cardRouting'
   };
 
   const targetId = cards[stepNum];
@@ -909,8 +787,7 @@ function setupStepperScrollSpy() {
       { step: 1, el: document.getElementById('cardIdentity') },
       { step: 2, el: document.getElementById('cardCustomer') },
       { step: 3, el: document.getElementById('cardBlueprint') },
-      { step: 4, el: document.getElementById('cardRouting') },
-      { step: 5, el: document.getElementById('cardSchedule') }
+      { step: 4, el: document.getElementById('cardRouting') }
     ];
 
     const containerTop = scrollContainer.scrollTop;

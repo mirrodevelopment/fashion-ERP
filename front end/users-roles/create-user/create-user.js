@@ -24,7 +24,11 @@ const userState = {
   branchesList: [],
   moduleRegistry: [],
   selectedModules: new Set(),
-  selectedBranches: new Set()
+  selectedBranches: new Set(),
+  selectedMonogram: '',
+  customMonogramTyped: false,
+  isEditMode: false,
+  editUserId: null
 };
 
 const DRAFT_KEY = 'haulo_create_user_draft';
@@ -46,6 +50,10 @@ function cacheDom() {
     strengthBar: document.getElementById('strengthBar'),
     strengthLabel: document.getElementById('strengthLabel'),
     passwordMatchHint: document.getElementById('passwordMatchHint'),
+    // Monogram Avatar elements
+    cuMonogramPreview: document.getElementById('cuMonogramPreview'),
+    cuMonogramSuggestions: document.getElementById('cuMonogramSuggestions'),
+    cuCustomMonogramInput: document.getElementById('cuCustomMonogramInput'),
     // Role elements
     rolesContainer: document.getElementById('rolesContainer'),
     roleCapabilitiesBox: document.getElementById('roleCapabilitiesBox'),
@@ -84,7 +92,12 @@ function cacheDom() {
     btnSubmitUser: document.getElementById('btnCreateUser') || document.getElementById('btnSubmitUser'),
     btnSubmitText: document.getElementById('btnSubmitText'),
     btnSaveDraft: document.getElementById('btnSaveDraft'),
-    toastContainer: document.getElementById('cuToastContainer')
+    toastContainer: document.getElementById('cuToastContainer'),
+    // Edit Mode Banner elements
+    cuEditModeBanner: document.getElementById('cuEditModeBanner'),
+    cuEditBannerUser: document.getElementById('cuEditBannerUser'),
+    cuEditBannerName: document.getElementById('cuEditBannerName'),
+    btnSwitchToCreate: document.getElementById('btnSwitchToCreate')
   };
 }
 
@@ -100,6 +113,221 @@ function formatCurrentDateTime() {
     return new Date().toLocaleDateString();
   }
 }
+
+// ─── Edit Mode Support ───
+async function initEditMode(userId) {
+  try {
+    userState.isEditMode = true;
+    userState.editUserId = userId;
+
+    // Fetch user from API
+    const user = await (window.api.users.get ? window.api.users.get(userId) : window.api.users.getById(userId));
+    if (!user) throw new Error('User not found on server.');
+
+    userState.originalUsername = user.username || '';
+
+    // Show Edit Mode Banner
+    if (dom.cuEditModeBanner) {
+      dom.cuEditModeBanner.style.display = 'flex';
+      if (dom.cuEditBannerUser) dom.cuEditBannerUser.textContent = '@' + (user.username || '');
+      if (dom.cuEditBannerName) dom.cuEditBannerName.textContent = user.fullName || user.username || '';
+    }
+
+    // Update Header
+    const titleEl = document.querySelector('.cu-page-title');
+    if (titleEl) {
+      titleEl.innerHTML = '<i data-lucide="user-cog" class="cu-title-icon"></i> Edit User Access &amp; Permissions';
+    }
+    const subEl = document.querySelector('.cu-page-subtitle');
+    if (subEl) {
+      subEl.textContent = `Modifying account credentials, branch clearance, and module access for @${user.username || 'user'}.`;
+    }
+
+    // Update Submit Button & Actions
+    if (dom.btnSubmitText) dom.btnSubmitText.textContent = `Save Changes to @${user.username || 'user'}`;
+    if (dom.btnSubmitUser) {
+      const icon = dom.btnSubmitUser.querySelector('svg, i');
+      if (icon) icon.setAttribute('data-lucide', 'save');
+    }
+    if (dom.btnSaveDraft) dom.btnSaveDraft.style.display = 'none';
+
+    // Password is optional in edit mode
+    if (dom.passwordInput) {
+      dom.passwordInput.removeAttribute('required');
+      dom.passwordInput.placeholder = 'Leave blank to retain current password';
+    }
+    if (dom.confirmPasswordInput) {
+      dom.confirmPasswordInput.removeAttribute('required');
+      dom.confirmPasswordInput.placeholder = 'Leave blank to retain current password';
+    }
+    const passReq = document.querySelectorAll('#cardAccount .cu-field .cu-req');
+    if (passReq.length >= 2) {
+      passReq[passReq.length - 2].style.display = 'none';
+      passReq[passReq.length - 1].style.display = 'none';
+    }
+
+    // Populate Fields
+    if (dom.usernameInput) {
+      dom.usernameInput.value = user.username || '';
+      dom.usernameInput.disabled = true;
+      dom.usernameInput.style.opacity = '0.7';
+      dom.usernameInput.style.cursor = 'not-allowed';
+      userState.username = user.username || '';
+    }
+    if (dom.fullNameInput) {
+      dom.fullNameInput.value = user.fullName || '';
+      userState.fullName = user.fullName || '';
+    }
+    if (dom.emailInput) dom.emailInput.value = user.email || '';
+    if (dom.phoneInput) {
+      dom.phoneInput.value = (user.phone || '').replace(/\+91\s*/, '').trim();
+    }
+    if (dom.designationInput) dom.designationInput.value = user.designation || '';
+    if (dom.departmentInput) dom.departmentInput.value = user.department || '';
+
+    userState.active = (user.active !== false && user.status !== 'SUSPENDED');
+
+    // Monogram Avatar
+    if (user.avatarUrl && user.avatarUrl.startsWith('monogram:')) {
+      const savedMono = user.avatarUrl.substring(9).trim().slice(0, 2).toUpperCase();
+      userState.selectedMonogram = savedMono;
+      userState.customMonogramTyped = true;
+      if (dom.cuCustomMonogramInput) dom.cuCustomMonogramInput.value = savedMono;
+      if (dom.cuMonogramPreview) dom.cuMonogramPreview.textContent = savedMono;
+    } else {
+      userState.selectedMonogram = '';
+      userState.customMonogramTyped = false;
+    }
+
+    // Role
+    if (user.role) {
+      selectRole(user.role);
+    }
+
+    // Assigned Branch
+    if (dom.assignedBranchSelect && user.assignedBranch) {
+      dom.assignedBranchSelect.value = user.assignedBranch;
+      userState.assignedBranch = user.assignedBranch;
+    }
+
+    // Allowed Branches
+    if (Array.isArray(user.allowedBranches) && user.allowedBranches.length > 0) {
+      userState.selectedBranches = new Set(user.allowedBranches);
+    } else if (user.assignedBranch) {
+      userState.selectedBranches = new Set([user.assignedBranch]);
+    }
+    renderBranchClearanceCards();
+
+    // Allowed Modules
+    if (Array.isArray(user.allowedModules) && user.allowedModules.length > 0) {
+      userState.selectedModules = new Set(user.allowedModules);
+      refreshAllTileVisuals();
+      syncClearanceVisuals();
+      syncAccessCounter();
+    }
+
+    // Refresh icons
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    if (typeof updateStepperCompletion === 'function') {
+      updateStepperCompletion();
+    }
+  } catch (err) {
+    console.error('[CreateUser] Failed to load user for editing:', err);
+    showToast('Failed to load user for editing: ' + (err.message || 'Server error'), 'error');
+  }
+}
+
+// ─── Switch to Create New User Mode ───
+window.switchToCreateMode = function() {
+  userState.isEditMode = false;
+  userState.editUserId = null;
+  userState.originalUsername = '';
+
+  // Clean URL: Remove ?edit= query parameter
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('edit');
+    window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+  } catch (_) {}
+
+  // Hide edit mode banner
+  if (dom.cuEditModeBanner) dom.cuEditModeBanner.style.display = 'none';
+
+  // Restore Header
+  const titleEl = document.querySelector('.cu-page-title');
+  if (titleEl) {
+    titleEl.innerHTML = '<i data-lucide="user-plus" class="cu-title-icon"></i> Create New User';
+  }
+  const subEl = document.querySelector('.cu-page-subtitle');
+  if (subEl) {
+    subEl.textContent = 'Provision account credentials, assign role privileges, branch location, and contact information.';
+  }
+
+  // Restore Submit Button
+  if (dom.btnSubmitText) dom.btnSubmitText.textContent = 'Create User';
+  if (dom.btnSubmitUser) {
+    const icon = dom.btnSubmitUser.querySelector('svg, i');
+    if (icon) icon.setAttribute('data-lucide', 'user-plus');
+  }
+  if (dom.btnSaveDraft) dom.btnSaveDraft.style.display = 'inline-flex';
+
+  // Re-enable and reset username input
+  if (dom.usernameInput) {
+    dom.usernameInput.value = '';
+    dom.usernameInput.disabled = false;
+    dom.usernameInput.style.opacity = '1';
+    dom.usernameInput.style.cursor = 'text';
+    userState.username = '';
+  }
+
+  // Reset other inputs
+  if (dom.fullNameInput) { dom.fullNameInput.value = ''; userState.fullName = ''; }
+  if (dom.passwordInput) {
+    dom.passwordInput.value = '';
+    dom.passwordInput.setAttribute('required', 'required');
+    dom.passwordInput.placeholder = '••••••••••••';
+    userState.password = '';
+  }
+  if (dom.confirmPasswordInput) {
+    dom.confirmPasswordInput.value = '';
+    dom.confirmPasswordInput.setAttribute('required', 'required');
+    dom.confirmPasswordInput.placeholder = '••••••••••••';
+    userState.confirmPassword = '';
+  }
+  const passReq = document.querySelectorAll('#cardAccount .cu-field .cu-req');
+  passReq.forEach(el => el.style.display = '');
+
+  if (dom.emailInput) dom.emailInput.value = '';
+  if (dom.phoneInput) dom.phoneInput.value = '';
+  if (dom.designationInput) dom.designationInput.value = '';
+  if (dom.departmentInput) dom.departmentInput.value = '';
+  if (dom.cuCustomMonogramInput) dom.cuCustomMonogramInput.value = '';
+
+  userState.active = true;
+  userState.selectedMonogram = '';
+  userState.customMonogramTyped = false;
+
+  // Reset roles and modules
+  if (userState.rolesList && userState.rolesList.length > 0) {
+    selectRole(userState.rolesList[0].name);
+  }
+  userState.selectedBranches.clear();
+  renderBranchClearanceCards();
+
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+
+  syncUserPreview();
+  if (typeof updateStepperCompletion === 'function') {
+    updateStepperCompletion();
+  }
+
+  showToast('Switched to Create New User mode. Fields cleared.', 'info');
+};
 
 // ─── Initialization ───
 document.addEventListener('DOMContentLoaded', async () => {
@@ -119,8 +347,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetchModuleRegistry()
   ]);
 
-  // Attempt draft restoration
-  restoreUserDraft();
+  // Check URL for ?edit= parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const editId = urlParams.get('edit');
+
+  if (editId) {
+    await initEditMode(editId);
+  } else {
+    // Attempt draft restoration only in create mode
+    restoreUserDraft();
+  }
 
   // Initial preview sync
   syncUserPreview();
@@ -397,6 +633,128 @@ function renderBranchClearanceCards() {
   dom.branchClearanceContainer.innerHTML = html;
 }
 
+// ─── Double-Letter Monogram Candidate Generator & Handlers ───
+function generateCandidateMonograms(fullName, username) {
+  const candidates = new Set();
+
+  if (fullName && fullName.trim()) {
+    const parts = fullName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      // First + Last initial (e.g. Priya Sundaram -> PS)
+      candidates.add((parts[0][0] + parts[parts.length - 1][0]).toUpperCase());
+      // First 2 of first name (e.g. Priya -> PR)
+      if (parts[0].length >= 2) {
+        candidates.add(parts[0].substring(0, 2).toUpperCase());
+      }
+      // If 3 or more parts, First + Middle (e.g. Priya Mary Sundaram -> PM)
+      if (parts.length >= 3) {
+        candidates.add((parts[0][0] + parts[1][0]).toUpperCase());
+      }
+      // First 2 of last name (e.g. Sundaram -> SU)
+      if (parts[parts.length - 1].length >= 2) {
+        candidates.add(parts[parts.length - 1].substring(0, 2).toUpperCase());
+      }
+    } else if (parts.length === 1) {
+      const name = parts[0];
+      if (name.length >= 2) {
+        candidates.add(name.substring(0, 2).toUpperCase());
+      }
+      if (name.length >= 3) {
+        candidates.add((name[0] + name[2]).toUpperCase());
+      }
+      if (name.length >= 4) {
+        candidates.add((name[0] + name[name.length - 1]).toUpperCase());
+      }
+    }
+  }
+
+  if (username && username.trim()) {
+    const cleanU = username.trim().replace(/[^a-zA-Z0-9]/g, '');
+    if (cleanU.length >= 2) {
+      candidates.add(cleanU.substring(0, 2).toUpperCase());
+    }
+  }
+
+  // Filter only valid 2-character uppercase alphabetic / alphanumeric
+  const filtered = Array.from(candidates).filter(c => c && c.length === 2);
+  return filtered.length > 0 ? filtered : ['NU'];
+}
+
+function updateMonogramOptions(fullName, username) {
+  const suggestions = generateCandidateMonograms(fullName, username);
+
+  // If user hasn't typed a custom monogram, select top suggestion
+  if (!userState.customMonogramTyped || !userState.selectedMonogram) {
+    userState.selectedMonogram = suggestions[0] || 'NU';
+  }
+
+  // Render suggestion pills
+  if (dom.cuMonogramSuggestions) {
+    if (!fullName && !username) {
+      dom.cuMonogramSuggestions.innerHTML = '<span style="font-size:11.5px;color:rgba(255,255,255,0.35);">Type name to see suggestions...</span>';
+    } else {
+      dom.cuMonogramSuggestions.innerHTML = suggestions.map(m => {
+        const isSel = (m === userState.selectedMonogram);
+        return `<button type="button" class="cu-monogram-pill ${isSel ? 'selected' : ''}" onclick="selectMonogram('${m}')">${escapeHtml(m)}</button>`;
+      }).join('');
+    }
+  }
+
+  // Sync the circle & custom input
+  if (dom.cuMonogramPreview) {
+    dom.cuMonogramPreview.textContent = userState.selectedMonogram || '--';
+  }
+  if (dom.cuCustomMonogramInput && !userState.customMonogramTyped) {
+    dom.cuCustomMonogramInput.value = userState.selectedMonogram || '';
+  }
+}
+
+window.selectMonogram = function(monogram) {
+  if (!monogram) return;
+  const clean = monogram.toUpperCase().slice(0, 2);
+  userState.selectedMonogram = clean;
+  userState.customMonogramTyped = false;
+
+  // Update pills visual
+  if (dom.cuMonogramSuggestions) {
+    dom.cuMonogramSuggestions.querySelectorAll('.cu-monogram-pill').forEach(btn => {
+      btn.classList.toggle('selected', btn.textContent.trim() === clean);
+    });
+  }
+
+  // Update preview circle and custom input
+  if (dom.cuMonogramPreview) dom.cuMonogramPreview.textContent = clean;
+  if (dom.cuCustomMonogramInput) dom.cuCustomMonogramInput.value = clean;
+  if (dom.sumAvatarInitials) dom.sumAvatarInitials.textContent = clean;
+};
+
+window.handleCustomMonogramInput = function(val) {
+  const clean = (val || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 2);
+  if (dom.cuCustomMonogramInput && dom.cuCustomMonogramInput.value !== clean) {
+    dom.cuCustomMonogramInput.value = clean;
+  }
+
+  if (clean.length === 2) {
+    userState.selectedMonogram = clean;
+    userState.customMonogramTyped = true;
+    if (dom.cuMonogramPreview) dom.cuMonogramPreview.textContent = clean;
+    if (dom.sumAvatarInitials) dom.sumAvatarInitials.textContent = clean;
+
+    // Check if any pill matches
+    if (dom.cuMonogramSuggestions) {
+      dom.cuMonogramSuggestions.querySelectorAll('.cu-monogram-pill').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent.trim() === clean);
+      });
+    }
+  } else if (clean.length === 0) {
+    userState.customMonogramTyped = false;
+    const fullName = dom.fullNameInput ? dom.fullNameInput.value.trim() : '';
+    const username = dom.usernameInput ? dom.usernameInput.value.trim() : '';
+    updateMonogramOptions(fullName, username);
+    if (dom.sumAvatarInitials) dom.sumAvatarInitials.textContent = userState.selectedMonogram || 'NU';
+  }
+};
+
 // ─── Live User Preview Synchronization ───
 window.syncUserPreview = function() {
   if (!dom.sumFullName) return;
@@ -410,18 +768,12 @@ window.syncUserPreview = function() {
   // Username
   dom.sumUsername.textContent = username ? `@${username}` : '@username';
 
+  // Update monogram suggestions & sync avatar
+  updateMonogramOptions(fullName, username);
+
   // Avatar Initials
   if (dom.sumAvatarInitials) {
-    let initials = 'NU';
-    if (fullName) {
-      const parts = fullName.split(/\s+/).filter(Boolean);
-      initials = parts.length > 1
-        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-        : parts[0].substring(0, 2).toUpperCase();
-    } else if (username) {
-      initials = username.substring(0, 2).toUpperCase();
-    }
-    dom.sumAvatarInitials.textContent = initials;
+    dom.sumAvatarInitials.textContent = userState.selectedMonogram || 'NU';
   }
 
   // Role Pill
@@ -432,8 +784,7 @@ window.syncUserPreview = function() {
   }
 
   // Status Pill
-  const isActive = dom.userActiveToggle ? dom.userActiveToggle.checked : true;
-  userState.active = isActive;
+  const isActive = (userState.active !== false);
   if (dom.sumStatusPill && dom.sumStatusText) {
     dom.sumStatusPill.className = `cu-status-pill ${isActive ? 'active' : ''}`;
     dom.sumStatusText.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
@@ -464,11 +815,31 @@ window.syncUserPreview = function() {
   if (dom.sumEmail) dom.sumEmail.textContent = email || '—';
   if (dom.sumPhone) dom.sumPhone.textContent = phone ? `+91 ${phone}` : '—';
 
-  // Page Access Count
+  // Page Access Count (excluding operational clearances)
   if (dom.sumAccessCount) {
-    const selCount = userState.selectedModules.size;
-    const totCount = userState.moduleRegistry.length || 28;
+    const pageModsOnly = Array.from(userState.selectedModules).filter(k => !CLEARANCE_KEYS.includes(k));
+    const selCount = pageModsOnly.length;
+    const totCount = userState.moduleRegistry.filter(m => !CLEARANCE_KEYS.includes(m.key)).length || 28;
     dom.sumAccessCount.textContent = `${selCount} of ${totCount} modules`;
+  }
+
+  // Clearances Summary Badges in Live User Preview
+  const sumClearancesEl = document.getElementById('sumClearances');
+  if (sumClearancesEl) {
+    const hasCreate = userState.selectedModules.has('orders.create');
+    const hasDelete = userState.selectedModules.has('orders.delete');
+    const hasFinance = userState.selectedModules.has('finance.view');
+
+    sumClearancesEl.innerHTML = `
+      <span class="cu-pr-badge ${hasCreate ? 'active-create' : 'disabled'}" title="${hasCreate ? 'Permitted to create orders' : 'Cannot create orders'}">+ Order</span>
+      <span class="cu-pr-badge ${hasDelete ? 'active-delete' : 'disabled'}" title="${hasDelete ? 'Permitted to delete orders' : 'Cannot delete orders'}">✕ Del</span>
+      <span class="cu-pr-badge ${hasFinance ? 'active-finance' : 'disabled'}" title="${hasFinance ? 'Permitted to view financial metrics' : 'Finance data masked'}">₹ Finance</span>
+    `;
+  }
+
+  // Real-time Stepper & Checkmark Sync
+  if (typeof updateStepperCompletion === 'function') {
+    updateStepperCompletion();
   }
 };
 
@@ -570,6 +941,10 @@ window.handleConfirmPasswordInput = function() {
     dom.passwordMatchHint.style.color = 'var(--lime)';
     if (dom.confirmPasswordInput) dom.confirmPasswordInput.classList.remove('invalid');
   }
+
+  if (typeof updateStepperCompletion === 'function') {
+    updateStepperCompletion();
+  }
 };
 
 // ─── Draft Support (localStorage) ───
@@ -578,7 +953,9 @@ window.saveUserDraft = function() {
     username: dom.usernameInput ? dom.usernameInput.value.trim() : '',
     fullName: dom.fullNameInput ? dom.fullNameInput.value.trim() : '',
     role: userState.role,
-    active: dom.userActiveToggle ? dom.userActiveToggle.checked : true,
+    selectedMonogram: userState.selectedMonogram,
+    customMonogramTyped: userState.customMonogramTyped,
+    active: (userState.active !== false),
     designation: dom.designationInput ? dom.designationInput.value.trim() : '',
     department: dom.departmentInput ? dom.departmentInput.value.trim() : '',
     assignedBranch: dom.assignedBranchSelect ? dom.assignedBranchSelect.value : '',
@@ -605,10 +982,16 @@ function restoreUserDraft() {
 
     if (dom.usernameInput && draft.username) dom.usernameInput.value = draft.username;
     if (dom.fullNameInput && draft.fullName) dom.fullNameInput.value = draft.fullName;
+    if (draft.selectedMonogram) {
+      userState.selectedMonogram = draft.selectedMonogram;
+      userState.customMonogramTyped = !!draft.customMonogramTyped;
+      if (dom.cuCustomMonogramInput) dom.cuCustomMonogramInput.value = draft.selectedMonogram;
+      if (dom.cuMonogramPreview) dom.cuMonogramPreview.textContent = draft.selectedMonogram;
+      if (dom.sumAvatarInitials) dom.sumAvatarInitials.textContent = draft.selectedMonogram;
+    }
     if (draft.role) selectRole(draft.role);
-    if (dom.userActiveToggle && typeof draft.active === 'boolean') {
-      dom.userActiveToggle.checked = draft.active;
-      handleStatusToggle(draft.active);
+    if (typeof draft.active === 'boolean') {
+      userState.active = draft.active;
     }
     if (dom.designationInput && draft.designation) dom.designationInput.value = draft.designation;
     if (dom.departmentInput && draft.department) dom.departmentInput.value = draft.department;
@@ -618,6 +1001,7 @@ function restoreUserDraft() {
     if (Array.isArray(draft.allowedModules) && draft.allowedModules.length > 0) {
       userState.selectedModules = new Set(draft.allowedModules);
       refreshAllTileVisuals();
+      syncClearanceVisuals();
       syncAccessCounter();
     }
   } catch (err) {
@@ -652,12 +1036,38 @@ async function fetchModuleRegistry() {
   }
 }
 
+// ─── Operational & Financial Clearances Constants & Handlers ───
+const CLEARANCE_KEYS = ['orders.create', 'orders.delete', 'finance.view'];
+
+window.toggleClearance = function(key) {
+  if (userState.selectedModules.has(key)) {
+    userState.selectedModules.delete(key);
+  } else {
+    userState.selectedModules.add(key);
+  }
+  syncClearanceVisuals();
+  syncAccessCounter();
+  syncUserPreview();
+};
+
+function syncClearanceVisuals() {
+  CLEARANCE_KEYS.forEach(k => {
+    const card = document.getElementById(`clearanceCard-${k}`);
+    if (card) {
+      card.classList.toggle('active', userState.selectedModules.has(k));
+    }
+  });
+}
+
 // ─── Render Module Access Grid ───
 function renderModuleAccessGrid(modules) {
   if (!dom.moduleAccessGrid) return;
 
   const sectionMap = new Map();
   modules.forEach(m => {
+    if (m.section === 'Action Clearances' || CLEARANCE_KEYS.includes(m.key)) {
+      return; // Handled in top clearance cards
+    }
     const sec = m.section || 'General';
     if (!sectionMap.has(sec)) sectionMap.set(sec, []);
     sectionMap.get(sec).push(m);
@@ -703,6 +1113,7 @@ function renderModuleAccessGrid(modules) {
   if (window.lucide) {
     window.lucide.createIcons({ root: dom.moduleAccessGrid });
   }
+  syncClearanceVisuals();
   syncAccessCounter();
 }
 
@@ -727,7 +1138,9 @@ function updateTileVisual(key) {
 
 window.selectAllModules = function() {
   userState.moduleRegistry.forEach(m => userState.selectedModules.add(m.key));
+  CLEARANCE_KEYS.forEach(k => userState.selectedModules.add(k));
   refreshAllTileVisuals();
+  syncClearanceVisuals();
   syncAccessCounter();
   syncUserPreview();
 };
@@ -735,6 +1148,7 @@ window.selectAllModules = function() {
 window.clearAllModules = function() {
   userState.selectedModules.clear();
   refreshAllTileVisuals();
+  syncClearanceVisuals();
   syncAccessCounter();
   syncUserPreview();
 };
@@ -748,8 +1162,9 @@ function refreshAllTileVisuals() {
 }
 
 function syncAccessCounter() {
-  const count = userState.selectedModules.size;
-  const total = userState.moduleRegistry.length;
+  const pageModsOnly = Array.from(userState.selectedModules).filter(k => !CLEARANCE_KEYS.includes(k));
+  const count = pageModsOnly.length;
+  const total = userState.moduleRegistry.filter(m => !CLEARANCE_KEYS.includes(m.key)).length || 28;
   if (dom.accessCounter) {
     dom.accessCounter.textContent = `${count} of ${total} modules selected`;
   }
@@ -761,9 +1176,11 @@ function applyRoleDefaultModules(roleName) {
 
   if (r === 'OWNER' || r === 'ADMIN') {
     userState.moduleRegistry.forEach(m => userState.selectedModules.add(m.key));
+    CLEARANCE_KEYS.forEach(k => userState.selectedModules.add(k));
   } else if (r === 'BRANCH_ADMIN') {
     const branchDefaults = [
       'dashboard', 'enquiries', 'appointments', 'customers', 'orders', 'payments',
+      'orders.create',
       'garments', 'designs', 'measurements', 'fabrics', 'collections',
       'production-room', 'job-cards', 'trials-alterations', 'quality-control',
       'stock', 'purchases', 'delivery', 'employees', 'branches', 'users-roles'
@@ -775,9 +1192,99 @@ function applyRoleDefaultModules(roleName) {
   }
 
   refreshAllTileVisuals();
+  syncClearanceVisuals();
   syncAccessCounter();
   syncUserPreview();
 }
+
+// ─── Real-Time Stepper Completion System ───
+function checkStep1Completed() {
+  const fullName = (dom.fullNameInput || document.getElementById('fullNameInput'))?.value?.trim() || '';
+  const username = (dom.usernameInput || document.getElementById('usernameInput'))?.value?.trim() || '';
+  const password = (dom.passwordInput || document.getElementById('passwordInput'))?.value || '';
+  const confirm = (dom.confirmPasswordInput || document.getElementById('confirmPasswordInput'))?.value || '';
+
+  if (userState.isEditMode) {
+    if (!fullName) return false;
+    if (password) {
+      return password.length >= 6 && password === confirm;
+    }
+    return true;
+  }
+
+  // Create Mode:
+  if (!fullName) return false;
+  if (!username || username.length < 3) return false;
+  if (!password || password.length < 6) return false;
+  if (password !== confirm) return false;
+  return true;
+}
+
+function checkStep2Completed() {
+  return Boolean(userState.role && userState.role.trim().length > 0);
+}
+
+function checkStep3Completed() {
+  const branchVal = (dom.assignedBranchSelect || document.getElementById('assignedBranchSelect'))?.value || '';
+  const desigVal = (dom.designationInput || document.getElementById('designationInput'))?.value?.trim() || '';
+  const deptVal = (dom.departmentInput || document.getElementById('departmentInput'))?.value?.trim() || '';
+  const hasBranches = userState.selectedBranches && userState.selectedBranches.size > 0;
+  const stateBranch = Boolean(userState.assignedBranch);
+
+  return Boolean(branchVal || stateBranch || hasBranches || desigVal || deptVal);
+}
+
+function checkStep4Completed() {
+  const email = (dom.emailInput || document.getElementById('emailInput'))?.value?.trim() || '';
+  const phone = (dom.phoneInput || document.getElementById('phoneInput'))?.value?.trim() || '';
+
+  const isEmailValid = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isPhoneValid = phone.replace(/\D/g, '').length >= 10;
+
+  return isEmailValid || isPhoneValid;
+}
+
+function checkStep5Completed() {
+  return Boolean(userState.selectedModules && userState.selectedModules.size > 0);
+}
+
+window.updateStepperCompletion = function() {
+  const isCompleted = {
+    1: checkStep1Completed(),
+    2: checkStep2Completed(),
+    3: checkStep3Completed(),
+    4: checkStep4Completed(),
+    5: checkStep5Completed()
+  };
+
+  const checkSvg = `<svg class="cu-step-check" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-6"/></svg>`;
+  const badgeCheckSvg = `<svg class="cu-badge-check" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-6"/></svg>`;
+
+  for (let step = 1; step <= 5; step++) {
+    const done = !!isCompleted[step];
+    const node = document.querySelector(`.cu-step-node[data-step="${step}"]`);
+    if (node) {
+      node.classList.toggle('completed', done);
+      const circle = node.querySelector('.cu-step-circle');
+      if (circle) {
+        circle.innerHTML = done ? checkSvg : String(step);
+      }
+    }
+
+    const badge = document.querySelector(`.cu-step-badge[data-step-badge="${step}"]`);
+    if (badge) {
+      badge.classList.toggle('completed', done);
+      badge.innerHTML = done ? badgeCheckSvg : String(step);
+    }
+  }
+
+  for (let line = 1; line <= 4; line++) {
+    const lineEl = document.querySelector(`.cu-step-line[data-line="${line}"]`);
+    if (lineEl) {
+      lineEl.classList.toggle('completed', !!isCompleted[line]);
+    }
+  }
+};
 
 // ─── Stepper Navigation & ScrollSpy ───
 window.scrollToCard = function(cardId) {
@@ -853,7 +1360,7 @@ window.handleUserSubmit = async function(event) {
     return;
   }
 
-  if (username.length < 3) {
+  if (!userState.isEditMode && username.length < 3) {
     showToast('Username must be at least 3 characters.', 'error');
     if (dom.usernameInput) dom.usernameInput.focus();
     return;
@@ -865,16 +1372,28 @@ window.handleUserSubmit = async function(event) {
     return;
   }
 
-  if (!password || password.length < 6) {
-    showToast('Password must be at least 6 characters long.', 'error');
-    if (dom.passwordInput) dom.passwordInput.focus();
-    return;
-  }
-
-  if (password !== confirm) {
-    showToast('Passwords do not match. Please verify.', 'error');
-    if (dom.confirmPasswordInput) dom.confirmPasswordInput.focus();
-    return;
+  if (!userState.isEditMode) {
+    if (!password || password.length < 6) {
+      showToast('Password must be at least 6 characters long.', 'error');
+      if (dom.passwordInput) dom.passwordInput.focus();
+      return;
+    }
+    if (password !== confirm) {
+      showToast('Passwords do not match. Please verify.', 'error');
+      if (dom.confirmPasswordInput) dom.confirmPasswordInput.focus();
+      return;
+    }
+  } else if (password) {
+    if (password.length < 6) {
+      showToast('New password must be at least 6 characters long.', 'error');
+      if (dom.passwordInput) dom.passwordInput.focus();
+      return;
+    }
+    if (password !== confirm) {
+      showToast('New passwords do not match. Please verify.', 'error');
+      if (dom.confirmPasswordInput) dom.confirmPasswordInput.focus();
+      return;
+    }
   }
 
   if (!role) {
@@ -905,47 +1424,70 @@ window.handleUserSubmit = async function(event) {
     selectedBranchesList.unshift(branchVal);
   }
 
+  // Double-letter monogram selection resolution
+  const chosenMonogram = (userState.selectedMonogram || (dom.sumAvatarInitials ? dom.sumAvatarInitials.textContent : 'NU')).trim().substring(0, 2).toUpperCase();
+
   // Construct payload with strict types
   const payload = {
-    username: username,
     fullName: fullName,
-    password: password,
     role: role,
-    active: dom.userActiveToggle ? dom.userActiveToggle.checked : true,
+    avatarUrl: `monogram:${chosenMonogram}`,
+    active: (userState.active !== false),
     designation: dom.designationInput && dom.designationInput.value.trim() ? dom.designationInput.value.trim() : null,
     department: dom.departmentInput && dom.departmentInput.value.trim() ? dom.departmentInput.value.trim() : null,
     assignedBranch: branchVal || (selectedBranchesList.length > 0 ? selectedBranchesList[0] : null),
     allowedBranches: selectedBranchesList,
     email: email || null,
     phone: phoneRaw ? `+91 ${phoneRaw}` : null,
-    allowedModules: Array.from(userState.selectedModules)
+    allowedModules: Array.from(userState.selectedModules),
+    status: (userState.active !== false) ? 'ACTIVE' : 'SUSPENDED'
   };
+
+  if (!userState.isEditMode) {
+    payload.username = username;
+    payload.password = password;
+  } else if (password) {
+    payload.password = password;
+  }
+
+  // Form submission guard: If in edit mode, ensure user is aware they are modifying an existing account
+  if (userState.isEditMode) {
+    const origUser = userState.originalUsername || username;
+    const confirmMsg = `Save changes to existing user "@${origUser}"?\n\n- Click OK to update this existing user account.\n- Click Cancel if you intended to create a brand-new user instead.`;
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+  }
 
   // Submit button state
   const btn = dom.btnSubmitUser;
   const originalHTML = btn ? btn.innerHTML : '';
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="cu-spin" style="width:16px;height:16px;"></i> <span>Creating User...</span>`;
+    const actionLabel = userState.isEditMode ? 'Saving Changes...' : 'Creating User...';
+    btn.innerHTML = `<i data-lucide="loader-2" class="cu-spin" style="width:16px;height:16px;"></i> <span>${actionLabel}</span>`;
     if (window.lucide) window.lucide.createIcons({ root: btn });
   }
 
   try {
-    const createdUser = await window.api.users.create(payload);
-
-    // Clear saved draft on success
-    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
-
-    showToast(`User ${escapeHtml(createdUser.username || username)} provisioned successfully!`, 'success');
-
-    // Redirect to users & roles directory with query param for toast
-    setTimeout(() => {
-      window.location.href = `../users-roles.html?created=${encodeURIComponent(createdUser.username || username)}`;
-    }, 600);
-
+    if (userState.isEditMode) {
+      const updatedUser = await window.api.users.update(userState.editUserId, payload);
+      showToast(`User ${escapeHtml(updatedUser.fullName || username)} updated successfully!`, 'success');
+      setTimeout(() => {
+        window.location.href = `../users-roles.html?updated=${encodeURIComponent(updatedUser.username || username)}`;
+      }, 600);
+    } else {
+      const createdUser = await window.api.users.create(payload);
+      // Clear saved draft on success
+      try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+      showToast(`User ${escapeHtml(createdUser.username || username)} provisioned successfully!`, 'success');
+      setTimeout(() => {
+        window.location.href = `../users-roles.html?created=${encodeURIComponent(createdUser.username || username)}`;
+      }, 600);
+    }
   } catch (err) {
-    console.error('[CreateUser] Creation failed:', err);
-    showToast(err.message || 'Failed to create user. Please check server logs.', 'error');
+    console.error('[CreateUser] Submission failed:', err);
+    showToast(err.message || (userState.isEditMode ? 'Failed to update user.' : 'Failed to create user.'), 'error');
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = originalHTML;

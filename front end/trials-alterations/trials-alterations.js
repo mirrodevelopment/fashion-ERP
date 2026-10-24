@@ -115,12 +115,9 @@
   }
 
   function formatDisplayStage(stageRaw) {
-    if (!stageRaw || stageRaw === '—' || stageRaw === 'null') return 'Trial';
-    const s = String(stageRaw).toUpperCase().replace(/[\s_-]+/g, '');
-    if (s.includes('TRIAL') || s.includes('FITTING')) return 'Trial';
-    if (s.includes('ALTER')) return 'Alteration';
-    if (s.includes('COMPLETE') || s.includes('READY')) return 'Completed';
-    return String(stageRaw).charAt(0).toUpperCase() + String(stageRaw).slice(1).toLowerCase();
+    if (!stageRaw || stageRaw === '—' || stageRaw === 'null') return 'Active';
+    const words = String(stageRaw).replace(/[_]+/g, ' ').trim().toLowerCase().split(' ');
+    return words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   }
 
   // Master dataset loaded exclusively from PostgreSQL database via API
@@ -132,7 +129,10 @@
         return;
       }
 
-      const res = await api.trials.list({ page: 0, size: 50 }).catch(() => null);
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const trialParams = { page: 0, size: 50 };
+      if (activeBranch && activeBranch !== 'ALL') trialParams.branch = activeBranch;
+      const res = await api.trials.list(trialParams).catch(() => null);
       const items = Array.isArray(res) ? res : (res?.content || []);
 
       if (items && items.length > 0) {
@@ -611,7 +611,7 @@
     if (designerEl) designerEl.textContent = trial.designer;
 
     const stageEl = document.getElementById('detailStage');
-    if (stageEl) stageEl.textContent = trial.stage || 'Trial';
+    if (stageEl) stageEl.textContent = trial.stage || 'Order Taken';
 
     // 2. Garment Specifications
     const specNeck = document.getElementById('specNeck');
@@ -1541,7 +1541,9 @@
 
     try {
       const { default: api } = await import('../api.js');
-      const kpis = await api.trials.kpis().catch(() => null);
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+      const kpis = await api.trials.kpis(kpiParams).catch(() => null);
       if (kpis) {
         upcoming = kpis.upcoming != null ? kpis.upcoming : 0;
         today = kpis.today != null ? kpis.today : 0;

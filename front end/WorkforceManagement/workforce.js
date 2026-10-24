@@ -51,7 +51,10 @@
   async function loadEmployeesFromApi() {
     try {
       const { default: api } = await import('../api.js');
-      const res = await api.employees.list({ page: 0, size: 50 });
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const empParams = { page: 0, size: 50 };
+      if (activeBranch && activeBranch !== 'ALL') empParams.branch = activeBranch;
+      const res = await api.employees.list(empParams);
       const items = Array.isArray(res) ? res : (res?.content || []);
       
       state.employees = items.map(e => {
@@ -122,7 +125,8 @@
 
       let kpis = null;
       try {
-        kpis = await api.employees.kpis().catch(() => null);
+        const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+        kpis = await api.employees.kpis(kpiParams).catch(() => null);
       } catch (_) {}
       updateKPIs(kpis);
 

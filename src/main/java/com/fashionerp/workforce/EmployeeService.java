@@ -22,10 +22,16 @@ import java.util.UUID;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     public Page<EmployeeDto.Response> list(String search, String role, String status, Pageable pageable) {
+        return list(search, role, status, null, pageable);
+    }
+
+    public Page<EmployeeDto.Response> list(String search, String role, String status, String branch, Pageable pageable) {
         UUID companyId = TenantContext.getCompanyId();
-        return employeeRepository.search(companyId, search, role, status, pageable).map(EmployeeDto.Response::from);
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.EMPLOYEES);
+        return employeeRepository.search(companyId, branchFilter, search, role, status, pageable).map(EmployeeDto.Response::from);
     }
 
     public EmployeeDto.Response get(UUID id) {

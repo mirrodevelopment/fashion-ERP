@@ -391,10 +391,11 @@
     }
   }
 
-  // Fallback blueprint if stage definitions table is not yet reachable (strictly 2 fixed stages)
+  // Fallback blueprint if stage definitions table is not yet reachable (the 3 core default stages)
   const DEFAULT_STAGES = [
-    { code: 'ORDER_TAKEN',      label: 'Order Taken',      role: 'STYLIST',    sortOrder: 1 },
-    { code: 'READY_TO_DELIVER', label: 'Ready to Deliver', role: 'DISPATCHER', sortOrder: 2 }
+    { code: 'ORDER_TAKEN',      label: 'Order Taken',      role: 'STAFF',      sortOrder: 1 },
+    { code: 'QC',               label: 'Quality Control',  role: 'SUPERVISOR', sortOrder: 2 },
+    { code: 'READY_TO_DELIVER', label: 'Ready to Deliver', role: 'SUPERVISOR', sortOrder: 3 }
   ];
 
   function getEffectiveStageDefs() {
@@ -417,17 +418,13 @@
     let idx = defs.findIndex(d => d.code.toUpperCase() === s || d.label.toUpperCase() === s);
     if (idx >= 0) return idx;
 
-    // Fuzzy matching
-    if (s.includes('ORDER') || s.includes('NEW')) idx = defs.findIndex(d => d.code.includes('ORDER'));
-    else if (s.includes('DESIGN')) idx = defs.findIndex(d => d.code.includes('DESIGN'));
-    else if (s.includes('LINING') || s.includes('FABRIC')) idx = defs.findIndex(d => d.code.includes('LINING'));
-    else if (s.includes('CUT')) idx = defs.findIndex(d => d.code.includes('CUT'));
-    else if (s.includes('HAND') || s.includes('EMB') || s.includes('WORK')) idx = defs.findIndex(d => d.code.includes('HAND') || d.code.includes('EMB'));
-    else if (s.includes('STITCH') || s.includes('SEW')) idx = defs.findIndex(d => d.code.includes('STITCH'));
-    else if (s.includes('TRIAL') || s.includes('FIT')) idx = defs.findIndex(d => d.code.includes('TRIAL'));
-    else if (s.includes('QC') || s.includes('QUAL')) idx = defs.findIndex(d => d.code.includes('QC'));
-    else if (s.includes('READY')) idx = defs.findIndex(d => d.code.includes('READY'));
-    else if (s.includes('DELIVER')) idx = defs.findIndex(d => d.code.includes('DELIVER'));
+    // Dynamic substring match against live definitions (no static stage ladders)
+    idx = defs.findIndex(d => {
+      const code = (d.code || '').toUpperCase();
+      const label = (d.label || '').toUpperCase();
+      return (code && (code.includes(s) || s.includes(code))) ||
+             (label && (label.includes(s) || s.includes(label)));
+    });
 
     return idx >= 0 ? idx : 0;
   }
@@ -1409,7 +1406,7 @@
     const liveStages = Array.isArray(orderState.liveStages) ? orderState.liveStages : [];
     liveStages.forEach((ls, idx) => {
       const stageLabel = formatStageLabel(ls.stageName);
-      const isInitialOrderTaken = (ls.stageName && (ls.stageName.toUpperCase() === 'ORDER_TAKEN' || ls.stageName.toUpperCase() === 'ORDER')) || ls.sortOrder === 1;
+      const isInitialOrderTaken = idx === 0 || ls.sortOrder === 1;
 
       const empName = (ls.assignedTo && typeof ls.assignedTo === 'object' && ls.assignedTo.name)
         ? ls.assignedTo.name

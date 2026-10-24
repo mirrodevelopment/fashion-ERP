@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ public class MeasurementController {
     private final MeasurementService measurementService;
     private final CustomerRepository customerRepository;
     private final CustomerBodyMeasurementRepository bodyMeasurementRepository;
+    private final MeasurementProfileRepository profileRepository;
 
     @GetMapping("/kpis")
     public ResponseEntity<Map<String, Object>> kpis() {
@@ -70,6 +72,20 @@ public class MeasurementController {
         cats.put("gown",    gown[0]);
         cats.put("custom",  custom[0]);
 
+        // ── Updated this calendar month ────────────────────────────────────────
+        LocalDateTime monthStart = LocalDateTime.now()
+                .withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        long updatedThisMonth;
+        if (companyId != null) {
+            updatedThisMonth = profileRepository.countByCompanyIdAndUpdatedAtAfter(companyId, monthStart)
+                    + profileRepository.countByCompanyIdAndRecordedAtAfterAndUpdatedAtIsNull(companyId, monthStart);
+        } else {
+            updatedThisMonth = profileRepository.countByUpdatedAtAfter(monthStart);
+        }
+
+        // Fit memories = distinct customers who were re-measured (version > 1)
+        long fitMemoriesLearned = remeasuredCount;
+
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("totalCustomers",    totalCustomers);
         res.put("totalMeasurements", totalMeasurements);
@@ -77,6 +93,8 @@ public class MeasurementController {
         res.put("pendingCustomers",    pendingCustomers);
         res.put("dueRemeasurement",    remeasuredCount);
         res.put("fitAccuracy",         fitAccuracy);
+        res.put("updatedThisMonth",    updatedThisMonth);
+        res.put("fitMemoriesLearned",  fitMemoriesLearned);
         res.put("customersTrend",      "Live data");
         res.put("measurementsTrend",   "Live data");
         res.put("fitAccuracyTrend",    "Live data");
@@ -90,6 +108,10 @@ public class MeasurementController {
             @RequestParam(required = false) String customerMobile,
             @RequestParam(required = false) String customerId) {
         String mobile = (customerMobile != null && !customerMobile.isBlank()) ? customerMobile : customerId;
+        // No customer filter → return all profiles for the tenant (library overview)
+        if (mobile == null || mobile.isBlank()) {
+            return measurementService.getAll();
+        }
         return measurementService.getByCustomer(mobile);
     }
 

@@ -780,18 +780,11 @@ function renderProductionStatusDoughnut(col) {
   if (Array.isArray(col.productionStatus)) {
     stageList = col.productionStatus;
   } else if (col.productionStatus && typeof col.productionStatus === 'object') {
-    const stageColors = {
-      Designing: '#3b82f6',
-      Cutting:   '#f43f5e',
-      Stitching: '#8b5cf6',
-      Trial:     '#f59e0b',
-      QC:        '#14b8a6',
-      Ready:     '#22c55e'
-    };
-    stageList = Object.entries(col.productionStatus).map(([stage, count]) => ({
+    const PALETTE = ['#3b82f6', '#f43f5e', '#8b5cf6', '#f59e0b', '#14b8a6', '#22c55e', '#ec4899', '#06b6d4'];
+    stageList = Object.entries(col.productionStatus).map(([stage, count], idx) => ({
       stage,
       count,
-      color: stageColors[stage] || '#888'
+      color: PALETTE[idx % PALETTE.length]
     }));
   }
 

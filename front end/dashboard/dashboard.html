@@ -2,6 +2,15 @@
 <html lang="en">
 
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-brand-title="Dashboard">Dashboard</title>
@@ -45,7 +54,7 @@
           <div class="welcome-left">
             <div id="breadcrumbSlot"></div>
             <h1 class="welcome-greeting"><span class="welcome-greeting-text">Good <span id="timeOfDay">morning</span>,
-                <span id="greetName">Pranesh</span></span> <span class="welcome-wave">👋</span></h1>
+                <span id="greetName"></span></span> <span class="welcome-wave">👋</span></h1>
             <p class="welcome-sub" id="welcomeSub">Your boutique is on track. 6 orders need your attention today.</p>
           </div>
           <div class="welcome-right">
@@ -105,10 +114,32 @@
                 </svg>
                 Revenue Trend
               </span>
-              <button class="filter-btn" id="revFilterBtn">Monthly <svg viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg></button>
+              <div class="filter-dropdown-wrap" id="revDropdownWrap">
+                <button class="filter-btn" id="revFilterBtn" type="button" aria-haspopup="true" aria-expanded="false" title="Filter revenue trend timeframe">
+                  <span id="revFilterLabel">Monthly</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                <div class="filter-dropdown-menu" id="revDropdownMenu" role="menu">
+                  <button type="button" class="filter-dropdown-item active" data-period="monthly" role="menuitem">
+                    <span>Monthly</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="weekly" role="menuitem">
+                    <span>Weekly</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="quarterly" role="menuitem">
+                    <span>Quarterly</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="yearly" role="menuitem">
+                    <span>Yearly</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="revenue-val-row">
               <div class="revenue-big" id="revenueBig">-</div>
@@ -123,7 +154,7 @@
             </div>
             <div class="revenue-growth-line">
               <span class="revenue-growth" id="revenueGrowth">↑ 18%</span>
-              <span class="revenue-vs">vs last month</span>
+              <span class="revenue-vs" id="revenueVs">vs last month</span>
             </div>
             <div class="revenue-chart-wrap">
               <canvas id="revenueChart"></canvas>
@@ -141,10 +172,40 @@
                 </svg>
                 Order Completion
               </span>
-              <button class="filter-btn" id="ordFilterBtn">This Month <svg viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg></button>
+              <div class="filter-dropdown-wrap" id="ordDropdownWrap">
+                <button class="filter-btn" id="ordFilterBtn" type="button" aria-haspopup="true" aria-expanded="false" title="Filter order completion timeframe">
+                  <span id="ordFilterLabel">This Month</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                <div class="filter-dropdown-menu" id="ordDropdownMenu" role="menu">
+                  <button type="button" class="filter-dropdown-item active" data-period="month" role="menuitem">
+                    <span>This Month</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="today" role="menuitem">
+                    <span>Today</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="week" role="menuitem">
+                    <span>This Week</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="quarter" role="menuitem">
+                    <span>This Quarter</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="year" role="menuitem">
+                    <span>This Year</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" class="filter-dropdown-item" data-period="all" role="menuitem">
+                    <span>All Time</span>
+                    <svg class="item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="donut-wrap">
               <div class="donut-container">
@@ -359,7 +420,7 @@
   <!-- Unified Navigation Controller (Sidebar, Navbar, Footer, Theme, Brand, Notifications) -->
   <script src="../fragments/nav.js"></script>
   <!-- Dashboard Controller JS (ES module for api.js import) -->
-  <script type="module" src="dashboard.js?v=8"></script>
+  <script type="module" src="dashboard.js?v=9"></script>
 
 </body>
 

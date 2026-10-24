@@ -529,22 +529,51 @@ public class TrialService {
     }
 
     public Map<String, Object> getKpis() {
+        return getKpis(null);
+    }
+
+    public Map<String, Object> getKpis(String branch) {
         LocalDate today = LocalDate.now();
         UUID companyId = TenantContext.requireCompanyId();
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.TRIALS);
 
-        long total = trialRepository.countByCompanyId(companyId);
-        long todayCount = trialRepository.countByCompanyIdAndTrialDateAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
-        long upcoming = trialRepository.countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
-        long overdue = trialRepository.countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
-        long completed = trialRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "COMPLETED");
+        long total;
+        long todayCount;
+        long upcoming;
+        long overdue;
+        long completed;
+        long perfect;
+        long minor;
+        long major;
+        long retrial;
+        long retrialsRequired;
+        long pendingAlterations;
 
-        long perfect = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "PERFECT");
-        long minor = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MINOR");
-        long major = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MAJOR");
-        long retrial = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "RETRIAL");
-
-        long pendingAlterations = trialAlterationRepository.countByCompanyIdAndCompletedFalse(companyId);
-        long retrialsRequired = trialRepository.countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCase(companyId, 1, "COMPLETED");
+        if (branchFilter != null) {
+            total = trialRepository.countByCompanyIdAndBranch(companyId, branchFilter);
+            todayCount = trialRepository.countByCompanyIdAndTrialDateAndStatusNotIgnoreCaseAndBranch(companyId, today, "COMPLETED", branchFilter);
+            upcoming = trialRepository.countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCaseAndBranch(companyId, today, "COMPLETED", branchFilter);
+            overdue = trialRepository.countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCaseAndBranch(companyId, today, "COMPLETED", branchFilter);
+            completed = trialRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "COMPLETED", branchFilter);
+            perfect = trialRepository.countByCompanyIdAndFitStatusIgnoreCaseAndBranch(companyId, "PERFECT", branchFilter);
+            minor = trialRepository.countByCompanyIdAndFitStatusIgnoreCaseAndBranch(companyId, "MINOR", branchFilter);
+            major = trialRepository.countByCompanyIdAndFitStatusIgnoreCaseAndBranch(companyId, "MAJOR", branchFilter);
+            retrial = trialRepository.countByCompanyIdAndFitStatusIgnoreCaseAndBranch(companyId, "RETRIAL", branchFilter);
+            retrialsRequired = trialRepository.countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCaseAndBranch(companyId, 1, "COMPLETED", branchFilter);
+            pendingAlterations = trialAlterationRepository.countByCompanyIdAndCompletedFalse(companyId);
+        } else {
+            total = trialRepository.countByCompanyId(companyId);
+            todayCount = trialRepository.countByCompanyIdAndTrialDateAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
+            upcoming = trialRepository.countByCompanyIdAndTrialDateGreaterThanAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
+            overdue = trialRepository.countByCompanyIdAndTrialDateLessThanAndStatusNotIgnoreCase(companyId, today, "COMPLETED");
+            completed = trialRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "COMPLETED");
+            perfect = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "PERFECT");
+            minor = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MINOR");
+            major = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "MAJOR");
+            retrial = trialRepository.countByCompanyIdAndFitStatusIgnoreCase(companyId, "RETRIAL");
+            retrialsRequired = trialRepository.countByCompanyIdAndTrialAttemptGreaterThanAndStatusNotIgnoreCase(companyId, 1, "COMPLETED");
+            pendingAlterations = trialAlterationRepository.countByCompanyIdAndCompletedFalse(companyId);
+        }
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("total", total);

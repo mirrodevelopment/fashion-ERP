@@ -254,20 +254,19 @@ window.FRAGMENT_HTML = {
     <!-- User Profile Dropdown -->
     <div class="user-wrap" id="userWrap">
       <button class="user-btn" id="userBtn" aria-label="User profile menu" aria-haspopup="true">
-        <img src="../assets/user_avatar.jpg" alt="Pranesh B" class="u-avatar-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
-        <div class="u-avatar" style="display:none;">PB</div>
+        <div class="u-avatar" id="navUserAvatar">--</div>
         <div class="u-info">
-          <div class="u-name">Pranesh B</div>
-          <div class="u-role">Administrator</div>
+          <div class="u-name">User</div>
+          <div class="u-role">Account</div>
         </div>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="user-chevron" style="width:11px;height:11px;opacity:0.5;"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="user-dd dd-panel" id="userDd">
         <div class="dd-panel-header" style="display:flex;gap:10px;align-items:center;">
-          <div class="u-avatar-lg">PB</div>
+          <div class="u-avatar-lg" id="navUserAvatarLg">--</div>
           <div>
-            <div class="u-name" style="font-size:12px;font-weight:700;color:#fff;">Pranesh B</div>
-            <div class="u-role" style="font-size:9.5px;color:rgba(255,255,255,0.5);">Administrator</div>
+            <div class="u-name" style="font-size:12px;font-weight:700;color:#fff;">User</div>
+            <div class="u-role" style="font-size:9.5px;color:rgba(255,255,255,0.5);">Account</div>
           </div>
         </div>
         <div class="dd-divider"></div>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-brand-title="Garment 360° Dossier — Haulo Boutique ERP">Garment 360° Dossier — Haulo Boutique ERP</title>
+  <meta name="description" content="Complete 360° Atelier dossier, fabric reservations, production pipeline, and artisan allocation." />
+
+  <!-- Typography & Design Tokens -->
+  <link rel="stylesheet" href="../../fragments/font/font.css" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Shared ERP Fragments & Page Styles -->
+  <link rel="stylesheet" href="../../fragments/fragments.css" />
+  <link rel="stylesheet" href="../../fragments/nav.css" />
+  <link rel="stylesheet" href="garment360.css" />
+
+  <script>
+    window.FRAGMENT_BASE = '../../fragments/';
+  </script>
+  <script src="../../fragments/company-bridge.js"></script>
+  <script src="../../fragments/system-bridge.js"></script>
+  <script src="../../fragments/fragments-inline.js"></script>
+  <script src="../../fragments/nav.js"></script>
+</head>
+<body data-module="garments">
+
+  <!-- Ambient Glow Background -->
+  <div class="app-background">
+    <div class="bg-glow-lime"></div>
+    <div class="bg-glow-purple"></div>
+    <div class="bg-glow-warm"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell" id="appShell">
+    <!-- Sidebar Slot (Injected by fragments) -->
+    <div id="sidebarSlot"></div>
+
+    <div class="main-wrapper">
+      <!-- Navbar Slot (Injected by fragments) -->
+      <div id="navbarSlot"></div>
+
+      <!-- Empty State (When no garment is selected or found) -->
+      <div class="g360-empty-card" id="g360EmptyState" style="display:none;">
+        <div class="g360-empty-icon">
+          <i data-lucide="sparkles" style="width:32px;height:32px;"></i>
+        </div>
+        <h2 class="g360-empty-title">No Garment Selected</h2>
+        <p class="g360-empty-desc">
+          Select an active garment from the atelier catalog to view its comprehensive 360° technical dossier, production pipeline, material specifications, and financial valuation.
+        </p>
+        <a href="../garments.html" class="btn-g360-primary">
+          <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+          <span>Browse Garments Catalog</span>
+        </a>
+      </div>
+
+      <!-- Garment 360 Main Workspace -->
+      <main class="g360-workspace" id="g360Workspace">
+
+        <!-- Top Header Strip -->
+        <header class="g360-header">
+          <div class="g360-header-left">
+            <div class="g360-breadcrumb-text">
+              <a href="../garments.html">Garments</a>
+              <span class="g360-breadcrumb-sep">&gt;</span>
+              <span>Garment 360° Dossier</span>
+            </div>
+
+            <div class="g360-title-row">
+              <h1 class="g360-code" id="g360Code">—</h1>
+              <span class="g360-status-pill" id="g360Status">—</span>
+            </div>
+
+            <h2 class="g360-subtitle" id="g360Title">—</h2>
+
+            <div class="g360-tags-row" id="g360TagsRow">
+              <span class="g360-tag" id="tagGarmentType">—</span>
+              <span class="g360-tag" id="tagCollection">—</span>
+              <span class="g360-tag highlight" id="tagPriority">—</span>
+            </div>
+          </div>
+
+          <!-- Header Right KPI Strip & Actions -->
+          <div class="g360-header-right">
+            <div class="g360-metrics-strip">
+              <div class="g360-kpi-card">
+                <span class="g360-kpi-val" id="kpiSuggestedPrice">—</span>
+                <span class="g360-kpi-lbl">Suggested Price</span>
+              </div>
+              <div class="g360-kpi-card">
+                <span class="g360-kpi-val" id="kpiTotalAmount">—</span>
+                <span class="g360-kpi-lbl">Total Value</span>
+              </div>
+              <div class="g360-kpi-card">
+                <span class="g360-kpi-val" id="kpiEstimatedCost">—</span>
+                <span class="g360-kpi-lbl">Estimated Cost</span>
+              </div>
+              <div class="g360-kpi-card">
+                <span class="g360-kpi-val" id="kpiCraftingHours">—</span>
+                <span class="g360-kpi-lbl">Artisan Hours</span>
+              </div>
+            </div>
+
+            <div class="g360-header-actions">
+              <a href="../garments.html" class="btn-g360-more" title="Back to Garments Catalog" aria-label="Back to Garments Catalog">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+              </a>
+              <button type="button" class="btn-g360-primary" onclick="window.print()">
+                <i data-lucide="printer" style="width:15px;height:15px;"></i>
+                <span>Print Spec Sheet</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Master Two-Column Grid -->
+        <div class="g360-main-grid">
+
+          <!-- ================= LEFT COLUMN ================= -->
+          <div class="g360-col-left">
+
+            <!-- Hero Image Showcase -->
+            <section class="g360-image-showcase">
+              <div class="g360-main-preview" id="mainPreviewBox">
+                <img src="" alt="Garment Specimen" class="g360-main-img" id="mainShowcaseImg" style="display:none;" />
+                <div id="noImagePlaceholder" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--g360-text-dim);gap:10px;">
+                  <i data-lucide="image" style="width:40px;height:40px;opacity:0.4;"></i>
+                  <span style="font-size:12px;font-weight:500;">No artwork attached</span>
+                </div>
+                <button type="button" class="g360-preview-expand-btn" id="btnExpandPreview" onclick="Garment360.openLightbox()" aria-label="Expand view" title="Expand view" style="display:none;">
+                  <i data-lucide="maximize-2" style="width:15px;height:15px;"></i>
+                </button>
+              </div>
+
+              <!-- Thumbnails Row -->
+              <div class="g360-thumbnails-row" id="thumbnailsRow">
+                <button type="button" class="g360-thumb g360-thumb-add" onclick="Garment360.triggerAddPhoto()" title="Upload swatch or artwork">
+                  <i data-lucide="plus" style="width:18px;height:18px;"></i>
+                </button>
+              </div>
+            </section>
+
+            <!-- Garment Technical Passport -->
+            <section class="g360-passport-card">
+              <h3 class="g360-card-title">Technical Passport</h3>
+              <div class="g360-passport-grid">
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Garment Silhouette / Type</span>
+                  <span class="g360-prop-val" id="propGarmentType">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Color &amp; Shade</span>
+                  <span class="g360-prop-val">
+                    <span class="g360-color-dot" id="propColorDot" style="display:none;"></span>
+                    <span id="propColour">—</span>
+                  </span>
+                </div>
+
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Primary Body Fabric</span>
+                  <span class="g360-prop-val" id="propFabric">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Embroidery &amp; Craft</span>
+                  <span class="g360-prop-val" id="propEmbroidery">—</span>
+                </div>
+
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Silhouette Styling</span>
+                  <span class="g360-prop-val" id="propSilhouette">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Collection Line</span>
+                  <span class="g360-prop-val" id="propCollection">—</span>
+                </div>
+
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Lead Designer</span>
+                  <span class="g360-prop-val" id="propDesigner">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Assigned Master Artisan</span>
+                  <span class="g360-prop-val" id="propArtisan">—</span>
+                </div>
+
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Production Atelier</span>
+                  <span class="g360-prop-val" id="propBranch">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Specimen Sample</span>
+                  <span class="g360-prop-val" id="propSample">—</span>
+                </div>
+
+                <div class="g360-prop-group g360-prop-full">
+                  <span class="g360-prop-lbl">Atelier Notes</span>
+                  <span class="g360-prop-val" id="propNotes" style="font-weight:400;color:var(--g360-text-sec);line-height:1.4;">
+                    —
+                  </span>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- ================= RIGHT COLUMN ================= -->
+          <div class="g360-col-right">
+
+            <!-- Card 1: Production Pipeline & Schedule -->
+            <section class="g360-card" id="cardPipeline">
+              <div class="g360-card-header">
+                <div class="g360-card-heading-wrap">
+                  <i data-lucide="activity" style="width:16px;height:16px;color:var(--g360-accent-lime);"></i>
+                  <h3 class="g360-card-heading">Production Pipeline &amp; Milestones</h3>
+                </div>
+                <span class="g360-material-badge" id="badgeStage">—</span>
+              </div>
+
+              <div class="g360-passport-grid" style="margin-bottom:16px;">
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Material Allocation</span>
+                  <span class="g360-prop-val" id="valMaterialStatus">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Trial Fitting</span>
+                  <span class="g360-prop-val" id="valTrial">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Commitment Due Date</span>
+                  <span class="g360-prop-val" id="valDueDate">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Schedule Status</span>
+                  <span class="g360-prop-val" id="valScheduleDays">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Linked Order</span>
+                  <span class="g360-prop-val" id="valOrderCode">—</span>
+                </div>
+                <div class="g360-prop-group">
+                  <span class="g360-prop-lbl">Client</span>
+                  <span class="g360-prop-val" id="valCustomer">—</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Card 2: Financial Valuation & Commercials -->
+            <section class="g360-card" id="cardFinance">
+              <div class="g360-card-header">
+                <div class="g360-card-heading-wrap">
+                  <i data-lucide="receipt" style="width:16px;height:16px;color:var(--g360-accent-purple);"></i>
+                  <h3 class="g360-card-heading">Financial Valuation &amp; Billing</h3>
+                </div>
+                <span class="g360-status-pill" id="badgePayment">—</span>
+              </div>
+
+              <div class="g360-metrics-strip" style="margin-bottom:8px;">
+                <div class="g360-kpi-card" style="flex:1;">
+                  <span class="g360-kpi-val" id="valTotalVal">₹0</span>
+                  <span class="g360-kpi-lbl">Total Price</span>
+                </div>
+                <div class="g360-kpi-card" style="flex:1;">
+                  <span class="g360-kpi-val" id="valPaidVal" style="color:var(--g360-status-success);">₹0</span>
+                  <span class="g360-kpi-lbl">Paid Advance</span>
+                </div>
+                <div class="g360-kpi-card" style="flex:1;">
+                  <span class="g360-kpi-val" id="valBalanceVal" style="color:var(--g360-status-warning);">₹0</span>
+                  <span class="g360-kpi-lbl">Balance Due</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Card 3: Dynamic Specifications & Measurements -->
+            <section class="g360-card" id="cardSpecs">
+              <div class="g360-card-header">
+                <div class="g360-card-heading-wrap">
+                  <i data-lucide="ruler" style="width:16px;height:16px;color:var(--g360-accent-blue);"></i>
+                  <h3 class="g360-card-heading">Tailoring Specifications &amp; Measurements</h3>
+                </div>
+              </div>
+              <div class="g360-specs-grid" id="g360SpecsContainer">
+                <span style="font-size:12px;color:var(--g360-text-dim);">No custom specifications recorded.</span>
+              </div>
+            </section>
+
+            <!-- Card 4: Artisanal Materials & Trims -->
+            <section class="g360-card" id="cardMaterials">
+              <div class="g360-card-header">
+                <div class="g360-card-heading-wrap">
+                  <i data-lucide="package" style="width:16px;height:16px;color:var(--g360-accent-gold);"></i>
+                  <h3 class="g360-card-heading">Allocated Materials &amp; Trims</h3>
+                </div>
+              </div>
+              <div class="g360-materials-list" id="g360MaterialsContainer">
+                <span style="font-size:12px;color:var(--g360-text-dim);">No materials allocated yet.</span>
+              </div>
+            </section>
+
+            <!-- Card 5: Milestone Timeline -->
+            <section class="g360-card" id="cardTimeline">
+              <div class="g360-card-header">
+                <div class="g360-card-heading-wrap">
+                  <i data-lucide="history" style="width:16px;height:16px;color:var(--g360-text-sec);"></i>
+                  <h3 class="g360-card-heading">Milestone Timeline</h3>
+                </div>
+              </div>
+              <div class="g360-timeline-list" id="g360TimelineContainer">
+                <span style="font-size:12px;color:var(--g360-text-dim);">No activity logged.</span>
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Fullscreen Lightbox Zoom Modal -->
+  <div class="g360-lightbox-overlay" id="g360Lightbox" style="display:none;" onclick="if(event.target===this) Garment360.closeLightbox()">
+    <button type="button" class="g360-lightbox-close" onclick="Garment360.closeLightbox()" aria-label="Close lightbox">
+      <i data-lucide="x" style="width:22px;height:22px;"></i>
+    </button>
+    <img src="" alt="Zoomed View" class="g360-lightbox-img" id="lightboxImg" />
+  </div>
+
+  <!-- Shared Toast Container -->
+  <div class="settings-toast" id="g360Toast" role="alert" aria-live="polite"></div>
+
+  <!-- Hidden Photo Input for Upload -->
+  <input type="file" id="g360PhotoInput" accept="image/*" style="display:none;" onchange="Garment360.handlePhotoUpload(event)" />
+
+  <!-- Shared API Client & Controller Script -->
+  <script src="../../api.js"></script>
+  <script src="garment360.js"></script>
+</body>
+</html>

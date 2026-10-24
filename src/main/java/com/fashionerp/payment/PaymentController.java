@@ -18,13 +18,15 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
+    private final com.fashionerp.common.BranchAccessService branchAccessService;
 
     @GetMapping
     public Page<PaymentDto.Response> list(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String branch,
             Pageable pageable) {
-        return paymentService.list(search, status, pageable);
+        return paymentService.list(search, status, branch, pageable);
     }
 
     @GetMapping("/{id}")
@@ -70,18 +72,40 @@ public class PaymentController {
     }
 
     @GetMapping("/kpis")
-    public Map<String, Object> kpis() {
+    public Map<String, Object> kpis(@RequestParam(required = false) String branch) {
         UUID companyId = com.fashionerp.common.TenantContext.requireCompanyId();
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.PAYMENTS);
         Map<String, Object> m = new LinkedHashMap<>();
-        BigDecimal totalColl = paymentRepository.sumPaidAmount(companyId);
-        BigDecimal pendingBal = paymentRepository.sumPendingAmount(companyId);
-        BigDecimal thisMonthColl = paymentRepository.sumThisMonthPaidAmount(companyId);
+
+        BigDecimal totalColl;
+        BigDecimal pendingBal;
+        BigDecimal thisMonthColl;
+        long overdueCount;
+        long partialCount;
+        long invoiceCount;
+
+        if (branchFilter != null) {
+            totalColl = paymentRepository.sumPaidAmountByBranch(companyId, branchFilter);
+            pendingBal = paymentRepository.sumPendingAmountByBranch(companyId, branchFilter);
+            thisMonthColl = paymentRepository.sumThisMonthPaidAmountByBranch(companyId, branchFilter);
+            overdueCount = paymentRepository.countOverdueByBranch(companyId, branchFilter);
+            partialCount = paymentRepository.countByCompanyIdAndBranchAndStatus(companyId, branchFilter, PaymentStatus.PARTIAL);
+            invoiceCount = paymentRepository.countByCompanyIdAndBranch(companyId, branchFilter);
+        } else {
+            totalColl = paymentRepository.sumPaidAmount(companyId);
+            pendingBal = paymentRepository.sumPendingAmount(companyId);
+            thisMonthColl = paymentRepository.sumThisMonthPaidAmount(companyId);
+            overdueCount = paymentRepository.countOverdue(companyId);
+            partialCount = paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL);
+            invoiceCount = paymentRepository.countByCompanyId(companyId);
+        }
+
         m.put("totalCollected",     totalColl != null ? totalColl : BigDecimal.ZERO);
         m.put("pendingBalance",     pendingBal != null ? pendingBal : BigDecimal.ZERO);
-        m.put("overdueCount",       paymentRepository.countOverdue(companyId));
-        m.put("partialCount",       paymentRepository.countByCompanyIdAndStatus(companyId, PaymentStatus.PARTIAL));
+        m.put("overdueCount",       overdueCount);
+        m.put("partialCount",       partialCount);
         m.put("thisMonthCollected", thisMonthColl != null ? thisMonthColl : BigDecimal.ZERO);
-        m.put("invoiceCount",       paymentRepository.countByCompanyId(companyId));
+        m.put("invoiceCount",       invoiceCount);
         return m;
     }
 }

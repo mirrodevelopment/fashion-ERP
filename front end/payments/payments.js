@@ -1654,7 +1654,9 @@
 
     try {
       const { default: api } = await import('../api.js');
-      const kpis = await api.payments.kpis().catch(() => null);
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const kpiParams = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+      const kpis = await api.payments.kpis(kpiParams).catch(() => null);
       if (kpis) {
         if (kpis.totalCollected != null) totalCollected = Number(kpis.totalCollected) || 0;
         if (kpis.pendingBalance != null) pendingBalance = Number(kpis.pendingBalance) || 0;
@@ -1670,7 +1672,7 @@
     const elOverdueSub = document.getElementById('kpiOverduePaymentsSub');
     const elPendingSub = document.getElementById('kpiPendingReceivablesSub');
 
-    if (elReceipts) elReceipts.textContent = formatRupees(thisMonthCollected || totalCollected);
+    if (elReceipts) elReceipts.textContent = formatRupees(thisMonthCollected ?? totalCollected ?? 0);
     if (elAdvance)  elAdvance.textContent  = formatRupees(advanceReceived);
     if (elPending)  elPending.textContent  = formatRupees(pendingBalance);
     if (elOverdue)  elOverdue.textContent  = formatRupees(overdueBalance);
@@ -1713,7 +1715,10 @@
         window.location.href = '../login/login.html';
         return;
       }
-      const res = await api.payments.list({ page: 0, size: 500 });
+      const activeBranch = localStorage.getItem('haulo_active_branch');
+      const params = { page: 0, size: 500 };
+      if (activeBranch && activeBranch !== 'ALL') params.branch = activeBranch;
+      const res = await api.payments.list(params);
       const items = Array.isArray(res) ? res : (res && res.content ? res.content : []);
       const realPayments = items.map(p => ({
         id: p.id,
@@ -1737,8 +1742,8 @@
       }));
 
       // Auto-backfill: if payments table is empty, trigger backfill once per session
-      // to create Payment records for all existing orders automatically
-      if (realPayments.length === 0 && !sessionStorage.getItem('payments_backfill_done')) {
+      // to create Payment records for all existing orders automatically (only when viewing ALL branches)
+      if ((!activeBranch || activeBranch === 'ALL') && realPayments.length === 0 && !sessionStorage.getItem('payments_backfill_done')) {
         sessionStorage.setItem('payments_backfill_done', '1');
         try {
           const backfillResult = await api.payments.backfill();

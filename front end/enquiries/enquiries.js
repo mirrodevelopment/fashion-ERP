@@ -60,18 +60,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadKpis() {
   if (!apiInstance) return;
   try {
-    const kpisPromise = apiInstance.enquiries.kpis().catch(() => null);
+    const activeBranch = localStorage.getItem('haulo_active_branch');
+    const branchParam = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+    const kpisPromise = apiInstance.enquiries.kpis(branchParam).catch(() => null);
 
     // Fetch live counts for every status directly from backend database
     const [kpis, allRes, newRes, inDiscRes, quoteRes, convRes, closedRes, followRes] = await Promise.all([
       kpisPromise,
-      apiInstance.enquiries.page({ size: 1 }).catch(() => null),
-      apiInstance.enquiries.page({ status: 'NEW', size: 1 }).catch(() => null),
-      apiInstance.enquiries.page({ status: 'IN_DISCUSSION', size: 1 }).catch(() => null),
-      apiInstance.enquiries.page({ status: 'QUOTATION_SENT', size: 1 }).catch(() => null),
-      apiInstance.enquiries.page({ status: 'CONVERTED', size: 1 }).catch(() => null),
-      apiInstance.enquiries.page({ status: 'CLOSED', size: 1 }).catch(() => null),
-      apiInstance.enquiries.page({ status: 'FOLLOW_UP', size: 1 }).catch(() => null)
+      apiInstance.enquiries.page({ ...branchParam, size: 1 }).catch(() => null),
+      apiInstance.enquiries.page({ ...branchParam, status: 'NEW', size: 1 }).catch(() => null),
+      apiInstance.enquiries.page({ ...branchParam, status: 'IN_DISCUSSION', size: 1 }).catch(() => null),
+      apiInstance.enquiries.page({ ...branchParam, status: 'QUOTATION_SENT', size: 1 }).catch(() => null),
+      apiInstance.enquiries.page({ ...branchParam, status: 'CONVERTED', size: 1 }).catch(() => null),
+      apiInstance.enquiries.page({ ...branchParam, status: 'CLOSED', size: 1 }).catch(() => null),
+      apiInstance.enquiries.page({ ...branchParam, status: 'FOLLOW_UP', size: 1 }).catch(() => null)
     ]);
 
     const totalCount = allRes?.totalElements ?? kpis?.total ?? 0;
@@ -136,11 +138,15 @@ function mapFilterStatusToBackend(status) {
 async function loadEnquiries(page = 0) {
   if (!apiInstance) return;
   try {
+    const activeBranch = localStorage.getItem('haulo_active_branch');
     const params = {
       page: page,
       size: pageSize,
       sort: 'createdAt,desc'
     };
+    if (activeBranch && activeBranch !== 'ALL') {
+      params.branch = activeBranch;
+    }
 
     if (currentSearchQuery) {
       params.search = currentSearchQuery;

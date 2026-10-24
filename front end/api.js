@@ -339,7 +339,7 @@ const api = {
   },
 
   dashboard: {
-    kpis: () => get('/dashboard/kpis'),
+    kpis: (params = {}) => get('/dashboard/kpis', params),
   },
 
   customers: {
@@ -392,6 +392,7 @@ const api = {
   },
 
   measurements: {
+    list: async (params = {}) => unwrapList(await get('/measurements', params)),
     listByCustomer: (mobile) => get('/measurements', { customerMobile: mobile }),
     get: (id) => get(`/measurements/${id}`),
     create: (data) => post('/measurements', data),
@@ -415,7 +416,7 @@ const api = {
     },
     adjustStock: (id, data) => patch(`/inventory/${id}/adjust`, data),
     delete: (id) => del(`/inventory/${id}`),
-    kpis: () => get('/inventory/kpis'),
+    kpis: (params = {}) => get('/inventory/kpis', params),
     /** Paginated list of all stock movements across all items */
     allMovements: (params = {}) => get('/inventory/movements', params),
     /** All movements for a specific inventory item (by UUID) */
@@ -431,7 +432,7 @@ const api = {
     create: (data) => post('/payments', data),
     recordTransaction: (id, data) => post(`/payments/${id}/transactions`, data),
     backfill: () => post('/payments/backfill', {}),
-    kpis: () => get('/payments/kpis'),
+    kpis: (params = {}) => get('/payments/kpis', params),
   },
 
   // NOTE: collections namespace is defined once below (merged from duplicate at original L265 and L419)
@@ -447,7 +448,7 @@ const api = {
     create: (data) => post('/appointments', data),
     updateStatus: (id, status) => patch(`/appointments/${id}/status?status=${status}`, {}),
     reschedule: (id, data) => patch(`/appointments/${id}/reschedule`, data),
-    kpis: () => get('/appointments/kpis'),
+    kpis: (params = {}) => get('/appointments/kpis', params),
   },
 
   employees: {
@@ -458,7 +459,7 @@ const api = {
     update: (id, data) => put(`/employees/${id}`, data),
     uploadAvatar: (id, file) => uploadFile(`/employees/${encodeURIComponent(id)}/avatar`, file),
     delete: (id) => del(`/employees/${id}`),
-    kpis: () => get('/employees/kpis'),
+    kpis: (params = {}) => get('/employees/kpis', params),
     departments: () => get('/employees/departments'),
   },
 
@@ -470,7 +471,7 @@ const api = {
     create: (data) => post('/enquiries', data),
     update: (id, data) => put(`/enquiries/${id}`, data),
     delete: (id) => del(`/enquiries/${id}`),
-    kpis: () => get('/enquiries/kpis'),
+    kpis: (params = {}) => get('/enquiries/kpis', params),
   },
 
   designs: {
@@ -519,7 +520,7 @@ const api = {
       return post(`/production/transition?${qs}`, {});
     },
     getNextAfterQc: () => get('/production/qc/next-stage'),
-    kpis: () => get('/production/kpis'),
+    kpis: (params = {}) => get('/production/kpis', params),
 
     /** Stage Definitions — workflow blueprint CRUD */
     stageDefinitions: {
@@ -559,7 +560,7 @@ const api = {
       if (notes) qs += `&notes=${encodeURIComponent(notes)}`;
       return post(`/qc/rework?${qs}`, {});
     },
-    kpis: () => get('/qc/kpis'),
+    kpis: (params = {}) => get('/qc/kpis', params),
   },
 
   trials: {
@@ -587,7 +588,7 @@ const api = {
     },
     scheduleRetrial: (id, data) => post(`/trials/${id}/schedule-retrial`, data || {}),
     ordersForTrial: (params = {}) => get('/trials/orders-for-trial', params),
-    kpis: () => get('/trials/kpis'),
+    kpis: (params = {}) => get('/trials/kpis', params),
   },
 
   collections: {
@@ -634,8 +635,8 @@ const api = {
     /**
      * Get Garment KPIs & stage counts
      */
-    kpis: async () => {
-      const res = await get('/garments/kpis');
+    kpis: async (params = {}) => {
+      const res = await get('/garments/kpis', params);
       // BUG-P0-04 FIX: No fabricated fallback — return zeroed defaults so UI shows error state, not fake data
       return res || {
         totalGarments: 0,
@@ -772,6 +773,7 @@ const api = {
      * Get a single user summary by UUID.
      */
     getById:      (id)          => get(`/users/${id}`),
+    get:          (id)          => get(`/users/${id}`),
     /**
      * Create a new user. Required fields: username, fullName, password, role.
      * Role must be a valid UserRole enum name.
@@ -787,6 +789,10 @@ const api = {
      * Service guards against deactivating the last active ADMIN.
      */
     toggleActive: (id)          => patch(`/users/${id}/toggle-active`),
+    /**
+     * Activate all user accounts in the company.
+     */
+    activateAll:  ()            => post('/users/activate-all'),
     /**
      * Fetch all available UserRoles and metadata from backend.
      */
@@ -851,12 +857,13 @@ const api = {
 
   // ─── Garments (Haute Couture Atelier Catalog) ───────────────────
   garments: {
-    list:   (params = {}) => get('/garments', params),
-    get:    (id)          => get(`/garments/${id}`),
-    kpis:   ()            => get('/garments/kpis'),
-    create: (data)        => post('/garments', data),
-    update: (id, data)    => put(`/garments/${id}`, data),
-    delete: (id)          => del(`/garments/${id}`),
+    list:          (params = {}) => get('/garments', { catalogOnly: true, ...params }),
+    get:           (id)          => get(`/garments/${id}`),
+    kpis:          (params = {}) => get('/garments/kpis', { catalogOnly: true, ...params }),
+    filterOptions: (params = {}) => get('/garments/filter-options', { catalogOnly: true, silent: true, ...params }),
+    create:        (data)        => post('/garments', data),
+    update:        (id, data)    => put(`/garments/${id}`, data),
+    delete:        (id)          => del(`/garments/${id}`),
   }
 };
 

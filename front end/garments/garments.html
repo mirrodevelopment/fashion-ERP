@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-brand-title="Garments">Garments — Haute Couture Catalog</title>
@@ -38,6 +47,15 @@
 
         <!-- Header Row -->
         <header class="page-header garments-header">
+  <!-- Early Theme Restoration to Prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('haulo-theme');
+        if (t && t !== 'classic') document.documentElement.setAttribute('data-theme', t);
+      } catch (_) {}
+    })();
+  </script>
           <div class="header-left">
             <div id="breadcrumbSlot"></div>
             <h1 class="page-title">Garments</h1>
@@ -144,7 +162,7 @@
             <div class="kpi-data">
               <span class="kpi-label">Avg. Crafting Effort</span>
               <div class="kpi-val-row">
-                <span class="kpi-value" id="valAvgCrafting">28h</span>
+                <span class="kpi-value" id="valAvgCrafting">0h</span>
               </div>
               <span class="kpi-delta delta-neutral" id="deltaAvgCrafting">Artisan hours / garment</span>
             </div>
@@ -164,56 +182,24 @@
             <!-- Garment Type / Silhouette -->
             <select id="filterGarmentType" class="filter-select" onchange="handleFilterChange()" title="Filter by Silhouette">
               <option value="all">Silhouette</option>
-              <option value="Lehenga">Lehenga</option>
-              <option value="Blouse">Blouse</option>
-              <option value="Saree">Saree</option>
-              <option value="Sherwani">Sherwani</option>
-              <option value="Anarkali">Anarkali</option>
-              <option value="Gown">Gown</option>
-              <option value="Kurti">Kurti</option>
-              <option value="Chudi">Chudi</option>
             </select>
 
             <!-- Collection -->
             <select id="filterCollection" class="filter-select" onchange="handleFilterChange()" title="Filter by Collection">
               <option value="all">Collection</option>
-              <option value="Heritage Bridal 2026">Heritage Bridal</option>
-              <option value="Festive 2026">Festive 2026</option>
-              <option value="Wedding Edit">Wedding Edit</option>
-              <option value="Summer Pastels">Summer Pastels</option>
-              <option value="Contemporary Classics">Contemporary</option>
-              <option value="Festive Edit">Festive Edit</option>
             </select>
 
             <!-- Fabric / Material -->
             <select id="filterFabric" class="filter-select" onchange="handleFilterChange()" title="Filter by Fabric">
               <option value="all">Fabric</option>
-              <option value="Silk">Silk / Raw Silk</option>
-              <option value="Velvet">Velvet</option>
-              <option value="Organza">Organza</option>
-              <option value="Georgette">Georgette</option>
-              <option value="Brocade">Brocade</option>
-              <option value="Satin">Satin</option>
             </select>
 
 
             <!-- Atelier Status -->
             <select id="filterStatus" class="filter-select" onchange="handleFilterChange()" title="Filter by Status">
               <option value="all">Status</option>
-              <option value="In Production">In Production</option>
-              <option value="Ready">Ready</option>
-              <option value="Awaiting QC">Awaiting QC</option>
-              <option value="Designing">Designing</option>
-              <option value="Archived">Archived</option>
             </select>
 
-            <!-- Material Availability -->
-            <select id="filterMaterialStatus" class="filter-select" onchange="handleFilterChange()" title="Filter by Material Readiness">
-              <option value="all">Material</option>
-              <option value="READY">Ready</option>
-              <option value="PARTIAL">Partial</option>
-              <option value="AWAITING">Awaiting</option>
-            </select>
 
             <!-- Designer / Artisan -->
             <select id="filterDesigner" class="filter-select" onchange="handleFilterChange()" title="Filter by Artisan / Designer">
@@ -247,9 +233,7 @@
                     <th class="th-collection">Collection &amp; Blueprint</th>
                     <th class="th-fabric">Fabric &amp; Craftsmanship</th>
                     <th class="th-color">Color &amp; Swatch</th>
-                    <th class="th-material">Material Readiness<br><span class="th-sub">Inventory Status</span></th>
                     <th class="th-artisan">Atelier Branch<br><span class="th-sub">Lead Artisan</span></th>
-                    <th class="th-price">Suggested Price<br><span class="th-sub">Making Cost</span></th>
                     <th class="th-actions"><i data-lucide="more-vertical" style="width:14px;height:14px;"></i></th>
                   </tr>
                 </thead>
@@ -303,7 +287,7 @@
 
             <!-- Inspector Hero Media -->
             <div class="inspector-hero-wrap">
-              <img id="inspectorHeroImg" src="../assets/garments/zardozi_handwork.jpg" alt="Garment Preview" onerror="this.src='../assets/garments/bridal_blouse_zardozi.jpg'" />
+              <img id="inspectorHeroImg" src="" alt="Garment Preview" onerror="this.style.display='none'" />
               <div class="inspector-hero-badge-overlay" id="inspectorHeroOverlay">
                 <span class="badge-silhouette-chip" id="inspectorHeroSilhouette">—</span>
               </div>
@@ -321,10 +305,13 @@
             </div>
 
             <!-- Primary Inspector Action Button -->
-            <div class="inspector-primary-action-wrap">
-              <button type="button" class="btn btn-lime-cta" onclick="viewGarmentDetails()">
+            <div class="inspector-primary-action-wrap" style="display:flex;gap:8px;">
+              <button type="button" class="btn btn-lime-cta" onclick="viewGarmentDetails()" style="flex:1;">
                 <span>Open Garment 360° Dossier</span>
                 <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+              </button>
+              <button type="button" class="btn btn-glass-sub" onclick="toggleInspectorExpand()" title="Expand Specs Drawer" aria-label="Expand Specs Drawer">
+                <i data-lucide="maximize-2" style="width:16px;height:16px;"></i>
               </button>
             </div>
 
@@ -373,14 +360,6 @@
                     <span class="pair-value" id="detSilhouette">—</span>
                   </div>
                   <div class="pair-row">
-                    <span class="pair-label">Suggested Price</span>
-                    <span class="pair-value price-highlight" id="detSuggestedPrice">—</span>
-                  </div>
-                  <div class="pair-row">
-                    <span class="pair-label">Estimated Cost</span>
-                    <span class="pair-value" id="detEstimatedCost">—</span>
-                  </div>
-                  <div class="pair-row">
                     <span class="pair-label">Crafting Hours</span>
                     <span class="pair-value" id="detCraftingHours">—</span>
                   </div>
@@ -391,10 +370,6 @@
                   <div class="pair-row">
                     <span class="pair-label">Atelier Workshop</span>
                     <span class="pair-value" id="detBranch">—</span>
-                  </div>
-                  <div class="pair-row">
-                    <span class="pair-label">Material Status</span>
-                    <span class="pair-value"><span class="dot-status ready"></span> <span id="detMaterialStatus">—</span></span>
                   </div>
                 </div>
 

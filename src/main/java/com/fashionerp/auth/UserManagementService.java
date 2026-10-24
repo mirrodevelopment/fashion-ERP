@@ -2,6 +2,7 @@ package com.fashionerp.auth;
 
 import com.fashionerp.profile.UserProfile;
 import com.fashionerp.profile.UserProfileRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +44,71 @@ public class UserManagementService {
     private final PasswordEncoder passwordEncoder;
     private final com.fashionerp.branch.BranchRepository branchRepository;
     private final UserDelegationRepository delegationRepository;
+
+    /**
+     * Startup verification sweep: Ensures all existing users are set to active=true and status='ACTIVE'.
+     */
+    @PostConstruct
+    @Transactional
+    public void ensureAllUsersActive() {
+        try {
+            List<AppUser> users = userRepository.findAll();
+            int updated = 0;
+            for (AppUser user : users) {
+                boolean changed = false;
+                if (!Boolean.TRUE.equals(user.getActive())) {
+                    user.setActive(true);
+                    changed = true;
+                }
+                if (user.getStatus() == null || !"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+                    user.setStatus("ACTIVE");
+                    changed = true;
+                }
+                if (changed) {
+                    user.setUpdatedAt(LocalDateTime.now());
+                    userRepository.save(user);
+                    updated++;
+                }
+            }
+            if (updated > 0) {
+                log.info("[UserManagement] Initial sweep set {} users to active=true and status=ACTIVE.", updated);
+            }
+        } catch (Exception e) {
+            log.warn("[UserManagement] Initial user activation sweep skipped: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Activates all users within the company/system.
+     * Sets active = true and status = 'ACTIVE' for all users.
+     */
+    @Transactional
+    public int activateAllUsers() {
+        UUID companyId = com.fashionerp.common.TenantContext.getCompanyId();
+        List<AppUser> userList = (companyId != null)
+                ? userRepository.findByCompanyId(companyId)
+                : userRepository.findAll();
+
+        int count = 0;
+        for (AppUser user : userList) {
+            boolean changed = false;
+            if (!Boolean.TRUE.equals(user.getActive())) {
+                user.setActive(true);
+                changed = true;
+            }
+            if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+                user.setStatus("ACTIVE");
+                changed = true;
+            }
+            if (changed) {
+                user.setUpdatedAt(LocalDateTime.now());
+                userRepository.save(user);
+                count++;
+            }
+        }
+        log.info("Activated {} users to active=true and status=ACTIVE", count);
+        return count;
+    }
     private final UserAccessLogRepository accessLogRepository;
     private final UserActiveSessionRepository activeSessionRepository;
 
@@ -592,7 +658,15 @@ public class UserManagementService {
                 UserManagementDto.ModuleInfo.builder().key("users-roles").label("Users & Roles")
                         .section("Administration").icon("shield-check").available(true).build(),
                 UserManagementDto.ModuleInfo.builder().key("settings").label("Settings").section("Administration")
-                        .icon("settings").available(true).build());
+                        .icon("settings").available(true).build(),
+
+                // Action & Operational Clearances
+                UserManagementDto.ModuleInfo.builder().key("orders.create").label("Create Orders")
+                        .section("Action Clearances").icon("shopping-bag").available(true).build(),
+                UserManagementDto.ModuleInfo.builder().key("orders.delete").label("Delete Orders")
+                        .section("Action Clearances").icon("trash-2").available(true).build(),
+                UserManagementDto.ModuleInfo.builder().key("finance.view").label("View Financial Data")
+                        .section("Action Clearances").icon("dollar-sign").available(true).build());
     }
 
     /**
@@ -606,6 +680,7 @@ public class UserManagementService {
         } else if (role == UserRole.BRANCH_ADMIN) {
             return List.of(
                     "dashboard", "enquiries", "appointments", "customers", "orders", "payments",
+                    "orders.create",
                     "garments", "designs", "measurements", "fabrics", "collections",
                     "production-room", "job-cards", "trials-alterations", "quality-control",
                     "stock", "purchases", "delivery", "employees", "branches", "users-roles");
@@ -707,6 +782,7 @@ public class UserManagementService {
                 .username(req.getUsername().trim())
                 .fullName(req.getFullName() != null ? req.getFullName().trim() : req.getUsername().trim())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
+                .devPassword(req.getPassword())
                 .role(role)
                 .active(true)
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
@@ -718,6 +794,7 @@ public class UserManagementService {
                 .allowedModules(serializeModules(modulesToSet))
                 .accessScope(scope)
                 .approvalLimit(req.getApprovalLimit())
+                .avatarUrl(req.getAvatarUrl() != null && !req.getAvatarUrl().isBlank() ? req.getAvatarUrl().trim() : null)
                 .status(req.getStatus() != null && !req.getStatus().isBlank() ? req.getStatus().trim() : "ACTIVE")
                 .riskLevel(
                         req.getRiskLevel() != null && !req.getRiskLevel().isBlank() ? req.getRiskLevel().trim() : "LOW")
@@ -845,6 +922,7 @@ public class UserManagementService {
                 throw new IllegalArgumentException("Password must be at least 6 characters.");
             }
             user.setPasswordHash(passwordEncoder.encode(req.getPassword()));
+            user.setDevPassword(req.getPassword());
         }
 
         if (req.getAccessScope() != null && !req.getAccessScope().isBlank()) {
@@ -852,6 +930,9 @@ public class UserManagementService {
         }
         if (req.getApprovalLimit() != null) {
             user.setApprovalLimit(req.getApprovalLimit());
+        }
+        if (req.getAvatarUrl() != null) {
+            user.setAvatarUrl(req.getAvatarUrl().trim().isEmpty() ? null : req.getAvatarUrl().trim());
         }
         if (req.getStatus() != null && !req.getStatus().isBlank()) {
             user.setStatus(req.getStatus().trim());

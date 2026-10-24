@@ -33,6 +33,7 @@ public class GarmentController {
             @RequestParam(required = false) String fabric,
             @RequestParam(required = false) String designer,
             @RequestParam(required = false) String branch,
+            @RequestParam(defaultValue = "true") Boolean catalogOnly,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -42,7 +43,7 @@ public class GarmentController {
         Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity.ok(garmentService.search(
                 search, stage, status, garmentType, collection,
-                priority, materialStatus, fabric, designer, branch, pageable
+                priority, materialStatus, fabric, designer, branch, catalogOnly, pageable
         ));
     }
 
@@ -51,15 +52,29 @@ public class GarmentController {
      * Live metrics for top 6 KPI cards + stage tabs
      */
     @GetMapping("/kpis")
-    public ResponseEntity<GarmentDto.KpiResponse> kpis() {
-        return ResponseEntity.ok(garmentService.getKpis());
+    public ResponseEntity<GarmentDto.KpiResponse> kpis(
+            @RequestParam(defaultValue = "true") Boolean catalogOnly,
+            @RequestParam(required = false) String branch
+    ) {
+        return ResponseEntity.ok(garmentService.getKpis(catalogOnly, branch));
+    }
+
+    /**
+     * GET /api/v1/garments/filter-options
+     * Dynamic database-backed filter options (garment types, fabrics, collections, branches, artisans)
+     */
+    @GetMapping("/filter-options")
+    public ResponseEntity<java.util.Map<String, Object>> filterOptions(
+            @RequestParam(defaultValue = "true") Boolean catalogOnly
+    ) {
+        return ResponseEntity.ok(garmentService.getFilterOptions(catalogOnly));
     }
 
     /**
      * GET /api/v1/garments/{id}
      * Full inspection breakdown for right inspector drawer
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[0-9a-fA-F\\-]{36}}")
     public ResponseEntity<GarmentDto.DetailResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(garmentService.getById(id));
     }
@@ -75,7 +90,7 @@ public class GarmentController {
     /**
      * PUT /api/v1/garments/{id}
      */
-    @PutMapping("/{id}")
+    @PutMapping("/{id:[0-9a-fA-F\\-]{36}}")
     public ResponseEntity<GarmentDto.SummaryResponse> update(
             @PathVariable UUID id,
             @RequestBody GarmentDto.UpdateRequest req
@@ -104,6 +119,15 @@ public class GarmentController {
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file
     ) {
         return ResponseEntity.ok(garmentService.uploadGarmentImage(id, file));
+    }
+
+    /**
+     * DELETE /api/v1/garments/{id}
+     */
+    @DeleteMapping("/{id:[0-9a-fA-F\\-]{36}}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        garmentService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
 

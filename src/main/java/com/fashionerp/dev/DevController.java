@@ -1,10 +1,10 @@
 package com.fashionerp.dev;
 
+import com.fashionerp.auth.AuthDto;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,5 +29,22 @@ public class DevController {
     @GetMapping("/personas")
     public ResponseEntity<List<DevDto.CompanyPersonaResponse>> getDeveloperPersonas() {
         return ResponseEntity.ok(devService.getDeveloperPersonas());
+    }
+
+    /**
+     * POST /api/v1/dev/login
+     * Developer Mode Auto-Login:
+     * Instantly signs in as any active database persona without requiring their password.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<AuthDto.LoginResponse> devLogin(
+            @RequestBody DevDto.DevLoginRequest req,
+            HttpServletRequest request
+    ) {
+        String clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isBlank()) {
+            clientIp = request.getRemoteAddr();
+        }
+        return ResponseEntity.ok(devService.devLogin(req, clientIp));
     }
 }
