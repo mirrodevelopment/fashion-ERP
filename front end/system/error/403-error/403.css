@@ -26,8 +26,8 @@
   --text-muted: #8c8690;
   --text-dim: #b5b0b8;
 
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Montserrat', Georgia, serif;
 }
 
 *, *::before, *::after {

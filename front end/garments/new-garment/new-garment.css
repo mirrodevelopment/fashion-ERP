@@ -30,7 +30,7 @@
 
   --radius-card: 14px;
   --radius-btn: 8px;
-  --font-main: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-main: var(--font-body, 'Montserrat', system-ui, -apple-system, sans-serif);
 }
 
 *, *::before, *::after {

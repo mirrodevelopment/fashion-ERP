@@ -1336,7 +1336,7 @@
             grid: { display: false, drawBorder: false },
             ticks: {
               color: 'rgba(255, 255, 255, 0.65)',
-              font: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || "'Plus Jakarta Sans', sans-serif", size: 11 }
+              font: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || "'Montserrat', sans-serif", size: 11 }
             }
           },
           y: {
@@ -1346,7 +1346,7 @@
               stepSize: 10,
               callback: function (val) { return val + '"'; },
               color: 'rgba(255, 255, 255, 0.45)',
-              font: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || "'Plus Jakarta Sans', sans-serif", size: 10.5 }
+              font: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || "'Montserrat', sans-serif", size: 10.5 }
             },
             grid: { color: 'rgba(255, 255, 255, 0.07)', drawBorder: false }
           }

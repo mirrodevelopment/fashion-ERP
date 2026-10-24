@@ -1088,7 +1088,7 @@ body {
   padding: 6px 10px;
   font-size: 0.78rem;
   font-weight: 600;
-  font-family: var(--font-main, 'Outfit', sans-serif);
+  font-family: var(--font-main, 'Montserrat', sans-serif);
   letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;

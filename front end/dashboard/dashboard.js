@@ -534,7 +534,7 @@ function renderQuickActions() {
 function applyChartDefaults() {
   if (typeof Chart !== 'undefined') {
     Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
-    Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+    Chart.defaults.font.family = "'Montserrat', system-ui, sans-serif";
     Chart.defaults.font.size = 10;
   }
 }

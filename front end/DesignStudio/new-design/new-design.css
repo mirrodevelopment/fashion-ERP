@@ -25,7 +25,7 @@
 
   --radius-card: 14px;
   --radius-btn: 9px;
-  --font-main: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-main: var(--font-body, 'Montserrat', system-ui, -apple-system, sans-serif);
 }
 
 *, *::before, *::after {

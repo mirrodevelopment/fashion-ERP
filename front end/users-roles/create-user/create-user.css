@@ -29,7 +29,7 @@
 
   --radius-card: 16px;
   --radius-btn: 10px;
-  --font-main: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-main: var(--font-body, 'Montserrat', system-ui, -apple-system, sans-serif);
 }
 
 /* --- Global Reset & Box Sizing --- */

@@ -285,7 +285,7 @@
       const labelText = yVal === 0 ? '0' : `${Math.round(yVal / 100000)}L`;
       yLabelsHtml += `
         <text x="${paddingLeft - 8}" y="${yPos + 3.5}" fill="rgba(255,255,255,0.38)" 
-              font-size="9.5" font-family="'Plus Jakarta Sans', sans-serif" text-anchor="end">${labelText}</text>
+              font-size="9.5" font-family="'Montserrat', sans-serif" text-anchor="end">${labelText}</text>
       `;
     });
 
@@ -321,7 +321,7 @@
                 fill="#d4ff32" class="bar-trim" />
 
           <text x="${centerX}" y="${baseY + 16}" fill="rgba(255,255,255,0.45)" 
-                font-size="10" font-family="'Plus Jakarta Sans', sans-serif" text-anchor="middle">${item.month}</text>
+                font-size="10" font-family="'Montserrat', sans-serif" text-anchor="middle">${item.month}</text>
         </g>
       `;
     });

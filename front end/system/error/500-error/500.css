@@ -20,8 +20,8 @@
   --text-dim: rgba(255, 255, 255, 0.28);
   --divider-color: rgba(223, 183, 108, 0.28);
 
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Montserrat', Georgia, serif;
 }
 
 *, *::before, *::after {

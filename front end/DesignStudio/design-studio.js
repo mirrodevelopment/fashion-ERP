@@ -303,8 +303,8 @@
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(30, 27, 23, 0.95)',
-            titleFont: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || 'Plus Jakarta Sans', size: 11 },
-            bodyFont: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || 'Plus Jakarta Sans', size: 11 },
+            titleFont: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || 'Montserrat', size: 11 },
+            bodyFont: { family: (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || 'Montserrat', size: 11 },
             padding: 8,
             cornerRadius: 8,
             callbacks: {

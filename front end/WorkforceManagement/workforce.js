@@ -10,7 +10,7 @@
   'use strict';
 
   const FALLBACK_AVATAR_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2224%22 height=%2224%22 fill=%22none%22 stroke=%22%2394a3b8%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2%22/%3E%3Ccircle cx=%2212%22 cy=%227%22 r=%224%22/%3E%3C/svg%3E";
-  const THEME_FONT_SANS = (typeof window !== 'undefined' && window.getComputedStyle ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || "'Plus Jakarta Sans', sans-serif";
+  const THEME_FONT_SANS = (typeof window !== 'undefined' && window.getComputedStyle ? getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() : '') || "'Montserrat', sans-serif";
 
   /* ==========================================================================
      1. APPLICATION CENTRAL STATE

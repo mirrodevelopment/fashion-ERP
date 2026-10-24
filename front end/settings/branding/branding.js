@@ -94,7 +94,7 @@ const BrandingSettings = (() => {
       headerColor: document.getElementById('invoiceHeaderColor')?.value || '#1F211F',
       accentColor: document.getElementById('accentColor')?.value || '#B8FF3D',
       invoiceTemplate: document.getElementById('invoiceTemplate')?.value || 'luxury',
-      invoiceFont: document.getElementById('invoiceFont')?.value || 'Plus Jakarta Sans',
+      invoiceFont: document.getElementById('invoiceFont')?.value || 'Montserrat',
       invoiceFooterText: document.getElementById('invoiceFooterText')?.value || ''
     };
 

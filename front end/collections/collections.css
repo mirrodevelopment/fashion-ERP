@@ -24,8 +24,8 @@
   --lime-dark: #0f1406;
   --lime-glow: rgba(184, 255, 61, 0.3);
 
-  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: var(--font-serif, 'Montserrat', Georgia, serif);
+  --font-sans: var(--font-sans, 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif);
 
   --radius-sm: 6px;
   --radius-md: 10px;

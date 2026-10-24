@@ -2,22 +2,22 @@
    HAULO BOUTIQUE ERP — Centralized Typography & Font Design System
    Path: front end/fragments/font/font.css
    Single source of truth for all boutique typography across the entire ERP.
-   Consolidates all 7 fonts: Playfair Display, Plus Jakarta Sans, Inter,
-   Outfit, Cormorant Garamond, Caveat, and JetBrains Mono.
+   Unified on Montserrat for modern luxury aesthetics, retaining JetBrains Mono
+   for technical SKUs/codes and Caveat for tailor notes.
    ======================================================================= */
 
 /* ── 1. Unified Google Fonts Import (HTTP/2 Multiplexed with Swap Display) ── */
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700&display=swap');
 
 /* ── 2. Master Typography Design Tokens (:root) ── */
 :root {
-  /* ── Font Family Stacks ── */
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
-  --font-body: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
-  --font-fashion: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-editorial: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  /* ── Font Family Stacks (Unified Montserrat System) ── */
+  --font-sans: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Montserrat', Georgia, serif;
+  --font-body: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-display: 'Montserrat', sans-serif;
+  --font-fashion: 'Montserrat', sans-serif;
+  --font-editorial: 'Montserrat', sans-serif;
   --font-handwritten: 'Caveat', cursive, sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
 
@@ -38,13 +38,13 @@
   --text-4xl: 4rem;      /* 64px */
 
   /* ── Letter Spacing (Tracking) ── */
-  --tracking-tighter: -0.03em;
-  --tracking-tight:   -0.015em;
+  --tracking-tighter: -0.02em;
+  --tracking-tight:   -0.01em;
   --tracking-normal:   0em;
-  --tracking-wide:     0.04em;
-  --tracking-wider:    0.10em;
-  --tracking-widest:   0.20em;
-  --tracking-brand:    0.28em;
+  --tracking-wide:     0.03em;
+  --tracking-wider:    0.08em;
+  --tracking-widest:   0.16em;
+  --tracking-brand:    0.22em;
 
   /* ── Font Weights ── */
   --font-light:     300;

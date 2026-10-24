@@ -52,7 +52,7 @@ body[data-module="users-roles"],
 .ur-root button,
 .ur-root select,
 .ur-root textarea {
-  font-family: var(--font-body, 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif);
+  font-family: var(--font-body, 'Montserrat', system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -113,7 +113,7 @@ body[data-module="users-roles"],
 }
 
 .ur-page-title {
-  font-family: var(--font-fashion, 'Outfit', 'Plus Jakarta Sans', sans-serif);
+  font-family: var(--font-fashion, 'Montserrat', sans-serif);
   font-size: 26px;
   font-weight: 700;
   color: #ffffff;
@@ -233,7 +233,7 @@ body[data-module="users-roles"],
   font-weight: 700;
   color: #ffffff;
   line-height: 1.15;
-  font-family: var(--font-fashion, 'Outfit', 'Plus Jakarta Sans', sans-serif);
+  font-family: var(--font-fashion, 'Montserrat', sans-serif);
   letter-spacing: -0.02em;
 }
 
@@ -1067,7 +1067,7 @@ body[data-module="users-roles"],
   color: #b8ff3d;
   font-size: 18px;
   font-weight: 700;
-  font-family: var(--font-fashion, 'Outfit', 'Plus Jakarta Sans', sans-serif);
+  font-family: var(--font-fashion, 'Montserrat', sans-serif);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1096,7 +1096,7 @@ body[data-module="users-roles"],
 }
 
 .ur-profile-name {
-  font-family: var(--font-fashion, 'Outfit', 'Plus Jakarta Sans', sans-serif);
+  font-family: var(--font-fashion, 'Montserrat', sans-serif);
   font-size: 18px;
   font-weight: 700;
   color: #ffffff;

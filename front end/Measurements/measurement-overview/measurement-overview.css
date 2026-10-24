@@ -86,7 +86,7 @@ body {
 }
 
 .lib-page-title {
-  font-family: var(--font-display, 'Outfit', 'Cabinet Grotesk', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
   font-size: 1.7rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -154,7 +154,7 @@ body {
 }
 
 .lib-kpi-val {
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
   font-size: 1.25rem;
   font-weight: 700;
   color: #FFFFFF;
@@ -586,7 +586,7 @@ body {
 }
 
 .customer-banner-name {
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
   font-size: 1.45rem;
   font-weight: 700;
   color: #FFFFFF;
@@ -740,7 +740,7 @@ body {
 }
 
 .cockpit-card-title {
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
   font-size: 0.95rem;
   font-weight: 700;
   color: #FFFFFF;
@@ -1037,7 +1037,7 @@ body {
 }
 
 .map-history-title {
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
   font-size: 0.8rem;
   font-weight: 700;
   color: #FFFFFF;
@@ -1123,7 +1123,7 @@ body {
   font-size: 0.72rem;
   font-weight: 800;
   color: #B8FF3D;
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
 }
 
 .history-card.active .history-ver-tag {
@@ -1444,7 +1444,7 @@ body {
 }
 
 .fit-memory-title {
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
   font-size: 0.95rem;
   font-weight: 700;
   color: #FFFFFF;
@@ -1758,7 +1758,7 @@ body {
 }
 
 .modal-title {
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-display, 'Montserrat', sans-serif);
   font-size: 1.25rem;
   font-weight: 700;
   color: #FFFFFF;
