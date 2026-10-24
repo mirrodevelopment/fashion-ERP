@@ -1,5 +1,6 @@
 package com.fashionerp.profile;
 
+import com.fashionerp.profile.ProfileDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
