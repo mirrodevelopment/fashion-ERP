@@ -1,6 +1,5 @@
 package com.fashionerp.branch;
 
-import com.fashionerp.branch.BranchDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
