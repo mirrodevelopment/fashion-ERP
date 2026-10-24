@@ -17,7 +17,10 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
     @Query("""
         SELECT e FROM Enquiry e
         WHERE (:companyId IS NULL OR e.companyId = :companyId)
-          AND (:branch IS NULL OR e.branch = :branch OR e.branch IS NULL)
+          AND (:branch IS NULL OR e.branch = :branch
+               OR e.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR e.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch)
+               OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '' OR e.branch = 'Main Branch')))
           AND (:search IS NULL OR :search = '' OR
                LOWER(e.customerName)  LIKE LOWER(CONCAT('%', :search, '%')) OR
                LOWER(e.enquiryCode)   LIKE LOWER(CONCAT('%', :search, '%')) OR
@@ -36,28 +39,77 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
 
     long countByCompanyId(UUID companyId);
 
-    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    @Query("""
+        SELECT COUNT(e) FROM Enquiry e
+        WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND (:branch IS NULL OR e.branch = :branch
+               OR e.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR e.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch)
+               OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '' OR e.branch = 'Main Branch')))
+        """)
     long countByCompanyIdAndBranch(@Param("companyId") UUID companyId, @Param("branch") String branch);
 
     @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND UPPER(e.status) = UPPER(:status)")
     long countByCompanyIdAndStatusIgnoreCase(@Param("companyId") UUID companyId, @Param("status") String status);
 
-    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND UPPER(e.status) = UPPER(:status) AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    @Query("""
+        SELECT COUNT(e) FROM Enquiry e
+        WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND UPPER(e.status) = UPPER(:status)
+          AND (:branch IS NULL OR e.branch = :branch
+               OR e.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR e.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch)
+               OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '' OR e.branch = 'Main Branch')))
+        """)
     long countByCompanyIdAndStatusIgnoreCaseAndBranch(@Param("companyId") UUID companyId, @Param("status") String status, @Param("branch") String branch);
 
     @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND e.createdAt > :date")
     long countByCompanyIdAndCreatedAtAfter(@Param("companyId") UUID companyId, @Param("date") java.time.LocalDateTime date);
 
-    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND e.createdAt > :date AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    @Query("""
+        SELECT COUNT(e) FROM Enquiry e
+        WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND e.createdAt > :date
+          AND (:branch IS NULL OR e.branch = :branch
+               OR e.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR e.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch)
+               OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '' OR e.branch = 'Main Branch')))
+        """)
     long countByCompanyIdAndCreatedAtAfterAndBranch(@Param("companyId") UUID companyId, @Param("date") java.time.LocalDateTime date, @Param("branch") String branch);
 
-    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND e.createdAt >= :startDate AND e.createdAt < :endDate AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    @Query("""
+        SELECT COUNT(e) FROM Enquiry e
+        WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND e.createdAt >= :startDate AND e.createdAt < :endDate
+          AND (:branch IS NULL OR e.branch = :branch
+               OR e.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR e.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch)
+               OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '' OR e.branch = 'Main Branch')))
+        """)
     long countCreatedBetween(@Param("companyId") UUID companyId, @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate, @Param("branch") String branch);
 
-    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND UPPER(e.status) = 'CONVERTED' AND e.updatedAt >= :startDate AND e.updatedAt < :endDate AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    @Query("""
+        SELECT COUNT(e) FROM Enquiry e
+        WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND UPPER(e.status) = 'CONVERTED'
+          AND e.updatedAt >= :startDate AND e.updatedAt < :endDate
+          AND (:branch IS NULL OR e.branch = :branch
+               OR e.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR e.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch)
+               OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '' OR e.branch = 'Main Branch')))
+        """)
     long countConvertedBetween(@Param("companyId") UUID companyId, @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate, @Param("branch") String branch);
 
-    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND UPPER(e.status) IN ('FOLLOW_UP', 'NEW', 'PENDING', 'IN_DISCUSSION', 'QUOTATION_SENT') AND e.followUpDate IS NOT NULL AND e.followUpDate <= :today AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    @Query("""
+        SELECT COUNT(e) FROM Enquiry e
+        WHERE (:companyId IS NULL OR e.companyId = :companyId)
+          AND UPPER(e.status) IN ('FOLLOW_UP', 'NEW', 'PENDING', 'IN_DISCUSSION', 'QUOTATION_SENT')
+          AND e.followUpDate IS NOT NULL AND e.followUpDate <= :today
+          AND (:branch IS NULL OR e.branch = :branch
+               OR e.branch IN (SELECT b.branchCode FROM Branch b WHERE b.name = :branch)
+               OR e.branch IN (SELECT b.name FROM Branch b WHERE b.branchCode = :branch)
+               OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '' OR e.branch = 'Main Branch')))
+        """)
     long countOverdueFollowUps(@Param("companyId") UUID companyId, @Param("today") java.time.LocalDate today, @Param("branch") String branch);
 }
 

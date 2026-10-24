@@ -26,6 +26,21 @@ let uploadedImages = [];
 let apiInstance = null;
 
 // ─────────────────────────────────────────────
+// ACTIVE BRANCH HELPER
+// ─────────────────────────────────────────────
+function getActiveBranchFilter() {
+  try {
+    const b = localStorage.getItem('haulo_active_branch');
+    if (!b || b === 'ALL' || b.toUpperCase() === 'ALL' || b.toLowerCase().includes('all company') || b.toLowerCase().includes('all branches')) {
+      return null;
+    }
+    return b.trim();
+  } catch (_) {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────
 // INITIALIZATION
 // ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -38,6 +53,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadSavedDraft();
   initNotificationsToggle();
   initKeyboardShortcuts();
+
+  // Listen for branch changes from top navigation bar dropdown
+  const handleBranchChange = async () => {
+    try {
+      await Promise.all([
+        loadKpis(),
+        loadEnquiries(0)
+      ]);
+    } catch (err) {
+      console.error('[Enquiries] Failed to reload data on branch change:', err);
+    }
+  };
+
+  window.addEventListener('haulo:branch-changed', handleBranchChange);
+  document.addEventListener('haulo:branch-changed', handleBranchChange);
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'haulo_active_branch' || e.key === 'haulo_active_branch_id') {
+      handleBranchChange();
+    }
+  });
 
   try {
     const { default: api } = await import('../api.js');
@@ -60,8 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadKpis() {
   if (!apiInstance) return;
   try {
-    const activeBranch = localStorage.getItem('haulo_active_branch');
-    const branchParam = (activeBranch && activeBranch !== 'ALL') ? { branch: activeBranch } : {};
+    const activeBranch = getActiveBranchFilter();
+    const branchParam = activeBranch ? { branch: activeBranch } : {};
     const kpisPromise = apiInstance.enquiries.kpis(branchParam).catch(() => null);
 
     // Fetch live counts for every status directly from backend database
@@ -173,13 +208,13 @@ function mapFilterStatusToBackend(status) {
 async function loadEnquiries(page = 0) {
   if (!apiInstance) return;
   try {
-    const activeBranch = localStorage.getItem('haulo_active_branch');
+    const activeBranch = getActiveBranchFilter();
     const params = {
       page: page,
       size: pageSize,
       sort: 'createdAt,desc'
     };
-    if (activeBranch && activeBranch !== 'ALL') {
+    if (activeBranch) {
       params.branch = activeBranch;
     }
 

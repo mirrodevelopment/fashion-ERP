@@ -31,6 +31,7 @@ public class EnquiryController {
     public Page<Enquiry> list(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String branch,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         if (status != null && !status.isBlank()) {
             if ("all".equalsIgnoreCase(status)) {
@@ -42,7 +43,7 @@ public class EnquiryController {
             status = null;
         }
         UUID companyId = TenantContext.getCompanyId();
-        String branchFilter = branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.ENQUIRIES);
+        String branchFilter = branchAccessService.resolveBranch(branch, com.fashionerp.common.BranchAccessService.BranchModule.ENQUIRIES);
         return enquiryRepository.search(companyId, branchFilter, search, status, pageable);
     }
 
