@@ -22,6 +22,7 @@ public class GarmentService {
     private final com.fashionerp.branch.BranchRepository branchRepository;
     private final com.fashionerp.workforce.EmployeeRepository employeeRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
+    private final com.fashionerp.common.StorageService storageService;
 
     @Transactional(readOnly = true)
     public Page<GarmentDto.SummaryResponse> search(
@@ -142,12 +143,17 @@ public class GarmentService {
 
     @Transactional
     public GarmentDto.SummaryResponse create(GarmentDto.CreateRequest req) {
+        UUID companyId = TenantContext.getCompanyId();
         String code = req.getGarmentCode();
         if (code == null || code.isBlank()) {
-            code = "GAR-" + (System.currentTimeMillis() % 100000);
+            long count = (companyId != null ? garmentRepository.countByCompanyId(companyId) : garmentRepository.count()) + 1;
+            code = "GAR-" + String.format("%05d", count);
+            while (companyId != null ? garmentRepository.existsByGarmentCodeAndCompanyId(code, companyId) : garmentRepository.existsByGarmentCode(code)) {
+                count++;
+                code = "GAR-" + String.format("%05d", count);
+            }
         }
 
-        UUID companyId = TenantContext.getCompanyId();
         String branch = (req.getBranch() != null && !req.getBranch().isBlank())
                 ? req.getBranch().trim()
                 : branchAccessService.getDefaultBranchForCreation();
@@ -269,11 +275,7 @@ public class GarmentService {
             int randSuffix = java.util.concurrent.ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = prefix + "_" + randSuffix + ext;
 
-            java.nio.file.Path storageDir = java.nio.file.Paths.get("front end", "assets", "garments").toAbsolutePath();
-            java.nio.file.Files.createDirectories(storageDir);
-            java.nio.file.Files.write(storageDir.resolve(filename), file.getBytes());
-
-            return "/front end/assets/garments/" + filename;
+            return storageService.store("garments", filename, file.getBytes());
         } catch (java.io.IOException e) {
             throw new RuntimeException("Failed to store garment image: " + e.getMessage(), e);
         }
@@ -283,6 +285,10 @@ public class GarmentService {
     public GarmentDto.SummaryResponse uploadGarmentImage(UUID id, org.springframework.web.multipart.MultipartFile file) {
         Garment g = garmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Garment not found with id: " + id));
+        String oldUrl = g.getImageUrl();
+        if (oldUrl != null && !oldUrl.isBlank()) {
+            storageService.deleteIfExists(oldUrl);
+        }
         String url = uploadImage(file, g.getGarmentCode());
         g.setImageUrl(url);
         Garment saved = garmentRepository.save(g);
@@ -450,9 +456,8 @@ public class GarmentService {
     }
 
     private String formatPayment(BigDecimal paid, BigDecimal total) {
-        DecimalFormat df = new DecimalFormat("#,##0");
-        String pStr = paid != null ? "₹" + df.format(paid) : "₹0";
-        String tStr = total != null ? "₹" + df.format(total) : "₹0";
+        String pStr = paid != null ? String.format("₹%,.0f", paid.doubleValue()) : "₹0";
+        String tStr = total != null ? String.format("₹%,.0f", total.doubleValue()) : "₹0";
         return pStr + " / " + tStr;
     }
 

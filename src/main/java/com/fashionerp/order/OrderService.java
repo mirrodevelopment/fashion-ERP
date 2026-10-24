@@ -41,6 +41,7 @@ public class OrderService {
     private final ProductionStageRepository productionStageRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
     private final com.fashionerp.garment.GarmentRepository garmentRepository;
+    private final com.fashionerp.common.StorageService storageService;
 
     public Page<OrderDto.Response> list(String search, String status, Pageable pageable) {
         return list(search, status, null, pageable);
@@ -51,9 +52,7 @@ public class OrderService {
                 ? OrderStatus.valueOf(status.toUpperCase().replace('-', '_'))
                 : null;
         UUID companyId = TenantContext.getCompanyId();
-        String branchFilter = (explicitBranch != null && !explicitBranch.isBlank() && !"ALL".equalsIgnoreCase(explicitBranch.trim()))
-                ? explicitBranch.trim()
-                : branchAccessService.getEffectiveBranchFilter(com.fashionerp.common.BranchAccessService.BranchModule.ORDERS);
+        String branchFilter = branchAccessService.resolveBranch(explicitBranch, com.fashionerp.common.BranchAccessService.BranchModule.ORDERS);
         return orderRepository.search(companyId, branchFilter, search, statusEnum, pageable).map(OrderDto.Response::from);
     }
 
@@ -383,8 +382,9 @@ public class OrderService {
         return OrderDto.Response.from(savedOrder);
     }
 
-    // BUG-P0-07 FIX: Prevent collision on concurrent order creation
-    private synchronized String generateCode() {
+    // Generates a unique order code. Uniqueness is enforced by DB constraint on (order_code, company_id).
+    // The loop is a best-effort collision avoider; the DB constraint is the final safety net.
+    private String generateCode() {
         int year = java.time.LocalDate.now().getYear();
         UUID companyId = TenantContext.getCompanyId();
         long count = (companyId != null ? orderRepository.countByCompanyId(companyId) : orderRepository.count()) + 1;
@@ -434,11 +434,7 @@ public class OrderService {
             // e.g. ORD-2026-0001-ref2.jpg
             String filename = order.getOrderCode() + "-ref" + slot + ext;
 
-            Path storageDir = Paths.get("front end", "assets", "order-ref").toAbsolutePath();
-            Files.createDirectories(storageDir);
-            Files.write(storageDir.resolve(filename), file.getBytes());
-
-            String urlPath = "/front end/assets/order-ref/" + filename;
+            String urlPath = storageService.store("order-ref", filename, file.getBytes());
 
             // Update the list at the given slot (0-indexed list position = slot - 1)
             List<String> imgs = new ArrayList<>(order.getReferenceImageList());
@@ -476,8 +472,7 @@ public class OrderService {
             try {
                 String path = imgs.get(slot - 1);
                 if (path != null && !path.isEmpty()) {
-                    Path filePath = Paths.get(path.replaceFirst("^/", "")).toAbsolutePath();
-                    Files.deleteIfExists(filePath);
+                    storageService.deleteIfExists(path);
                 }
             } catch (Exception e) {
                 log.warn("Could not delete physical reference image file: {}", e.getMessage());

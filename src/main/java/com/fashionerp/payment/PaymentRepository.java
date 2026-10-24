@@ -3,6 +3,7 @@ package com.fashionerp.payment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,8 +15,12 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     boolean existsByOrderId(UUID orderId);
 
+    boolean existsByOrderIdAndCompanyId(UUID orderId, UUID companyId);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     Optional<Payment> findByIdAndCompanyId(UUID id, UUID companyId);
 
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT DISTINCT p FROM Payment p LEFT JOIN FETCH p.transactions JOIN FETCH p.order JOIN FETCH p.customer WHERE p.order.id = :orderId AND (:companyId IS NULL OR p.companyId = :companyId)")
     Optional<Payment> findByOrderIdAndCompanyId(@Param("orderId") UUID orderId, @Param("companyId") UUID companyId);
 

@@ -94,7 +94,6 @@ public class DevService {
                                 .assignedBranch(bCode)
                                 .branchName(bName)
                                 .allowedBranches(allowedBranches)
-                                .devPassword(u.getDevPassword())
                                 .build();
                     })
                     .sorted((u1, u2) -> {

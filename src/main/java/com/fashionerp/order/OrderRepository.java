@@ -18,6 +18,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Optional<Order> findByIdAndCompanyId(UUID id, UUID companyId);
 
+    java.util.List<Order> findByCompanyId(UUID companyId);
+
     boolean existsByOrderCode(String orderCode);
     boolean existsByOrderCodeAndCompanyId(String orderCode, UUID companyId);
 

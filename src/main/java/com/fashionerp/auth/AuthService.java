@@ -151,11 +151,28 @@ public class AuthService {
      * without requiring knowledge of their password.
      */
     public AuthDto.LoginResponse devLogin(String username, UUID preferredCompanyId, String clientIp) {
+        String rateLimitKey = "dev:" + (clientIp != null ? clientIp : "unknown") + ":" + (username != null ? username : "anonymous");
+        rateLimiter.checkBlocked(rateLimitKey);
+        if (clientIp != null) {
+            rateLimiter.checkBlocked(clientIp);
+        }
+
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("Username is required for developer auto-login.");
         }
         AppUser user = userRepository.findByUsernameAndActiveTrue(username.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Active user not found in database: " + username));
+                .orElseThrow(() -> {
+                    rateLimiter.recordFailedAttempt(rateLimitKey);
+                    if (clientIp != null) {
+                        rateLimiter.recordFailedAttempt(clientIp);
+                    }
+                    return new IllegalArgumentException("Active user not found in database: " + username);
+                });
+
+        rateLimiter.recordSuccess(rateLimitKey);
+        if (clientIp != null) {
+            rateLimiter.recordSuccess(clientIp);
+        }
 
         UUID companyId = user.getCompanyId() != null ? user.getCompanyId() : preferredCompanyId;
         String companyName = null;
@@ -262,7 +279,6 @@ public class AuthService {
         AppUser user = AppUser.builder()
                 .username(req.getUsername().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
-                .devPassword(req.getPassword())
                 .fullName(req.getFullName().trim())
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
                 .phone(req.getPhone() != null ? req.getPhone().trim() : null)
@@ -345,7 +361,6 @@ public class AuthService {
         AppUser user = AppUser.builder()
                 .username(req.getUsername().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
-                .devPassword(req.getPassword())
                 .fullName(req.getFullName().trim())
                 .email(req.getEmail() != null ? req.getEmail().trim() : null)
                 .phone(req.getUserPhone() != null ? req.getUserPhone().trim() : req.getPrimaryPhone())

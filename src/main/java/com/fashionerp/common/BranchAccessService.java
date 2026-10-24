@@ -98,8 +98,22 @@ public class BranchAccessService {
      * to the TenantContext active branch filter or role/module sharing settings.
      */
     public String resolveBranch(String requestedBranch, BranchModule module) {
+        if (TenantContext.isBranchAdmin()) {
+            String b = TenantContext.getAssignedBranch();
+            return (b != null && !b.isBlank() && !"ALL".equalsIgnoreCase(b.trim())) ? b.trim() : null;
+        }
         if (requestedBranch != null && !requestedBranch.isBlank() && !"ALL".equalsIgnoreCase(requestedBranch.trim())) {
-            return requestedBranch.trim();
+            String role = TenantContext.getUserRole();
+            boolean isOwner = role != null && (role.equalsIgnoreCase("OWNER") || role.equalsIgnoreCase("ADMIN") || role.equalsIgnoreCase("SUPER_ADMIN"));
+            if (isOwner) {
+                return requestedBranch.trim();
+            }
+            java.util.List<String> allowed = TenantContext.getAllowedBranches();
+            if (allowed != null && !allowed.isEmpty()) {
+                if (allowed.stream().anyMatch(a -> a.equalsIgnoreCase(requestedBranch.trim()))) {
+                    return requestedBranch.trim();
+                }
+            }
         }
         return getEffectiveBranchFilter(module);
     }

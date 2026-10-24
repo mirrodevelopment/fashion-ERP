@@ -123,7 +123,6 @@ public class BranchService {
                 .username(finalUsername)
                 .fullName(fullName)
                 .passwordHash(passwordEncoder.encode(rawPassword))
-                .devPassword(rawPassword)
                 .role(UserRole.BRANCH_ADMIN)
                 .active(true)
                 .email(adminEmail)

@@ -23,6 +23,7 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
+    private final com.fashionerp.common.StorageService storageService;
 
     public Page<EmployeeDto.Response> list(String search, String role, String status, Pageable pageable) {
         return list(search, role, status, null, pageable);
@@ -159,16 +160,11 @@ public class EmployeeService {
             int fourDigits = ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = empId + "_" + fourDigits + ext;
 
-            // Resolve storage directory: <project-root>/front end/assets/employees/
-            Path storageDir = Paths.get("front end", "assets", "employees").toAbsolutePath();
-            Files.createDirectories(storageDir);
+            if (emp.getAvatarUrl() != null && !emp.getAvatarUrl().isBlank()) {
+                storageService.deleteIfExists(emp.getAvatarUrl());
+            }
 
-            // Write file
-            Path filePath = storageDir.resolve(filename);
-            Files.write(filePath, file.getBytes());
-
-            // Build browser-accessible relative URL
-            String avatarUrl = "/front end/assets/employees/" + filename;
+            String avatarUrl = storageService.store("employees", filename, file.getBytes());
 
             // Persist URL to DB
             emp.setAvatarUrl(avatarUrl);

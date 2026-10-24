@@ -58,6 +58,13 @@ if not defined JAVA_HOME (
     )
 )
 
+if not defined JWT_SECRET (
+    set "JWT_SECRET=HauloBoutiqueERPDevelopmentSecretKey2026Secure!"
+)
+if not defined DEV_TOOLS_ENABLED (
+    set "DEV_TOOLS_ENABLED=true"
+)
+
 call "%~dp0mvnw.cmd" -f "%~dp0pom.xml" compile spring-boot:run
 
 pause

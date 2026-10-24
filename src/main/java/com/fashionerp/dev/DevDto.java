@@ -42,7 +42,7 @@ public class DevDto {
         private String assignedBranch;
         private String branchName;
         private List<String> allowedBranches;
-        private String devPassword; // Standard development password "Admin@123"
+        // Note: passwords are never exposed via the API
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

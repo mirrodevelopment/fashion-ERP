@@ -148,17 +148,7 @@ public class InventoryService {
 
     /** Returns all movements for a specific inventory item, newest first */
     public List<StockMovementDto.Response> getMovements(UUID itemId) {
-        UUID companyId = TenantContext.getCompanyId();
-        if (companyId == null) {
-            // Also check item companyId
-            InventoryItem item = inventoryRepository.findById(itemId).orElse(null);
-            if (item != null) {
-                companyId = item.getCompanyId();
-            }
-        }
-        if (companyId == null) {
-            companyId = TenantContext.requireCompanyId();
-        }
+        UUID companyId = TenantContext.requireCompanyId();
         return stockMovementRepository.findByCompanyIdAndItemIdOrderByMovedAtDesc(companyId, itemId)
                 .stream().map(StockMovementDto.Response::from).toList();
     }

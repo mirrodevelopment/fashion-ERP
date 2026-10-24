@@ -16,6 +16,10 @@ public interface GarmentRepository extends JpaRepository<Garment, UUID> {
     Optional<Garment> findByGarmentCodeIgnoreCase(String garmentCode);
     Optional<Garment> findByGarmentCodeIgnoreCaseAndCompanyId(String garmentCode, UUID companyId);
 
+    boolean existsByGarmentCode(String garmentCode);
+    boolean existsByGarmentCodeAndCompanyId(String garmentCode, UUID companyId);
+    long countByCompanyId(UUID companyId);
+
     java.util.List<Garment> findByOrderId(UUID orderId);
     java.util.List<Garment> findByOrderCode(String orderCode);
 

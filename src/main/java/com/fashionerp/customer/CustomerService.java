@@ -31,6 +31,7 @@ public class CustomerService {
     private final CustomerBodyMeasurementRepository bodyMeasurementRepository;
     private final CustomerNoteRepository noteRepository;
     private final com.fashionerp.common.BranchAccessService branchAccessService;
+    private final com.fashionerp.common.StorageService storageService;
 
     public Page<CustomerDto.Response> list(String search, String tier, Pageable pageable) {
         CustomerTier tierEnum = (tier != null && !tier.isBlank()) ? CustomerTier.valueOf(tier.toUpperCase()) : null;
@@ -169,17 +170,11 @@ public class CustomerService {
             int fourDigits = ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = customerName + "_" + fourDigits + ext;
 
-            // Resolve storage directory: <project-root>/front end/assets/user uploads/user img/
-            Path storageDir = Paths.get("front end", "assets", "user uploads", "user img")
-                    .toAbsolutePath();
-            Files.createDirectories(storageDir);
+            if (customer.getAvatarUrl() != null && !customer.getAvatarUrl().isBlank()) {
+                storageService.deleteIfExists(customer.getAvatarUrl());
+            }
 
-            // Write file
-            Path filePath = storageDir.resolve(filename);
-            Files.write(filePath, file.getBytes());
-
-            // Build a browser-accessible relative URL
-            String avatarUrl = "/front end/assets/user uploads/user img/" + filename;
+            String avatarUrl = storageService.store("user uploads/user img", filename, file.getBytes());
 
             // Persist URL to DB
             customer.setAvatarUrl(avatarUrl);

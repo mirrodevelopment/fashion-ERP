@@ -122,7 +122,6 @@ public class ProfileService {
         }
 
         user.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
-        user.setDevPassword(req.getNewPassword());
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         log.info("Password changed successfully for user: {}", username);

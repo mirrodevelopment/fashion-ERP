@@ -1,0 +1,19 @@
+# Production Environment Profile Configuration
+# Activate with: --spring.profiles.active=prod or SPRING_PROFILES_ACTIVE=prod
+
+spring:
+  jpa:
+    show-sql: false
+  flyway:
+    validate-on-migrate: true
+
+logging:
+  level:
+    root: WARN
+    com.fashionerp: INFO
+    org.springframework.security: WARN
+    org.flywaydb: INFO
+
+app:
+  dev-tools:
+    enabled: false

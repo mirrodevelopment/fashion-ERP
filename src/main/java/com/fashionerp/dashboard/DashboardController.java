@@ -46,13 +46,18 @@ public class DashboardController {
     private EntityManager em;
 
     @GetMapping("/kpis")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
     public Map<String, Object> kpis(@RequestParam(required = false) String branch,
             @RequestParam(required = false) String revenuePeriod,
             @RequestParam(required = false) String orderPeriod) {
         UUID companyId = TenantContext.requireCompanyId();
-        String branchFilter = (branch != null && !branch.isBlank() && !"ALL".equalsIgnoreCase(branch.trim()))
-                ? branch.trim()
+        String sanitizedBranch = branch != null ? branch.trim() : null;
+        if (sanitizedBranch != null && sanitizedBranch.length() > 100) {
+            sanitizedBranch = sanitizedBranch.substring(0, 100);
+        }
+        String branchFilter = (sanitizedBranch != null && !sanitizedBranch.isBlank() && !"ALL".equalsIgnoreCase(sanitizedBranch))
+                ? sanitizedBranch
                 : TenantContext.getActiveBranchFilter();
 
         // ── Identify Main Branch / Headquarters ──────────────────
@@ -481,17 +486,12 @@ public class DashboardController {
 
         Map<YearMonth, BigDecimal> revenueMap = new LinkedHashMap<>();
         for (Object[] row : rows) {
-            LocalDateTime ldt;
-            if (row[0] instanceof LocalDateTime) {
-                ldt = (LocalDateTime) row[0];
-            } else if (row[0] instanceof java.sql.Timestamp) {
-                ldt = ((java.sql.Timestamp) row[0]).toLocalDateTime();
-            } else {
-                ldt = LocalDateTime.parse(row[0].toString().replace(" ", "T"));
+            LocalDateTime ldt = toLocalDateTime(row[0]);
+            if (ldt != null) {
+                YearMonth ym = YearMonth.of(ldt.getYear(), ldt.getMonth());
+                BigDecimal rev = row[1] instanceof BigDecimal ? (BigDecimal) row[1] : new BigDecimal(row[1].toString());
+                revenueMap.put(ym, rev);
             }
-            YearMonth ym = YearMonth.of(ldt.getYear(), ldt.getMonth());
-            BigDecimal rev = row[1] instanceof BigDecimal ? (BigDecimal) row[1] : new BigDecimal(row[1].toString());
-            revenueMap.put(ym, rev);
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
@@ -507,18 +507,13 @@ public class DashboardController {
             costQuery.setParameter("companyId", companyId);
             List<Object[]> costRows = costQuery.getResultList();
             for (Object[] crow : costRows) {
-                LocalDateTime cldt;
-                if (crow[0] instanceof LocalDateTime) {
-                    cldt = (LocalDateTime) crow[0];
-                } else if (crow[0] instanceof java.sql.Timestamp) {
-                    cldt = ((java.sql.Timestamp) crow[0]).toLocalDateTime();
-                } else {
-                    cldt = LocalDateTime.parse(crow[0].toString().replace(" ", "T"));
+                LocalDateTime cldt = toLocalDateTime(crow[0]);
+                if (cldt != null) {
+                    YearMonth cym = YearMonth.of(cldt.getYear(), cldt.getMonth());
+                    BigDecimal spend = crow[1] instanceof BigDecimal ? (BigDecimal) crow[1]
+                            : new BigDecimal(crow[1].toString());
+                    costMap.put(cym, spend);
                 }
-                YearMonth cym = YearMonth.of(cldt.getYear(), cldt.getMonth());
-                BigDecimal spend = crow[1] instanceof BigDecimal ? (BigDecimal) crow[1]
-                        : new BigDecimal(crow[1].toString());
-                costMap.put(cym, spend);
             }
         } catch (Exception e) {
             log.warn("Could not calculate purchase spend history: {}", e.getMessage());

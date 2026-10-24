@@ -39,7 +39,6 @@ public class PaymentService {
         return paymentRepository.search(companyId, search, statusEnum, branchFilter, pageable).map(PaymentDto.Response::from);
     }
 
-    @Transactional(readOnly = true)
     public PaymentDto.Response getById(UUID id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + id));
@@ -50,7 +49,6 @@ public class PaymentService {
         return PaymentDto.Response.from(payment);
     }
 
-    @Transactional(readOnly = true)
     public Optional<PaymentDto.Response> getByOrderId(UUID orderId) {
         UUID companyId = TenantContext.getCompanyId();
         if (companyId == null) {
@@ -63,6 +61,14 @@ public class PaymentService {
     @Transactional
     public PaymentDto.Response create(PaymentDto.Request req) {
         UUID companyId = TenantContext.getCompanyId();
+        if (companyId != null) {
+            if (paymentRepository.existsByOrderIdAndCompanyId(req.getOrderId(), companyId)) {
+                throw new IllegalStateException("Payment already exists for order: " + req.getOrderId());
+            }
+        } else if (paymentRepository.existsByOrderId(req.getOrderId())) {
+            throw new IllegalStateException("Payment already exists for order: " + req.getOrderId());
+        }
+
         var order = (companyId != null
                 ? orderRepository.findByIdAndCompanyId(req.getOrderId(), companyId)
                 : orderRepository.findById(req.getOrderId()))
@@ -163,7 +169,8 @@ public class PaymentService {
      */
     @Transactional
     public int backfillMissingPayments() {
-        List<Order> allOrders = orderRepository.findAll();
+        UUID companyId = TenantContext.requireCompanyId();
+        List<Order> allOrders = orderRepository.findByCompanyId(companyId);
         int created = 0;
         for (Order order : allOrders) {
             if (order.getCustomer() == null) {

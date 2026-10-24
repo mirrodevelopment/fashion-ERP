@@ -34,6 +34,7 @@ public class StageDefinitionService {
     private final OrderRepository orderRepository;
     private final ProductionStageRepository productionStageRepository;
     private final com.fashionerp.company.CompanySettingsRepository companySettingsRepository;
+    private final com.fashionerp.common.StorageService storageService;
 
     // ─── Self-Healing System Boundary Stages ─────────────────────────────────
 
@@ -268,12 +269,11 @@ public class StageDefinitionService {
             int randNumber = ThreadLocalRandom.current().nextInt(1000, 10000);
             String filename = safeStageName + "_" + randNumber + ext;
 
-            Path storageDir = Paths.get("front end", "assets", "stages").toAbsolutePath();
-            Files.createDirectories(storageDir);
-            Path filePath = storageDir.resolve(filename);
-            Files.write(filePath, file.getBytes());
+            if (def.getImageUrl() != null && !def.getImageUrl().isBlank()) {
+                storageService.deleteIfExists(def.getImageUrl());
+            }
 
-            String imageUrl = "/front end/assets/stages/" + filename;
+            String imageUrl = storageService.store("stages", filename, file.getBytes());
             def.setImageUrl(imageUrl);
             return toResponse(stageDefRepo.save(def));
         } catch (IOException e) {

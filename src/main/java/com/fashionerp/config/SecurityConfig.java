@@ -66,8 +66,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        // Use AllowedOriginPatterns only (compatible with both wildcard and specific origins)
         config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedOrigins(List.of("*", "null"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "Content-Disposition"));

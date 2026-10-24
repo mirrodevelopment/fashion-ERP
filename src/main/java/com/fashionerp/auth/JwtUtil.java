@@ -5,6 +5,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,8 +15,13 @@ public class JwtUtil {
     private static final long EXPIRY_MS = 24 * 60 * 60 * 1000L; // 24 hours
     private final SecretKey key;
 
-    public JwtUtil(@Value("${jwt.secret:HauloB0ut1queERPSecretKey2026XYZ!@#}") String secret) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException(
+                "[SECURITY] JWT secret must be at least 32 characters. " +
+                "Set the JWT_SECRET environment variable to a strong random value.");
+        }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(UUID userId, String username, String role, UUID companyId, String companyName) {
