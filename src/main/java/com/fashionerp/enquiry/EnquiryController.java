@@ -13,6 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -136,6 +138,9 @@ public class EnquiryController {
         long closed;
         long newThisWeek;
 
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = LocalDate.now();
+
         if (branchFilter != null) {
             total = enquiryRepository.countByCompanyIdAndBranch(companyId, branchFilter);
             newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "NEW", branchFilter)
@@ -145,8 +150,7 @@ public class EnquiryController {
             converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "CONVERTED", branchFilter);
             followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "FOLLOW_UP", branchFilter);
             closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCaseAndBranch(companyId, "CLOSED", branchFilter) + followUp;
-            newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfterAndBranch(companyId, LocalDateTime.now().minusDays(7), branchFilter);
-            if (newThisWeek == 0) newThisWeek = newCount;
+            newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfterAndBranch(companyId, now.minusDays(7), branchFilter);
         } else {
             total = companyId != null ? enquiryRepository.countByCompanyId(companyId) : enquiryRepository.count();
             newCount = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "NEW")
@@ -156,8 +160,7 @@ public class EnquiryController {
             converted = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CONVERTED");
             followUp = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "FOLLOW_UP");
             closed = enquiryRepository.countByCompanyIdAndStatusIgnoreCase(companyId, "CLOSED") + followUp;
-            newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(7));
-            if (newThisWeek == 0) newThisWeek = newCount;
+            newThisWeek = enquiryRepository.countByCompanyIdAndCreatedAtAfter(companyId, now.minusDays(7));
         }
 
         long pendingFollowUp = followUp;
@@ -167,6 +170,152 @@ public class EnquiryController {
                 ? BigDecimal.valueOf(converted * 100.0 / total).setScale(1, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
+        // 1. Month-over-Month for Total Enquiries
+        LocalDateTime thisMonthStart = now.withDayOfMonth(1).toLocalDate().atStartOfDay();
+        LocalDateTime lastMonthStart = thisMonthStart.minusMonths(1);
+        long enquiriesThisMonth = enquiryRepository.countCreatedBetween(companyId, thisMonthStart, now, branchFilter);
+        long enquiriesLastMonth = enquiryRepository.countCreatedBetween(companyId, lastMonthStart, thisMonthStart, branchFilter);
+
+        Map<String, Object> totalTrend = new LinkedHashMap<>();
+        if (enquiriesLastMonth > 0) {
+            long diff = enquiriesThisMonth - enquiriesLastMonth;
+            long pct = Math.round((diff * 100.0) / enquiriesLastMonth);
+            if (diff > 0) {
+                totalTrend.put("arrow", "↑");
+                totalTrend.put("value", "+" + pct + "%");
+                totalTrend.put("sub", "vs last month");
+                totalTrend.put("type", "trend-up");
+            } else if (diff < 0) {
+                totalTrend.put("arrow", "↓");
+                totalTrend.put("value", pct + "%");
+                totalTrend.put("sub", "vs last month");
+                totalTrend.put("type", "trend-down");
+            } else {
+                totalTrend.put("arrow", "—");
+                totalTrend.put("value", "0%");
+                totalTrend.put("sub", "vs last month");
+                totalTrend.put("type", "trend-neutral");
+            }
+        } else {
+            if (enquiriesThisMonth > 0) {
+                totalTrend.put("arrow", "↑");
+                totalTrend.put("value", "+" + enquiriesThisMonth);
+                totalTrend.put("sub", "new this month");
+                totalTrend.put("type", "trend-up");
+            } else {
+                totalTrend.put("arrow", "—");
+                totalTrend.put("value", "0%");
+                totalTrend.put("sub", "vs last month");
+                totalTrend.put("type", "trend-neutral");
+            }
+        }
+
+        // 2. Week-over-Week for New This Week
+        LocalDateTime sevenDaysAgo = now.minusDays(7);
+        LocalDateTime fourteenDaysAgo = now.minusDays(14);
+        long enquiriesThisWeek = enquiryRepository.countCreatedBetween(companyId, sevenDaysAgo, now, branchFilter);
+        long enquiriesPrevWeek = enquiryRepository.countCreatedBetween(companyId, fourteenDaysAgo, sevenDaysAgo, branchFilter);
+
+        Map<String, Object> newThisWeekTrend = new LinkedHashMap<>();
+        if (enquiriesPrevWeek > 0) {
+            long diff = enquiriesThisWeek - enquiriesPrevWeek;
+            long pct = Math.round((diff * 100.0) / enquiriesPrevWeek);
+            if (diff > 0) {
+                newThisWeekTrend.put("arrow", "↑");
+                newThisWeekTrend.put("value", "+" + pct + "%");
+                newThisWeekTrend.put("sub", "vs last week");
+                newThisWeekTrend.put("type", "trend-up");
+            } else if (diff < 0) {
+                newThisWeekTrend.put("arrow", "↓");
+                newThisWeekTrend.put("value", pct + "%");
+                newThisWeekTrend.put("sub", "vs last week");
+                newThisWeekTrend.put("type", "trend-down");
+            } else {
+                newThisWeekTrend.put("arrow", "—");
+                newThisWeekTrend.put("value", "0%");
+                newThisWeekTrend.put("sub", "vs last week");
+                newThisWeekTrend.put("type", "trend-neutral");
+            }
+        } else {
+            if (enquiriesThisWeek > 0) {
+                newThisWeekTrend.put("arrow", "↑");
+                newThisWeekTrend.put("value", "+" + enquiriesThisWeek);
+                newThisWeekTrend.put("sub", "new this week");
+                newThisWeekTrend.put("type", "trend-up");
+            } else {
+                newThisWeekTrend.put("arrow", "—");
+                newThisWeekTrend.put("value", "0%");
+                newThisWeekTrend.put("sub", "vs last week");
+                newThisWeekTrend.put("type", "trend-neutral");
+            }
+        }
+
+        // 3. Converted to Orders Trend & Rate
+        long convertedThisMonth = enquiryRepository.countConvertedBetween(companyId, thisMonthStart, now, branchFilter);
+        long convertedLastMonth = enquiryRepository.countConvertedBetween(companyId, lastMonthStart, thisMonthStart, branchFilter);
+
+        Map<String, Object> convertedTrend = new LinkedHashMap<>();
+        if (convertedLastMonth > 0) {
+            long diff = convertedThisMonth - convertedLastMonth;
+            long pct = Math.round((diff * 100.0) / convertedLastMonth);
+            convertedTrend.put("arrow", diff >= 0 ? "↑" : "↓");
+            convertedTrend.put("value", (diff >= 0 ? "+" : "") + pct + "%");
+            convertedTrend.put("sub", conversionRate + "% conversion rate");
+            convertedTrend.put("type", diff >= 0 ? "trend-up" : "trend-down");
+        } else {
+            if (converted > 0) {
+                convertedTrend.put("arrow", "↑");
+                convertedTrend.put("value", conversionRate + "%");
+                convertedTrend.put("sub", "conversion rate");
+                convertedTrend.put("type", "trend-up");
+            } else {
+                convertedTrend.put("arrow", "—");
+                convertedTrend.put("value", "0.0%");
+                convertedTrend.put("sub", "conversion rate");
+                convertedTrend.put("type", "trend-neutral");
+            }
+        }
+
+        // 4. Appointments Trend
+        LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        LocalDateTime endOfWeek = startOfWeek.plusDays(7);
+        long apptsThisWeek = companyId != null
+                ? appointmentRepository.countByCompanyIdAndScheduledAtBetween(companyId, startOfWeek, endOfWeek)
+                : 0L;
+
+        Map<String, Object> appointmentsTrend = new LinkedHashMap<>();
+        if (apptsThisWeek > 0) {
+            appointmentsTrend.put("arrow", "↑");
+            appointmentsTrend.put("value", String.valueOf(apptsThisWeek));
+            appointmentsTrend.put("sub", "this week");
+            appointmentsTrend.put("type", "trend-up");
+        } else {
+            appointmentsTrend.put("arrow", "—");
+            appointmentsTrend.put("value", "0");
+            appointmentsTrend.put("sub", "this week");
+            appointmentsTrend.put("type", "trend-neutral");
+        }
+
+        // 5. Pending Follow-up Trend
+        long overdueFollowUps = enquiryRepository.countOverdueFollowUps(companyId, today, branchFilter);
+        Map<String, Object> pendingFollowUpTrend = new LinkedHashMap<>();
+        if (overdueFollowUps > 0) {
+            pendingFollowUpTrend.put("arrow", "↓");
+            pendingFollowUpTrend.put("value", String.valueOf(overdueFollowUps));
+            pendingFollowUpTrend.put("sub", "need attention");
+            pendingFollowUpTrend.put("type", "trend-down");
+        } else if (pendingFollowUp > 0) {
+            pendingFollowUpTrend.put("arrow", "—");
+            pendingFollowUpTrend.put("value", String.valueOf(pendingFollowUp));
+            pendingFollowUpTrend.put("sub", "scheduled");
+            pendingFollowUpTrend.put("type", "trend-neutral");
+        } else {
+            pendingFollowUpTrend.put("arrow", "✓");
+            pendingFollowUpTrend.put("value", "0");
+            pendingFollowUpTrend.put("sub", "need attention");
+            pendingFollowUpTrend.put("type", "trend-neutral");
+        }
+
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("total", total);
         result.put("newThisWeek", newThisWeek);
@@ -174,6 +323,12 @@ public class EnquiryController {
         result.put("appointments", appointmentsCount);
         result.put("pendingFollowUp", pendingFollowUp);
         result.put("conversionRate", conversionRate);
+
+        result.put("totalTrend", totalTrend);
+        result.put("newThisWeekTrend", newThisWeekTrend);
+        result.put("convertedTrend", convertedTrend);
+        result.put("appointmentsTrend", appointmentsTrend);
+        result.put("pendingFollowUpTrend", pendingFollowUpTrend);
 
         // Status counts for filter tab badges
         Map<String, Long> tabCounts = new LinkedHashMap<>();

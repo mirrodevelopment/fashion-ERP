@@ -50,5 +50,14 @@ public interface EnquiryRepository extends JpaRepository<Enquiry, UUID> {
 
     @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND e.createdAt > :date AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
     long countByCompanyIdAndCreatedAtAfterAndBranch(@Param("companyId") UUID companyId, @Param("date") java.time.LocalDateTime date, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND e.createdAt >= :startDate AND e.createdAt < :endDate AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    long countCreatedBetween(@Param("companyId") UUID companyId, @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND UPPER(e.status) = 'CONVERTED' AND e.updatedAt >= :startDate AND e.updatedAt < :endDate AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    long countConvertedBetween(@Param("companyId") UUID companyId, @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(e) FROM Enquiry e WHERE (:companyId IS NULL OR e.companyId = :companyId) AND UPPER(e.status) IN ('FOLLOW_UP', 'NEW', 'PENDING', 'IN_DISCUSSION', 'QUOTATION_SENT') AND e.followUpDate IS NOT NULL AND e.followUpDate <= :today AND (:branch IS NULL OR e.branch = :branch OR (:branch = 'Main Branch' AND (e.branch IS NULL OR e.branch = '')))")
+    long countOverdueFollowUps(@Param("companyId") UUID companyId, @Param("today") java.time.LocalDate today, @Param("branch") String branch);
 }
 

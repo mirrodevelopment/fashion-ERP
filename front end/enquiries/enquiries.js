@@ -76,13 +76,15 @@ async function loadKpis() {
       apiInstance.enquiries.page({ ...branchParam, status: 'FOLLOW_UP', size: 1 }).catch(() => null)
     ]);
 
-    const totalCount = allRes?.totalElements ?? kpis?.total ?? 0;
-    const newCount = newRes?.totalElements ?? kpis?.newCount ?? 0;
-    const inDiscussionCount = inDiscRes?.totalElements ?? kpis?.inDiscussion ?? 0;
-    const quotationCount = quoteRes?.totalElements ?? 0;
-    const convertedCount = convRes?.totalElements ?? kpis?.converted ?? 0;
-    const followUpCount = followRes?.totalElements ?? kpis?.followUp ?? 0;
-    const closedCount = (closedRes?.totalElements ?? 0) + followUpCount;
+    const totalCount = kpis?.total ?? allRes?.totalElements ?? 0;
+    const newCount = kpis?.tabCounts?.new ?? newRes?.totalElements ?? 0;
+    const inDiscussionCount = kpis?.tabCounts?.['in-discussion'] ?? inDiscRes?.totalElements ?? 0;
+    const quotationCount = kpis?.tabCounts?.['quotation-sent'] ?? quoteRes?.totalElements ?? 0;
+    const convertedCount = kpis?.converted ?? convRes?.totalElements ?? 0;
+    const followUpCount = followRes?.totalElements ?? kpis?.pendingFollowUp ?? 0;
+    const closedCount = (kpis?.tabCounts?.closed ?? (closedRes?.totalElements ?? 0)) + followUpCount;
+    const newThisWeekCount = kpis?.newThisWeek != null ? kpis.newThisWeek : newCount;
+    const appointmentsCount = kpis?.appointments != null ? kpis.appointments : inDiscussionCount;
 
     // Update top KPI cards
     const totalEl = document.getElementById('kpiTotal');
@@ -92,10 +94,54 @@ async function loadKpis() {
     const pendEl = document.getElementById('kpiPending');
 
     if (totalEl) totalEl.textContent = totalCount;
-    if (newEl) newEl.textContent = kpis?.newThisWeek != null ? kpis.newThisWeek : newCount;
+    if (newEl) newEl.textContent = newThisWeekCount;
     if (convEl) convEl.textContent = convertedCount;
-    if (apptEl) apptEl.textContent = inDiscussionCount;
-    if (pendEl) pendEl.textContent = followUpCount;
+    if (apptEl) apptEl.textContent = appointmentsCount;
+    if (pendEl) pendEl.textContent = kpis?.pendingFollowUp != null ? kpis.pendingFollowUp : followUpCount;
+
+    // Update real dynamic trends and subtexts under KPI cards
+    const updateTrend = (trendContainerId, arrowId, subId, trendData, defaultFallback) => {
+      const container = document.getElementById(trendContainerId);
+      const arrowEl = document.getElementById(arrowId);
+      const subEl = document.getElementById(subId);
+      if (!container || !arrowEl || !subEl) return;
+
+      const arrow = trendData?.arrow || defaultFallback.arrow;
+      const value = trendData?.value != null ? trendData.value : defaultFallback.value;
+      const sub = trendData?.sub || defaultFallback.sub;
+      const type = trendData?.type || defaultFallback.type || 'trend-neutral';
+
+      arrowEl.textContent = `${arrow} ${value}`.trim();
+      subEl.textContent = sub;
+
+      container.classList.remove('trend-up', 'trend-down', 'trend-neutral');
+      container.classList.add(type);
+    };
+
+    // Card 1: Total Enquiries MoM Trend
+    updateTrend('kpiTotalTrend', 'kpiTotalArrow', 'kpiTotalSub', kpis?.totalTrend, {
+      arrow: '—', value: '0%', sub: 'vs last month', type: 'trend-neutral'
+    });
+
+    // Card 2: New This Week WoW Trend
+    updateTrend('kpiNewTrend', 'kpiNewArrow', 'kpiNewSub', kpis?.newThisWeekTrend, {
+      arrow: '—', value: '0%', sub: 'vs last week', type: 'trend-neutral'
+    });
+
+    // Card 3: Converted to Orders Trend & Rate
+    updateTrend('kpiConvertedTrend', 'kpiConvertedArrow', 'kpiConvertedSub', kpis?.convertedTrend, {
+      arrow: '—', value: '0.0%', sub: 'conversion rate', type: 'trend-neutral'
+    });
+
+    // Card 4: Appointments Trend
+    updateTrend('kpiAppointmentsTrend', 'kpiAppointmentsArrow', 'kpiAppointmentsSub', kpis?.appointmentsTrend, {
+      arrow: '—', value: '0', sub: 'this week', type: 'trend-neutral'
+    });
+
+    // Card 5: Pending Follow-up Trend
+    updateTrend('kpiPendingTrend', 'kpiPendingArrow', 'kpiPendingSub', kpis?.pendingFollowUpTrend, {
+      arrow: '✓', value: '0', sub: 'need attention', type: 'trend-neutral'
+    });
 
     // Update filter tab count badges directly with REAL database counts
     const setTabCount = (selector, count) => {
@@ -103,12 +149,12 @@ async function loadKpis() {
       if (el) el.textContent = count != null ? count : '0';
     };
 
-    setTabCount('.tab-pill[data-status="all"] .tab-num', totalCount);
-    setTabCount('.tab-pill[data-status="new"] .tab-num', newCount);
-    setTabCount('.tab-pill[data-status="in-discussion"] .tab-num', inDiscussionCount);
-    setTabCount('.tab-pill[data-status="quotation-sent"] .tab-num', quotationCount);
-    setTabCount('.tab-pill[data-status="converted"] .tab-num', convertedCount);
-    setTabCount('.tab-pill[data-status="closed"] .tab-num', closedCount);
+    setTabCount('.tab-pill[data-status="all"] .tab-num', kpis?.tabCounts?.all ?? totalCount);
+    setTabCount('.tab-pill[data-status="new"] .tab-num', kpis?.tabCounts?.new ?? newCount);
+    setTabCount('.tab-pill[data-status="in-discussion"] .tab-num', kpis?.tabCounts?.['in-discussion'] ?? inDiscussionCount);
+    setTabCount('.tab-pill[data-status="quotation-sent"] .tab-num', kpis?.tabCounts?.['quotation-sent'] ?? quotationCount);
+    setTabCount('.tab-pill[data-status="converted"] .tab-num', kpis?.tabCounts?.converted ?? convertedCount);
+    setTabCount('.tab-pill[data-status="closed"] .tab-num', kpis?.tabCounts?.closed ?? closedCount);
 
   } catch (err) {
     console.error('[Enquiries] Failed to load live backend KPIs:', err);

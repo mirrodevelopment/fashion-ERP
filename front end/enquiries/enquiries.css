@@ -274,6 +274,11 @@ body {
   font-weight: 600;
 }
 
+.trend-neutral .trend-arrow {
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+}
+
 .trend-sub {
   color: rgba(255, 255, 255, 0.45);
 }
