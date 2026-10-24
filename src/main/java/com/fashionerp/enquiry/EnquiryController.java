@@ -204,8 +204,8 @@ public class EnquiryController {
                 totalTrend.put("type", "trend-up");
             } else {
                 totalTrend.put("arrow", "—");
-                totalTrend.put("value", "0%");
-                totalTrend.put("sub", "vs last month");
+                totalTrend.put("value", "0");
+                totalTrend.put("sub", total > 0 ? "vs last month" : "enquiries recorded");
                 totalTrend.put("type", "trend-neutral");
             }
         }
@@ -244,8 +244,8 @@ public class EnquiryController {
                 newThisWeekTrend.put("type", "trend-up");
             } else {
                 newThisWeekTrend.put("arrow", "—");
-                newThisWeekTrend.put("value", "0%");
-                newThisWeekTrend.put("sub", "vs last week");
+                newThisWeekTrend.put("value", "0");
+                newThisWeekTrend.put("sub", "this week");
                 newThisWeekTrend.put("type", "trend-neutral");
             }
         }

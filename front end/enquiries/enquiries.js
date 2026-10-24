@@ -100,16 +100,23 @@ async function loadKpis() {
     if (pendEl) pendEl.textContent = kpis?.pendingFollowUp != null ? kpis.pendingFollowUp : followUpCount;
 
     // Update real dynamic trends and subtexts under KPI cards
-    const updateTrend = (trendContainerId, arrowId, subId, trendData, defaultFallback) => {
+    const updateTrend = (trendContainerId, arrowId, subId, trendData) => {
       const container = document.getElementById(trendContainerId);
       const arrowEl = document.getElementById(arrowId);
       const subEl = document.getElementById(subId);
       if (!container || !arrowEl || !subEl) return;
 
-      const arrow = trendData?.arrow || defaultFallback.arrow;
-      const value = trendData?.value != null ? trendData.value : defaultFallback.value;
-      const sub = trendData?.sub || defaultFallback.sub;
-      const type = trendData?.type || defaultFallback.type || 'trend-neutral';
+      if (!trendData) {
+        arrowEl.textContent = '—';
+        subEl.textContent = '';
+        container.classList.remove('trend-up', 'trend-down', 'trend-neutral');
+        return;
+      }
+
+      const arrow = trendData.arrow || '';
+      const value = trendData.value != null ? trendData.value : '';
+      const sub = trendData.sub || '';
+      const type = trendData.type || 'trend-neutral';
 
       arrowEl.textContent = `${arrow} ${value}`.trim();
       subEl.textContent = sub;
@@ -118,30 +125,12 @@ async function loadKpis() {
       container.classList.add(type);
     };
 
-    // Card 1: Total Enquiries MoM Trend
-    updateTrend('kpiTotalTrend', 'kpiTotalArrow', 'kpiTotalSub', kpis?.totalTrend, {
-      arrow: '—', value: '0%', sub: 'vs last month', type: 'trend-neutral'
-    });
-
-    // Card 2: New This Week WoW Trend
-    updateTrend('kpiNewTrend', 'kpiNewArrow', 'kpiNewSub', kpis?.newThisWeekTrend, {
-      arrow: '—', value: '0%', sub: 'vs last week', type: 'trend-neutral'
-    });
-
-    // Card 3: Converted to Orders Trend & Rate
-    updateTrend('kpiConvertedTrend', 'kpiConvertedArrow', 'kpiConvertedSub', kpis?.convertedTrend, {
-      arrow: '—', value: '0.0%', sub: 'conversion rate', type: 'trend-neutral'
-    });
-
-    // Card 4: Appointments Trend
-    updateTrend('kpiAppointmentsTrend', 'kpiAppointmentsArrow', 'kpiAppointmentsSub', kpis?.appointmentsTrend, {
-      arrow: '—', value: '0', sub: 'this week', type: 'trend-neutral'
-    });
-
-    // Card 5: Pending Follow-up Trend
-    updateTrend('kpiPendingTrend', 'kpiPendingArrow', 'kpiPendingSub', kpis?.pendingFollowUpTrend, {
-      arrow: '✓', value: '0', sub: 'need attention', type: 'trend-neutral'
-    });
+    // Render purely dynamic database trends
+    updateTrend('kpiTotalTrend', 'kpiTotalArrow', 'kpiTotalSub', kpis?.totalTrend);
+    updateTrend('kpiNewTrend', 'kpiNewArrow', 'kpiNewSub', kpis?.newThisWeekTrend);
+    updateTrend('kpiConvertedTrend', 'kpiConvertedArrow', 'kpiConvertedSub', kpis?.convertedTrend);
+    updateTrend('kpiAppointmentsTrend', 'kpiAppointmentsArrow', 'kpiAppointmentsSub', kpis?.appointmentsTrend);
+    updateTrend('kpiPendingTrend', 'kpiPendingArrow', 'kpiPendingSub', kpis?.pendingFollowUpTrend);
 
     // Update filter tab count badges directly with REAL database counts
     const setTabCount = (selector, count) => {
